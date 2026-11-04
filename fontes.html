@@ -1,0 +1,86 @@
+<title>Letras Weiss</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;1,500&family=Jost:wght@400;500;600&family=Bodoni+Moda:ital,opsz,wght@0,6..96,500;1,6..96,500&family=Manrope:wght@400;600&family=Playfair+Display:ital,wght@0,500;1,500&family=Nunito+Sans:wght@400;600&family=Marcellus&family=Mulish:wght@400;600&family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@400;600&family=Montserrat:ital,wght@0,500;0,600;1,500&family=Open+Sans:wght@400;600&family=Cinzel:wght@500&family=Raleway:ital,wght@0,400;0,600;1,400&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* Layout: a grid of specimen cards, each a miniature of the site hero in one font pairing. */
+:root{
+  --bg:#FBFDFD; --tint:#EEF7F5; --card:#FFFFFF; --fg:#0F3A4F; --dim:#557580;
+  --accent:#1F9A8B; --deep:#185878; --line:rgba(24,88,120,.13);
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:"Jost",system-ui,sans-serif;margin:0}
+.wrap{max-width:1180px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:48px 72px}
+header{display:flex;align-items:center;gap:16px;margin-bottom:12px}
+header img{width:44px;height:auto}
+.kicker{font-family:var(--mono);font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:var(--accent);margin:0}
+h1.page{font-family:"Cormorant Garamond",Georgia,serif;font-weight:500;font-size:clamp(2.2rem,5vw,3.4rem);margin:4px 0 8px;line-height:1.05}
+.intro{color:var(--dim);max-width:60ch;margin:0 0 36px;font-size:17px;line-height:1.6}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:20px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:24px;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 18px 40px -32px rgba(15,58,79,.45);min-width:0}
+.card.now{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent),0 18px 40px -32px rgba(15,58,79,.45)}
+.spec{padding:28px 26px 26px;background:radial-gradient(90% 100% at 100% 0%,var(--tint),transparent 70%);flex:1}
+.spec .eb{font-family:var(--mono);font-size:10.5px;letter-spacing:.16em;color:var(--accent);text-transform:uppercase}
+.spec h2{font-size:3rem;line-height:1;margin:10px 0 14px;font-weight:500;color:var(--fg);text-wrap:balance}
+.spec h2 em{color:var(--accent)}
+.spec p{color:var(--dim);font-size:16px;line-height:1.55;margin:0 0 18px}
+.spec .row{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.spec .btn{background:var(--accent);color:#fff;border-radius:999px;padding:10px 18px;font-size:14px;font-weight:600}
+.spec .num{font-size:2.2rem;color:var(--deep);line-height:1}
+.spec .num small{font-size:.45em;color:var(--accent);margin-left:3px}
+.meta{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:14px 26px;border-top:1px solid var(--line);font-size:14px}
+.meta b{font-family:var(--mono);font-size:13px;color:var(--deep);letter-spacing:.06em}
+.meta span{color:var(--dim);text-align:right}
+.badge{font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;background:var(--accent);color:#fff;padding:3px 8px;border-radius:999px;margin-left:8px}
+.note{margin-top:32px;color:var(--dim);font-size:15px}
+
+/* pairings */
+.a h2,.a .num{font-family:"Cormorant Garamond",Georgia,serif}.a h2{font-size:3.3rem}.a p,.a .btn{font-family:"Jost",sans-serif}.a .num{font-variant-numeric:lining-nums}
+.b h2,.b .num{font-family:"Bodoni Moda",Didot,serif}.b p,.b .btn{font-family:"Manrope",sans-serif}
+.c h2,.c .num{font-family:"Playfair Display",Georgia,serif}.c p,.c .btn{font-family:"Nunito Sans",sans-serif}.c .num{font-variant-numeric:lining-nums}
+.d h2,.d .num{font-family:"Marcellus",Georgia,serif;font-weight:400}.d h2 em{font-style:normal}.d p,.d .btn{font-family:"Mulish",sans-serif}
+.e h2,.e .num{font-family:"DM Serif Display",Georgia,serif;font-weight:400}.e p,.e .btn{font-family:"DM Sans",sans-serif}
+.f h2,.f .num{font-family:"Montserrat",sans-serif;font-weight:600;letter-spacing:-.02em}.f h2{font-size:2.6rem}.f p,.f .btn{font-family:"Open Sans",sans-serif}
+.g h2,.g .num{font-family:"Cinzel",Georgia,serif;letter-spacing:.02em}.g h2{font-size:2.4rem}.g h2 em{font-style:normal}.g p,.g .btn{font-family:"Raleway",sans-serif}
+</style>
+
+<div class="wrap">
+  <header><img src="assets/escudo.png" alt="" width="44" height="50"><p class="kicker">Weiss Odontologia · tipografia</p></header>
+  <h1 class="page">Qual letra combina com a Weiss?</h1>
+  <p class="intro">Cada cartão mostra o título, o texto e um número do site com uma combinação de letras. Escolha pela letra (A a G) e eu aplico no site.</p>
+
+  <div class="grid">
+    <article class="card now">
+      <div class="spec a"><span class="eb">Clínica multidisciplinar</span><h2>Sorrisos <em>assinados.</em></h2><p>Todos os tratamentos odontológicos em um só lugar, com tecnologia digital.</p><div class="row"><span class="btn">Agendar avaliação</span><span class="num">70<small>+ anos</small></span></div></div>
+      <div class="meta"><b>A<span class="badge">ATUAL</span></b><span>Cormorant Garamond + Jost<br>Clássica e delicada</span></div>
+    </article>
+    <article class="card">
+      <div class="spec b"><span class="eb">Clínica multidisciplinar</span><h2>Sorrisos <em>assinados.</em></h2><p>Todos os tratamentos odontológicos em um só lugar, com tecnologia digital.</p><div class="row"><span class="btn">Agendar avaliação</span><span class="num">70<small>+ anos</small></span></div></div>
+      <div class="meta"><b>B</b><span>Bodoni Moda + Manrope<br>Luxo de revista (a primeira versão)</span></div>
+    </article>
+    <article class="card">
+      <div class="spec c"><span class="eb">Clínica multidisciplinar</span><h2>Sorrisos <em>assinados.</em></h2><p>Todos os tratamentos odontológicos em um só lugar, com tecnologia digital.</p><div class="row"><span class="btn">Agendar avaliação</span><span class="num">70<small>+ anos</small></span></div></div>
+      <div class="meta"><b>C</b><span>Playfair Display + Nunito Sans<br>Elegante e acolhedora</span></div>
+    </article>
+    <article class="card">
+      <div class="spec d"><span class="eb">Clínica multidisciplinar</span><h2>Sorrisos <em>assinados.</em></h2><p>Todos os tratamentos odontológicos em um só lugar, com tecnologia digital.</p><div class="row"><span class="btn">Agendar avaliação</span><span class="num">70<small>+ anos</small></span></div></div>
+      <div class="meta"><b>D</b><span>Marcellus + Mulish<br>Romana, a mais parecida com o logo</span></div>
+    </article>
+    <article class="card">
+      <div class="spec e"><span class="eb">Clínica multidisciplinar</span><h2>Sorrisos <em>assinados.</em></h2><p>Todos os tratamentos odontológicos em um só lugar, com tecnologia digital.</p><div class="row"><span class="btn">Agendar avaliação</span><span class="num">70<small>+ anos</small></span></div></div>
+      <div class="meta"><b>E</b><span>DM Serif Display + DM Sans<br>Forte e moderna</span></div>
+    </article>
+    <article class="card">
+      <div class="spec f"><span class="eb">Clínica multidisciplinar</span><h2>Sorrisos <em>assinados.</em></h2><p>Todos os tratamentos odontológicos em um só lugar, com tecnologia digital.</p><div class="row"><span class="btn">Agendar avaliação</span><span class="num">70<small>+ anos</small></span></div></div>
+      <div class="meta"><b>F</b><span>Montserrat + Open Sans<br>Limpa e tecnológica, sem serifa</span></div>
+    </article>
+    <article class="card">
+      <div class="spec g"><span class="eb">Clínica multidisciplinar</span><h2>Sorrisos <em>assinados.</em></h2><p>Todos os tratamentos odontológicos em um só lugar, com tecnologia digital.</p><div class="row"><span class="btn">Agendar avaliação</span><span class="num">70<small>+ anos</small></span></div></div>
+      <div class="meta"><b>G</b><span>Cinzel + Raleway<br>Maiúsculas imponentes, como o “WEISS”</span></div>
+    </article>
+  </div>
+  <p class="note">Todas são gratuitas (Google Fonts) e funcionam em qualquer hospedagem.</p>
+</div>
