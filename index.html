@@ -1,5 +1,6 @@
 <!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Weiss Odontologia</title>
+<link rel="icon" href="assets/escudo.png">
 <meta name="claude:viewport-fit-sides" content="cover">
 <meta name="description" content="Weiss Odontologia: ortodontia de precisão com Invisalign e escaneamento digital iTero em Caruaru e Recife. Dr. Edelweiss Jr., especialista e mestre em Ortodontia.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -8,10 +9,10 @@
 <style>
 /* Layout: dark clinical "scan room" — a live 3D arch scan opens the page; sections alternate deep ink bands and pearl panels, gold used only for signature moments. */
 :root{
-  --ink:#0B1F2C; --ink-2:#12303F; --pearl:#F3F5F4; --mist:#C9D6DC;
-  --gold:#C9A961; --gold-soft:#E6D3A3; --aqua:#6FC7C9;
-  --bg:#0B1F2C; --bg-2:#102938; --surface:#14313F; --line:rgba(201,214,220,.16);
-  --fg:#EEF3F3; --fg-dim:#A9BCC4; --accent:var(--gold); --on-accent:#0B1F2C;
+  --ink:#072330; --petrol:#185878; --pearl:#F2F7F7; --mist:#BDDCE0;
+  --gold:#28B0A0; --gold-soft:#5FD0C0; --aqua:#F2FAFA;
+  --bg:#072330; --bg-2:#0A2B3B; --surface:#0C3244; --line:rgba(189,220,224,.15);
+  --fg:#F2FAFA; --fg-dim:#A3C3C9; --accent:#28B0A0; --on-accent:#04141C;
   --f-display:"Bodoni Moda","Didot","Bodoni 72",Georgia,serif;
   --f-body:"Manrope",system-ui,-apple-system,"Segoe UI",sans-serif;
   --f-mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
@@ -38,7 +39,7 @@ p{margin:0}
 .btn{display:inline-flex;align-items:center;gap:10px;padding:14px 22px;border-radius:999px;font-weight:600;font-size:15px;text-decoration:none;border:1px solid transparent;transition:transform .25s ease,background .25s ease,border-color .25s ease;cursor:pointer;font-family:inherit}
 .btn:hover{transform:translateY(-2px)}
 .btn-gold{background:var(--accent);color:var(--on-accent)}
-.btn-gold:hover{background:var(--gold-soft);color:#0B1F2C}
+.btn-gold:hover{background:var(--gold-soft);color:#04141C}
 .btn-ghost{border-color:var(--line);color:var(--fg);background:transparent}
 .btn-ghost:hover{border-color:var(--accent)}
 .btn svg{width:18px;height:18px;flex:none}
@@ -47,7 +48,7 @@ p{margin:0}
 header.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:50;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);background:color-mix(in srgb,var(--bg) 78%,transparent);border-bottom:1px solid var(--line)}
 .top .wrap{display:flex;align-items:center;justify-content:space-between;gap:16px;padding-block:14px}
 .brand{display:flex;align-items:center;gap:12px;text-decoration:none}
-.brand-mark{width:38px;height:38px;flex:none}
+.brand-mark{width:34px;height:auto;flex:none;display:block}
 .brand-name{font-family:var(--f-display);font-size:22px;letter-spacing:.24em;line-height:1}
 .brand-sub{display:block;font-family:var(--f-mono);font-size:9.5px;letter-spacing:.32em;color:var(--fg-dim);margin-top:4px}
 nav.links{display:flex;gap:26px;font-size:14px}
@@ -152,21 +153,25 @@ input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;bac
 
 /* Pearl band */
 .pearl{background:var(--pearl);color:var(--ink)}
-.pearl .lead,.pearl .muted{color:#4A626D}
-.pearl .eyebrow{color:#8E6F2C}
-.pearl .head h2 em{color:#8E6F2C}
+.pearl .lead,.pearl .muted{color:#3F5F69}
+.pearl .eyebrow{color:var(--petrol)}
+.pearl .head h2 em{color:var(--petrol)}
+.pearl .btn-gold{background:var(--petrol);color:#fff}
+.pearl .btn-gold:hover{background:#1F6E94}
 
 /* Doctor */
 .doc{display:grid;grid-template-columns:.9fr 1.1fr;gap:56px;align-items:center}
-.portrait{aspect-ratio:4/5;max-width:100%;border-radius:200px 200px 28px 28px;background:linear-gradient(160deg,#12303F,#0B1F2C 70%);position:relative;overflow:hidden;display:grid;place-items:end center}
-.portrait svg{position:absolute;inset:0;width:100%;height:100%}
-.portrait .sig{position:relative;font-family:var(--f-display);font-style:italic;font-size:clamp(1.8rem,3.4vw,2.6rem);color:#E6D3A3;padding-bottom:34px;text-align:center;line-height:1.1}
-.portrait .sig small{display:block;font-family:var(--f-mono);font-style:normal;font-size:11px;letter-spacing:.24em;color:#A9BCC4;margin-top:10px}
+.portrait{aspect-ratio:4/5;max-width:100%;border-radius:220px 220px 28px 28px;background:#fff;position:relative;overflow:hidden;display:grid;place-items:end center;box-shadow:0 0 0 1px rgba(24,88,120,.12),0 40px 80px -40px rgba(7,35,48,.55)}
+.portrait img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 20%}
+.portrait::after{content:"";position:absolute;inset:auto 0 0;height:26%;background:linear-gradient(180deg,transparent,rgba(7,35,48,.9) 60%)}
+.portrait .sig{position:relative;z-index:1;font-family:var(--f-display);font-style:italic;font-size:clamp(1.6rem,3vw,2.3rem);color:#fff;padding-bottom:30px;text-align:center;line-height:1.1}
+.portrait .sig small{display:block;font-family:var(--f-mono);font-style:normal;font-size:11px;letter-spacing:.24em;color:#5FD0C0;margin-top:10px}
+@media (prefers-reduced-motion:no-preference){.portrait img{animation:breathe 14s ease-in-out infinite alternate}@keyframes breathe{from{transform:scale(1.02)}to{transform:scale(1.09)}}}
 .doc h2{font-size:clamp(2.2rem,4.4vw,3.6rem)}
 .doc .lead{margin-top:18px}
 .creds{list-style:none;padding:0;margin:30px 0 0;display:grid;gap:0}
-.creds li{display:grid;grid-template-columns:130px 1fr;gap:16px;padding:14px 0;border-top:1px solid rgba(11,31,44,.12);font-size:15.5px}
-.creds li span{font-family:var(--f-mono);font-size:11.5px;letter-spacing:.12em;text-transform:uppercase;color:#8E6F2C;padding-top:3px}
+.creds li{display:grid;grid-template-columns:130px 1fr;gap:16px;padding:14px 0;border-top:1px solid rgba(7,35,48,.12);font-size:15.5px}
+.creds li span{font-family:var(--f-mono);font-size:11.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--petrol);padding-top:3px}
 @media (max-width:860px){.doc{grid-template-columns:1fr;gap:36px}.portrait{max-width:420px;margin:0 auto;width:100%}.creds li{grid-template-columns:1fr;gap:2px}}
 
 /* Services */
@@ -176,7 +181,7 @@ input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;bac
 .svc .tag{font-family:var(--f-mono);font-size:11px;letter-spacing:.12em;color:var(--accent);text-transform:uppercase}
 .svc h3{font-size:1.6rem}
 .svc p{font-size:15px;color:var(--fg-dim)}
-.svc.feature{grid-column:span 2;background:linear-gradient(135deg,var(--surface),var(--bg-2))}
+.svc.feature{grid-column:span 2;background:linear-gradient(135deg,var(--surface),var(--bg-2));border-color:color-mix(in srgb,var(--accent) 45%,transparent)}
 .svc.feature h3{font-size:2.2rem}
 @media (max-width:900px){.services{grid-template-columns:1fr 1fr}.svc.feature{grid-column:span 2}}
 @media (max-width:560px){.services{grid-template-columns:1fr}.svc.feature{grid-column:auto}}
@@ -185,10 +190,10 @@ input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;bac
 .stories{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
 .story{background:#fff;border-radius:22px;padding:28px;display:flex;flex-direction:column;gap:18px;color:var(--ink);box-shadow:0 1px 0 rgba(11,31,44,.06),0 18px 40px -28px rgba(11,31,44,.35);min-width:0}
 .story q{font-family:var(--f-display);font-size:1.28rem;line-height:1.35;quotes:"“" "”"}
-.story .where{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:auto;font-family:var(--f-mono);font-size:11.5px;letter-spacing:.08em;color:#4A626D;flex-wrap:wrap}
-.story a{color:#8E6F2C;text-decoration:none;font-weight:500}
+.story .where{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:auto;font-family:var(--f-mono);font-size:11.5px;letter-spacing:.08em;color:#3F5F69;flex-wrap:wrap}
+.story a{color:var(--petrol);text-decoration:none;font-weight:500}
 .story a:hover{text-decoration:underline}
-.story .route{font-size:12px;color:#8E6F2C;font-family:var(--f-mono);letter-spacing:.1em;text-transform:uppercase}
+.story .route{font-size:12px;color:#1E8A7E;font-family:var(--f-mono);letter-spacing:.1em;text-transform:uppercase}
 @media (max-width:900px){.stories{grid-template-columns:1fr 1fr}}
 @media (max-width:600px){.stories{grid-template-columns:1fr}}
 
@@ -239,8 +244,8 @@ footer a:hover{color:var(--fg)}
 <header class="top">
   <div class="wrap">
     <a class="brand" href="#inicio" aria-label="Weiss Odontologia, início">
-      <svg class="brand-mark" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18.5" fill="none" stroke="currentColor" stroke-opacity=".35"/><path d="M9 13l5.2 15L20 15l5.8 13L31 13" fill="none" stroke="var(--accent)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      <span><span class="brand-name">WEISS</span><span class="brand-sub">ODONTOLOGIA</span></span>
+      <img class="brand-mark" src="assets/escudo.png" alt="" width="34" height="38">
+      <span><span class="brand-name">WEISS</span><span class="brand-sub">CLÍNICA ODONTOLÓGICA</span></span>
     </a>
     <nav class="links" aria-label="Seções">
       <a href="#simulador">Invisalign</a>
@@ -379,19 +384,20 @@ footer a:hover{color:var(--fg)}
 
 <section class="block pearl" id="doutor">
   <div class="wrap doc">
-    <div class="portrait reveal" aria-hidden="true">
-      <svg viewBox="0 0 400 500" preserveAspectRatio="xMidYMid slice"><defs><radialGradient id="pg" cx="50%" cy="35%" r="60%"><stop offset="0" stop-color="#C9A961" stop-opacity=".28"/><stop offset="1" stop-color="#C9A961" stop-opacity="0"/></radialGradient></defs><rect width="400" height="500" fill="url(#pg)"/><g fill="none" stroke="#C9A961" stroke-opacity=".35"><ellipse cx="200" cy="210" rx="120" ry="80"/><ellipse cx="200" cy="210" rx="160" ry="110" stroke-opacity=".2"/><ellipse cx="200" cy="210" rx="200" ry="140" stroke-opacity=".1"/></g><path d="M110 230c30-60 150-60 180 0" fill="none" stroke="#E6D3A3" stroke-width="2" stroke-linecap="round"/></svg>
-      <p class="sig">Dr. Edelweiss Jr.<small>ORTODONTISTA · CRO-PE</small></p>
+    <div class="portrait reveal">
+      <img src="assets/dr-edelweiss.jpg" alt="Dr. Edelweiss Barbosa Gomes Jr., ortodontista" width="900" height="900" loading="lazy">
+      <p class="sig">Dr. Edelweiss Jr.<small>ORTODONTISTA · CRO-PE 5131</small></p>
     </div>
     <div class="reveal">
       <p class="eyebrow">Quem assina o seu sorriso</p>
-      <h2>Dr. Edelweiss Jr.</h2>
+      <h2>Dr. Edelweiss Barbosa Gomes Jr.</h2>
       <p class="lead">Especialista e Mestre em Ortodontia, professor de especialização e pioneiro do Invisalign em Caruaru. À frente da Weiss, uma clínica com 76 anos de história, cuida hoje dos filhos e netos dos pacientes que atendeu no início da carreira.</p>
       <ul class="creds">
         <li><span>Formação</span>Especialista e Mestre em Ortodontia</li>
         <li><span>Ensino</span>Professor da Especialização em Ortodontia, formando ortodontistas que hoje são referência no interior de Pernambuco</li>
         <li><span>Tecnologia</span>Invisalign, escaneamento iTero e contenção Vivera</li>
         <li><span>Parcerias</span>Troca de conhecimento com o ITV e colegas de referência</li>
+        <li><span>Registro</span>CRO-PE 5131</li>
         <li><span>Unidades</span>Caruaru e Recife</li>
       </ul>
     </div>
@@ -402,14 +408,17 @@ footer a:hover{color:var(--fg)}
   <div class="wrap">
     <div class="head reveal">
       <div><p class="eyebrow">Especialidades</p><h2>Cuidado completo, <em>para toda a família</em>.</h2></div>
-      <p class="lead">Especialistas em cada área, do primeiro dente de leite ao implante.</p>
+      <p class="lead">Sete especialidades e Invisalign sob o mesmo teto. Começou na ortodontia e precisou de um canal? Resolve aqui mesmo.</p>
     </div>
     <div class="services reveal">
-      <article class="svc feature"><span class="tag">Carro-chefe</span><h3>Ortodontia com Invisalign</h3><p>Alinhadores invisíveis para adolescentes e adultos, inclusive como continuação de tratamentos com aparelho fixo. Transformações em pouco tempo, com planejamento digital preciso.</p></article>
-      <article class="svc"><span class="tag">Ortodontia</span><h3>Aparelho fixo</h3><p>Técnicas consagradas para casos que pedem aparelho convencional, com o mesmo rigor de planejamento.</p></article>
-      <article class="svc"><span class="tag">Reabilitação</span><h3>Implantes</h3><p>Há mais de 10 anos devolvendo mastigação, sorriso e autoestima com profissionais especialistas.</p></article>
-      <article class="svc"><span class="tag">Infância</span><h3>Ortodontia preventiva</h3><p>O cuidado começa na infância. Acompanhamos o crescimento para orientar a mordida no momento certo.</p></article>
-      <article class="svc"><span class="tag">Prevenção</span><h3>Saúde bucal</h3><p>Check-ups, limpeza e retornos periódicos. A gente lembra você de voltar.</p></article>
+      <article class="svc feature"><span class="tag">Carro-chefe</span><h3>Ortodontia com Invisalign</h3><p>Alinhadores transparentes para adolescentes e adultos, inclusive como continuação de tratamentos com aparelho fixo. Planejamento digital 3D com escaneamento iTero. A indicação depende da avaliação de cada caso.</p></article>
+      <article class="svc"><span class="tag">Posição dos dentes</span><h3>Ortodontia</h3><p>Corrige a posição dos dentes e dos ossos maxilares. Vai além da estética: trata a mordida e protege a articulação.</p></article>
+      <article class="svc"><span class="tag">Crescimento</span><h3>Ortopedia Funcional dos Maxilares</h3><p>Equilibra ossos, músculos e articulação temporomandibular com aparelhos removíveis.</p></article>
+      <article class="svc"><span class="tag">Reabilitação</span><h3>Implantodontia</h3><p>Há mais de 10 anos repondo dentes com implantes, para devolver mastigação e segurança ao sorrir.</p></article>
+      <article class="svc"><span class="tag">Reposição</span><h3>Prótese</h3><p>Removíveis, fixas, de porcelana ou sobre implantes, para restaurar forma e função.</p></article>
+      <article class="svc"><span class="tag">Estética</span><h3>Dentística</h3><p>Clareamento, resinas, facetas e restaurações estéticas.</p></article>
+      <article class="svc"><span class="tag">Canal</span><h3>Endodontia</h3><p>Tratamento de canal com tecnologia, muitas vezes em sessão única.</p></article>
+      <article class="svc"><span class="tag">Infância</span><h3>Odontopediatria</h3><p>Gestantes, bebês, crianças e adolescentes, com foco em prevenção e numa consulta tranquila.</p></article>
     </div>
   </div>
 </section>
@@ -422,10 +431,10 @@ footer a:hover{color:var(--fg)}
     </div>
     <div class="stories reveal">
       <article class="story"><span class="route">Santa Cruz do Capibaribe</span><q>Cuidando de 3 gerações! Uma honra poder cuidar de toda a família há mais de 18 anos. Mãe, filho e netas!</q><div class="where"><span>Família, há 18 anos</span><a href="https://www.instagram.com/p/DbRBfj4xRuM/" target="_blank" rel="noopener">Ver no Instagram ↗</a></div></article>
-      <article class="story"><span class="route">Caruaru → Parintins, AM</span><q>Uma grande satisfação poder devolver o sorriso, a mastigação e a autoestima. Uma honra poder cuidar ainda mais do seu sorriso, Sr. João.</q><div class="where"><span>Reabilitação</span><a href="https://www.instagram.com/p/DbQ-5ELRxyY/" target="_blank" rel="noopener">Ver no Instagram ↗</a></div></article>
+      <article class="story"><span class="route">Caruaru → Parintins, AM</span><q>Uma grande satisfação poder devolver o sorriso, a mastigação e a autoestima. Uma honra poder cuidar ainda mais do seu sorriso.</q><div class="where"><span>Reabilitação</span><a href="https://www.instagram.com/p/DbQ-5ELRxyY/" target="_blank" rel="noopener">Ver no Instagram ↗</a></div></article>
       <article class="story"><span class="route">Recife → Portugal</span><q>Atendimento personalizado. Uma honra poder cuidar ainda mais da saúde bucal de vocês!</q><div class="where"><span>Família</span><a href="https://www.instagram.com/p/DbQ8Iy0RCbG/" target="_blank" rel="noopener">Ver no Instagram ↗</a></div></article>
       <article class="story"><span class="route">Invisalign · Recife</span><q>Um prazer enorme poder finalizar e assinar mais este projeto. Invisalign para todas as idades: discreto, tecnologia e conforto.</q><div class="where"><span>Tratamento finalizado</span><a href="https://www.instagram.com/p/DdnPY5XRubm/" target="_blank" rel="noopener">Ver no Instagram ↗</a></div></article>
-      <article class="story"><span class="route">Invisalign após aparelho fixo</span><q>Assinando mais um projeto altamente preciso e detalhado. Uma transformação em pouco tempo.</q><div class="where"><span>Em tratamento</span><a href="https://www.instagram.com/p/DdnQ3MUJv2G/" target="_blank" rel="noopener">Ver no Instagram ↗</a></div></article>
+      <article class="story"><span class="route">Invisalign após aparelho fixo</span><q>Assinando mais um projeto altamente preciso e detalhado, dando continuidade ao tratamento após o aparelho fixo.</q><div class="where"><span>Em tratamento</span><a href="https://www.instagram.com/p/DdnQ3MUJv2G/" target="_blank" rel="noopener">Ver no Instagram ↗</a></div></article>
       <article class="story"><span class="route">Contenção Vivera</span><q>Tratamento finalizado! Parabéns pela sua jornada e conquista do seu novo sorriso. Pronto para a universidade da vida.</q><div class="where"><span>Finalização</span><a href="https://www.instagram.com/p/DdsqNSHpp0a/" target="_blank" rel="noopener">Ver no Instagram ↗</a></div></article>
     </div>
     <p style="margin-top:32px;text-align:center"><a class="btn btn-gold" href="https://www.instagram.com/dredelweissjr/" target="_blank" rel="noopener">Siga @dredelweissjr</a></p>
@@ -485,7 +494,7 @@ footer a:hover{color:var(--fg)}
 
 <footer>
   <div class="wrap">
-    <div><span class="brand-name" style="font-size:18px">WEISS</span> <span style="margin-left:8px">Odontologia · Caruaru e Recife</span><br><small>Responsável técnico: Dr. Edelweiss Jr., Especialista e Mestre em Ortodontia.</small></div>
+    <div><img src="assets/logo-weiss.png" alt="Weiss Clínica Odontológica" width="64" height="103" style="display:block;margin-bottom:14px;background:#F2FAFA;border-radius:12px;padding:8px 10px;width:64px;height:auto"><span>Weiss Clínica Odontológica · Caruaru e Recife</span><br><small>Responsável técnico: Dr. Edelweiss Barbosa Gomes Jr., Especialista e Mestre em Ortodontia · CRO-PE 5131.</small></div>
     <div style="display:flex;gap:22px;flex-wrap:wrap"><a href="https://www.instagram.com/dredelweissjr/" target="_blank" rel="noopener">Instagram</a><a href="https://www.odontoweiss.com.br" target="_blank" rel="noopener">odontoweiss.com.br</a><a href="#unidades">Unidades</a></div>
   </div>
 </footer>
