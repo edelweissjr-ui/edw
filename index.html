@@ -1,0 +1,678 @@
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Weiss Odontologia</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="Weiss Odontologia: ortodontia de precisão com Invisalign e escaneamento digital iTero em Caruaru e Recife. Dr. Edelweiss Jr., especialista e mestre em Ortodontia.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..700;1,6..96,400..600&family=Manrope:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: dark clinical "scan room" — a live 3D arch scan opens the page; sections alternate deep ink bands and pearl panels, gold used only for signature moments. */
+:root{
+  --ink:#0B1F2C; --ink-2:#12303F; --pearl:#F3F5F4; --mist:#C9D6DC;
+  --gold:#C9A961; --gold-soft:#E6D3A3; --aqua:#6FC7C9;
+  --bg:#0B1F2C; --bg-2:#102938; --surface:#14313F; --line:rgba(201,214,220,.16);
+  --fg:#EEF3F3; --fg-dim:#A9BCC4; --accent:var(--gold); --on-accent:#0B1F2C;
+  --f-display:"Bodoni Moda","Didot","Bodoni 72",Georgia,serif;
+  --f-body:"Manrope",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+  --gut:max(16px,env(safe-area-inset-left,0px));
+  --gut-r:max(16px,env(safe-area-inset-right,0px));
+  --max:1180px;
+  color-scheme:dark;
+}
+
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:17px;line-height:1.6;overflow-x:hidden;-webkit-font-smoothing:antialiased}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:60;background:var(--bg)}
+a{color:inherit}
+h1,h2,h3{font-family:var(--f-display);font-weight:500;line-height:1.05;margin:0;text-wrap:balance;letter-spacing:-.01em}
+p{margin:0}
+.wrap{max-width:var(--max);margin:0 auto;padding-left:var(--gut);padding-right:var(--gut-r)}
+.eyebrow{font-family:var(--f-mono);font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:var(--accent)}
+.lead{color:var(--fg-dim);font-size:1.12rem;max-width:58ch}
+:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:4px}
+
+/* Buttons */
+.btn{display:inline-flex;align-items:center;gap:10px;padding:14px 22px;border-radius:999px;font-weight:600;font-size:15px;text-decoration:none;border:1px solid transparent;transition:transform .25s ease,background .25s ease,border-color .25s ease;cursor:pointer;font-family:inherit}
+.btn:hover{transform:translateY(-2px)}
+.btn-gold{background:var(--accent);color:var(--on-accent)}
+.btn-gold:hover{background:var(--gold-soft);color:#0B1F2C}
+.btn-ghost{border-color:var(--line);color:var(--fg);background:transparent}
+.btn-ghost:hover{border-color:var(--accent)}
+.btn svg{width:18px;height:18px;flex:none}
+
+/* Header */
+header.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:50;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);background:color-mix(in srgb,var(--bg) 78%,transparent);border-bottom:1px solid var(--line)}
+.top .wrap{display:flex;align-items:center;justify-content:space-between;gap:16px;padding-block:14px}
+.brand{display:flex;align-items:center;gap:12px;text-decoration:none}
+.brand-mark{width:38px;height:38px;flex:none}
+.brand-name{font-family:var(--f-display);font-size:22px;letter-spacing:.24em;line-height:1}
+.brand-sub{display:block;font-family:var(--f-mono);font-size:9.5px;letter-spacing:.32em;color:var(--fg-dim);margin-top:4px}
+nav.links{display:flex;gap:26px;font-size:14px}
+nav.links a{text-decoration:none;color:var(--fg-dim);transition:color .2s}
+nav.links a:hover{color:var(--fg)}
+.top .btn{padding:10px 18px;font-size:14px}
+@media (max-width:900px){nav.links{display:none}}
+@media (max-width:420px){.top .btn span{display:none}.top .btn{padding:10px 12px}}
+
+/* Hero */
+.hero{position:relative;overflow:hidden}
+.hero .wrap{display:grid;grid-template-columns:1.05fr 1fr;gap:32px;align-items:center;padding-block:72px 56px}
+.hero h1{font-size:clamp(3rem,7.4vw,6.4rem);font-weight:400}
+.hero h1 em{font-style:italic;color:var(--accent)}
+.hero .lead{margin-top:22px}
+.hero-ctas{display:flex;flex-wrap:wrap;gap:12px;margin-top:32px}
+.hero-meta{display:flex;flex-wrap:wrap;gap:8px 22px;margin-top:34px;font-family:var(--f-mono);font-size:12px;color:var(--fg-dim);letter-spacing:.06em}
+.hero-meta b{color:var(--fg);font-weight:500}
+.scan{position:relative;aspect-ratio:1/1;max-width:100%;width:100%}
+.scan canvas{width:100%;height:100%;display:block}
+.scan-hud{position:absolute;inset:0;pointer-events:none;font-family:var(--f-mono);font-size:11px;color:var(--fg-dim);letter-spacing:.08em}
+.scan-hud .c{position:absolute;width:22px;height:22px;border-color:var(--accent);border-style:solid;opacity:.7}
+.c.tl{top:6%;left:6%;border-width:1px 0 0 1px}.c.tr{top:6%;right:6%;border-width:1px 1px 0 0}
+.c.bl{bottom:6%;left:6%;border-width:0 0 1px 1px}.c.br{bottom:6%;right:6%;border-width:0 1px 1px 0}
+.scan-hud .l1{position:absolute;top:8%;left:12%}
+.scan-hud .l2{position:absolute;bottom:8%;right:12%;text-align:right}
+.scan-hud .dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--aqua);margin-right:7px;animation:blink 1.4s infinite}
+@keyframes blink{50%{opacity:.25}}
+@media (max-width:860px){.hero .wrap{grid-template-columns:1fr;padding-block:40px 32px}.scan{max-width:520px;margin:0 auto}}
+
+/* Load-in sequence (starts visible, gently settles) */
+@media (prefers-reduced-motion:no-preference){
+  .rise{animation:rise 1s cubic-bezier(.2,.7,.2,1) both}
+  .d1{animation-delay:.08s}.d2{animation-delay:.18s}.d3{animation-delay:.3s}.d4{animation-delay:.42s}
+  @keyframes rise{from{transform:translateY(18px);opacity:.35}to{transform:none;opacity:1}}
+  @supports (animation-timeline:view()){
+    .reveal{animation:reveal linear both;animation-timeline:view();animation-range:entry 0% entry 40%}
+    @keyframes reveal{from{transform:translateY(40px)}to{transform:none}}
+  }
+}
+
+/* Stats */
+.stats{border-block:1px solid var(--line);background:var(--bg-2)}
+.stats .wrap{display:grid;grid-template-columns:repeat(4,1fr);gap:0}
+.stat{padding:30px 20px;border-left:1px solid var(--line)}
+.stat:first-child{border-left:0}
+.stat .n{font-family:var(--f-display);font-size:clamp(2.4rem,4.6vw,3.6rem);line-height:1;font-variant-numeric:tabular-nums;color:var(--fg)}
+.stat .n small{font-size:.45em;color:var(--accent);margin-left:4px}
+.stat .t{margin-top:10px;font-size:14px;color:var(--fg-dim);max-width:22ch}
+@media (max-width:760px){.stats .wrap{grid-template-columns:1fr 1fr}.stat:nth-child(3){border-left:0}.stat{border-top:1px solid var(--line)}.stat:nth-child(-n+2){border-top:0}}
+
+/* Marquee */
+.marquee{overflow:hidden;padding-block:22px;border-bottom:1px solid var(--line)}
+.marquee-track{display:flex;gap:48px;width:max-content;animation:slide 38s linear infinite;font-family:var(--f-display);font-style:italic;font-size:clamp(1.3rem,2.6vw,2rem);color:var(--fg-dim);white-space:nowrap}
+.marquee-track span::after{content:"✦";font-style:normal;color:var(--accent);margin-left:48px;font-size:.6em;vertical-align:middle}
+@keyframes slide{to{transform:translateX(-50%)}}
+@media (prefers-reduced-motion:reduce){.marquee-track{animation:none}}
+
+/* Sections */
+section.block{padding-block:96px}
+.head{display:grid;grid-template-columns:1fr 1fr;gap:32px;align-items:end;margin-bottom:48px}
+.head h2{font-size:clamp(2.2rem,4.6vw,3.8rem)}
+.head h2 em{font-style:italic;color:var(--accent)}
+@media (max-width:760px){.head{grid-template-columns:1fr}section.block{padding-block:64px}}
+
+/* Simulator */
+.sim{display:grid;grid-template-columns:1.3fr 1fr;gap:28px;align-items:stretch}
+.sim-stage{background:radial-gradient(120% 90% at 50% 10%,var(--surface),var(--bg-2));border:1px solid var(--line);border-radius:28px;padding:24px;position:relative;overflow:hidden;min-width:0}
+.sim-stage svg{width:100%;height:auto;display:block}
+.sim-panel{display:flex;flex-direction:column;gap:22px;justify-content:center;min-width:0}
+.sim-count{font-family:var(--f-mono);font-size:13px;color:var(--fg-dim);letter-spacing:.08em}
+.sim-big{font-family:var(--f-display);font-size:clamp(3.4rem,7vw,5.4rem);line-height:1;font-variant-numeric:tabular-nums}
+.sim-big small{font-size:.32em;color:var(--fg-dim);font-family:var(--f-mono);margin-left:8px}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:4px;border-radius:4px;background:linear-gradient(90deg,var(--accent) var(--p,0%),var(--line) var(--p,0%));outline:none}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:26px;height:26px;border-radius:50%;background:var(--accent);border:5px solid var(--bg);box-shadow:0 0 0 1px var(--accent);cursor:grab}
+input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;background:var(--accent);border:5px solid var(--bg);cursor:grab}
+.sim-notes{font-size:14px;color:var(--fg-dim);border-top:1px solid var(--line);padding-top:16px}
+.sim-phase{display:flex;gap:6px;flex-wrap:wrap}
+.chip{font-family:var(--f-mono);font-size:11px;letter-spacing:.08em;padding:6px 10px;border-radius:999px;border:1px solid var(--line);color:var(--fg-dim);transition:all .3s}
+.chip.on{background:var(--accent);color:var(--on-accent);border-color:var(--accent)}
+@media (max-width:860px){.sim{grid-template-columns:1fr}}
+
+/* Tech grid */
+.tech{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:24px;overflow:hidden}
+.tech article{background:var(--bg);padding:30px 26px 34px;display:flex;flex-direction:column;gap:14px;transition:background .3s;min-width:0}
+.tech article:hover{background:var(--surface)}
+.tech .ic{width:44px;height:44px;color:var(--accent)}
+.tech h3{font-size:1.55rem}
+.tech p{font-size:15px;color:var(--fg-dim)}
+.tech .spec{margin-top:auto;font-family:var(--f-mono);font-size:11.5px;color:var(--aqua);letter-spacing:.06em}
+@media (max-width:980px){.tech{grid-template-columns:1fr 1fr}}
+@media (max-width:540px){.tech{grid-template-columns:1fr}}
+
+/* Journey */
+.journey{display:grid;grid-template-columns:repeat(5,1fr);gap:18px;counter-reset:j;position:relative}
+.journey::before{content:"";position:absolute;top:22px;left:4%;right:4%;height:1px;background:linear-gradient(90deg,transparent,var(--accent),transparent)}
+.step{position:relative;padding-top:64px;min-width:0}
+.step::before{counter-increment:j;content:"0" counter(j);position:absolute;top:0;left:0;width:46px;height:46px;border-radius:50%;display:grid;place-items:center;background:var(--bg);border:1px solid var(--accent);font-family:var(--f-mono);font-size:13px;color:var(--accent)}
+.step h3{font-size:1.35rem;margin-bottom:8px}
+.step p{font-size:15px;color:var(--fg-dim)}
+@media (max-width:900px){.journey{grid-template-columns:1fr;gap:28px}.journey::before{top:0;bottom:0;left:22px;right:auto;width:1px;height:auto;background:linear-gradient(180deg,transparent,var(--accent),transparent)}.step{padding-top:0;padding-left:70px}}
+
+/* Pearl band */
+.pearl{background:var(--pearl);color:var(--ink)}
+.pearl .lead,.pearl .muted{color:#4A626D}
+.pearl .eyebrow{color:#8E6F2C}
+.pearl .head h2 em{color:#8E6F2C}
+
+/* Doctor */
+.doc{display:grid;grid-template-columns:.9fr 1.1fr;gap:56px;align-items:center}
+.portrait{aspect-ratio:4/5;max-width:100%;border-radius:200px 200px 28px 28px;background:linear-gradient(160deg,#12303F,#0B1F2C 70%);position:relative;overflow:hidden;display:grid;place-items:end center}
+.portrait svg{position:absolute;inset:0;width:100%;height:100%}
+.portrait .sig{position:relative;font-family:var(--f-display);font-style:italic;font-size:clamp(1.8rem,3.4vw,2.6rem);color:#E6D3A3;padding-bottom:34px;text-align:center;line-height:1.1}
+.portrait .sig small{display:block;font-family:var(--f-mono);font-style:normal;font-size:11px;letter-spacing:.24em;color:#A9BCC4;margin-top:10px}
+.doc h2{font-size:clamp(2.2rem,4.4vw,3.6rem)}
+.doc .lead{margin-top:18px}
+.creds{list-style:none;padding:0;margin:30px 0 0;display:grid;gap:0}
+.creds li{display:grid;grid-template-columns:130px 1fr;gap:16px;padding:14px 0;border-top:1px solid rgba(11,31,44,.12);font-size:15.5px}
+.creds li span{font-family:var(--f-mono);font-size:11.5px;letter-spacing:.12em;text-transform:uppercase;color:#8E6F2C;padding-top:3px}
+@media (max-width:860px){.doc{grid-template-columns:1fr;gap:36px}.portrait{max-width:420px;margin:0 auto;width:100%}.creds li{grid-template-columns:1fr;gap:2px}}
+
+/* Services */
+.services{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.svc{border:1px solid var(--line);border-radius:22px;padding:28px;display:flex;flex-direction:column;gap:12px;position:relative;overflow:hidden;min-width:0;transition:border-color .3s,transform .3s}
+.svc:hover{border-color:var(--accent);transform:translateY(-4px)}
+.svc .tag{font-family:var(--f-mono);font-size:11px;letter-spacing:.12em;color:var(--accent);text-transform:uppercase}
+.svc h3{font-size:1.6rem}
+.svc p{font-size:15px;color:var(--fg-dim)}
+.svc.feature{grid-column:span 2;background:linear-gradient(135deg,var(--surface),var(--bg-2))}
+.svc.feature h3{font-size:2.2rem}
+@media (max-width:900px){.services{grid-template-columns:1fr 1fr}.svc.feature{grid-column:span 2}}
+@media (max-width:560px){.services{grid-template-columns:1fr}.svc.feature{grid-column:auto}}
+
+/* Stories */
+.stories{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.story{background:#fff;border-radius:22px;padding:28px;display:flex;flex-direction:column;gap:18px;color:var(--ink);box-shadow:0 1px 0 rgba(11,31,44,.06),0 18px 40px -28px rgba(11,31,44,.35);min-width:0}
+.story q{font-family:var(--f-display);font-size:1.28rem;line-height:1.35;quotes:"“" "”"}
+.story .where{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:auto;font-family:var(--f-mono);font-size:11.5px;letter-spacing:.08em;color:#4A626D;flex-wrap:wrap}
+.story a{color:#8E6F2C;text-decoration:none;font-weight:500}
+.story a:hover{text-decoration:underline}
+.story .route{font-size:12px;color:#8E6F2C;font-family:var(--f-mono);letter-spacing:.1em;text-transform:uppercase}
+@media (max-width:900px){.stories{grid-template-columns:1fr 1fr}}
+@media (max-width:600px){.stories{grid-template-columns:1fr}}
+
+/* Units */
+.units{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.unit{border:1px solid var(--line);border-radius:28px;padding:34px;display:flex;flex-direction:column;gap:18px;background:linear-gradient(180deg,var(--surface),var(--bg));min-width:0}
+.unit h3{font-size:clamp(2.2rem,4vw,3rem)}
+.unit h3 small{display:block;font-family:var(--f-mono);font-size:12px;letter-spacing:.2em;color:var(--accent);margin-bottom:10px}
+.unit address{font-style:normal;color:var(--fg-dim);font-size:15.5px}
+.lines{display:grid;gap:8px}
+.line{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 14px;border:1px solid var(--line);border-radius:14px;font-variant-numeric:tabular-nums;flex-wrap:wrap}
+.line .k{font-family:var(--f-mono);font-size:11px;letter-spacing:.12em;color:var(--fg-dim);text-transform:uppercase}
+.line .v{font-weight:600;user-select:all;word-break:break-all}
+.copy{background:none;border:1px solid var(--line);color:var(--fg-dim);border-radius:999px;padding:4px 10px;font:500 11px var(--f-mono);cursor:pointer}
+.copy:hover{color:var(--fg);border-color:var(--accent)}
+.unit-ctas{display:flex;gap:10px;flex-wrap:wrap;margin-top:auto}
+@media (max-width:860px){.units{grid-template-columns:1fr}.unit{padding:26px}}
+
+/* CTA band */
+.cta-band{position:relative;overflow:hidden;text-align:center;padding-block:110px}
+.cta-band h2{font-size:clamp(2.6rem,6.4vw,5.4rem);font-weight:400}
+.cta-band h2 em{color:var(--accent)}
+.cta-band .lead{margin:20px auto 0}
+.cta-band .hero-ctas{justify-content:center}
+.cta-band canvas{position:absolute;inset:0;width:100%;height:100%;opacity:.55;pointer-events:none}
+.cta-band .wrap{position:relative}
+
+footer{border-top:1px solid var(--line);padding-block:40px 110px;font-size:14px;color:var(--fg-dim)}
+footer .wrap{display:flex;justify-content:space-between;gap:24px;flex-wrap:wrap}
+footer a{text-decoration:none}
+footer a:hover{color:var(--fg)}
+
+/* Floating WhatsApp */
+.fab{position:fixed;right:calc(18px + env(safe-area-inset-right,0px));bottom:calc(18px + env(safe-area-inset-bottom,0px));z-index:70;display:flex;flex-direction:column;align-items:flex-end;gap:10px}
+.fab-btn{width:60px;height:60px;border-radius:50%;background:#25D366;color:#fff;display:grid;place-items:center;border:0;cursor:pointer;box-shadow:0 12px 30px -8px rgba(0,0,0,.5)}
+.fab-btn svg{width:30px;height:30px}
+@media (prefers-reduced-motion:no-preference){.fab-btn::after{content:"";position:absolute;width:60px;height:60px;border-radius:50%;border:2px solid #25D366;animation:ping 2.4s infinite}}
+@keyframes ping{from{transform:scale(1);opacity:.8}to{transform:scale(1.6);opacity:0}}
+.fab-menu{display:flex;flex-direction:column;gap:8px}
+.fab-menu a{background:var(--surface);color:var(--fg);border:1px solid var(--line);padding:10px 16px;border-radius:999px;text-decoration:none;font-size:14px;font-weight:600;box-shadow:0 10px 24px -12px rgba(0,0,0,.5);white-space:nowrap}
+.fab-menu a span{color:var(--fg-dim);font-weight:400;margin-left:6px;font-variant-numeric:tabular-nums}
+
+.toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translateX(-50%) translateY(120px);background:var(--accent);color:var(--on-accent);padding:10px 18px;border-radius:999px;font-weight:600;font-size:14px;transition:transform .35s,visibility .35s;z-index:80;visibility:hidden}
+.toast.show{transform:translateX(-50%) translateY(0);visibility:visible}
+</style>
+</head><body>
+
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="#inicio" aria-label="Weiss Odontologia, início">
+      <svg class="brand-mark" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18.5" fill="none" stroke="currentColor" stroke-opacity=".35"/><path d="M9 13l5.2 15L20 15l5.8 13L31 13" fill="none" stroke="var(--accent)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <span><span class="brand-name">WEISS</span><span class="brand-sub">ODONTOLOGIA</span></span>
+    </a>
+    <nav class="links" aria-label="Seções">
+      <a href="#simulador">Invisalign</a>
+      <a href="#tecnologia">Tecnologia</a>
+      <a href="#doutor">Dr. Edelweiss Jr.</a>
+      <a href="#historias">Histórias</a>
+      <a href="#unidades">Unidades</a>
+    </nav>
+    <a class="btn btn-gold" href="#unidades"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg><span>Agendar avaliação</span></a>
+  </div>
+</header>
+
+<main id="inicio">
+<section class="hero">
+  <div class="wrap">
+    <div>
+      <p class="eyebrow rise">Ortodontia digital · Caruaru &amp; Recife</p>
+      <h1 class="rise d1">Sorrisos<br><em>assinados.</em></h1>
+      <p class="lead rise d2">Cada tratamento começa com um escaneamento 3D iTero e termina com um sorriso que levamos o nome. Pioneiros em Invisalign em Caruaru, com a experiência de quem cuida de famílias há gerações.</p>
+      <div class="hero-ctas rise d3">
+        <a class="btn btn-gold" href="https://wa.me/5581973185005?text=Ol%C3%A1!%20Gostaria%20de%20agendar%20uma%20avalia%C3%A7%C3%A3o%20na%20unidade%20Recife." target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm5.3 14.1c-.2.6-1.3 1.2-1.8 1.3-.5 0-1 .2-3.3-.7-2.8-1.1-4.6-4-4.7-4.2-.1-.2-1.1-1.5-1.1-2.9s.7-2 1-2.3c.3-.3.6-.3.8-.3h.6c.2 0 .4 0 .6.5l.9 2.1c.1.2.1.4 0 .6l-.3.5-.4.5c-.1.1-.3.3-.1.6.2.3.8 1.3 1.7 2.1 1.2 1 2.1 1.4 2.4 1.5.3.2.5.1.6 0l.9-1c.2-.3.4-.2.6-.1l2 1c.3.1.5.2.5.3.1.2.1.8-.1 1.4Z"/></svg>Recife</a>
+        <a class="btn btn-ghost" href="https://wa.me/5581998368491?text=Ol%C3%A1!%20Gostaria%20de%20agendar%20uma%20avalia%C3%A7%C3%A3o%20na%20unidade%20Caruaru." target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm5.3 14.1c-.2.6-1.3 1.2-1.8 1.3-.5 0-1 .2-3.3-.7-2.8-1.1-4.6-4-4.7-4.2-.1-.2-1.1-1.5-1.1-2.9s.7-2 1-2.3c.3-.3.6-.3.8-.3h.6c.2 0 .4 0 .6.5l.9 2.1c.1.2.1.4 0 .6l-.3.5-.4.5c-.1.1-.3.3-.1.6.2.3.8 1.3 1.7 2.1 1.2 1 2.1 1.4 2.4 1.5.3.2.5.1.6 0l.9-1c.2-.3.4-.2.6-.1l2 1c.3.1.5.2.5.3.1.2.1.8-.1 1.4Z"/></svg>Caruaru</a>
+      </div>
+      <div class="hero-meta rise d4">
+        <span><b>Invisalign</b> provider</span>
+        <span>Scanner <b>iTero</b></span>
+        <span>Contenção <b>Vivera</b></span>
+      </div>
+    </div>
+    <div class="scan rise d2" aria-label="Animação de um escaneamento 3D da arcada dentária">
+      <canvas id="scan"></canvas>
+      <div class="scan-hud" aria-hidden="true">
+        <i class="c tl"></i><i class="c tr"></i><i class="c bl"></i><i class="c br"></i>
+        <div class="l1"><span class="dot"></span>ESCANEANDO · ARCADA SUPERIOR</div>
+        <div class="l2"><span id="pts">0</span> pontos<br>precisão 20&nbsp;µm</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="stats" aria-label="Números da clínica">
+  <div class="wrap">
+    <div class="stat"><div class="n" data-count="76">76<small>anos</small></div><p class="t">de história da clínica Weiss</p></div>
+    <div class="stat"><div class="n" data-count="32">32<small>anos</small></div><p class="t">de experiência clínica do Dr. Edelweiss Jr.</p></div>
+    <div class="stat"><div class="n" data-count="3">3<small>gerações</small></div><p class="t">de uma mesma família cuidadas por nós</p></div>
+    <div class="stat"><div class="n">1º</div><p class="t">a trazer Invisalign para Caruaru</p></div>
+  </div>
+</section>
+
+<div class="marquee" aria-hidden="true">
+  <div class="marquee-track">
+    <span>De Caruaru para Parintins</span><span>De Recife para Portugal</span><span>De Porto de Galinhas para o mundo</span><span>Santa Cruz do Capibaribe, há 18 anos</span><span>Invisalign para todas as idades</span>
+    <span>De Caruaru para Parintins</span><span>De Recife para Portugal</span><span>De Porto de Galinhas para o mundo</span><span>Santa Cruz do Capibaribe, há 18 anos</span><span>Invisalign para todas as idades</span>
+  </div>
+</div>
+
+<section class="block" id="simulador">
+  <div class="wrap">
+    <div class="head reveal">
+      <div><p class="eyebrow">Planejamento digital</p><h2>Veja os dentes se <em>alinharem</em>, alinhador por alinhador.</h2></div>
+      <p class="lead">No planejamento 3D você vê o resultado antes de começar. Arraste o controle para percorrer um tratamento de exemplo: cada alinhador move os dentes frações de milímetro.</p>
+    </div>
+    <div class="sim reveal">
+      <div class="sim-stage">
+        <svg id="arch" viewBox="0 0 600 420" role="img" aria-label="Arcada dentária superior passando de apinhada para alinhada"></svg>
+      </div>
+      <div class="sim-panel">
+        <div>
+          <p class="sim-count">ALINHADOR</p>
+          <p class="sim-big"><span id="stageN">1</span><small>/ 24</small></p>
+        </div>
+        <label for="stage" class="sim-count">Arraste para avançar no tratamento</label>
+        <input type="range" id="stage" min="1" max="24" value="1" step="1">
+        <div class="sim-phase" aria-live="polite">
+          <span class="chip" data-ph="0">Escaneamento</span><span class="chip" data-ph="1">Movimento</span><span class="chip" data-ph="2">Refinamento</span><span class="chip" data-ph="3">Contenção Vivera</span>
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <button class="btn btn-ghost" id="play" type="button">▶ Reproduzir tratamento</button>
+        </div>
+        <p class="sim-notes">Simulação ilustrativa. Número de alinhadores e duração variam em cada caso e são definidos na sua avaliação.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="block" id="tecnologia" style="padding-top:0">
+  <div class="wrap">
+    <div class="head reveal">
+      <div><p class="eyebrow">Tecnologia</p><h2>Sem moldeira, sem massa. <em>Só precisão.</em></h2></div>
+      <p class="lead">Um fluxo 100% digital, do primeiro check-up à contenção final.</p>
+    </div>
+    <div class="tech reveal">
+      <article>
+        <svg class="ic" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="6" y="10" width="36" height="24" rx="3"/><path d="M16 40h16M24 34v6M12 26l7-7 6 5 9-9"/></svg>
+        <h3>Check-up digital</h3>
+        <p>Diagnóstico completo com imagens e registros digitais para entender o seu sorriso antes de qualquer decisão.</p>
+        <span class="spec">DIAGNÓSTICO · 1ª CONSULTA</span>
+      </article>
+      <article>
+        <svg class="ic" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M10 30c0-9 6-18 14-18s14 9 14 18"/><path d="M6 36h36"/><path d="M24 4v6M18 12l-2-4M30 12l2-4"/><circle cx="24" cy="26" r="3"/></svg>
+        <h3>Scanner iTero</h3>
+        <p>Escaneamento intraoral 3D em minutos. Você vê sua arcada na tela e uma prévia do resultado na hora.</p>
+        <span class="spec">MODELO 3D · SEM MOLDEIRA</span>
+      </article>
+      <article>
+        <svg class="ic" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 20c4-6 28-6 32 0-2 12-6 18-16 18S10 32 8 20Z"/><path d="M14 22c3 2 17 2 20 0"/></svg>
+        <h3>Invisalign</h3>
+        <p>Alinhadores transparentes, removíveis e confortáveis. Discretos para o trabalho, para a faculdade e para as fotos.</p>
+        <span class="spec">PIONEIROS EM CARUARU</span>
+      </article>
+      <article>
+        <svg class="ic" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M24 6l14 6v10c0 9-6 16-14 20-8-4-14-11-14-20V12l14-6Z"/><path d="M17 24l5 5 9-10"/></svg>
+        <h3>Contenção Vivera</h3>
+        <p>Contenções removíveis que facilitam a higiene e protegem o resultado, inclusive contra o desgaste do bruxismo.</p>
+        <span class="spec">ESTABILIDADE · LONGO PRAZO</span>
+      </article>
+    </div>
+  </div>
+</section>
+
+<section class="block" style="padding-top:0">
+  <div class="wrap">
+    <div class="head reveal">
+      <div><p class="eyebrow">Sua jornada</p><h2>Do primeiro scan ao sorriso <em>assinado</em>.</h2></div>
+      <p class="lead">Cinco etapas, acompanhadas de perto pelo especialista. Entramos em contato para lembrar de cada retorno.</p>
+    </div>
+    <div class="journey reveal">
+      <div class="step"><h3>Check-up digital</h3><p>Conversa, exame clínico e registros. Entendemos o que você deseja mudar.</p></div>
+      <div class="step"><h3>Escaneamento iTero</h3><p>Seu sorriso em 3D, em minutos, com simulação do resultado.</p></div>
+      <div class="step"><h3>Projeto do sorriso</h3><p>Planejamento detalhado de cada movimento, assinado pelo ortodontista.</p></div>
+      <div class="step"><h3>Alinhadores</h3><p>Trocas periódicas e consultas de acompanhamento, sem fios nem bráquetes.</p></div>
+      <div class="step"><h3>Contenção</h3><p>Vivera para manter o resultado e a saúde periodontal por muitos anos.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="block pearl" id="doutor">
+  <div class="wrap doc">
+    <div class="portrait reveal" aria-hidden="true">
+      <svg viewBox="0 0 400 500" preserveAspectRatio="xMidYMid slice"><defs><radialGradient id="pg" cx="50%" cy="35%" r="60%"><stop offset="0" stop-color="#C9A961" stop-opacity=".28"/><stop offset="1" stop-color="#C9A961" stop-opacity="0"/></radialGradient></defs><rect width="400" height="500" fill="url(#pg)"/><g fill="none" stroke="#C9A961" stroke-opacity=".35"><ellipse cx="200" cy="210" rx="120" ry="80"/><ellipse cx="200" cy="210" rx="160" ry="110" stroke-opacity=".2"/><ellipse cx="200" cy="210" rx="200" ry="140" stroke-opacity=".1"/></g><path d="M110 230c30-60 150-60 180 0" fill="none" stroke="#E6D3A3" stroke-width="2" stroke-linecap="round"/></svg>
+      <p class="sig">Dr. Edelweiss Jr.<small>ORTODONTISTA · CRO-PE</small></p>
+    </div>
+    <div class="reveal">
+      <p class="eyebrow">Quem assina o seu sorriso</p>
+      <h2>Dr. Edelweiss Jr.</h2>
+      <p class="lead">Especialista e Mestre em Ortodontia, professor de especialização e pioneiro do Invisalign em Caruaru. À frente da Weiss, uma clínica com 76 anos de história, cuida hoje dos filhos e netos dos pacientes que atendeu no início da carreira.</p>
+      <ul class="creds">
+        <li><span>Formação</span>Especialista e Mestre em Ortodontia</li>
+        <li><span>Ensino</span>Professor da Especialização em Ortodontia, formando ortodontistas que hoje são referência no interior de Pernambuco</li>
+        <li><span>Tecnologia</span>Invisalign, escaneamento iTero e contenção Vivera</li>
+        <li><span>Parcerias</span>Troca de conhecimento com o ITV e colegas de referência</li>
+        <li><span>Unidades</span>Caruaru e Recife</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section class="block" id="especialidades">
+  <div class="wrap">
+    <div class="head reveal">
+      <div><p class="eyebrow">Especialidades</p><h2>Cuidado completo, <em>para toda a família</em>.</h2></div>
+      <p class="lead">Especialistas em cada área, do primeiro dente de leite ao implante.</p>
+    </div>
+    <div class="services reveal">
+      <article class="svc feature"><span class="tag">Carro-chefe</span><h3>Ortodontia com Invisalign</h3><p>Alinhadores invisíveis para adolescentes e adultos, inclusive como continuação de tratamentos com aparelho fixo. Transformações em pouco tempo, com planejamento digital preciso.</p></article>
+      <article class="svc"><span class="tag">Ortodontia</span><h3>Aparelho fixo</h3><p>Técnicas consagradas para casos que pedem aparelho convencional, com o mesmo rigor de planejamento.</p></article>
+      <article class="svc"><span class="tag">Reabilitação</span><h3>Implantes</h3><p>Há mais de 10 anos devolvendo mastigação, sorriso e autoestima com profissionais especialistas.</p></article>
+      <article class="svc"><span class="tag">Infância</span><h3>Ortodontia preventiva</h3><p>O cuidado começa na infância. Acompanhamos o crescimento para orientar a mordida no momento certo.</p></article>
+      <article class="svc"><span class="tag">Prevenção</span><h3>Saúde bucal</h3><p>Check-ups, limpeza e retornos periódicos. A gente lembra você de voltar.</p></article>
+    </div>
+  </div>
+</section>
+
+<section class="block pearl" id="historias">
+  <div class="wrap">
+    <div class="head reveal">
+      <div><p class="eyebrow">Histórias reais</p><h2>Sorrisos que <em>atravessam</em> gerações e fronteiras.</h2></div>
+      <p class="lead">Trechos das histórias que compartilhamos no Instagram.</p>
+    </div>
+    <div class="stories reveal">
+      <article class="story"><span class="route">Santa Cruz do Capibaribe</span><q>Cuidando de 3 gerações! Uma honra poder cuidar de toda a família há mais de 18 anos. Mãe, filho e netas!</q><div class="where"><span>Família, há 18 anos</span><a href="https://www.instagram.com/p/DbRBfj4xRuM/" target="_blank" rel="noopener">Ver no Instagram ↗</a></div></article>
+      <article class="story"><span class="route">Caruaru → Parintins, AM</span><q>Uma grande satisfação poder devolver o sorriso, a mastigação e a autoestima. Uma honra poder cuidar ainda mais do seu sorriso, Sr. João.</q><div class="where"><span>Reabilitação</span><a href="https://www.instagram.com/p/DbQ-5ELRxyY/" target="_blank" rel="noopener">Ver no Instagram ↗</a></div></article>
+      <article class="story"><span class="route">Recife → Portugal</span><q>Atendimento personalizado. Uma honra poder cuidar ainda mais da saúde bucal de vocês!</q><div class="where"><span>Família</span><a href="https://www.instagram.com/p/DbQ8Iy0RCbG/" target="_blank" rel="noopener">Ver no Instagram ↗</a></div></article>
+      <article class="story"><span class="route">Invisalign · Recife</span><q>Um prazer enorme poder finalizar e assinar mais este projeto. Invisalign para todas as idades: discreto, tecnologia e conforto.</q><div class="where"><span>Tratamento finalizado</span><a href="https://www.instagram.com/p/DdnPY5XRubm/" target="_blank" rel="noopener">Ver no Instagram ↗</a></div></article>
+      <article class="story"><span class="route">Invisalign após aparelho fixo</span><q>Assinando mais um projeto altamente preciso e detalhado. Uma transformação em pouco tempo.</q><div class="where"><span>Em tratamento</span><a href="https://www.instagram.com/p/DdnQ3MUJv2G/" target="_blank" rel="noopener">Ver no Instagram ↗</a></div></article>
+      <article class="story"><span class="route">Contenção Vivera</span><q>Tratamento finalizado! Parabéns pela sua jornada e conquista do seu novo sorriso. Pronto para a universidade da vida.</q><div class="where"><span>Finalização</span><a href="https://www.instagram.com/p/DdsqNSHpp0a/" target="_blank" rel="noopener">Ver no Instagram ↗</a></div></article>
+    </div>
+    <p style="margin-top:32px;text-align:center"><a class="btn btn-gold" href="https://www.instagram.com/dredelweissjr/" target="_blank" rel="noopener">Siga @dredelweissjr</a></p>
+  </div>
+</section>
+
+<section class="block" id="unidades">
+  <div class="wrap">
+    <div class="head reveal">
+      <div><p class="eyebrow">Unidades</p><h2>Duas cidades. <em>O mesmo padrão.</em></h2></div>
+      <p class="lead">Agende sua avaliação pelo WhatsApp da unidade mais perto de você.</p>
+    </div>
+    <div class="units">
+      <article class="unit reveal">
+        <h3><small>PERNAMBUCO · AGRESTE</small>Caruaru</h3>
+        <address>R. dos Expedicionários, 104, 1º andar<br>Nossa Sra. das Dores, Caruaru/PE · CEP 55002-440</address>
+        <div class="lines">
+          <div class="line"><span class="k">WhatsApp</span><span class="v">(81) 99836-8491</span><button class="copy" type="button" data-copy="(81) 99836-8491">Copiar</button></div>
+          <div class="line"><span class="k">Telefone</span><span class="v">(81) 3721-2866</span><button class="copy" type="button" data-copy="(81) 3721-2866">Copiar</button></div>
+          <div class="line"><span class="k">E-mail</span><span class="v">caruaru@odontoweiss.com.br</span><button class="copy" type="button" data-copy="caruaru@odontoweiss.com.br">Copiar</button></div>
+        </div>
+        <div class="unit-ctas">
+          <a class="btn btn-gold" href="https://wa.me/5581998368491?text=Ol%C3%A1!%20Gostaria%20de%20agendar%20uma%20avalia%C3%A7%C3%A3o%20na%20unidade%20Caruaru." target="_blank" rel="noopener">Agendar em Caruaru</a>
+          <a class="btn btn-ghost" href="https://www.google.com/maps/search/?api=1&amp;query=R.+dos+Expedicion%C3%A1rios,+104,+Caruaru+PE+55002-440" target="_blank" rel="noopener">Como chegar ↗</a>
+        </div>
+      </article>
+      <article class="unit reveal">
+        <h3><small>PERNAMBUCO · CAPITAL</small>Recife</h3>
+        <address>Av. República do Líbano, 251, Torre 1, Sala 1614<br>Pina, Recife/PE · CEP 51110-160</address>
+        <div class="lines">
+          <div class="line"><span class="k">WhatsApp</span><span class="v">(81) 97318-5005</span><button class="copy" type="button" data-copy="(81) 97318-5005">Copiar</button></div>
+          <div class="line"><span class="k">Telefone</span><span class="v">(81) 3091-1895</span><button class="copy" type="button" data-copy="(81) 3091-1895">Copiar</button></div>
+          <div class="line"><span class="k">E-mail</span><span class="v">recife@odontoweiss.com.br</span><button class="copy" type="button" data-copy="recife@odontoweiss.com.br">Copiar</button></div>
+        </div>
+        <div class="unit-ctas">
+          <a class="btn btn-gold" href="https://wa.me/5581973185005?text=Ol%C3%A1!%20Gostaria%20de%20agendar%20uma%20avalia%C3%A7%C3%A3o%20na%20unidade%20Recife." target="_blank" rel="noopener">Agendar em Recife</a>
+          <a class="btn btn-ghost" href="https://www.google.com/maps/search/?api=1&amp;query=Av.+Rep%C3%BAblica+do+L%C3%ADbano,+251,+Pina,+Recife+PE+51110-160" target="_blank" rel="noopener">Como chegar ↗</a>
+        </div>
+      </article>
+    </div>
+  </div>
+</section>
+
+<section class="cta-band">
+  <canvas id="dust" aria-hidden="true"></canvas>
+  <div class="wrap">
+    <p class="eyebrow">Seu próximo passo</p>
+    <h2>Vamos assinar<br>o <em>seu</em> sorriso?</h2>
+    <p class="lead">Agende seu check-up digital com escaneamento iTero e veja a simulação do seu novo sorriso na primeira consulta.</p>
+    <div class="hero-ctas">
+      <a class="btn btn-gold" href="https://wa.me/5581973185005?text=Ol%C3%A1!%20Quero%20agendar%20meu%20check-up%20digital%20em%20Recife." target="_blank" rel="noopener">WhatsApp Recife</a>
+      <a class="btn btn-ghost" href="https://wa.me/5581998368491?text=Ol%C3%A1!%20Quero%20agendar%20meu%20check-up%20digital%20em%20Caruaru." target="_blank" rel="noopener">WhatsApp Caruaru</a>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div><span class="brand-name" style="font-size:18px">WEISS</span> <span style="margin-left:8px">Odontologia · Caruaru e Recife</span><br><small>Responsável técnico: Dr. Edelweiss Jr., Especialista e Mestre em Ortodontia.</small></div>
+    <div style="display:flex;gap:22px;flex-wrap:wrap"><a href="https://www.instagram.com/dredelweissjr/" target="_blank" rel="noopener">Instagram</a><a href="https://www.odontoweiss.com.br" target="_blank" rel="noopener">odontoweiss.com.br</a><a href="#unidades">Unidades</a></div>
+  </div>
+</footer>
+
+<div class="fab">
+  <div class="fab-menu" id="fabMenu" hidden>
+    <a href="https://wa.me/5581973185005" target="_blank" rel="noopener">Recife <span>(81) 97318-5005</span></a>
+    <a href="https://wa.me/5581998368491" target="_blank" rel="noopener">Caruaru <span>(81) 99836-8491</span></a>
+  </div>
+  <button class="fab-btn" id="fab" type="button" aria-expanded="false" aria-controls="fabMenu" aria-label="Falar no WhatsApp"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm5.3 14.1c-.2.6-1.3 1.2-1.8 1.3-.5 0-1 .2-3.3-.7-2.8-1.1-4.6-4-4.7-4.2-.1-.2-1.1-1.5-1.1-2.9s.7-2 1-2.3c.3-.3.6-.3.8-.3h.6c.2 0 .4 0 .6.5l.9 2.1c.1.2.1.4 0 .6l-.3.5-.4.5c-.1.1-.3.3-.1.6.2.3.8 1.3 1.7 2.1 1.2 1 2.1 1.4 2.4 1.5.3.2.5.1.6 0l.9-1c.2-.3.4-.2.6-.1l2 1c.3.1.5.2.5.3.1.2.1.8-.1 1.4Z"/></svg></button>
+</div>
+<div class="toast" id="toast" role="status">Copiado</div>
+
+<script>
+(()=>{
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+
+/* ---------- Hero: 3D point-cloud arch scan ---------- */
+const cv = document.getElementById('scan'), ctx = cv.getContext('2d');
+const pts = [];
+(function build(){
+  // 14 upper teeth along a parabolic arch; each tooth = point cloud
+  const widths=[.62,.66,.70,.95,.95,1.25,1.3]; // molar→central (half arch, distal to mesial)
+  const teeth=[];
+  let total=0; const half=widths.slice().reverse(); // central first
+  const seq=[...widths, ...half]; // left distal → right distal
+  seq.forEach(w=>total+=w);
+  let acc=0;
+  seq.forEach((w,i)=>{
+    const u=(acc+w/2)/total; acc+=w;           // 0..1 along arch
+    const a=(u-.5)*Math.PI*1.08;               // angle
+    const x=Math.sin(a)*1.0, z=-Math.cos(a)*0.95+0.35;
+    const front = 1-Math.abs(u-.5)*2;          // 1 at incisors
+    const tw = 0.06+ (1-front)*0.07;           // molars wider
+    const th = 0.22 + front*0.08;              // incisors taller
+    const n = Math.round(150 + (1-front)*120);
+    for(let k=0;k<n;k++){
+      const t=Math.random()*Math.PI*2, p=Math.acos(2*Math.random()-1);
+      const r=0.9+Math.random()*0.1;
+      let lx=Math.sin(p)*Math.cos(t)*tw*r, ly=Math.cos(p)*th*r*.5, lz=Math.sin(p)*Math.sin(t)*tw*.9*r;
+      // rotate local into arch tangent
+      const ca=Math.cos(a), sa=Math.sin(a);
+      const gx=x+lx*ca - lz*sa*0.3, gz=z+lx*sa*0.3 + lz*ca;
+      pts.push({x:gx*1.15,y:ly+0.05,z:gz*1.15,seen:0,g:false});
+    }
+  });
+  // gum line
+  for(let k=0;k<900;k++){
+    const u=Math.random(), a=(u-.5)*Math.PI*1.12;
+    const x=Math.sin(a), z=-Math.cos(a)*0.95+0.35;
+    pts.push({x:x*1.15+(Math.random()-.5)*.05,y:-0.17-Math.random()*.06,z:z*1.15+(Math.random()-.5)*.05,seen:0,g:true});
+  }
+})();
+let W=0,H=0,DPR=1;
+function size(){DPR=Math.min(2,devicePixelRatio||1);const r=cv.getBoundingClientRect();W=r.width;H=r.height;cv.width=W*DPR;cv.height=H*DPR;ctx.setTransform(DPR,0,0,DPR,0,0)}
+size(); addEventListener('resize',size);
+let mx=0,my=0;
+cv.parentElement.addEventListener('pointermove',e=>{const r=cv.getBoundingClientRect();mx=(e.clientX-r.left)/r.width-.5;my=(e.clientY-r.top)/r.height-.5});
+cv.parentElement.addEventListener('pointerleave',()=>{mx=0;my=0});
+const ptsEl=document.getElementById('pts');
+let t0=performance.now(), seenCount=0, rmx=0, rmy=0;
+function frame(now){
+  const t=(now-t0)/1000;
+  ctx.clearRect(0,0,W,H);
+  const gold=css('--gold'), aqua=css('--aqua'), fg=css('--fg-dim');
+  rmx+=(mx-rmx)*.05; rmy+=(my-rmy)*.05;
+  const ry = reduce?0.5: Math.sin(t*.35)*0.55 + rmx*0.8;
+  const rx = 0.85 + rmy*0.4;
+  const cy=Math.cos(ry), sy=Math.sin(ry), cx=Math.cos(rx), sx=Math.sin(rx);
+  const scanX = reduce? 2 : ((t*0.42)%2.4)-1.2;   // sweeping plane in world x
+  const S=Math.min(W,H)*0.36;
+  const list=[];
+  for(const p of pts){
+    if(!reduce && Math.abs(p.x-scanX)<0.05 && !p.seen){p.seen=1;seenCount++}
+    if(reduce) p.seen=1;
+    let x=p.x*cy - p.z*sy, z=p.x*sy + p.z*cy, y=p.y;
+    let y2=y*cx - z*sx, z2=y*sx + z*cx;
+    const per=2.6/(2.6+z2);
+    list.push({sx:W/2 + x*S*per, sy:H/2 + y2*S*per + S*.05, z:z2, p});
+  }
+  list.sort((a,b)=>b.z-a.z);
+  for(const q of list){
+    const near = Math.abs(q.p.x-scanX)<0.07;
+    const depth = Math.max(.15,Math.min(1,(1.4-q.z)/1.8));
+    ctx.globalAlpha = near?1:(q.p.seen? depth*.9 : depth*.18);
+    ctx.fillStyle = near? aqua : (q.p.g? fg : gold);
+    const r = near?1.8:(q.p.g?0.9:1.25);
+    ctx.fillRect(q.sx-r/2,q.sy-r/2,r,r);
+  }
+  ctx.globalAlpha=1;
+  if(!reduce && seenCount>=pts.length*0.985){ pts.forEach(p=>p.seen=0); seenCount=0 }
+  ptsEl.textContent = (reduce?pts.length:seenCount).toLocaleString('pt-BR');
+  if(!reduce) requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+
+/* ---------- Aligner simulator ---------- */
+const svg=document.getElementById('arch'), NS='http://www.w3.org/2000/svg';
+const N=24, range=document.getElementById('stage'), nEl=document.getElementById('stageN');
+const tw=[34,36,38,44,44,58,60]; // molar → central widths (px)
+const seq=[...tw, ...tw.slice().reverse()];
+const crowd=[ // [dx, dy, rot] crowded offsets per tooth (left distal → right distal)
+ [0,6,4],[2,-4,-6],[-6,10,12],[8,-14,-18],[-10,18,22],[6,-10,-14],[-12,22,-20],
+ [14,26,24],[-8,-12,16],[12,16,-26],[-6,-16,18],[4,8,-10],[-2,-6,6],[0,4,-3]];
+let tot=seq.reduce((a,b)=>a+b,0)+ (seq.length-1)*4;
+const ideal=[]; let acc=0;
+seq.forEach(w=>{const u=(acc+w/2)/tot; acc+=w+4;
+  const a=(u-.5)*Math.PI*1.05; const x=300+Math.sin(a)*225, y=340-Math.cos(a)*235;
+  ideal.push({x,y,ang:a*180/Math.PI,w});});
+// gum arch path
+const gum=document.createElementNS(NS,'path');
+let d='';for(let i=0;i<=60;i++){const a=(i/60-.5)*Math.PI*1.12;const x=300+Math.sin(a)*262,y=340-Math.cos(a)*272;d+=(i?'L':'M')+x.toFixed(1)+' '+y.toFixed(1)}
+for(let i=60;i>=0;i--){const a=(i/60-.5)*Math.PI*1.12;const x=300+Math.sin(a)*188,y=340-Math.cos(a)*196;d+='L'+x.toFixed(1)+' '+y.toFixed(1)}
+gum.setAttribute('d',d+'Z');gum.setAttribute('fill','var(--line)');svg.appendChild(gum);
+// ideal guide curve
+const guide=document.createElementNS(NS,'path');
+let g='';for(let i=0;i<=60;i++){const a=(i/60-.5)*Math.PI*1.05;const x=300+Math.sin(a)*225,y=340-Math.cos(a)*235;g+=(i?'L':'M')+x.toFixed(1)+' '+y.toFixed(1)}
+guide.setAttribute('d',g);guide.setAttribute('fill','none');guide.setAttribute('stroke','var(--accent)');guide.setAttribute('stroke-dasharray','3 7');guide.setAttribute('opacity','.55');svg.appendChild(guide);
+const aligner=document.createElementNS(NS,'path');aligner.setAttribute('fill','none');aligner.setAttribute('stroke','var(--aqua)');aligner.setAttribute('stroke-width','30');aligner.setAttribute('stroke-linecap','round');aligner.setAttribute('stroke-linejoin','round');aligner.setAttribute('opacity','0');svg.appendChild(aligner);
+const teethEls=ideal.map((p,i)=>{const r=document.createElementNS(NS,'rect');const h= i>4&&i<9?46:40;
+  r.setAttribute('x',-p.w/2);r.setAttribute('y',-h/2);r.setAttribute('width',p.w-2);r.setAttribute('height',h);r.setAttribute('rx',Math.min(16,p.w/2.4));
+  r.setAttribute('fill','var(--fg)');r.setAttribute('stroke','var(--bg)');r.setAttribute('stroke-width','2');svg.appendChild(r);return r});
+const label=document.createElementNS(NS,'text');label.setAttribute('x',300);label.setAttribute('y',300);label.setAttribute('text-anchor','middle');label.setAttribute('font-family','IBM Plex Mono, monospace');label.setAttribute('font-size','13');label.setAttribute('fill','var(--fg-dim)');label.setAttribute('letter-spacing','2');svg.appendChild(label);
+const ease=x=>x<.5?2*x*x:1-Math.pow(-2*x+2,2)/2;
+const chips=[...document.querySelectorAll('.chip')];
+let cur=1;
+function render(v){
+  cur=v; const t=ease((v-1)/(N-1));
+  nEl.textContent=Math.round(v);
+  range.style.setProperty('--p',((v-1)/(N-1)*100)+'%');
+  let ad='';
+  ideal.forEach((p,i)=>{const [dx,dy,rot]=crowd[i];const k=1-t;
+    const x=p.x+dx*k, y=p.y+dy*k, a=p.ang+rot*k;
+    teethEls[i].setAttribute('transform',`translate(${x.toFixed(2)} ${y.toFixed(2)}) rotate(${a.toFixed(2)})`);
+    ad+=(i?'L':'M')+x.toFixed(1)+' '+y.toFixed(1);});
+  aligner.setAttribute('d',ad); aligner.setAttribute('opacity', v>1? .16:0);
+  const mm=(Math.round(v)-1)*0.25;
+  label.textContent = v>=N? 'SORRISO ALINHADO' : `≈ ${mm.toFixed(2).replace('.',',')} mm de movimento acumulado`;
+  const ph = v<=1?0: v<19?1: v<N?2:3;
+  chips.forEach((c,i)=>c.classList.toggle('on',i===ph));
+}
+range.addEventListener('input',()=>{stop();render(+range.value)});
+let raf=null;
+const playBtn=document.getElementById('play');
+function stop(){if(raf){cancelAnimationFrame(raf);raf=null;playBtn.textContent='▶ Reproduzir tratamento'}}
+function play(){stop();let v=+range.value>=N?1:+range.value;let last=performance.now();playBtn.textContent='❚❚ Pausar';
+  const step=now=>{v+=(now-last)/1000*4.2;last=now;if(v>=N){v=N;range.value=N;render(N);raf=null;playBtn.textContent='↺ Reproduzir de novo';return}
+    range.value=Math.round(v);render(v);raf=requestAnimationFrame(step)};raf=requestAnimationFrame(step)}
+playBtn.addEventListener('click',()=>raf?stop():play());
+render(1);
+// autoplay once when visible
+if(!reduce && 'IntersectionObserver' in window){
+  const io=new IntersectionObserver(es=>{if(es[0].isIntersecting){play();io.disconnect()}},{threshold:.5});io.observe(svg);
+}
+
+/* ---------- Counters ---------- */
+if(!reduce && 'IntersectionObserver' in window){
+  const io=new IntersectionObserver(es=>es.forEach(e=>{if(!e.isIntersecting)return;io.unobserve(e.target);
+    const el=e.target, end=+el.dataset.count, small=el.querySelector('small').outerHTML, t1=performance.now();
+    const tick=now=>{const k=Math.min(1,(now-t1)/1400);el.innerHTML=Math.round(end*(1-Math.pow(1-k,3)))+small;if(k<1)requestAnimationFrame(tick)};requestAnimationFrame(tick)}),{threshold:.6});
+  document.querySelectorAll('[data-count]').forEach(el=>io.observe(el));
+}
+
+/* ---------- CTA gold dust ---------- */
+const dc=document.getElementById('dust'), dx=dc.getContext('2d');let dW,dH;const motes=[];
+function dsize(){const r=dc.getBoundingClientRect();dW=r.width;dH=r.height;dc.width=dW*DPR;dc.height=dH*DPR;dx.setTransform(DPR,0,0,DPR,0,0)}
+dsize();addEventListener('resize',dsize);
+for(let i=0;i<90;i++)motes.push({x:Math.random(),y:Math.random(),r:Math.random()*1.8+.4,v:Math.random()*.0006+.0002,p:Math.random()*6});
+function dust(now){dx.clearRect(0,0,dW,dH);const gold=css('--gold');dx.fillStyle=gold;
+  for(const m of motes){if(!reduce){m.y-=m.v;if(m.y<-.02)m.y=1.02}
+    dx.globalAlpha=.25+.5*Math.abs(Math.sin(now/1600+m.p));dx.beginPath();dx.arc(m.x*dW+Math.sin(now/3000+m.p)*12,m.y*dH,m.r,0,7);dx.fill()}
+  if(!reduce)requestAnimationFrame(dust)}
+requestAnimationFrame(dust);
+
+/* ---------- WhatsApp FAB ---------- */
+const fab=document.getElementById('fab'), menu=document.getElementById('fabMenu');
+fab.addEventListener('click',()=>{menu.hidden=!menu.hidden;fab.setAttribute('aria-expanded',String(!menu.hidden))});
+
+/* ---------- Copy buttons ---------- */
+const toast=document.getElementById('toast');let tt;
+function showToast(msg){toast.textContent=msg;toast.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>toast.classList.remove('show'),1800)}
+document.querySelectorAll('.copy').forEach(b=>b.addEventListener('click',()=>{
+  const txt=b.dataset.copy;
+  const sel=()=>{const v=b.parentElement.querySelector('.v');const r=document.createRange();r.selectNodeContents(v);const s=getSelection();s.removeAllRanges();s.addRange(r);showToast('Selecionado. Use Ctrl+C para copiar')};
+  try{navigator.clipboard.writeText(txt).then(()=>showToast('Copiado: '+txt),sel)}catch(e){sel()}
+}));
+})();
+</script>
+</body></html>
