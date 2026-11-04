@@ -5,7 +5,7 @@
 <meta name="description" content="Weiss Odontologia: ortodontia de precisão com Invisalign e escaneamento digital iTero em Caruaru e Recife. Dr. Edelweiss Jr., especialista e mestre em Ortodontia.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..700;1,6..96,400..600&family=Manrope:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Jost:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
 /* Layout: dark clinical "scan room" — a live 3D arch scan opens the page; sections alternate deep ink bands and pearl panels, gold used only for signature moments. */
 :root{
@@ -13,8 +13,8 @@
   --gold:#28B0A0; --gold-soft:#5FD0C0; --aqua:#F2FAFA;
   --bg:#072330; --bg-2:#0A2B3B; --surface:#0C3244; --line:rgba(189,220,224,.15);
   --fg:#F2FAFA; --fg-dim:#A3C3C9; --accent:#28B0A0; --on-accent:#04141C;
-  --f-display:"Bodoni Moda","Didot","Bodoni 72",Georgia,serif;
-  --f-body:"Manrope",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-display:"Cormorant Garamond","Garamond","Times New Roman",Georgia,serif;
+  --f-body:"Jost","Futura","Century Gothic",system-ui,-apple-system,"Segoe UI",sans-serif;
   --f-mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
   --gut:max(16px,env(safe-area-inset-left,0px));
   --gut-r:max(16px,env(safe-area-inset-right,0px));
@@ -28,7 +28,8 @@ html{scroll-behavior:smooth}
 body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:17px;line-height:1.6;overflow-x:hidden;-webkit-font-smoothing:antialiased}
 body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:60;background:var(--bg)}
 a{color:inherit}
-h1,h2,h3{font-family:var(--f-display);font-weight:500;line-height:1.05;margin:0;text-wrap:balance;letter-spacing:-.01em}
+h1,h2,h3,.stat .n,.sim-big,.portrait .sig{font-variant-numeric:lining-nums}
+h1,h2,h3{font-family:var(--f-display);font-weight:500;line-height:1.02;margin:0;text-wrap:balance;letter-spacing:-.01em}
 p{margin:0}
 .wrap{max-width:var(--max);margin:0 auto;padding-left:var(--gut);padding-right:var(--gut-r)}
 .eyebrow{font-family:var(--f-mono);font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:var(--accent)}
@@ -61,7 +62,7 @@ nav.links a:hover{color:var(--fg)}
 /* Hero */
 .hero{position:relative;overflow:hidden}
 .hero .wrap{display:grid;grid-template-columns:1.05fr 1fr;gap:32px;align-items:center;padding-block:72px 56px}
-.hero h1{font-size:clamp(3rem,7.4vw,6.4rem);font-weight:400}
+.hero h1{font-size:clamp(3.4rem,8.4vw,7.4rem);font-weight:500}
 .hero h1 em{font-style:italic;color:var(--accent)}
 .hero .lead{margin-top:22px}
 .hero-ctas{display:flex;flex-wrap:wrap;gap:12px;margin-top:32px}
@@ -95,7 +96,7 @@ nav.links a:hover{color:var(--fg)}
 .stats .wrap{display:grid;grid-template-columns:repeat(4,1fr);gap:0}
 .stat{padding:30px 20px;border-left:1px solid var(--line)}
 .stat:first-child{border-left:0}
-.stat .n{font-family:var(--f-display);font-size:clamp(2.4rem,4.6vw,3.6rem);line-height:1;font-variant-numeric:tabular-nums;color:var(--fg)}
+.stat .n{font-family:var(--f-display);font-size:clamp(2.4rem,4.6vw,3.6rem);line-height:1;font-variant-numeric:lining-nums tabular-nums;color:var(--fg)}
 .stat .n small{font-size:.45em;color:var(--accent);margin-left:4px}
 .stat .t{margin-top:10px;font-size:14px;color:var(--fg-dim);max-width:22ch}
 @media (max-width:760px){.stats .wrap{grid-template-columns:1fr 1fr}.stat:nth-child(3){border-left:0}.stat{border-top:1px solid var(--line)}.stat:nth-child(-n+2){border-top:0}}
@@ -281,9 +282,9 @@ footer a:hover{color:var(--fg)}
 <section class="hero">
   <div class="wrap">
     <div>
-      <p class="eyebrow rise">Ortodontia digital · Caruaru &amp; Recife</p>
+      <p class="eyebrow rise">Clínica odontológica multidisciplinar · Caruaru &amp; Recife</p>
       <h1 class="rise d1">Sorrisos<br><em>assinados.</em></h1>
-      <p class="lead rise d2">Cada tratamento começa com um escaneamento 3D iTero e termina com um sorriso que levamos o nome. Pioneiros em Invisalign em Caruaru, com a experiência de quem cuida de famílias há gerações.</p>
+      <p class="lead rise d2">Todos os tratamentos odontológicos em um só lugar, com tecnologia digital, escaneamento 3D iTero e a experiência de quem cuida de famílias há gerações. Pioneiros em Invisalign em Caruaru.</p>
       <div class="hero-ctas rise d3">
         <a class="btn btn-gold" href="https://wa.me/5581973185005?text=Ol%C3%A1!%20Gostaria%20de%20agendar%20uma%20avalia%C3%A7%C3%A3o%20na%20unidade%20Recife." target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm5.3 14.1c-.2.6-1.3 1.2-1.8 1.3-.5 0-1 .2-3.3-.7-2.8-1.1-4.6-4-4.7-4.2-.1-.2-1.1-1.5-1.1-2.9s.7-2 1-2.3c.3-.3.6-.3.8-.3h.6c.2 0 .4 0 .6.5l.9 2.1c.1.2.1.4 0 .6l-.3.5-.4.5c-.1.1-.3.3-.1.6.2.3.8 1.3 1.7 2.1 1.2 1 2.1 1.4 2.4 1.5.3.2.5.1.6 0l.9-1c.2-.3.4-.2.6-.1l2 1c.3.1.5.2.5.3.1.2.1.8-.1 1.4Z"/></svg>Recife</a>
         <a class="btn btn-ghost" href="https://wa.me/5581998368491?text=Ol%C3%A1!%20Gostaria%20de%20agendar%20uma%20avalia%C3%A7%C3%A3o%20na%20unidade%20Caruaru." target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm5.3 14.1c-.2.6-1.3 1.2-1.8 1.3-.5 0-1 .2-3.3-.7-2.8-1.1-4.6-4-4.7-4.2-.1-.2-1.1-1.5-1.1-2.9s.7-2 1-2.3c.3-.3.6-.3.8-.3h.6c.2 0 .4 0 .6.5l.9 2.1c.1.2.1.4 0 .6l-.3.5-.4.5c-.1.1-.3.3-.1.6.2.3.8 1.3 1.7 2.1 1.2 1 2.1 1.4 2.4 1.5.3.2.5.1.6 0l.9-1c.2-.3.4-.2.6-.1l2 1c.3.1.5.2.5.3.1.2.1.8-.1 1.4Z"/></svg>Caruaru</a>
@@ -443,11 +444,11 @@ footer a:hover{color:var(--fg)}
   <div class="wrap">
     <div class="head reveal">
       <div><p class="eyebrow">Especialidades</p><h2>Cuidado completo, <em>para toda a família</em>.</h2></div>
-      <p class="lead">Sete especialidades e Invisalign sob o mesmo teto. Começou na ortodontia e precisou de um canal? Resolve aqui mesmo.</p>
+      <p class="lead">Somos uma clínica multidisciplinar e realizamos todos os tratamentos odontológicos. Começou na ortodontia e precisou de um canal? Resolve aqui mesmo.</p>
     </div>
     <div class="services reveal">
-      <article class="svc feature"><span class="tag">Carro-chefe</span><h3>Ortodontia com Invisalign</h3><p>Alinhadores transparentes para adolescentes e adultos, inclusive como continuação de tratamentos com aparelho fixo. Planejamento digital 3D com escaneamento iTero. A indicação depende da avaliação de cada caso.</p></article>
-      <article class="svc"><span class="tag">Posição dos dentes</span><h3>Ortodontia</h3><p>Corrige a posição dos dentes e dos ossos maxilares. Vai além da estética: trata a mordida e protege a articulação.</p></article>
+      <article class="svc feature"><span class="tag">Clínica multidisciplinar</span><h3>Todos os tratamentos odontológicos, sob o mesmo teto</h3><p>Especialistas que trabalham juntos no seu caso, da prevenção à reabilitação. Você não precisa ir a vários consultórios: o planejamento é integrado e acompanhado de perto.</p></article>
+      <article class="svc"><span class="tag">Posição dos dentes</span><h3>Ortodontia e Invisalign</h3><p>Aparelho fixo ou alinhadores transparentes Invisalign, com planejamento digital 3D. A indicação depende da avaliação de cada caso.</p></article>
       <article class="svc"><span class="tag">Crescimento</span><h3>Ortopedia Funcional dos Maxilares</h3><p>Equilibra ossos, músculos e articulação temporomandibular com aparelhos removíveis.</p></article>
       <article class="svc"><span class="tag">Reabilitação</span><h3>Implantodontia</h3><p>Há mais de 10 anos repondo dentes com implantes, para devolver mastigação e segurança ao sorrir.</p></article>
       <article class="svc"><span class="tag">Reposição</span><h3>Prótese</h3><p>Removíveis, fixas, de porcelana ou sobre implantes, para restaurar forma e função.</p></article>
