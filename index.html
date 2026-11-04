@@ -5,7 +5,7 @@
 <meta name="description" content="Weiss Odontologia: ortodontia de precisão com Invisalign e escaneamento digital iTero em Caruaru e Recife. Dr. Edelweiss Jr., especialista e mestre em Ortodontia.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Jost:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
 /* Layout: dark clinical "scan room" — a live 3D arch scan opens the page; sections alternate deep ink bands and pearl panels, gold used only for signature moments. */
 :root{
@@ -13,8 +13,8 @@
   --gold:#28B0A0; --gold-soft:#5FD0C0; --aqua:#185878;
   --bg:#FBFDFD; --bg-2:#EEF7F5; --surface:#FFFFFF; --line:rgba(24,88,120,.13);
   --fg:#0F3A4F; --fg-dim:#557580; --accent:#1F9A8B; --on-accent:#FFFFFF; --deep:#185878;
-  --f-display:"Cormorant Garamond","Garamond","Times New Roman",Georgia,serif;
-  --f-body:"Jost","Futura","Century Gothic",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-display:"DM Serif Display",Georgia,"Times New Roman",serif;
+  --f-body:"DM Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
   --f-mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
   --gut:max(16px,env(safe-area-inset-left,0px));
   --gut-r:max(16px,env(safe-area-inset-right,0px));
@@ -29,7 +29,7 @@ body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:17
 body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:60;background:var(--bg)}
 a{color:inherit}
 h1,h2,h3,.stat .n,.sim-big,.portrait .sig{font-variant-numeric:lining-nums}
-h1,h2,h3{font-family:var(--f-display);font-weight:500;line-height:1.02;margin:0;text-wrap:balance;letter-spacing:-.01em}
+h1,h2,h3{font-family:var(--f-display);font-weight:400;line-height:1.05;margin:0;text-wrap:balance;letter-spacing:-.015em}
 p{margin:0}
 .wrap{max-width:var(--max);margin:0 auto;padding-left:var(--gut);padding-right:var(--gut-r)}
 .eyebrow{font-family:var(--f-mono);font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:var(--accent)}
@@ -75,7 +75,7 @@ nav.links a:hover{color:var(--fg)}
 @media (prefers-reduced-motion:no-preference){.float{animation:bob 5s ease-in-out infinite alternate}.f2{animation-delay:-1.6s}.f3{animation-delay:-3.2s}.hero-blob{animation:morph 12s ease-in-out infinite alternate}
 @keyframes bob{to{transform:translateY(-10px)}}@keyframes morph{to{border-radius:58% 42% 55% 45%/45% 58% 42% 55%;transform:rotate(6deg)}}}
 @media (max-width:560px){.f1{left:-2%}.f2{right:-2%}.float{font-size:12.5px;padding:9px 12px}}
-.hero h1{font-size:clamp(3.4rem,8.4vw,7.4rem);font-weight:500}
+.hero h1{font-size:clamp(3.2rem,7.6vw,6.6rem);font-weight:400}
 .hero h1 em{font-style:italic;color:var(--accent)}
 .hero .lead{margin-top:22px;font-size:1.2rem}
 .hero-ctas{display:flex;flex-wrap:wrap;gap:12px;margin-top:32px}
