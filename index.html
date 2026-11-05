@@ -5,16 +5,16 @@
 <meta name="description" content="Weiss Odontologia: ortodontia de precisão com Invisalign e escaneamento digital iTero em Caruaru e Recife. Dr. Edelweiss Jr., especialista e mestre em Ortodontia.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=Inter:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
 <style>
 /* Layout: dark clinical "scan room" — a live 3D arch scan opens the page; sections alternate deep ink bands and pearl panels, gold used only for signature moments. */
 :root{
   --ink:#0F3A4F; --petrol:#185878; --pearl:#FFFFFF; --mist:#DCEFEC;
   --gold:#28B0A0; --gold-soft:#5FD0C0; --aqua:#185878;
-  --bg:#FBFDFD; --bg-2:#EEF7F5; --surface:#FFFFFF; --line:rgba(24,88,120,.13);
+  --bg:#FFFFFF; --bg-2:#F5F5F7; --surface:#FFFFFF; --line:rgba(24,88,120,.13);
   --fg:#0F3A4F; --fg-dim:#557580; --accent:#1F9A8B; --on-accent:#FFFFFF; --deep:#185878;
-  --f-display:"DM Serif Display",Georgia,"Times New Roman",serif;
-  --f-body:"DM Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-display:-apple-system,BlinkMacSystemFont,"SF Pro Display","Inter","Helvetica Neue",Arial,sans-serif;
+  --f-body:-apple-system,BlinkMacSystemFont,"SF Pro Text","Inter","Helvetica Neue",Arial,sans-serif;
   --f-mono:-apple-system,BlinkMacSystemFont,"SF Pro Text","SF Pro Display","Inter","Helvetica Neue","Segoe UI",Arial,sans-serif;
   --gut:max(16px,env(safe-area-inset-left,0px));
   --gut-r:max(16px,env(safe-area-inset-right,0px));
@@ -31,7 +31,7 @@ body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--f-body);fon
 body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:60;background:var(--bg)}
 a{color:inherit}
 h1,h2,h3,.stat .n,.sim-big,.portrait .sig{font-variant-numeric:lining-nums}
-h1,h2,h3{font-family:var(--f-display);font-weight:400;line-height:1.05;margin:0;text-wrap:balance;letter-spacing:-.015em}
+h1,h2,h3{font-family:var(--f-display);font-weight:700;line-height:1.06;margin:0;text-wrap:balance;letter-spacing:-.03em}
 p{margin:0}
 .wrap{max-width:var(--max);margin:0 auto;padding-left:var(--gut);padding-right:var(--gut-r)}
 .eyebrow{font-family:var(--f-mono);font-weight:500;font-size:12px;letter-spacing:0.08em;text-transform:uppercase;color:var(--accent)}
@@ -64,7 +64,7 @@ nav.links a:hover{color:var(--fg)}
 
 /* Hero */
 .hero{position:relative;overflow:hidden}
-.hero{background:radial-gradient(70% 90% at 85% 40%,var(--mist),transparent 70%),var(--bg)}
+.hero{background:#fff}
 .hero .wrap{display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:center;padding-block:64px 72px}
 .hero-art{position:relative;max-width:520px;width:100%;justify-self:center}
 .hero-blob{position:absolute;inset:4% -5% 22% 5%;border-radius:46% 54% 42% 58%/52% 44% 56% 48%;background:linear-gradient(140deg,var(--gold-soft),var(--deep));opacity:.9}
@@ -78,8 +78,8 @@ nav.links a:hover{color:var(--fg)}
 @media (prefers-reduced-motion:no-preference){.float{animation:bob 4s ease-in-out infinite alternate}.f2{animation-delay:-1.3s}.f3{animation-delay:-2.6s}.f4{animation-delay:-.7s}.f5{animation-delay:-2s}.hero-blob{animation:morph 12s ease-in-out infinite alternate}
 @keyframes bob{to{transform:translateY(-5px)}}@keyframes morph{to{border-radius:58% 42% 55% 45%/45% 58% 42% 55%;transform:rotate(6deg)}}}
 @media (max-width:560px){.float{font-size:12.5px;padding:9px 12px}}
-.hero h1{font-size:clamp(3.2rem,7.6vw,6.6rem);font-weight:400}
-.hero h1 em{font-style:italic;color:var(--accent)}
+.hero h1{font-size:clamp(3rem,7vw,6rem);font-weight:800;letter-spacing:-.045em}
+
 .hero .lead{margin-top:22px;font-size:1.2rem}
 .hero-ctas{display:flex;flex-wrap:wrap;gap:12px;margin-top:32px}
 .hero-meta{display:flex;flex-wrap:wrap;gap:8px 22px;margin-top:34px;font-family:var(--f-mono);font-weight:500;font-size:12px;color:var(--fg-dim);letter-spacing:0.027em}
@@ -361,6 +361,43 @@ footer a:hover{color:var(--fg)}
 .g-dots button.on{width:26px;background:var(--accent)}
 @media (max-width:860px){.tech-wrap .gallery{max-width:440px;width:100%;margin:0 auto}}
 
+/* Clean white + colour accents */
+h1 em,h2 em,h3 em{font-style:normal!important;background:linear-gradient(90deg,#1FB59F,#185878);-webkit-background-clip:text;background-clip:text;color:transparent!important}
+.cta-band h2 em,.world h2 em{background:linear-gradient(90deg,#7FE3D3,#C6F2EA)!important;-webkit-background-clip:text!important;-webkit-background-clip:text;background-clip:text;color:transparent}
+.lead{font-weight:400}
+.svc:nth-child(1) .svc-ic{background:linear-gradient(135deg,#34C3B0,#1F7FA8)}
+.svc:nth-child(2) .svc-ic{background:linear-gradient(135deg,#6D8BFF,#4B4FD8)}
+.svc:nth-child(3) .svc-ic{background:linear-gradient(135deg,#FFB547,#F2793A)}
+.svc:nth-child(4) .svc-ic{background:linear-gradient(135deg,#FF7A9A,#E0457B)}
+.svc:nth-child(5) .svc-ic{background:linear-gradient(135deg,#B17CFF,#7B4FE0)}
+.svc:nth-child(6) .svc-ic{background:linear-gradient(135deg,#4FC3F7,#1E88E5)}
+.svc:nth-child(7) .svc-ic{background:linear-gradient(135deg,#FFD54F,#F9A825)}
+.svc:nth-child(8) .svc-ic{background:linear-gradient(135deg,#66D19E,#2E9D64)}
+.svc .svc-ic,.svc:hover .svc-ic{color:#fff}
+.svc:hover .svc-ic{filter:saturate(1.2) brightness(1.05)}
+/* Bento */
+.bento{display:grid;grid-template-columns:repeat(4,1fr);grid-auto-rows:220px;gap:16px;grid-auto-flow:dense}
+.t-wide{grid-column:span 3}
+.t-blue{background:linear-gradient(140deg,#5AC8FA,#2F6FE0)}
+.tile{position:relative;border-radius:28px;overflow:hidden;color:#fff;display:flex;flex-direction:column;justify-content:flex-end;padding:22px;text-decoration:none;min-width:0;transition:transform .35s cubic-bezier(.2,.7,.2,1),box-shadow .35s}
+.tile:hover{transform:translateY(-4px);box-shadow:0 30px 60px -30px rgba(15,58,79,.45)}
+.tile img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:transform .8s ease}
+.tile:hover img{transform:scale(1.05)}
+.tile.photo::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 45%,rgba(7,30,42,.7))}
+.tile>*:not(img){position:relative;z-index:1}
+.tile small{font-weight:600;font-size:12.5px;letter-spacing:.04em;text-transform:uppercase;opacity:.9}
+.tile b{font-family:var(--f-display);font-size:1.6rem;line-height:1.1;letter-spacing:-.02em}
+.tile .big{font-family:var(--f-display);font-weight:800;font-size:4rem;line-height:1;letter-spacing:-.05em}
+.t-a{grid-column:span 2;grid-row:span 2}
+.t-b{grid-row:span 2}
+.t-mint{background:linear-gradient(140deg,#3CD3BB,#1F7FA8)}
+.t-coral{background:linear-gradient(140deg,#FF9A7B,#F2577A)}
+.t-violet{background:linear-gradient(140deg,#8E8CFF,#5A3FD8)}
+.t-sun{background:linear-gradient(140deg,#FFD56B,#FF9F43);color:#3A2A08}
+.tile .ico{width:44px;height:44px;margin-bottom:auto;opacity:.95}
+@media (max-width:980px){.bento{grid-template-columns:1fr 1fr;grid-auto-rows:190px}.t-a,.t-wide,.t-m2{grid-column:span 2}}
+@media (max-width:520px){.bento{grid-auto-rows:170px;gap:12px}.t-b{grid-row:span 1}.tile b{font-size:1.25rem}.tile .big{font-size:3rem}}
+
 .toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translateX(-50%) translateY(120px);background:var(--deep);color:var(--on-accent);padding:10px 18px;border-radius:999px;font-weight:600;font-size:14px;transition:transform .35s,visibility .35s;z-index:80;visibility:hidden}
 .toast.show{transform:translateX(-50%) translateY(0);visibility:visible}
 </style>
@@ -416,6 +453,25 @@ footer a:hover{color:var(--fg)}
     <div class="stat"><div class="n" data-count="32">32<small>anos</small></div><p class="t">de experiência clínica do Dr. Edelweiss Jr.</p></div>
     <div class="stat"><div class="n" data-count="3">3<small>gerações</small></div><p class="t">de uma mesma família cuidadas por nós</p></div>
     <div class="stat"><div class="n">1º</div><p class="t">a trazer Invisalign para Caruaru</p></div>
+  </div>
+</section>
+
+<section class="block" id="experiencia">
+  <div class="wrap">
+    <div class="head reveal">
+      <div><p class="eyebrow">A experiência Weiss</p><h2>Tecnologia, estética e <em>cuidado</em>.</h2></div>
+    </div>
+    <div class="bento">
+      <a class="tile photo t-a" href="#especialidades"><img src="assets/sorriso.jpg" alt="Sorriso de paciente" loading="lazy"><small>Estética</small><b>O detalhe que assina o sorriso</b></a>
+      <a class="tile t-b" href="#tecnologia"><img src="assets/itero-3d.jpg" alt="Com o iTero, o ortodontista cria uma imagem em 3D de seus dentes em apenas alguns minutos" loading="lazy" style="object-position:50% 20%"></a>
+      <a class="tile t-mint" href="#simulador"><svg class="ico" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8 20c4-6 28-6 32 0-2 12-6 18-16 18S10 32 8 20Z"/><path d="M14 22c3 2 17 2 20 0"/></svg><small>Invisalign Doctor</small><b>Alinhadores invisíveis</b></a>
+      <a class="tile t-coral" href="#especialidades"><svg class="ico" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="24" cy="20" r="10"/><path d="M20 22c2 2 6 2 8 0M14 42c1-6 5-10 10-10s9 4 10 10"/></svg><small>Odontopediatria</small><b>Cuidado desde os primeiros dentes</b></a>
+      <a class="tile t-b" href="#tecnologia"><img src="assets/itero-scan.jpg" alt="Peça para o seu ortodontista e faça já o escaneamento do seu sorriso" loading="lazy" style="object-position:50% 20%"></a>
+      <a class="tile t-violet" href="#unidades"><small>Desde Caruaru</small><span class="big">70+</span><b>anos de história</b></a>
+      <a class="tile t-sun" href="#especialidades"><small>Multidisciplinar</small><span class="big">8</span><b>especialidades no mesmo local</b></a>
+      <a class="tile t-blue t-m2" href="#tecnologia"><svg class="ico" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="6" y="12" width="36" height="24" rx="4"/><circle cx="24" cy="24" r="6"/><path d="M18 8h12"/></svg><small>Check-up digital</small><b>Câmera intraoral: você vê o que o dentista vê</b></a>
+      <a class="tile photo t-wide" href="#doutor"><img src="assets/itero-dr.jpg" alt="Dr. Edelweiss Jr. com o iTero" loading="lazy" style="object-position:50% 42%"><small>Atendimento personalizado</small><b>Dr. Edelweiss Jr. · CRO-PE 5131</b></a>
+    </div>
   </div>
 </section>
 
@@ -840,7 +896,7 @@ if(!/claude|anthropic|^$/.test(location.hostname)){
 
 /* ---------- Lateral fade on scroll ---------- */
 if(!reduce && 'IntersectionObserver' in window){
-  const sel='.head,.stats .stat,.sim-stage,.sim-panel,.gallery,.tech-wrap>div:last-child,.portrait,.doc>div:last-child,.svc,.story,.unit,.map-card,.review,.world .wrap>div:first-child,.cta-band .wrap>*';
+  const sel='.head,.stats .stat,.sim-stage,.sim-panel,.gallery,.tech-wrap>div:last-child,.portrait,.doc>div:last-child,.svc,.story,.unit,.map-card,.review,.tile,.world .wrap>div:first-child,.cta-band .wrap>*';
   const els=[...document.querySelectorAll(sel)];
   const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.remove('pre');io.unobserve(e.target)}}),{threshold:.12,rootMargin:'0px 0px -6% 0px'});
   els.forEach(el=>{
