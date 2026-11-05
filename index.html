@@ -73,8 +73,9 @@ nav.links a:hover{color:var(--fg)}
 .hero-badges{position:relative;display:flex;flex-wrap:wrap;justify-content:center;gap:10px;margin-top:22px}
 .float{position:relative;text-decoration:none;cursor:pointer;transition:box-shadow .25s,transform .25s;background:#fff;color:var(--fg);border-radius:16px;padding:12px 16px;font-size:14px;box-shadow:0 18px 40px -18px rgba(15,58,79,.45);display:flex;align-items:center;gap:10px;line-height:1.25;white-space:nowrap}
 .float b{color:var(--deep)}
+.float:not(.f3){gap:.3em}
 .f3 img{width:48px;height:48px;border-radius:50%;object-fit:cover;object-position:50% 25%}
-@media (prefers-reduced-motion:no-preference){.float{animation:bob 4s ease-in-out infinite alternate}.f2{animation-delay:-1.3s}.f3{animation-delay:-2.6s}.hero-blob{animation:morph 12s ease-in-out infinite alternate}
+@media (prefers-reduced-motion:no-preference){.float{animation:bob 4s ease-in-out infinite alternate}.f2{animation-delay:-1.3s}.f3{animation-delay:-2.6s}.f4{animation-delay:-.7s}.f5{animation-delay:-2s}.hero-blob{animation:morph 12s ease-in-out infinite alternate}
 @keyframes bob{to{transform:translateY(-5px)}}@keyframes morph{to{border-radius:58% 42% 55% 45%/45% 58% 42% 55%;transform:rotate(6deg)}}}
 @media (max-width:560px){.float{font-size:12.5px;padding:9px 12px}}
 .hero h1{font-size:clamp(3.2rem,7.6vw,6.6rem);font-weight:400}
@@ -360,6 +361,8 @@ footer a:hover{color:var(--fg)}
       <div class="hero-badges">
       <a class="float f1" href="#simulador"><b>Invisalign</b> Doctor</a>
       <a class="float f2" href="#tecnologia">Scanner <b>iTero</b> 3D</a>
+      <a class="float f4" href="#tecnologia"><b>Check-up digital</b> com câmera intraoral</a>
+      <a class="float f5" href="#unidades">Atendimento <b>personalizado</b></a>
       <a class="float f3" href="#doutor"><img src="assets/dr-edelweiss.jpg" alt="" width="48" height="48"><span><b>Dr. Edelweiss Jr.</b><br>CRO-PE 5131</span></a>
       </div>
     </div>
