@@ -757,20 +757,25 @@ const types=[...TT, ...TT.slice().reverse()];
 const crowd=[ // [dx, dy, rot] crowded offsets per tooth (left distal → right distal)
  [0,6,4],[2,-4,-6],[-6,10,12],[8,-14,-18],[-10,18,22],[6,-10,-14],[-12,22,-20],
  [14,26,24],[-8,-12,16],[12,16,-26],[-6,-16,18],[4,8,-10],[-2,-6,6],[0,4,-3]];
-let tot=seq.reduce((a,b)=>a+b,0)+ (seq.length-1)*4;
-const ideal=[]; let acc=0;
-seq.forEach(w=>{const u=(acc+w/2)/tot; acc+=w+4;
-  const a=(u-.5)*Math.PI*1.05; const x=300+Math.sin(a)*225, y=340-Math.cos(a)*235;
-  ideal.push({x,y,ang:a*180/Math.PI,w});});
-// gum arch path
+// dental arch (upper, occlusal view): narrow rounded front, posterior segments slightly diverging
+const ARC=[];(function(){const A=1.38,cx=300,top=70,dep=318,rx=205;
+  for(let i=0;i<=300;i++){const t=-1+2*i/300,a=t*A;const sx=Math.sin(a);
+    ARC.push({x:cx+rx*sx*(1+.06*Math.abs(t)),y:top+(1-Math.cos(a))/(1-Math.cos(A))*dep});}
+  let L=0;ARC[0].s=0;for(let i=1;i<ARC.length;i++){L+=Math.hypot(ARC[i].x-ARC[i-1].x,ARC[i].y-ARC[i-1].y);ARC[i].s=L}ARC.len=L;})();
+function arcAt(s){let i=1;while(i<ARC.length-1&&ARC[i].s<s)i++;const p=ARC[i-1],q=ARC[i],f=(s-p.s)/((q.s-p.s)||1);
+  return {x:p.x+(q.x-p.x)*f,y:p.y+(q.y-p.y)*f,ang:Math.atan2(q.y-p.y,q.x-p.x)}}
+const GAP=2,K=(ARC.len*.97)/(seq.reduce((a,b)=>a+b,0)+GAP*(seq.length-1));
+const ideal=[];let acc=ARC.len*.015;
+seq.forEach(w0=>{const w=w0*K;const q=arcAt(acc+w/2);acc+=w+GAP*K;ideal.push({x:q.x,y:q.y,ang:q.ang*180/Math.PI,w});});
+function offsetPath(off){let d='';ARC.forEach((p,i)=>{const n=ARC[Math.min(i+1,ARC.length-1)],m=ARC[Math.max(i-1,0)];const ang=Math.atan2(n.y-m.y,n.x-m.x);
+  const x=p.x-Math.sin(ang)*off,y=p.y+Math.cos(ang)*off;d+=(i?'L':'M')+x.toFixed(1)+' '+y.toFixed(1)});return d}
+// gum: outer (buccal) and inner (palatal) borders
 const gum=document.createElementNS(NS,'path');
-let d='';for(let i=0;i<=60;i++){const a=(i/60-.5)*Math.PI*1.12;const x=300+Math.sin(a)*262,y=340-Math.cos(a)*272;d+=(i?'L':'M')+x.toFixed(1)+' '+y.toFixed(1)}
-for(let i=60;i>=0;i--){const a=(i/60-.5)*Math.PI*1.12;const x=300+Math.sin(a)*188,y=340-Math.cos(a)*196;d+='L'+x.toFixed(1)+' '+y.toFixed(1)}
-gum.setAttribute('d',d+'Z');gum.setAttribute('fill','#F4D4D2');svg.appendChild(gum);
+const outer=offsetPath(-40), inner=offsetPath(38).replace('M','L').split('L').filter(Boolean).reverse().map(p=>'L'+p).join('');
+gum.setAttribute('d',outer+inner+'Z');gum.setAttribute('fill','#F4D4D2');gum.setAttribute('stroke','#EBC0BD');gum.setAttribute('stroke-width','1');svg.appendChild(gum);
 // ideal guide curve
 const guide=document.createElementNS(NS,'path');
-let g='';for(let i=0;i<=60;i++){const a=(i/60-.5)*Math.PI*1.05;const x=300+Math.sin(a)*225,y=340-Math.cos(a)*235;g+=(i?'L':'M')+x.toFixed(1)+' '+y.toFixed(1)}
-guide.setAttribute('d',g);guide.setAttribute('fill','none');guide.setAttribute('stroke','var(--accent)');guide.setAttribute('stroke-dasharray','3 7');guide.setAttribute('opacity','.55');svg.appendChild(guide);
+guide.setAttribute('d',offsetPath(0));guide.setAttribute('fill','none');guide.setAttribute('stroke','var(--accent)');guide.setAttribute('stroke-dasharray','3 7');guide.setAttribute('opacity','.55');svg.appendChild(guide);
 const aligner=document.createElementNS(NS,'path');aligner.setAttribute('fill','none');aligner.setAttribute('stroke','var(--aqua)');aligner.setAttribute('stroke-width','30');aligner.setAttribute('stroke-linecap','round');aligner.setAttribute('stroke-linejoin','round');aligner.setAttribute('opacity','0');svg.appendChild(aligner);
 const defs=document.createElementNS(NS,'defs');defs.innerHTML='<radialGradient id="enamel" cx="38%" cy="32%" r="75%"><stop offset="0" stop-color="#FFFFFF"/><stop offset=".65" stop-color="#F4F7F6"/><stop offset="1" stop-color="#DCE5E3"/></radialGradient>';svg.appendChild(defs);
 function toothD(t,w,h){const W=w/2,H=h/2;
@@ -783,11 +788,11 @@ function grooveD(t,w,h){const W=w/2,H=h/2;
   if(t==='P')return `M${-W*.45} 0Q0 ${H*.12} ${W*.45} 0`;
   if(t==='C')return `M0 ${-H*.5}L0 ${H*.3}`;
   return `M${-W*.55} ${-H*.35}Q0 ${-H*.6} ${W*.55} ${-H*.35}`;}
-const teethEls=ideal.map((p,i)=>{const t=types[i],w=(p.w-2)*1.17,h=TD[t]*1.22;const g=document.createElementNS(NS,'g');
+const teethEls=ideal.map((p,i)=>{const t=types[i],w=p.w-1,h=TD[t]*1.22;const g=document.createElementNS(NS,'g');
   const body=document.createElementNS(NS,'path');body.setAttribute('d',toothD(t,w,h));body.setAttribute('fill','url(#enamel)');body.setAttribute('stroke','#B9D3D6');body.setAttribute('stroke-width','1.6');
   const gr=document.createElementNS(NS,'path');gr.setAttribute('d',grooveD(t,w,h));gr.setAttribute('fill','none');gr.setAttribute('stroke','#9DB3B4');gr.setAttribute('stroke-width','1.3');gr.setAttribute('stroke-linecap','round');
   g.appendChild(body);g.appendChild(gr);g.style.filter='drop-shadow(0 2px 2px rgba(15,58,79,.18))';svg.appendChild(g);return g});
-const label=document.createElementNS(NS,'text');label.setAttribute('x',300);label.setAttribute('y',300);label.setAttribute('text-anchor','middle');label.setAttribute('font-family','-apple-system, BlinkMacSystemFont, Inter, Helvetica Neue, Arial, sans-serif');label.setAttribute('font-size','13');label.setAttribute('fill','var(--fg-dim)');label.setAttribute('letter-spacing','0.3');svg.appendChild(label);
+const label=document.createElementNS(NS,'text');label.setAttribute('x',300);label.setAttribute('y',265);label.setAttribute('text-anchor','middle');label.setAttribute('font-family','-apple-system, BlinkMacSystemFont, Inter, Helvetica Neue, Arial, sans-serif');label.setAttribute('font-size','13');label.setAttribute('fill','var(--fg-dim)');label.setAttribute('letter-spacing','0.3');svg.appendChild(label);
 const ease=x=>x<.5?2*x*x:1-Math.pow(-2*x+2,2)/2;
 const chips=[...document.querySelectorAll('.sim-phase .chip')];
 chips.forEach(c=>c.addEventListener('click',()=>{stop();range.value=c.dataset.go;render(+c.dataset.go)}));
