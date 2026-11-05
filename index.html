@@ -331,6 +331,24 @@ footer a:hover{color:var(--fg)}
 .float:hover,.svc:hover{box-shadow:0 22px 44px -22px rgba(15,58,79,.5)}
 .btn:active,.chip:active,.copy:active,.float:active{transform:scale(.97)}
 
+/* Invisalign plans */
+.ptabs{display:inline-flex;background:var(--bg-2);border:1px solid var(--line);border-radius:999px;padding:4px;gap:2px;flex-wrap:wrap}
+.ptab{border:0;background:transparent;font:600 13.5px var(--f-body);color:var(--fg-dim);padding:8px 14px;border-radius:999px;cursor:pointer;transition:background .25s,color .25s}
+.ptab.on{background:#fff;color:var(--deep);box-shadow:0 4px 12px -6px rgba(15,58,79,.4)}
+.plans{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:36px}
+.plan{background:#fff;border:1px solid var(--line);border-radius:24px;padding:26px;display:flex;flex-direction:column;gap:8px;box-shadow:0 18px 40px -32px rgba(15,58,79,.45);min-width:0}
+.plan.featured{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent),0 24px 50px -30px rgba(31,154,139,.5)}
+.plan-tag{font-family:var(--f-mono);font-weight:600;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--accent)}
+.plan h3{font-size:1.6rem}
+.plan-num{font-family:var(--f-display);font-size:3.2rem;line-height:1;color:var(--deep);font-variant-numeric:lining-nums;margin-top:6px}
+.plan-num small{font-family:var(--f-body);font-size:15px;color:var(--fg-dim);margin-left:8px}
+.plan-extra{font-weight:600;color:var(--accent)}
+.plan-desc{color:var(--fg-dim);font-size:15px}
+.plan-ctas{display:flex;flex-wrap:wrap;gap:8px;margin-top:auto;padding-top:12px}
+.plan-ctas .btn{padding:11px 16px;font-size:14px}
+.plans-note{margin-top:16px;color:var(--fg-dim);font-size:14px;text-align:center}
+@media (max-width:900px){.plans{grid-template-columns:1fr}}
+
 .toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translateX(-50%) translateY(120px);background:var(--deep);color:var(--on-accent);padding:10px 18px;border-radius:999px;font-weight:600;font-size:14px;transition:transform .35s,visibility .35s;z-index:80;visibility:hidden}
 .toast.show{transform:translateX(-50%) translateY(0);visibility:visible}
 </style>
@@ -433,14 +451,17 @@ footer a:hover{color:var(--fg)}
         <svg id="arch" viewBox="0 0 600 420" role="img" aria-label="Arcada dentária superior passando de apinhada para alinhada"></svg>
       </div>
       <div class="sim-panel">
+        <div class="ptabs" role="group" aria-label="Tipo de tratamento">
+          <button type="button" class="ptab" data-plan="lite">Lite</button><button type="button" class="ptab on" data-plan="moderate">Moderate</button><button type="button" class="ptab" data-plan="comprehensive">Comprehensive</button>
+        </div>
         <div>
-          <p class="sim-count">ALINHADOR</p>
-          <p class="sim-big"><span id="stageN">1</span><small>/ 24</small></p>
+          <p class="sim-count" id="planDesc">Invisalign Moderate · até 26 alinhadores + 26 de garantia</p>
+          <p class="sim-big"><span id="stageN">1</span><small id="stageMax">/ 26</small></p>
         </div>
         <label for="stage" class="sim-count">Arraste para avançar no tratamento</label>
-        <input type="range" id="stage" min="1" max="24" value="1" step="1">
+        <input type="range" id="stage" min="1" max="26" value="1" step="1">
         <div class="sim-phase" aria-live="polite">
-          <button type="button" class="chip" data-go="1">Escaneamento</button><button type="button" class="chip" data-go="8">Movimento</button><button type="button" class="chip" data-go="20">Refinamento</button><button type="button" class="chip" data-go="24">Contenção Vivera</button>
+          <button type="button" class="chip" data-go="1">Escaneamento</button><button type="button" class="chip" data-go="8">Movimento</button><button type="button" class="chip" data-go="21">Refinamento</button><button type="button" class="chip" data-go="26">Contenção Vivera</button>
         </div>
         <div style="display:flex;gap:10px;flex-wrap:wrap">
           <button class="btn btn-ghost" id="play" type="button">▶ Reproduzir tratamento</button>
@@ -448,6 +469,33 @@ footer a:hover{color:var(--fg)}
         <p class="sim-notes">Simulação ilustrativa. Número de alinhadores e duração variam em cada caso e são definidos na sua avaliação.</p>
       </div>
     </div>
+    <div class="plans">
+      <article class="plan">
+        <span class="plan-tag">Casos simples</span>
+        <h3>Invisalign Lite</h3>
+        <p class="plan-num">14<small>alinhadores</small></p>
+        <p class="plan-extra">+ 14 alinhadores de garantia</p>
+        <p class="plan-desc">Pequenos apinhamentos, espaços ou recidivas leves.</p>
+        <div class="plan-ctas"><button type="button" class="btn btn-ghost" data-show="lite">Ver no simulador</button><a class="btn btn-gold" href="https://wa.me/5581998368491?text=Ol%C3%A1%21%20Gostaria%20de%20avaliar%20meu%20caso%20para%20o%20tratamento%20Invisalign%20Lite." target="_blank" rel="noopener">Avaliar meu caso</a></div>
+      </article>
+      <article class="plan featured">
+        <span class="plan-tag">Casos moderados</span>
+        <h3>Invisalign Moderate</h3>
+        <p class="plan-num">26<small>alinhadores</small></p>
+        <p class="plan-extra">+ 26 alinhadores de garantia</p>
+        <p class="plan-desc">Apinhamentos e espaçamentos moderados, ajustes de mordida.</p>
+        <div class="plan-ctas"><button type="button" class="btn btn-ghost" data-show="moderate">Ver no simulador</button><a class="btn btn-gold" href="https://wa.me/5581998368491?text=Ol%C3%A1%21%20Gostaria%20de%20avaliar%20meu%20caso%20para%20o%20tratamento%20Invisalign%20Moderate." target="_blank" rel="noopener">Avaliar meu caso</a></div>
+      </article>
+      <article class="plan">
+        <span class="plan-tag">Casos complexos</span>
+        <h3>Invisalign Comprehensive</h3>
+        <p class="plan-num">∞<small>ilimitados</small></p>
+        <p class="plan-extra">durante 5 anos</p>
+        <p class="plan-desc">Correções amplas de mordida e alinhamento, com refinamentos sem limite.</p>
+        <div class="plan-ctas"><button type="button" class="btn btn-ghost" data-show="comprehensive">Ver no simulador</button><a class="btn btn-gold" href="https://wa.me/5581998368491?text=Ol%C3%A1%21%20Gostaria%20de%20avaliar%20meu%20caso%20para%20o%20tratamento%20Invisalign%20Comprehensive." target="_blank" rel="noopener">Avaliar meu caso</a></div>
+      </article>
+    </div>
+    <p class="plans-note">A indicação do tipo de tratamento é feita na avaliação, após o escaneamento iTero.</p>
   </div>
 </section>
 
@@ -748,7 +796,7 @@ requestAnimationFrame(frame);
 
 /* ---------- Aligner simulator ---------- */
 const svg=document.getElementById('arch'), NS='http://www.w3.org/2000/svg';
-const N=24, range=document.getElementById('stage'), nEl=document.getElementById('stageN');
+let N=26; const range=document.getElementById('stage'), nEl=document.getElementById('stageN');
 const TT=['M','M','P','P','C','L','I']; // distal → mesial
 const tw=[50,54,38,38,40,34,44]; // mesio-distal widths (px)
 const TD={M:50,P:44,C:40,L:30,I:30}; // bucco-lingual depth (px)
@@ -764,7 +812,7 @@ const ARC=[];(function(){const A=1.38,cx=300,top=70,dep=318,rx=205;
   let L=0;ARC[0].s=0;for(let i=1;i<ARC.length;i++){L+=Math.hypot(ARC[i].x-ARC[i-1].x,ARC[i].y-ARC[i-1].y);ARC[i].s=L}ARC.len=L;})();
 function arcAt(s){let i=1;while(i<ARC.length-1&&ARC[i].s<s)i++;const p=ARC[i-1],q=ARC[i],f=(s-p.s)/((q.s-p.s)||1);
   return {x:p.x+(q.x-p.x)*f,y:p.y+(q.y-p.y)*f,ang:Math.atan2(q.y-p.y,q.x-p.x)}}
-const GAP=2,K=(ARC.len*.97)/(seq.reduce((a,b)=>a+b,0)+GAP*(seq.length-1));
+const GAP=0,K=(ARC.len*.97)/(seq.reduce((a,b)=>a+b,0)+GAP*(seq.length-1));
 const ideal=[];let acc=ARC.len*.015;
 seq.forEach(w0=>{const w=w0*K;const q=arcAt(acc+w/2);acc+=w+GAP*K;ideal.push({x:q.x,y:q.y,ang:q.ang*180/Math.PI,w});});
 function offsetPath(off){let d='';ARC.forEach((p,i)=>{const n=ARC[Math.min(i+1,ARC.length-1)],m=ARC[Math.max(i-1,0)];const ang=Math.atan2(n.y-m.y,n.x-m.x);
@@ -788,7 +836,7 @@ function grooveD(t,w,h){const W=w/2,H=h/2;
   if(t==='P')return `M${-W*.45} 0Q0 ${H*.12} ${W*.45} 0`;
   if(t==='C')return `M0 ${-H*.5}L0 ${H*.3}`;
   return `M${-W*.55} ${-H*.35}Q0 ${-H*.6} ${W*.55} ${-H*.35}`;}
-const teethEls=ideal.map((p,i)=>{const t=types[i],w=p.w-1,h=TD[t]*1.22;const g=document.createElementNS(NS,'g');
+const teethEls=ideal.map((p,i)=>{const t=types[i],w=p.w*1.07,h=TD[t]*1.22;const g=document.createElementNS(NS,'g');
   const body=document.createElementNS(NS,'path');body.setAttribute('d',toothD(t,w,h));body.setAttribute('fill','url(#enamel)');body.setAttribute('stroke','#B9D3D6');body.setAttribute('stroke-width','1.6');
   const gr=document.createElementNS(NS,'path');gr.setAttribute('d',grooveD(t,w,h));gr.setAttribute('fill','none');gr.setAttribute('stroke','#9DB3B4');gr.setAttribute('stroke-width','1.3');gr.setAttribute('stroke-linecap','round');
   g.appendChild(body);g.appendChild(gr);g.style.filter='drop-shadow(0 2px 2px rgba(15,58,79,.18))';svg.appendChild(g);return g});
@@ -796,6 +844,13 @@ const label=document.createElementNS(NS,'text');label.setAttribute('x',300);labe
 const ease=x=>x<.5?2*x*x:1-Math.pow(-2*x+2,2)/2;
 const chips=[...document.querySelectorAll('.sim-phase .chip')];
 chips.forEach(c=>c.addEventListener('click',()=>{stop();range.value=c.dataset.go;render(+c.dataset.go)}));
+const PLANS={lite:{n:14,max:'/ 14',d:'Invisalign Lite · até 14 alinhadores + 14 de garantia'},moderate:{n:26,max:'/ 26',d:'Invisalign Moderate · até 26 alinhadores + 26 de garantia'},comprehensive:{n:40,max:'/ ilimitados',d:'Invisalign Comprehensive · alinhadores ilimitados por 5 anos'}};
+function setPlan(k){const P=PLANS[k];if(typeof stop==='function')stop();N=P.n;range.max=N;range.value=1;
+  document.getElementById('stageMax').textContent=P.max;document.getElementById('planDesc').textContent=P.d;
+  document.querySelectorAll('.ptab').forEach(b=>b.classList.toggle('on',b.dataset.plan===k));
+  [1,Math.round(N*.3),Math.round(N*.8),N].forEach((g,i)=>chips[i].dataset.go=g);render(1)}
+document.querySelectorAll('.ptab').forEach(b=>b.addEventListener('click',()=>setPlan(b.dataset.plan)));
+document.querySelectorAll('[data-show]').forEach(b=>b.addEventListener('click',()=>{setPlan(b.dataset.show);document.getElementById('simulador').scrollIntoView({behavior:'smooth'});setTimeout(()=>{if(typeof play==='function')play()},700)}));
 let cur=1;
 function render(v){
   cur=v; const t=ease((v-1)/(N-1));
@@ -809,7 +864,7 @@ function render(v){
   aligner.setAttribute('d',ad); aligner.setAttribute('opacity', v>1? .16:0);
   const mm=(Math.round(v)-1)*0.25;
   label.textContent = v>=N? 'SORRISO ALINHADO' : `≈ ${mm.toFixed(2).replace('.',',')} mm de movimento acumulado`;
-  const ph = v<=1?0: v<19?1: v<N?2:3;
+  const ph = v<=1?0: v<N*.8?1: v<N?2:3;
   chips.forEach((c,i)=>c.classList.toggle('on',i===ph));
 }
 range.addEventListener('input',()=>{stop();render(+range.value)});
