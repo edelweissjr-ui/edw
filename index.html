@@ -114,12 +114,20 @@ nav.links a:hover{color:var(--fg)}
 @media (max-width:760px){.stats .wrap{grid-template-columns:1fr 1fr}.stat:nth-child(3){border-left:0}.stat{border-top:1px solid var(--line)}.stat:nth-child(-n+2){border-top:0}}
 
 /* Marquee */
-.marquee{padding-block:26px;background:var(--deep)}
-.marquee-track{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:10px 0;max-width:var(--max);margin:0 auto;padding-left:var(--gut);padding-right:var(--gut-r);font-family:var(--f-display);font-style:italic;font-size:clamp(1.15rem,2vw,1.6rem);line-height:1.3;color:#DDF3EF;text-align:center}
-.marquee-track span{white-space:nowrap}
-.marquee-track span+span::before{content:"✦";font-style:normal;color:var(--gold-soft);font-size:.6em;margin:0 22px;vertical-align:middle}
-@media (prefers-reduced-motion:no-preference){.marquee-track span{animation:glow 6s ease-in-out infinite}.marquee-track span:nth-child(2){animation-delay:-2s}.marquee-track span:nth-child(3){animation-delay:-4s}@keyframes glow{50%{color:#fff;text-shadow:0 0 18px rgba(95,208,192,.45)}}}
-@media (max-width:620px){.marquee-track{flex-direction:column;gap:6px}.marquee-track span+span::before{display:block;margin:2px auto 8px;width:max-content}}
+.world{background:linear-gradient(150deg,var(--deep),#0F3A4F);color:#fff;padding-block:56px}
+.world .wrap{display:flex;flex-direction:column;align-items:center;gap:26px;text-align:center}
+.world .eyebrow{color:var(--gold-soft)}
+.world h2{font-size:clamp(1.9rem,4vw,3rem);margin-top:6px}
+.world h2 em{font-style:italic;color:var(--gold-soft)}
+.flags{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;max-width:960px}
+.flag{display:inline-flex;align-items:center;gap:9px;padding:9px 16px 9px 10px;border-radius:999px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.16);font-size:15px;font-weight:500;color:#F2FAFA;white-space:nowrap;transition:background .25s,transform .25s}
+.flag:hover{background:rgba(255,255,255,.16);transform:translateY(-2px)}
+.flag svg{width:26px;height:18px;border-radius:4px;flex:none;box-shadow:0 0 0 1px rgba(255,255,255,.25)}
+.flag small{color:var(--gold-soft);font-size:12px;font-weight:500}
+@media (prefers-reduced-motion:no-preference){.flag{animation:popin .6s cubic-bezier(.2,.8,.3,1.3) both}
+.flag:nth-child(2){animation-delay:.05s}.flag:nth-child(3){animation-delay:.1s}.flag:nth-child(4){animation-delay:.15s}.flag:nth-child(5){animation-delay:.2s}.flag:nth-child(6){animation-delay:.25s}.flag:nth-child(7){animation-delay:.3s}.flag:nth-child(8){animation-delay:.35s}.flag:nth-child(9){animation-delay:.4s}.flag:nth-child(10){animation-delay:.45s}.flag:nth-child(11){animation-delay:.5s}
+@keyframes popin{from{transform:scale(.85)}to{transform:none}}}
+@media (max-width:480px){.flag{font-size:14px;padding:8px 13px 8px 9px}}
 
 /* Sections */
 section.block{padding-block:96px}
@@ -378,11 +386,24 @@ footer a:hover{color:var(--fg)}
   </div>
 </section>
 
-<div class="marquee">
-  <div class="marquee-track">
-    <span>De Caruaru para Parintins</span><span>De Recife para Portugal</span><span>De Porto de Galinhas para o mundo</span>
+<section class="world" aria-label="Países de onde vêm nossos pacientes">
+  <div class="wrap">
+    <div><p class="eyebrow">Pacientes de vários lugares do mundo</p><h2>Sorrisos que <em>cruzam fronteiras</em>.</h2></div>
+    <div class="flags">
+      <span class="flag"><svg viewBox="0 0 30 20" aria-hidden="true"><rect width="30" height="20" fill="#009C3B"/><path d="M15 2.5 27 10 15 17.5 3 10Z" fill="#FFDF00"/><circle cx="15" cy="10" r="4.6" fill="#002776"/></svg>Brasil <small>de Pernambuco ao Amazonas</small></span>
+      <span class="flag"><svg viewBox="0 0 30 20" aria-hidden="true"><rect width="30" height="20" fill="#DA291C"/><rect width="12" height="20" fill="#046A38"/><circle cx="12" cy="10" r="3.6" fill="#FFE900"/></svg>Portugal</span>
+      <span class="flag"><svg viewBox="0 0 30 20" aria-hidden="true"><rect width="30" height="20" fill="#02529C"/><path d="M8 0h5v20H8zM0 7.5h30v5H0z" fill="#fff"/><path d="M9.25 0h2.5v20h-2.5zM0 8.75h30v2.5H0z" fill="#DC1E35"/></svg>Islândia</span>
+      <span class="flag"><svg viewBox="0 0 30 20" aria-hidden="true"><rect width="30" height="20" fill="#fff"/><rect y="0.00" width="30" height="1.54" fill="#B22234"/><rect y="3.08" width="30" height="1.54" fill="#B22234"/><rect y="6.15" width="30" height="1.54" fill="#B22234"/><rect y="9.23" width="30" height="1.54" fill="#B22234"/><rect y="12.31" width="30" height="1.54" fill="#B22234"/><rect y="15.38" width="30" height="1.54" fill="#B22234"/><rect y="18.46" width="30" height="1.54" fill="#B22234"/><rect width="13" height="10.8" fill="#3C3B6E"/></svg>EUA</span>
+      <span class="flag"><svg viewBox="0 0 30 20" aria-hidden="true"><rect width="30" height="20" fill="#fff"/><path d="M13 0h4v20h-4zM0 8h30v4H0z" fill="#CE1124"/></svg>Inglaterra</span>
+      <span class="flag"><svg viewBox="0 0 30 20" aria-hidden="true"><rect width="30" height="20" fill="#FFCE00"/><rect width="30" height="13.33" fill="#DD0000"/><rect width="30" height="6.67" fill="#000"/></svg>Alemanha</span>
+      <span class="flag"><svg viewBox="0 0 30 20" aria-hidden="true"><rect width="30" height="20" fill="#AA151B"/><rect y="5" width="30" height="10" fill="#F1BF00"/></svg>Espanha</span>
+      <span class="flag"><svg viewBox="0 0 30 20" aria-hidden="true"><rect width="30" height="20" fill="#007934"/><rect width="30" height="13.33" fill="#F9E300"/><rect width="30" height="6.67" fill="#D52B1E"/></svg>Bolívia</span>
+      <span class="flag"><svg viewBox="0 0 30 20" aria-hidden="true"><rect width="30" height="20" fill="#D91023"/><rect x="10" width="10" height="20" fill="#fff"/></svg>Peru</span>
+      <span class="flag"><svg viewBox="0 0 30 20" aria-hidden="true"><rect width="30" height="20" fill="#D52B1E"/><rect width="30" height="10" fill="#fff"/><rect width="10" height="10" fill="#0039A6"/><path d="M5 2.4l.9 2.7h2.8l-2.3 1.7.9 2.7L5 7.8 2.7 9.5l.9-2.7L1.3 5.1h2.8z" fill="#fff"/></svg>Chile</span>
+      <span class="flag"><svg viewBox="0 0 30 20" aria-hidden="true"><rect width="30" height="20" fill="#1F9A8B"/><circle cx="15" cy="10" r="7" fill="none" stroke="#fff" stroke-width="1.2"/><path d="M8 10h14M15 3c-3 3-3 11 0 14M15 3c3 3 3 11 0 14" fill="none" stroke="#fff" stroke-width="1"/></svg>África</span>
+    </div>
   </div>
-</div>
+</section>
 
 
 
@@ -797,7 +818,7 @@ if(!/claude|anthropic|^$/.test(location.hostname)){
 
 /* ---------- Lateral fade on scroll ---------- */
 if(!reduce && 'IntersectionObserver' in window){
-  const sel='.head,.stats .stat,.sim-stage,.sim-panel,.device,.tech-wrap>div:last-child,.portrait,.doc>div:last-child,.svc,.story,.unit,.map-card,.review,.cta-band .wrap>*';
+  const sel='.head,.stats .stat,.sim-stage,.sim-panel,.device,.tech-wrap>div:last-child,.portrait,.doc>div:last-child,.svc,.story,.unit,.map-card,.review,.world .wrap>div:first-child,.cta-band .wrap>*';
   const els=[...document.querySelectorAll(sel)];
   const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.remove('pre');io.unobserve(e.target)}}),{threshold:.12,rootMargin:'0px 0px -6% 0px'});
   els.forEach(el=>{
