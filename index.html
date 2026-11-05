@@ -23,6 +23,8 @@
 }
 
 *{box-sizing:border-box}
+html{overflow-x:clip}
+main,footer{overflow-x:clip}
 [hidden]{display:none!important}
 html{scroll-behavior:smooth}
 body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:17px;line-height:1.6;overflow-x:hidden;-webkit-font-smoothing:antialiased}
@@ -69,7 +71,7 @@ nav.links a:hover{color:var(--fg)}
 .hero-photo{position:relative;border-radius:50%;overflow:hidden;aspect-ratio:1/1;box-shadow:0 40px 80px -40px rgba(15,58,79,.6);border:8px solid #fff}
 .hero-photo img{width:100%;height:100%;object-fit:cover;object-position:58% 60%;display:block;transform:scale(1.08)}
 .hero-badges{position:relative;display:flex;flex-wrap:wrap;justify-content:center;gap:10px;margin-top:22px}
-.float{position:relative;background:#fff;color:var(--fg);border-radius:16px;padding:12px 16px;font-size:14px;box-shadow:0 18px 40px -18px rgba(15,58,79,.45);display:flex;align-items:center;gap:10px;line-height:1.25;white-space:nowrap}
+.float{position:relative;text-decoration:none;cursor:pointer;transition:box-shadow .25s,transform .25s;background:#fff;color:var(--fg);border-radius:16px;padding:12px 16px;font-size:14px;box-shadow:0 18px 40px -18px rgba(15,58,79,.45);display:flex;align-items:center;gap:10px;line-height:1.25;white-space:nowrap}
 .float b{color:var(--deep)}
 .f3 img{width:48px;height:48px;border-radius:50%;object-fit:cover;object-position:50% 25%}
 @media (prefers-reduced-motion:no-preference){.float{animation:bob 4s ease-in-out infinite alternate}.f2{animation-delay:-1.3s}.f3{animation-delay:-2.6s}.hero-blob{animation:morph 12s ease-in-out infinite alternate}
@@ -97,10 +99,6 @@ nav.links a:hover{color:var(--fg)}
   .rise{animation:rise 1s cubic-bezier(.2,.7,.2,1) both}
   .d1{animation-delay:.08s}.d2{animation-delay:.18s}.d3{animation-delay:.3s}.d4{animation-delay:.42s}
   @keyframes rise{from{transform:translateY(18px);opacity:.35}to{transform:none;opacity:1}}
-  @supports (animation-timeline:view()){
-    .reveal{animation:reveal linear both;animation-timeline:view();animation-range:entry 0% entry 40%}
-    @keyframes reveal{from{transform:translateY(40px)}to{transform:none}}
-  }
 }
 
 /* Stats */
@@ -142,7 +140,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:26px;heigh
 input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;background:var(--accent);border:5px solid var(--bg);cursor:grab}
 .sim-notes{font-size:14px;color:var(--fg-dim);border-top:1px solid var(--line);padding-top:16px}
 .sim-phase{display:flex;gap:6px;flex-wrap:wrap}
-.chip{font-family:var(--f-mono);font-weight:500;font-size:11px;letter-spacing:0.036em;padding:6px 10px;border-radius:999px;border:1px solid var(--line);color:var(--fg-dim);transition:all .3s}
+.chip{background:transparent;cursor:pointer;font-family:var(--f-mono);font-weight:500;font-size:11px;letter-spacing:0.036em;padding:6px 10px;border-radius:999px;border:1px solid var(--line);color:var(--fg-dim);transition:all .3s}
 .chip.on{background:var(--accent);color:var(--on-accent);border-color:var(--accent)}
 @media (max-width:860px){.sim{grid-template-columns:1fr}}
 
@@ -201,12 +199,14 @@ input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;bac
 
 /* Services */
 .services{display:grid;grid-template-columns:repeat(4,1fr);gap:18px}
-.svc{background:#fff;border:1px solid var(--line);border-radius:22px;padding:26px;box-shadow:0 14px 30px -24px rgba(15,58,79,.35);display:flex;flex-direction:column;gap:12px;position:relative;overflow:hidden;min-width:0;transition:border-color .3s,transform .3s}
+.svc{text-decoration:none;color:inherit;cursor:pointer;background:#fff;border:1px solid var(--line);border-radius:22px;padding:26px;box-shadow:0 14px 30px -24px rgba(15,58,79,.35);display:flex;flex-direction:column;gap:12px;position:relative;overflow:hidden;min-width:0;transition:border-color .3s,transform .3s}
 .svc:hover{border-color:var(--accent);transform:translateY(-4px)}
 .svc .tag{font-family:var(--f-mono);font-weight:500;font-size:11px;letter-spacing:0.054em;color:var(--accent);text-transform:uppercase}
 .svc h3{font-size:1.5rem}
 .svc-ic{width:60px;height:60px;padding:12px;border-radius:18px;background:var(--bg-2);color:var(--deep);transition:background .3s,color .3s}
 .svc:hover .svc-ic{background:var(--accent);color:#fff}
+.svc-go{margin-top:auto;padding-top:6px;font-family:var(--f-mono);font-weight:600;font-size:13px;color:var(--accent);transition:transform .25s}
+.svc:hover .svc-go{transform:translateX(4px)}
 .svc p{font-size:15px;color:var(--fg-dim)}
 .svc.feature{grid-column:span 2;background:linear-gradient(135deg,var(--surface),var(--bg-2));border-color:color-mix(in srgb,var(--accent) 45%,transparent)}
 .svc.feature h3{font-size:2.2rem}
@@ -288,6 +288,37 @@ footer a:hover{color:var(--fg)}
 .cta-band .watermark{position:absolute;left:50%;top:50%;width:min(560px,90%);transform:translate(-50%,-50%);opacity:.12;pointer-events:none}
 @media (prefers-reduced-motion:no-preference){.cta-band .watermark{animation:float 9s ease-in-out infinite alternate}@keyframes float{to{transform:translate(-50%,-53%) rotate(-1.5deg)}}}
 
+/* Maps + review */
+.maps{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.map-card{background:#fff;border:1px solid var(--line);border-radius:26px;overflow:hidden;box-shadow:0 24px 50px -36px rgba(15,58,79,.4);display:flex;flex-direction:column;min-width:0}
+.map{position:relative;aspect-ratio:16/9;max-width:100%;background:#F1F6F5;overflow:hidden}
+.map-svg,.map iframe{position:absolute;inset:0;width:100%;height:100%;border:0;display:block}
+.map-label{position:absolute;left:50%;top:62%;transform:translateX(-50%);background:#fff;color:var(--deep);font-family:var(--f-mono);font-weight:600;font-size:12.5px;padding:6px 12px;border-radius:999px;box-shadow:0 8px 20px -10px rgba(15,58,79,.5);white-space:nowrap}
+.map.live .map-label{display:none}
+.map-body{padding:22px 24px 26px;display:flex;flex-direction:column;gap:10px}
+.map-body h3{font-size:1.9rem}
+.map-body p{color:var(--fg-dim);font-size:15px}
+.map-body .unit-ctas{margin-top:8px}
+.stars{color:#F4B400}
+@media (prefers-reduced-motion:no-preference){
+  .pin{animation:drop 1s cubic-bezier(.3,1.6,.5,1) both}
+  .pulse{transform-origin:200px 112px;animation:pulse 2.2s ease-out infinite}
+  @keyframes drop{from{transform:translateY(-40px);opacity:0}to{transform:none;opacity:1}}
+  @keyframes pulse{from{transform:scale(.6);opacity:.55}to{transform:scale(3.2);opacity:0}}
+}
+.review{margin-top:22px;display:grid;grid-template-columns:auto 1fr auto;gap:22px;align-items:center;background:linear-gradient(135deg,var(--bg-2),#fff);border:1px solid var(--line);border-radius:26px;padding:26px 28px}
+.review-stars{font-size:28px;letter-spacing:3px;color:#F4B400}
+.review h3{font-size:1.7rem}
+.review p{color:var(--fg-dim);font-size:15px}
+@media (max-width:860px){.maps{grid-template-columns:1fr}.review{grid-template-columns:1fr;text-align:left}}
+
+/* Lateral fade-in on scroll */
+.rv{transition:opacity .9s ease,transform .9s cubic-bezier(.2,.7,.2,1)}
+.rv.pre{opacity:0;transform:translateX(var(--rx,-64px))}
+.rv.right{--rx:64px}
+.float:hover,.svc:hover{box-shadow:0 22px 44px -22px rgba(15,58,79,.5)}
+.btn:active,.chip:active,.copy:active,.float:active{transform:scale(.97)}
+
 .toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translateX(-50%) translateY(120px);background:var(--deep);color:var(--on-accent);padding:10px 18px;border-radius:999px;font-weight:600;font-size:14px;transition:transform .35s,visibility .35s;z-index:80;visibility:hidden}
 .toast.show{transform:translateX(-50%) translateY(0);visibility:visible}
 </style>
@@ -305,6 +336,7 @@ footer a:hover{color:var(--fg)}
       <a href="#doutor">Dr. Edelweiss Jr.</a>
       <a href="#historias">Histórias</a>
       <a href="#unidades">Unidades</a>
+      <a href="#localizacao">Localização</a>
     </nav>
     <a class="btn btn-gold" href="#unidades"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg><span>Agendar avaliação</span></a>
   </div>
@@ -326,9 +358,9 @@ footer a:hover{color:var(--fg)}
       <div class="hero-blob" aria-hidden="true"></div>
       <div class="hero-photo"><img src="assets/sorriso.jpg" alt="Sorriso de paciente da clínica Weiss" width="1000" height="1136"></div>
       <div class="hero-badges">
-      <div class="float f1"><b>Invisalign</b> Doctor</div>
-      <div class="float f2">Scanner <b>iTero</b> 3D</div>
-      <div class="float f3"><img src="assets/dr-edelweiss.jpg" alt="" width="48" height="48"><span><b>Dr. Edelweiss Jr.</b><br>CRO-PE 5131</span></div>
+      <a class="float f1" href="#simulador"><b>Invisalign</b> Doctor</a>
+      <a class="float f2" href="#tecnologia">Scanner <b>iTero</b> 3D</a>
+      <a class="float f3" href="#doutor"><img src="assets/dr-edelweiss.jpg" alt="" width="48" height="48"><span><b>Dr. Edelweiss Jr.</b><br>CRO-PE 5131</span></a>
       </div>
     </div>
   </div>
@@ -369,7 +401,7 @@ footer a:hover{color:var(--fg)}
         <label for="stage" class="sim-count">Arraste para avançar no tratamento</label>
         <input type="range" id="stage" min="1" max="24" value="1" step="1">
         <div class="sim-phase" aria-live="polite">
-          <span class="chip" data-ph="0">Escaneamento</span><span class="chip" data-ph="1">Movimento</span><span class="chip" data-ph="2">Refinamento</span><span class="chip" data-ph="3">Contenção Vivera</span>
+          <button type="button" class="chip" data-go="1">Escaneamento</button><button type="button" class="chip" data-go="8">Movimento</button><button type="button" class="chip" data-go="20">Refinamento</button><button type="button" class="chip" data-go="24">Contenção Vivera</button>
         </div>
         <div style="display:flex;gap:10px;flex-wrap:wrap">
           <button class="btn btn-ghost" id="play" type="button">▶ Reproduzir tratamento</button>
@@ -428,14 +460,14 @@ footer a:hover{color:var(--fg)}
       <div><p class="eyebrow">Clínica multidisciplinar</p><h2>Todos os tratamentos <em>no mesmo local</em>.</h2></div>
     </div>
     <div class="services reveal">
-      <article class="svc"><svg class="svc-ic" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 20c4-6 28-6 32 0-2 12-6 18-16 18S10 32 8 20Z"/><path d="M14 22c3 2 17 2 20 0"/></svg><h3>Ortodontia e Invisalign</h3><p>Aparelho fixo ou alinhadores transparentes.</p></article>
-      <article class="svc"><svg class="svc-ic" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="24" cy="24" r="15"/><path d="M14 28c4 4 16 4 20 0M17 19h.01M31 19h.01"/></svg><h3>Ortopedia Funcional</h3><p>Equilíbrio dos maxilares no crescimento.</p></article>
-      <article class="svc"><svg class="svc-ic" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 6h16v8H16z"/><path d="M18 14l1 4h10l1-4M20 18l-1 4h10l-1-4M21 22l-1 4h8l-1-4M22 26l2 16 2-16"/></svg><h3>Implantodontia</h3><p>Reposição de dentes com implantes.</p></article>
-      <article class="svc"><svg class="svc-ic" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 9c-5 0-8 4-8 9 0 6 3 9 4 14 1 6 2 9 5 9s3-6 5-10c1-2 2-2 3-2s2 0 3 2c2 4 2 10 5 10s4-3 5-9c1-5 4-8 4-14 0-5-3-9-8-9-4 0-6 2-9 2s-5-2-9-2Z"/><path d="M10 18h28" stroke-dasharray="2 3"/></svg><h3>Prótese</h3><p>Fixas, removíveis ou sobre implantes.</p></article>
-      <article class="svc"><svg class="svc-ic" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 9c-5 0-8 4-8 9 0 6 3 9 4 14 1 6 2 9 5 9s3-6 5-10c1-2 2-2 3-2s2 0 3 2c2 4 2 10 5 10s4-3 5-9c1-5 4-8 4-14 0-5-3-9-8-9-4 0-6 2-9 2s-5-2-9-2Z"/><path d="M36 4l1.5 3 3 1.5-3 1.5L36 13l-1.5-3-3-1.5 3-1.5z"/></svg><h3>Dentística</h3><p>Clareamento, facetas e resinas.</p></article>
-      <article class="svc"><svg class="svc-ic" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 9c-5 0-8 4-8 9 0 6 3 9 4 14 1 6 2 9 5 9s3-6 5-10c1-2 2-2 3-2s2 0 3 2c2 4 2 10 5 10s4-3 5-9c1-5 4-8 4-14 0-5-3-9-8-9-4 0-6 2-9 2s-5-2-9-2Z"/><path d="M20 22v12M28 22v12"/></svg><h3>Endodontia</h3><p>Tratamento de canal com tecnologia.</p></article>
-      <article class="svc"><svg class="svc-ic" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="24" cy="20" r="10"/><path d="M20 22c2 2 6 2 8 0M21 18h.01M27 18h.01M14 42c1-6 5-10 10-10s9 4 10 10"/></svg><h3>Odontopediatria</h3><p>Cuidado desde os primeiros dentes.</p></article>
-      <article class="svc"><svg class="svc-ic" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M24 6l14 6v10c0 9-6 16-14 20-8-4-14-11-14-20V12l14-6Z"/><path d="M17 24l5 5 9-10"/></svg><h3>Prevenção</h3><p>Check-ups e limpeza periódicos.</p></article>
+      <a class="svc" href="https://wa.me/5581998368491?text=Ol%C3%A1%21%20Gostaria%20de%20agendar%20uma%20avalia%C3%A7%C3%A3o%20de%20Ortodontia%20e%20Invisalign." target="_blank" rel="noopener"><svg class="svc-ic" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 20c4-6 28-6 32 0-2 12-6 18-16 18S10 32 8 20Z"/><path d="M14 22c3 2 17 2 20 0"/></svg><h3>Ortodontia e Invisalign</h3><p>Aparelho fixo ou alinhadores transparentes.</p><span class="svc-go">Agendar →</span></a>
+      <a class="svc" href="https://wa.me/5581998368491?text=Ol%C3%A1%21%20Gostaria%20de%20agendar%20uma%20avalia%C3%A7%C3%A3o%20de%20Ortopedia%20Funcional." target="_blank" rel="noopener"><svg class="svc-ic" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="24" cy="24" r="15"/><path d="M14 28c4 4 16 4 20 0M17 19h.01M31 19h.01"/></svg><h3>Ortopedia Funcional</h3><p>Equilíbrio dos maxilares no crescimento.</p><span class="svc-go">Agendar →</span></a>
+      <a class="svc" href="https://wa.me/5581998368491?text=Ol%C3%A1%21%20Gostaria%20de%20agendar%20uma%20avalia%C3%A7%C3%A3o%20de%20Implantodontia." target="_blank" rel="noopener"><svg class="svc-ic" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 6h16v8H16z"/><path d="M18 14l1 4h10l1-4M20 18l-1 4h10l-1-4M21 22l-1 4h8l-1-4M22 26l2 16 2-16"/></svg><h3>Implantodontia</h3><p>Reposição de dentes com implantes.</p><span class="svc-go">Agendar →</span></a>
+      <a class="svc" href="https://wa.me/5581998368491?text=Ol%C3%A1%21%20Gostaria%20de%20agendar%20uma%20avalia%C3%A7%C3%A3o%20de%20Pr%C3%B3tese." target="_blank" rel="noopener"><svg class="svc-ic" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 9c-5 0-8 4-8 9 0 6 3 9 4 14 1 6 2 9 5 9s3-6 5-10c1-2 2-2 3-2s2 0 3 2c2 4 2 10 5 10s4-3 5-9c1-5 4-8 4-14 0-5-3-9-8-9-4 0-6 2-9 2s-5-2-9-2Z"/><path d="M10 18h28" stroke-dasharray="2 3"/></svg><h3>Prótese</h3><p>Fixas, removíveis ou sobre implantes.</p><span class="svc-go">Agendar →</span></a>
+      <a class="svc" href="https://wa.me/5581998368491?text=Ol%C3%A1%21%20Gostaria%20de%20agendar%20uma%20avalia%C3%A7%C3%A3o%20de%20Dent%C3%ADstica." target="_blank" rel="noopener"><svg class="svc-ic" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 9c-5 0-8 4-8 9 0 6 3 9 4 14 1 6 2 9 5 9s3-6 5-10c1-2 2-2 3-2s2 0 3 2c2 4 2 10 5 10s4-3 5-9c1-5 4-8 4-14 0-5-3-9-8-9-4 0-6 2-9 2s-5-2-9-2Z"/><path d="M36 4l1.5 3 3 1.5-3 1.5L36 13l-1.5-3-3-1.5 3-1.5z"/></svg><h3>Dentística</h3><p>Clareamento, facetas e resinas.</p><span class="svc-go">Agendar →</span></a>
+      <a class="svc" href="https://wa.me/5581998368491?text=Ol%C3%A1%21%20Gostaria%20de%20agendar%20uma%20avalia%C3%A7%C3%A3o%20de%20Endodontia." target="_blank" rel="noopener"><svg class="svc-ic" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 9c-5 0-8 4-8 9 0 6 3 9 4 14 1 6 2 9 5 9s3-6 5-10c1-2 2-2 3-2s2 0 3 2c2 4 2 10 5 10s4-3 5-9c1-5 4-8 4-14 0-5-3-9-8-9-4 0-6 2-9 2s-5-2-9-2Z"/><path d="M20 22v12M28 22v12"/></svg><h3>Endodontia</h3><p>Tratamento de canal com tecnologia.</p><span class="svc-go">Agendar →</span></a>
+      <a class="svc" href="https://wa.me/5581998368491?text=Ol%C3%A1%21%20Gostaria%20de%20agendar%20uma%20avalia%C3%A7%C3%A3o%20de%20Odontopediatria." target="_blank" rel="noopener"><svg class="svc-ic" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="24" cy="20" r="10"/><path d="M20 22c2 2 6 2 8 0M21 18h.01M27 18h.01M14 42c1-6 5-10 10-10s9 4 10 10"/></svg><h3>Odontopediatria</h3><p>Cuidado desde os primeiros dentes.</p><span class="svc-go">Agendar →</span></a>
+      <a class="svc" href="https://wa.me/5581998368491?text=Ol%C3%A1%21%20Gostaria%20de%20agendar%20uma%20avalia%C3%A7%C3%A3o%20de%20Preven%C3%A7%C3%A3o." target="_blank" rel="noopener"><svg class="svc-ic" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M24 6l14 6v10c0 9-6 16-14 20-8-4-14-11-14-20V12l14-6Z"/><path d="M17 24l5 5 9-10"/></svg><h3>Prevenção</h3><p>Check-ups e limpeza periódicos.</p><span class="svc-go">Agendar →</span></a>
     </div>
   </div>
 </section>
@@ -501,6 +533,64 @@ footer a:hover{color:var(--fg)}
     <div class="hero-ctas">
       <a class="btn btn-gold" href="https://wa.me/5581973185005?text=Ol%C3%A1!%20Quero%20agendar%20meu%20check-up%20digital%20em%20Recife." target="_blank" rel="noopener">WhatsApp Recife</a>
       <a class="btn btn-ghost" href="https://wa.me/5581998368491?text=Ol%C3%A1!%20Quero%20agendar%20meu%20check-up%20digital%20em%20Caruaru." target="_blank" rel="noopener">WhatsApp Caruaru</a>
+    </div>
+  </div>
+</section>
+
+<section class="block" id="localizacao">
+  <div class="wrap">
+    <div class="head reveal">
+      <div><p class="eyebrow">Localização</p><h2>Onde <em>estamos</em>.</h2></div>
+    </div>
+    <div class="maps">
+      <article class="map-card">
+        <div class="map" data-embed="https://maps.google.com/maps?q=Weiss+Odontologia%2C+R.+dos+Expedicion%C3%A1rios%2C+104%2C+Caruaru+-+PE%2C+55002-440&amp;z=16&amp;output=embed">
+        <svg class="map-svg" viewBox="0 0 400 240" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+          <rect width="400" height="240" fill="#F1F6F5"/><path d="M0 190c60-10 120 20 190 10s120-30 210-20v60H0Z" fill="#D6EEE6"/>
+          <rect x="40" y="30" width="70" height="46" rx="6" fill="#DDEFE7"/>
+          <g stroke="#FFFFFF" stroke-linecap="round" fill="none"><path d="M-10 120 L410 100" stroke-width="12"/><path d="M180 -10 L210 250" stroke-width="10"/><path d="M-10 40 L410 60M-10 190 L300 175M90 -10 L110 250M290 -10 L270 250" stroke-width="5"/><path d="M-10 160 L410 140M140 -10 L150 250M240 -10 L250 250M-10 80 L410 85" stroke-width="2.5"/></g>
+          <g class="pin"><circle class="pulse" cx="200" cy="112" r="10" fill="#1F9A8B" opacity=".35"/><path d="M200 116c-10-14-17-22-17-31a17 17 0 0 1 34 0c0 9-7 17-17 31Z" fill="#185878"/><circle cx="200" cy="85" r="6.5" fill="#5FD0C0"/></g>
+        </svg>
+          <span class="map-label">Weiss Odontologia</span>
+        </div>
+        <div class="map-body">
+          <h3>Caruaru</h3>
+          <p>R. dos Expedicionários, 104, 1º andar · Nossa Sra. das Dores</p>
+          <div class="unit-ctas">
+            <a class="btn btn-gold" href="https://www.google.com/maps/search/?api=1&query=Weiss+Odontologia%2C+R.+dos+Expedicion%C3%A1rios%2C+104%2C+Caruaru+-+PE%2C+55002-440" target="_blank" rel="noopener">Abrir no Google Maps</a>
+            <a class="btn btn-ghost" href="https://waze.com/ul?q=R.+dos+Expedicion%C3%A1rios%2C+104%2C+Caruaru&amp;navigate=yes" target="_blank" rel="noopener">Ir com Waze</a>
+            <a class="btn btn-ghost" href="https://www.google.com/search?q=Weiss+Odontologia+Caruaru+avalia%C3%A7%C3%B5es" target="_blank" rel="noopener"><span class="stars" aria-hidden="true">★</span> Avaliar no Google</a>
+          </div>
+        </div>
+      </article>
+      <article class="map-card">
+        <div class="map" data-embed="https://maps.google.com/maps?q=RioMar+Trade+Center%2C+Av.+Rep%C3%BAblica+do+L%C3%ADbano%2C+251%2C+Pina%2C+Recife+-+PE%2C+51110-160&amp;z=16&amp;output=embed">
+        <svg class="map-svg" viewBox="0 0 400 240" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+          <rect width="400" height="240" fill="#F1F6F5"/><path d="M300 0h100v240H330c-20-40-10-90-30-130S300 40 300 0Z" fill="#CFE6EE"/>
+          <rect x="40" y="30" width="70" height="46" rx="6" fill="#DDEFE7"/>
+          <g stroke="#FFFFFF" stroke-linecap="round" fill="none"><path d="M-10 120 L410 100" stroke-width="12"/><path d="M180 -10 L210 250" stroke-width="10"/><path d="M-10 40 L410 60M-10 190 L300 175M90 -10 L110 250M290 -10 L270 250" stroke-width="5"/><path d="M-10 160 L410 140M140 -10 L150 250M240 -10 L250 250M-10 80 L410 85" stroke-width="2.5"/></g>
+          <g class="pin"><circle class="pulse" cx="200" cy="112" r="10" fill="#1F9A8B" opacity=".35"/><path d="M200 116c-10-14-17-22-17-31a17 17 0 0 1 34 0c0 9-7 17-17 31Z" fill="#185878"/><circle cx="200" cy="85" r="6.5" fill="#5FD0C0"/></g>
+        </svg>
+          <span class="map-label">WE Odontologia</span>
+        </div>
+        <div class="map-body">
+          <h3>Recife</h3>
+          <p>Av. República do Líbano, 251, Torre 1, Sala 1614 · RioMar Trade Center, Pina</p>
+          <div class="unit-ctas">
+            <a class="btn btn-gold" href="https://www.google.com/maps/search/?api=1&query=RioMar+Trade+Center%2C+Av.+Rep%C3%BAblica+do+L%C3%ADbano%2C+251%2C+Pina%2C+Recife+-+PE%2C+51110-160" target="_blank" rel="noopener">Abrir no Google Maps</a>
+            <a class="btn btn-ghost" href="https://waze.com/ul?q=RioMar+Trade+Center+Recife&amp;navigate=yes" target="_blank" rel="noopener">Ir com Waze</a>
+            <a class="btn btn-ghost" href="https://www.google.com/search?q=WE+Odontologia+RioMar+Trade+Center+Recife+avalia%C3%A7%C3%B5es" target="_blank" rel="noopener"><span class="stars" aria-hidden="true">★</span> Avaliar no Google</a>
+          </div>
+        </div>
+      </article>
+    </div>
+    <div class="review">
+      <div class="review-stars" aria-hidden="true">★★★★★</div>
+      <div><h3>Foi atendido por nós?</h3><p>Sua avaliação no Google ajuda outras famílias a nos encontrar.</p></div>
+      <div class="unit-ctas">
+        <a class="btn btn-gold" href="https://www.google.com/search?q=Weiss+Odontologia+Caruaru+avalia%C3%A7%C3%B5es" target="_blank" rel="noopener">Avaliar Caruaru</a>
+        <a class="btn btn-gold" href="https://www.google.com/search?q=WE+Odontologia+RioMar+Trade+Center+Recife+avalia%C3%A7%C3%B5es" target="_blank" rel="noopener">Avaliar Recife</a>
+      </div>
     </div>
   </div>
 </section>
@@ -645,7 +735,8 @@ const teethEls=ideal.map((p,i)=>{const r=document.createElementNS(NS,'rect');con
   r.setAttribute('fill','#FFFFFF');r.setAttribute('stroke','#B9D3D6');r.setAttribute('stroke-width','2');svg.appendChild(r);return r});
 const label=document.createElementNS(NS,'text');label.setAttribute('x',300);label.setAttribute('y',300);label.setAttribute('text-anchor','middle');label.setAttribute('font-family','-apple-system, BlinkMacSystemFont, Inter, Helvetica Neue, Arial, sans-serif');label.setAttribute('font-size','13');label.setAttribute('fill','var(--fg-dim)');label.setAttribute('letter-spacing','0.3');svg.appendChild(label);
 const ease=x=>x<.5?2*x*x:1-Math.pow(-2*x+2,2)/2;
-const chips=[...document.querySelectorAll('.chip')];
+const chips=[...document.querySelectorAll('.sim-phase .chip')];
+chips.forEach(c=>c.addEventListener('click',()=>{stop();range.value=c.dataset.go;render(+c.dataset.go)}));
 let cur=1;
 function render(v){
   cur=v; const t=ease((v-1)/(N-1));
@@ -694,6 +785,25 @@ function dust(now){dx.clearRect(0,0,dW,dH);const gold=css('--gold');dx.fillStyle
     dx.globalAlpha=.25+.5*Math.abs(Math.sin(now/1600+m.p));dx.beginPath();dx.arc(m.x*dW+Math.sin(now/3000+m.p)*12,m.y*dH,m.r,0,7);dx.fill()}
   if(!reduce)requestAnimationFrame(dust)}
 requestAnimationFrame(dust);
+
+
+/* ---------- Live maps outside the artifact viewer ---------- */
+if(!/claude|anthropic|^$/.test(location.hostname)){
+  document.querySelectorAll('.map[data-embed]').forEach(m=>{const f=document.createElement('iframe');f.src=m.dataset.embed;f.loading='lazy';f.title='Mapa';f.referrerPolicy='no-referrer-when-downgrade';m.appendChild(f);m.classList.add('live')});
+}
+
+/* ---------- Lateral fade on scroll ---------- */
+if(!reduce && 'IntersectionObserver' in window){
+  const sel='.head,.stats .stat,.sim-stage,.sim-panel,.device,.tech-wrap>div:last-child,.portrait,.doc>div:last-child,.svc,.story,.unit,.map-card,.review,.cta-band .wrap>*';
+  const els=[...document.querySelectorAll(sel)];
+  const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.remove('pre');io.unobserve(e.target)}}),{threshold:.12,rootMargin:'0px 0px -6% 0px'});
+  els.forEach(el=>{
+    const sib=[...el.parentElement.children].indexOf(el);
+    el.classList.add('rv'); if(sib%2) el.classList.add('right');
+    el.style.transitionDelay=((sib%4)*90)+'ms';
+    if(el.getBoundingClientRect().top>innerHeight*.9){el.classList.add('pre');io.observe(el)}
+  });
+}
 
 /* ---------- WhatsApp FAB ---------- */
 const fab=document.getElementById('fab'), menu=document.getElementById('fabMenu');
