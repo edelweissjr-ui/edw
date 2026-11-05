@@ -265,8 +265,15 @@ input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;bac
 .cta-band canvas{position:absolute;inset:0;width:100%;height:100%;opacity:.55;pointer-events:none}
 .cta-band .wrap{position:relative}
 
-footer{border-top:1px solid var(--line);padding-block:40px 110px;font-size:14px;color:var(--fg-dim);background:#fff}
-footer .wrap{display:flex;justify-content:space-between;gap:24px;flex-wrap:wrap}
+footer{padding-block:56px 110px;font-size:12px;color:#6E6E73;background:#F5F5F7;text-align:center}
+footer .wrap{display:flex;flex-direction:column;align-items:center;gap:22px}
+.f-logo{width:150px;height:auto;display:block;mix-blend-mode:multiply}
+.f-links,.f-social{display:flex;flex-wrap:wrap;justify-content:center;gap:8px 0}
+.f-links a,.f-social a{color:#424245;font-size:13px;padding:0 14px;border-left:1px solid #D2D2D7;line-height:1.2}
+.f-links a:first-child,.f-social a:first-child{border-left:0}
+.f-social a{color:#0066CC}
+.f-legal{max-width:640px;line-height:1.6;border-top:1px solid #D2D2D7;padding-top:18px;width:100%}
+@media (max-width:480px){.f-logo{width:130px}.f-links a,.f-social a{padding:0 10px}}
 footer a{text-decoration:none}
 footer a:hover{color:var(--fg)}
 
@@ -796,8 +803,12 @@ h1 em,h2 em,h3 em{font-style:normal!important;background:linear-gradient(90deg,#
 
 <footer>
   <div class="wrap">
-    <div><img src="assets/logo-weiss.png" alt="Weiss Clínica Odontológica" width="64" height="103" style="display:block;margin-bottom:14px;background:#F2FAFA;border-radius:12px;padding:8px 10px;width:64px;height:auto"><span>Weiss Odontologia · Caruaru &nbsp;|&nbsp; WE Odontologia · Recife</span><br><small>Responsável técnico: Dr. Edelweiss Barbosa Gomes Jr., Especialista e Mestre em Ortodontia · CRO-PE 5131.</small></div>
-    <div style="display:flex;gap:22px;flex-wrap:wrap"><a href="https://www.instagram.com/weiss.odontologia/" target="_blank" rel="noopener">@weiss.odontologia</a><a href="https://www.instagram.com/dredelweissjr/" target="_blank" rel="noopener">@dredelweissjr</a><a href="https://www.odontoweiss.com.br" target="_blank" rel="noopener">odontoweiss.com.br</a><a href="#unidades">Unidades</a></div>
+    <img class="f-logo" src="assets/logo-weiss.png" alt="Weiss Clínica Odontológica" width="440" height="705">
+    <nav class="f-links" aria-label="Rodapé">
+      <a href="#especialidades">Especialidades</a><a href="#simulador">Invisalign</a><a href="#tecnologia">Tecnologia</a><a href="#doutor">Dr. Edelweiss Jr.</a><a href="#unidades">Unidades</a><a href="#localizacao">Localização</a>
+    </nav>
+    <div class="f-social"><a href="https://www.instagram.com/weiss.odontologia/" target="_blank" rel="noopener">@weiss.odontologia</a><a href="https://www.instagram.com/dredelweissjr/" target="_blank" rel="noopener">@dredelweissjr</a><a href="https://www.odontoweiss.com.br" target="_blank" rel="noopener">odontoweiss.com.br</a></div>
+    <p class="f-legal">Weiss Odontologia · Caruaru &nbsp;|&nbsp; WE Odontologia · Recife<br>Responsável técnico: Dr. Edelweiss Barbosa Gomes Jr., Especialista e Mestre em Ortodontia · CRO-PE 5131.</p>
   </div>
 </footer>
 
