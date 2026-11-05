@@ -749,8 +749,11 @@ requestAnimationFrame(frame);
 /* ---------- Aligner simulator ---------- */
 const svg=document.getElementById('arch'), NS='http://www.w3.org/2000/svg';
 const N=24, range=document.getElementById('stage'), nEl=document.getElementById('stageN');
-const tw=[34,36,38,44,44,58,60]; // molar → central widths (px)
+const TT=['M','M','P','P','C','L','I']; // distal → mesial
+const tw=[50,54,38,38,40,34,44]; // mesio-distal widths (px)
+const TD={M:50,P:44,C:40,L:30,I:30}; // bucco-lingual depth (px)
 const seq=[...tw, ...tw.slice().reverse()];
+const types=[...TT, ...TT.slice().reverse()];
 const crowd=[ // [dx, dy, rot] crowded offsets per tooth (left distal → right distal)
  [0,6,4],[2,-4,-6],[-6,10,12],[8,-14,-18],[-10,18,22],[6,-10,-14],[-12,22,-20],
  [14,26,24],[-8,-12,16],[12,16,-26],[-6,-16,18],[4,8,-10],[-2,-6,6],[0,4,-3]];
@@ -769,9 +772,21 @@ const guide=document.createElementNS(NS,'path');
 let g='';for(let i=0;i<=60;i++){const a=(i/60-.5)*Math.PI*1.05;const x=300+Math.sin(a)*225,y=340-Math.cos(a)*235;g+=(i?'L':'M')+x.toFixed(1)+' '+y.toFixed(1)}
 guide.setAttribute('d',g);guide.setAttribute('fill','none');guide.setAttribute('stroke','var(--accent)');guide.setAttribute('stroke-dasharray','3 7');guide.setAttribute('opacity','.55');svg.appendChild(guide);
 const aligner=document.createElementNS(NS,'path');aligner.setAttribute('fill','none');aligner.setAttribute('stroke','var(--aqua)');aligner.setAttribute('stroke-width','30');aligner.setAttribute('stroke-linecap','round');aligner.setAttribute('stroke-linejoin','round');aligner.setAttribute('opacity','0');svg.appendChild(aligner);
-const teethEls=ideal.map((p,i)=>{const r=document.createElementNS(NS,'rect');const h= i>4&&i<9?46:40;
-  r.setAttribute('x',-p.w/2);r.setAttribute('y',-h/2);r.setAttribute('width',p.w-2);r.setAttribute('height',h);r.setAttribute('rx',Math.min(16,p.w/2.4));
-  r.setAttribute('fill','#FFFFFF');r.setAttribute('stroke','#B9D3D6');r.setAttribute('stroke-width','2');svg.appendChild(r);return r});
+const defs=document.createElementNS(NS,'defs');defs.innerHTML='<radialGradient id="enamel" cx="38%" cy="32%" r="75%"><stop offset="0" stop-color="#FFFFFF"/><stop offset=".65" stop-color="#F4F7F6"/><stop offset="1" stop-color="#DCE5E3"/></radialGradient>';svg.appendChild(defs);
+function toothD(t,w,h){const W=w/2,H=h/2;
+  if(t==='I'||t==='L')return `M${-W} ${-H*.15}Q${-W} ${-H} 0 ${-H}Q${W} ${-H} ${W} ${-H*.15}Q${W*.7} ${H} 0 ${H}Q${-W*.7} ${H} ${-W} ${-H*.15}Z`;
+  if(t==='C')return `M0 ${-H}C${w*.62} ${-H} ${w*.56} ${H} 0 ${H}C${-w*.56} ${H} ${-w*.62} ${-H} 0 ${-H}Z`;
+  const r=t==='P'?W*.9:W*.55;
+  return `M${-W+r} ${-H}H${W-r}Q${W} ${-H} ${W} ${-H+r}V${H-r}Q${W} ${H} ${W-r} ${H}H${-W+r}Q${-W} ${H} ${-W} ${H-r}V${-H+r}Q${-W} ${-H} ${-W+r} ${-H}Z`;}
+function grooveD(t,w,h){const W=w/2,H=h/2;
+  if(t==='M')return `M${-W*.55} 0H${W*.55}M${-W*.1} ${-H*.62}Q${-W*.02} 0 ${-W*.16} ${H*.6}M${W*.25} ${-H*.6}L${W*.12} 0`;
+  if(t==='P')return `M${-W*.45} 0Q0 ${H*.12} ${W*.45} 0`;
+  if(t==='C')return `M0 ${-H*.5}L0 ${H*.3}`;
+  return `M${-W*.55} ${-H*.35}Q0 ${-H*.6} ${W*.55} ${-H*.35}`;}
+const teethEls=ideal.map((p,i)=>{const t=types[i],w=(p.w-2)*1.17,h=TD[t]*1.22;const g=document.createElementNS(NS,'g');
+  const body=document.createElementNS(NS,'path');body.setAttribute('d',toothD(t,w,h));body.setAttribute('fill','url(#enamel)');body.setAttribute('stroke','#B9D3D6');body.setAttribute('stroke-width','1.6');
+  const gr=document.createElementNS(NS,'path');gr.setAttribute('d',grooveD(t,w,h));gr.setAttribute('fill','none');gr.setAttribute('stroke','#9DB3B4');gr.setAttribute('stroke-width','1.3');gr.setAttribute('stroke-linecap','round');
+  g.appendChild(body);g.appendChild(gr);g.style.filter='drop-shadow(0 2px 2px rgba(15,58,79,.18))';svg.appendChild(g);return g});
 const label=document.createElementNS(NS,'text');label.setAttribute('x',300);label.setAttribute('y',300);label.setAttribute('text-anchor','middle');label.setAttribute('font-family','-apple-system, BlinkMacSystemFont, Inter, Helvetica Neue, Arial, sans-serif');label.setAttribute('font-size','13');label.setAttribute('fill','var(--fg-dim)');label.setAttribute('letter-spacing','0.3');svg.appendChild(label);
 const ease=x=>x<.5?2*x*x:1-Math.pow(-2*x+2,2)/2;
 const chips=[...document.querySelectorAll('.sim-phase .chip')];
