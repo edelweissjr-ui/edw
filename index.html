@@ -81,16 +81,15 @@ nav.links a:hover{color:var(--fg)}
 .hero-ctas{display:flex;flex-wrap:wrap;gap:12px;margin-top:32px}
 .hero-meta{display:flex;flex-wrap:wrap;gap:8px 22px;margin-top:34px;font-family:var(--f-mono);font-size:12px;color:var(--fg-dim);letter-spacing:.06em}
 .hero-meta b{color:var(--fg);font-weight:500}
-.scan{position:relative;aspect-ratio:1/1;max-width:100%;width:100%}
+.device{background:#fff;border-radius:26px;border:1px solid var(--line);box-shadow:0 40px 80px -46px rgba(15,58,79,.55);overflow:hidden;max-width:100%}
+.device-bar{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid var(--line);font-family:var(--f-mono);font-size:11.5px;letter-spacing:.06em;color:var(--fg-dim)}
+.device-bar b{margin-left:auto;color:var(--deep);font-weight:500;font-variant-numeric:tabular-nums}
+.device-bar .dots{display:flex;gap:5px}.device-bar .dots i{width:9px;height:9px;border-radius:50%;background:var(--bg-2);border:1px solid var(--line)}
+.scan{position:relative;aspect-ratio:5/4;width:100%;background:radial-gradient(80% 80% at 50% 45%,#fff,var(--bg-2))}
 .scan canvas{width:100%;height:100%;display:block}
-.scan-hud{position:absolute;inset:0;pointer-events:none;font-family:var(--f-mono);font-size:11px;color:var(--fg-dim);letter-spacing:.08em}
-.scan-hud .c{position:absolute;width:22px;height:22px;border-color:var(--accent);border-style:solid;opacity:.7}
-.c.tl{top:6%;left:6%;border-width:1px 0 0 1px}.c.tr{top:6%;right:6%;border-width:1px 1px 0 0}
-.c.bl{bottom:6%;left:6%;border-width:0 0 1px 1px}.c.br{bottom:6%;right:6%;border-width:0 1px 1px 0}
-.scan-hud .l1{position:absolute;top:8%;left:12%}
-.scan-hud .l2{position:absolute;bottom:8%;right:12%;text-align:right}
-.scan-hud .dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--aqua);margin-right:7px;animation:blink 1.4s infinite}
-@keyframes blink{50%{opacity:.25}}
+.device-foot{display:flex;align-items:center;gap:14px;padding:12px 16px;border-top:1px solid var(--line);font-size:13.5px;color:var(--fg-dim)}
+.prog{flex:1;height:5px;border-radius:5px;background:var(--bg-2);overflow:hidden}.prog i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--gold-soft),var(--accent));border-radius:5px}
+#scanState{min-width:12.5em;text-align:right}#scanState.done{color:var(--accent);font-weight:600}
 @media (max-width:860px){.hero .wrap{grid-template-columns:1fr;padding-block:36px 56px}.hero-art{max-width:420px}}
 
 /* Load-in sequence (starts visible, gently settles) */
@@ -150,14 +149,14 @@ input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;bac
 /* Tech */
 .tint{background:var(--bg-2)}
 .tech-wrap{display:grid;grid-template-columns:1fr 1fr;gap:56px;align-items:center}
-.tech-wrap .scan{background:radial-gradient(circle at 50% 45%,#fff,transparent 70%);border-radius:50%}
 .tech-title{font-size:clamp(2.2rem,4.4vw,3.6rem);margin-top:6px}
 .tech-title em{font-style:italic;color:var(--accent)}
 .tech-list{list-style:none;padding:0;margin:28px 0 0;display:grid;gap:0}
 .tech-list li{display:grid;grid-template-columns:44px 1fr;column-gap:12px;padding:16px 0;border-top:1px solid var(--line);color:var(--fg-dim);font-size:15.5px}
 .tech-list li b{display:block;color:var(--fg);font-size:1.05rem;font-weight:600}
 .tech-list .ti{grid-row:span 2;font-family:var(--f-mono);font-size:12px;color:var(--accent);padding-top:4px}
-@media (max-width:860px){.tech-wrap{grid-template-columns:1fr;gap:28px}.tech-wrap .scan{max-width:420px;margin:0 auto}}
+@media (max-width:860px){.tech-wrap{grid-template-columns:1fr;gap:28px}.tech-wrap .device{max-width:520px;width:100%;margin:0 auto}}
+@media (max-width:420px){#scanState{min-width:0}}
 .tech{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:24px;overflow:hidden}
 .tech article{background:var(--bg);padding:30px 26px 34px;display:flex;flex-direction:column;gap:14px;transition:background .3s;min-width:0}
 .tech article:hover{background:var(--surface)}
@@ -381,13 +380,10 @@ footer a:hover{color:var(--fg)}
 
 <section class="block tint" id="tecnologia">
   <div class="wrap tech-wrap">
-    <div class="scan reveal" aria-label="Animação de um escaneamento 3D da arcada dentária">
-      <canvas id="scan"></canvas>
-      <div class="scan-hud" aria-hidden="true">
-        <i class="c tl"></i><i class="c tr"></i><i class="c bl"></i><i class="c br"></i>
-        <div class="l1"><span class="dot"></span>ESCANEANDO · ARCADA SUPERIOR</div>
-        <div class="l2"><span id="pts">0</span> pontos</div>
-      </div>
+    <div class="device reveal" aria-label="Animação de um escaneamento intraoral da arcada superior">
+      <div class="device-bar"><span class="dots"><i></i><i></i><i></i></span><span>Escaneamento intraoral · iTero</span><b id="scanPct">0%</b></div>
+      <div class="scan"><canvas id="scan"></canvas></div>
+      <div class="device-foot"><div class="prog"><i id="scanBar"></i></div><span id="scanState">Escaneando arcada superior</span></div>
     </div>
     <div class="reveal">
       <p class="eyebrow">Tecnologia</p>
@@ -530,83 +526,94 @@ footer a:hover{color:var(--fg)}
 const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
 
-/* ---------- Hero: 3D point-cloud arch scan ---------- */
-const cv = document.getElementById('scan'), ctx = cv.getContext('2d');
-const pts = [];
-(function build(){
-  // 14 upper teeth along a parabolic arch; each tooth = point cloud
-  const widths=[.62,.66,.70,.95,.95,1.25,1.3]; // molar→central (half arch, distal to mesial)
-  const teeth=[];
-  let total=0; const half=widths.slice().reverse(); // central first
-  const seq=[...widths, ...half]; // left distal → right distal
-  seq.forEach(w=>total+=w);
-  let acc=0;
-  seq.forEach((w,i)=>{
-    const u=(acc+w/2)/total; acc+=w;           // 0..1 along arch
-    const a=(u-.5)*Math.PI*1.08;               // angle
-    const x=Math.sin(a)*1.0, z=-Math.cos(a)*0.95+0.35;
-    const front = 1-Math.abs(u-.5)*2;          // 1 at incisors
-    const tw = 0.06+ (1-front)*0.07;           // molars wider
-    const th = 0.22 + front*0.08;              // incisors taller
-    const n = Math.round(150 + (1-front)*120);
-    for(let k=0;k<n;k++){
-      const t=Math.random()*Math.PI*2, p=Math.acos(2*Math.random()-1);
-      const r=0.9+Math.random()*0.1;
-      let lx=Math.sin(p)*Math.cos(t)*tw*r, ly=Math.cos(p)*th*r*.5, lz=Math.sin(p)*Math.sin(t)*tw*.9*r;
-      // rotate local into arch tangent
-      const ca=Math.cos(a), sa=Math.sin(a);
-      const gx=x+lx*ca - lz*sa*0.3, gz=z+lx*sa*0.3 + lz*ca;
-      pts.push({x:gx*1.15,y:ly+0.05,z:gz*1.15,seen:0,g:false});
-    }
-  });
-  // gum line
-  for(let k=0;k<900;k++){
-    const u=Math.random(), a=(u-.5)*Math.PI*1.12;
-    const x=Math.sin(a), z=-Math.cos(a)*0.95+0.35;
-    pts.push({x:x*1.15+(Math.random()-.5)*.05,y:-0.17-Math.random()*.06,z:z*1.15+(Math.random()-.5)*.05,seen:0,g:true});
-  }
-})();
-let W=0,H=0,DPR=1;
-function size(){DPR=Math.min(2,devicePixelRatio||1);const r=cv.getBoundingClientRect();W=r.width;H=r.height;cv.width=W*DPR;cv.height=H*DPR;ctx.setTransform(DPR,0,0,DPR,0,0)}
-size(); addEventListener('resize',size);
-let mx=0,my=0;
-cv.parentElement.addEventListener('pointermove',e=>{const r=cv.getBoundingClientRect();mx=(e.clientX-r.left)/r.width-.5;my=(e.clientY-r.top)/r.height-.5});
-cv.parentElement.addEventListener('pointerleave',()=>{mx=0;my=0});
-const ptsEl=document.getElementById('pts');
-let t0=performance.now(), seenCount=0, rmx=0, rmy=0;
-function frame(now){
-  const t=(now-t0)/1000;
-  ctx.clearRect(0,0,W,H);
-  const gold=css('--gold'), aqua=css('--aqua'), fg=css('--fg-dim');
-  rmx+=(mx-rmx)*.05; rmy+=(my-rmy)*.05;
-  const ry = reduce?0.5: Math.sin(t*.35)*0.55 + rmx*0.8;
-  const rx = 0.85 + rmy*0.4;
-  const cy=Math.cos(ry), sy=Math.sin(ry), cx=Math.cos(rx), sx=Math.sin(rx);
-  const scanX = reduce? 2 : ((t*0.42)%2.4)-1.2;   // sweeping plane in world x
-  const S=Math.min(W,H)*0.36;
-  const list=[];
-  for(const p of pts){
-    if(!reduce && Math.abs(p.x-scanX)<0.05 && !p.seen){p.seen=1;seenCount++}
-    if(reduce) p.seen=1;
-    let x=p.x*cy - p.z*sy, z=p.x*sy + p.z*cy, y=p.y;
-    let y2=y*cx - z*sx, z2=y*sx + z*cx;
-    const per=2.6/(2.6+z2);
-    list.push({sx:W/2 + x*S*per, sy:H/2 + y2*S*per + S*.05, z:z2, p});
-  }
-  list.sort((a,b)=>b.z-a.z);
-  for(const q of list){
-    const near = Math.abs(q.p.x-scanX)<0.07;
-    const depth = Math.max(.15,Math.min(1,(1.4-q.z)/1.8));
-    ctx.globalAlpha = near?1:(q.p.seen? depth*.9 : depth*.18);
-    ctx.fillStyle = near? aqua : (q.p.g? fg : gold);
-    const r = near?1.8:(q.p.g?0.9:1.25);
-    ctx.fillRect(q.sx-r/2,q.sy-r/2,r,r);
-  }
-  ctx.globalAlpha=1;
-  if(!reduce && seenCount>=pts.length*0.985){ pts.forEach(p=>p.seen=0); seenCount=0 }
-  ptsEl.textContent = (reduce?pts.length:seenCount).toLocaleString('pt-BR');
-  if(!reduce) requestAnimationFrame(frame);
+/* ---------- Tecnologia: intraoral scan of the upper arch (occlusal view) ---------- */
+let DPR=Math.min(2,devicePixelRatio||1);
+const cv=document.getElementById('scan'), ctx=cv.getContext('2d');
+const pctEl=document.getElementById('scanPct'), barEl=document.getElementById('scanBar'), stEl=document.getElementById('scanState');
+let W=0,H=0, curve=[], total=0, teeth=[];
+// half arch from midline to distal: central, lateral, canine, PM1, PM2, M1, M2 (mm)
+const HALF=[['I',8.6],['L',6.6],['C',7.6],['P',7],['P',6.6],['M',10.2],['M',9.2]];
+const DEPTH={I:.95,L:.95,C:1.25,P:1.5,M:1.22};
+function build(){
+  const r=cv.getBoundingClientRect(); W=r.width; H=r.height; DPR=Math.min(2,devicePixelRatio||1);
+  cv.width=W*DPR; cv.height=H*DPR; ctx.setTransform(DPR,0,0,DPR,0,0);
+  // parabolic-elliptic arch, incisors at the bottom, opening upward
+  const cx=W/2, top=H*.14, bot=H*.80, rx=W*.31;
+  curve=[]; const N=240;
+  for(let i=0;i<=N;i++){const t=-1+2*i/N; const a=t*1.42;
+    curve.push({x:cx+Math.sin(a)*rx, y:bot-(1-Math.cos(a))/(1-Math.cos(1.42))*(bot-top)});}
+  total=0; curve[0].s=0;
+  for(let i=1;i<curve.length;i++){total+=Math.hypot(curve[i].x-curve[i-1].x,curve[i].y-curve[i-1].y);curve[i].s=total}
+  const seq=[...HALF.slice().reverse(),...HALF];         // right distal → left distal
+  const sum=seq.reduce((a,b)=>a+b[1],0), gap=.12, k=total/(sum+gap*(seq.length-1));
+  let acc=0; teeth=seq.map(([type,mm])=>{const w=mm*k; const s=acc+w/2; acc+=w+gap*k; const p=at(s);
+    return {type,w,d:w*DEPTH[type],s,x:p.x,y:p.y,ang:p.ang,u:s/total};});
 }
+function at(s){let i=1;while(i<curve.length-1&&curve[i].s<s)i++;const a=curve[i-1],b=curve[i];const f=(s-a.s)/((b.s-a.s)||1);
+  return {x:a.x+(b.x-a.x)*f,y:a.y+(b.y-a.y)*f,ang:Math.atan2(b.y-a.y,b.x-a.x)}}
+function rr(x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath()}
+function toothPath(t){const w=t.w*.96,d=t.d;
+  if(t.type==='I'||t.type==='L'){ctx.beginPath();ctx.ellipse(0,0,w/2,d/2,0,0,Math.PI*2)}
+  else if(t.type==='C'){ctx.beginPath();ctx.moveTo(0,-d/2);ctx.bezierCurveTo(w*.62,-d/2,w*.6,d/2,0,d/2);ctx.bezierCurveTo(-w*.6,d/2,-w*.62,-d/2,0,-d/2);ctx.closePath()}
+  else if(t.type==='P'){rr(-w/2,-d/2,w,d,w*.46)}
+  else rr(-w/2,-d/2,w,d,w*.3);}
+function drawTooth(t,alpha,ghost){
+  ctx.save();ctx.translate(t.x,t.y);ctx.rotate(t.ang);
+  toothPath(t);
+  if(ghost){ctx.setLineDash([2,3]);ctx.strokeStyle='rgba(31,154,139,.35)';ctx.lineWidth=1;ctx.stroke();ctx.restore();return}
+  ctx.globalAlpha=alpha;
+  ctx.shadowColor='rgba(15,58,79,.28)';ctx.shadowBlur=6;ctx.shadowOffsetY=2;
+  const g=ctx.createRadialGradient(-t.w*.15,-t.d*.2,1,0,0,Math.max(t.w,t.d)*.7);
+  g.addColorStop(0,'#FFFFFF');g.addColorStop(.6,'#F3F6F4');g.addColorStop(1,'#D9E2E0');
+  ctx.fillStyle=g;ctx.fill();ctx.shadowColor='transparent';
+  ctx.strokeStyle='rgba(15,58,79,.18)';ctx.lineWidth=.8;ctx.stroke();
+  // occlusal anatomy
+  ctx.strokeStyle='rgba(120,140,140,.55)';ctx.lineWidth=.9;ctx.lineCap='round';ctx.beginPath();
+  const w=t.w,d=t.d;
+  if(t.type==='M'){ctx.moveTo(-w*.28,0);ctx.lineTo(w*.28,0);ctx.moveTo(-w*.05,-d*.32);ctx.quadraticCurveTo(-w*.02,0,-w*.08,d*.3);ctx.moveTo(w*.12,-d*.3);ctx.lineTo(w*.06,0)}
+  else if(t.type==='P'){ctx.moveTo(-w*.22,0);ctx.quadraticCurveTo(0,d*.06,w*.22,0)}
+  else if(t.type==='C'){ctx.moveTo(0,-d*.25);ctx.lineTo(0,d*.15)}
+  else {ctx.moveTo(-w*.3,-d*.12);ctx.quadraticCurveTo(0,-d*.22,w*.3,-d*.12)}
+  ctx.stroke();
+  ctx.restore();
+}
+function strokeCurve(s0,s1){ctx.beginPath();let started=false;for(const p of curve){if(p.s<s0||p.s>s1)continue;if(!started){ctx.moveTo(p.x,p.y);started=true}else ctx.lineTo(p.x,p.y)}ctx.stroke()}
+const CYCLE=7.5, HOLD=2.6;
+let t0=performance.now();
+function frame(now){
+  const tt=((now-t0)/1000)%(CYCLE+HOLD);
+  const p=reduce?1:Math.min(1,tt/CYCLE);
+  const e=p;
+  ctx.clearRect(0,0,W,H);
+  const gumW=teeth.length?teeth[11].d*1.35:30, sNow=e*total;
+  ctx.lineCap='round';ctx.lineJoin='round';
+  // palate (revealed with progress)
+  ctx.save();ctx.globalAlpha=e;
+  ctx.strokeStyle='rgba(214,140,138,.28)';ctx.lineWidth=1.2;
+  for(let i=1;i<=4;i++){const yy=H*.2+i*H*.085;ctx.beginPath();ctx.moveTo(W/2-W*.02*i,yy);ctx.quadraticCurveTo(W/2-W*.07,yy+8,W/2-W*.12-i*4,yy-2);ctx.moveTo(W/2+W*.02*i,yy);ctx.quadraticCurveTo(W/2+W*.07,yy+8,W/2+W*.12+i*4,yy-2);ctx.stroke()}
+  ctx.restore();
+  // ghost of unscanned gum
+  ctx.setLineDash([3,5]);ctx.strokeStyle='rgba(31,154,139,.28)';ctx.lineWidth=1.2;
+  ctx.save();ctx.translate(0,0);strokeCurve(sNow,total);ctx.restore();ctx.setLineDash([]);
+  // scanned gum band
+  const gg=ctx.createLinearGradient(0,H*.1,0,H*.9);gg.addColorStop(0,'#EFB7B3');gg.addColorStop(1,'#E59C99');
+  ctx.strokeStyle=gg;ctx.lineWidth=gumW;strokeCurve(0,sNow);
+  ctx.strokeStyle='rgba(255,255,255,.25)';ctx.lineWidth=gumW*.35;strokeCurve(0,sNow);
+  // teeth
+  for(const t of teeth){const a=Math.max(0,Math.min(1,(e-t.u+.03)/.06));
+    if(a<1)drawTooth(t,1,true); if(a>0)drawTooth(t,a,false);}
+  // scanner wand glow
+  if(p<1){const q=at(sNow);const r=gumW*1.1;
+    const gl=ctx.createRadialGradient(q.x,q.y,0,q.x,q.y,r*1.6);gl.addColorStop(0,'rgba(95,208,192,.55)');gl.addColorStop(1,'rgba(95,208,192,0)');
+    ctx.fillStyle=gl;ctx.beginPath();ctx.arc(q.x,q.y,r*1.6,0,7);ctx.fill();
+    ctx.save();ctx.translate(q.x,q.y);ctx.rotate(q.ang+Math.PI/2);ctx.strokeStyle='rgba(31,154,139,.95)';ctx.lineWidth=2.5;ctx.beginPath();ctx.moveTo(-r*.62,0);ctx.lineTo(r*.62,0);ctx.stroke();ctx.restore();}
+  const pct=Math.round(e*100);
+  pctEl.textContent=pct+'%'; barEl.style.width=pct+'%';
+  stEl.textContent=p<1?'Escaneando arcada superior':'Modelo 3D pronto ✓';
+  stEl.classList.toggle('done',p>=1);
+  if(!reduce)requestAnimationFrame(frame);
+}
+build();addEventListener('resize',()=>{build();if(reduce)frame(performance.now())});
 requestAnimationFrame(frame);
 
 /* ---------- Aligner simulator ---------- */
