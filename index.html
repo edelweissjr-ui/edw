@@ -406,7 +406,7 @@ h1 em,h2 em,h3 em{font-style:normal!important;background:linear-gradient(90deg,#
 
 /* Apple-style tiles */
 .atiles{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:12px;background:#fff}
-.atile{position:relative;height:580px;overflow:hidden;display:flex;flex-direction:column;align-items:center;text-align:center;padding-top:52px;text-decoration:none;min-width:0}
+.atile{position:relative;height:680px;overflow:hidden;display:flex;flex-direction:column;align-items:center;text-align:center;padding-top:52px;text-decoration:none;min-width:0}
 .at-wide{grid-column:span 2;height:640px}
 .at-txt{position:relative;z-index:1;padding-inline:20px}
 .at-eb{font-size:15px;font-weight:600;letter-spacing:0;opacity:.75;margin-bottom:6px}
@@ -416,15 +416,15 @@ h1 em,h2 em,h3 em{font-style:normal!important;background:linear-gradient(90deg,#
 .at-links{display:flex;gap:28px;justify-content:center;margin-top:14px;font-size:17px}
 .at-links a{color:#0071E3;text-decoration:none}
 .at-links a:hover{text-decoration:underline}
-.at-media{position:relative;flex:1;width:100%;margin-top:26px;display:flex;align-items:flex-end;justify-content:center}
-.at-media img{position:absolute;left:50%;bottom:0;transform:translateX(-50%);width:min(88%,560px);height:100%;object-fit:cover;border-radius:22px 22px 0 0;transition:transform .8s ease}
-.at-wide .at-media img{width:min(70%,820px)}
+.at-media{position:relative;flex:1;width:100%;margin-top:26px;display:flex;align-items:center;justify-content:center;padding-bottom:36px}
+.at-media img{position:absolute;left:50%;top:0;bottom:36px;transform:translateX(-50%);width:auto;max-width:86%;height:calc(100% - 36px);aspect-ratio:4/5;object-fit:cover;border-radius:24px;box-shadow:0 24px 48px -26px rgba(0,0,0,.45);transition:transform .8s ease}
+
 .atile:hover .at-media img{transform:translateX(-50%) scale(1.03)}
-.at-pair{gap:20px;align-items:flex-end}
-.at-pair img{position:relative;left:auto;transform:none;width:auto!important;height:360px;max-width:none;object-fit:cover;object-position:50% 0;border-radius:22px 22px 0 0;box-shadow:0 20px 40px -24px rgba(0,0,0,.35)}
+.at-pair{gap:20px;align-items:flex-end;padding-bottom:0}
+.at-pair img{position:relative;left:auto;top:auto;bottom:auto;aspect-ratio:auto;transform:none;width:auto!important;height:360px;max-width:none;object-fit:cover;object-position:50% 0;border-radius:22px 22px 0 0;box-shadow:0 20px 40px -24px rgba(0,0,0,.35)}
 .atile:hover .at-pair img{transform:translateY(-6px)}
-.at-ico{width:200px;height:200px;margin-bottom:56px;opacity:.95}
-.at-big{font-size:clamp(7rem,14vw,11rem);font-weight:700;letter-spacing:-.05em;line-height:.9;margin-bottom:40px}
+.at-ico{width:190px;height:190px;opacity:.95}
+.at-big{font-size:clamp(7rem,14vw,11rem);font-weight:700;letter-spacing:-.05em;line-height:.9}
 .at-gray{background:#F5F5F7;color:#1D1D1F}
 .at-white{background:#FBFBFD;color:#1D1D1F;box-shadow:inset 0 0 0 1px #EDEDF0}
 .at-black{background:#000;color:#F5F5F7}.at-black .at-links a{color:#2997FF}
@@ -434,7 +434,7 @@ h1 em,h2 em,h3 em{font-style:normal!important;background:linear-gradient(90deg,#
 .at-sun{background:linear-gradient(160deg,#FFE08A,#FF9F43);color:#3A2A08}
 .at-coral .at-links a,.at-violet .at-links a{color:#fff;text-decoration:underline;text-underline-offset:3px}
 .at-sun .at-links a{color:#3A2A08;text-decoration:underline;text-underline-offset:3px}
-@media (max-width:760px){.at-pair{gap:12px}.at-pair img{height:210px}.atiles{grid-template-columns:1fr}.at-wide{grid-column:auto}.atile,.at-wide{height:500px;padding-top:40px}.at-media img,.at-wide .at-media img{width:86%}.at-ico{width:150px;height:150px}}
+@media (max-width:760px){.at-pair{gap:12px}.at-pair img{height:210px}.atiles{grid-template-columns:1fr}.at-wide{grid-column:auto}.atile,.at-wide{height:500px;padding-top:40px}.atile .at-media img{max-width:82%}.at-ico{width:150px;height:150px}}
 
 .toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translateX(-50%) translateY(120px);background:var(--deep);color:var(--on-accent);padding:10px 18px;border-radius:999px;font-weight:600;font-size:15px;transition:transform .35s,visibility .35s;z-index:80;visibility:hidden}
 .toast.show{transform:translateX(-50%) translateY(0);visibility:visible}
@@ -499,15 +499,15 @@ h1 em,h2 em,h3 em{font-style:normal!important;background:linear-gradient(90deg,#
       </article>
       <article class="atile at-black">
         <div class="at-txt"><p class="at-eb">Scanner iTero</p><h3>Seus dentes em 3D.</h3><p class="at-sub">Sem moldeira, em poucos minutos.</p><div class="at-links"><a href="#tecnologia">Saiba mais ›</a></div></div>
-        <div class="at-media"><img src="assets/itero-dr.jpg" alt="Dr. Edelweiss Jr. com o scanner iTero Element" loading="lazy" style="object-position:50% 45%"></div>
+        <div class="at-media"><img src="assets/itero-dr.jpg" alt="Dr. Edelweiss Jr. com o scanner iTero Element" loading="lazy" style="object-position:38% 30%"></div>
       </article>
       <article class="atile at-white">
         <div class="at-txt"><p class="at-eb">Estética</p><h3>O detalhe que assina.</h3><p class="at-sub">Clareamento, facetas e resinas.</p><div class="at-links"><a href="#especialidades">Saiba mais ›</a><a href="https://wa.me/5581998368491?text=Ol%C3%A1!%20Gostaria%20de%20agendar%20uma%20avalia%C3%A7%C3%A3o." target="_blank" rel="noopener">Agendar ›</a></div></div>
-        <div class="at-media"><img src="assets/sorriso.jpg" alt="Sorriso" loading="lazy" style="object-position:50% 55%"></div>
+        <div class="at-media"><img src="assets/sorriso.jpg" alt="Sorriso" loading="lazy" style="object-position:55% 50%"></div>
       </article>
       <article class="atile at-mint">
         <div class="at-txt"><p class="at-eb">Atendimento personalizado</p><h3>Dr. Edelweiss Jr.</h3><p class="at-sub">Especialista e Mestre em Ortodontia · CRO-PE 5131.</p><div class="at-links"><a href="#doutor">Conheça ›</a></div></div>
-        <div class="at-media"><img src="assets/dr-edelweiss.jpg" alt="Dr. Edelweiss Jr." loading="lazy" style="object-position:50% 15%"></div>
+        <div class="at-media"><img src="assets/dr-edelweiss.jpg" alt="Dr. Edelweiss Jr." loading="lazy" style="object-position:50% 0%"></div>
       </article>
       <article class="atile at-coral">
         <div class="at-txt"><p class="at-eb">Odontopediatria</p><h3>Cuidado desde cedo.</h3><p class="at-sub">Gestantes, bebês, crianças e adolescentes.</p><div class="at-links"><a href="https://wa.me/5581998368491?text=Ol%C3%A1!%20Gostaria%20de%20agendar%20uma%20avalia%C3%A7%C3%A3o." target="_blank" rel="noopener">Agendar ›</a></div></div>
