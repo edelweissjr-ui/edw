@@ -19,6 +19,16 @@
     condicao: "", validade: "", garantia: ""
   }, load(KEY_CFG, {}));
 
+  /* Plataforma: quando a tela é aberta pelo servidor do Copiloto, usa as rotas dele (sem n8n) */
+  let PLAT = null; // { kommo, ia, audio, whatsapp } quando conectado à plataforma
+  const EP = {
+    get reg() { return PLAT ? (PLAT.kommo ? "api/consulta" : "") : cfg.whReg; },
+    get ia() { return PLAT ? (PLAT.ia ? "api/sugestao" : "") : cfg.whIA; },
+    get msg() { return PLAT ? (PLAT.whatsapp ? "api/mensagens" : "") : cfg.whMsg; },
+    get audio() { return PLAT ? (PLAT.audio ? "api/audio" : "") : cfg.whAudio; }
+  };
+  const avisoFalta = (o) => PLAT ? `${o} não está configurado na plataforma (peça para ativar nas variáveis do servidor).` : `Configure ${o} em Configurações.`;
+
   let consultas = load(KEY_CONS, {});
   let S = null; // consulta atual
 
@@ -368,7 +378,7 @@
         a.download = `consulta-${(S.paciente.nome || "paciente").replace(/\s+/g, "-")}-${new Date().toISOString().slice(0, 10)}.webm`;
         a.classList.remove("hide");
         ultimoAudioBlob = blob;
-        if (cfg.whAudio) $("#btnTranscreverGravacao").classList.remove("hide");
+        if (EP.audio) $("#btnTranscreverGravacao").classList.remove("hide");
       };
       rec.start(1000);
     } catch (e) { rec = null; }
@@ -413,6 +423,7 @@
   /* ---------------- integração n8n ---------------- */
   async function post(url, body) {
     const r = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(Object.assign({ token: cfg.token }, body)) });
+    if (r.status === 401 && PLAT) { location.href = "login"; throw new Error("sessão expirada"); }
     const txt = await r.text();
     let data = {}; try { data = txt ? JSON.parse(txt) : {}; } catch (e) { data = { texto: txt }; }
     if (!r.ok) throw new Error(data.erro || data.message || ("HTTP " + r.status));
@@ -444,11 +455,11 @@
   }
 
   async function enviarKommo() {
-    if (!cfg.whReg) { toast("Configure o webhook do n8n em Configurações"); mostrarView("config"); return; }
+    if (!EP.reg) { toast(avisoFalta("o Kommo")); if (!PLAT) mostrarView("config"); return; }
     if (!S.paciente.nome || !digits(S.paciente.telefone)) { toast("Preencha nome e WhatsApp do paciente"); mostrarView("consulta"); return; }
     const st = $("#kommoStatus"); st.textContent = "Enviando…";
     try {
-      const d = await post(cfg.whReg, payload());
+      const d = await post(EP.reg, payload());
       if (d.lead_id) { S.paciente.leadId = String(d.lead_id); $("#pLead").value = S.paciente.leadId; }
       S.sincronizadoEm = new Date().toISOString();
       save(); renderSync();
@@ -465,16 +476,17 @@
   function renderSync() { $("#syncInfo").textContent = S.sincronizadoEm ? "Kommo ✓ " + dataHora(S.sincronizadoEm) : ""; }
 
   $("#btnIA").addEventListener("click", async () => {
-    if (!cfg.whIA) { toast("Configure o webhook da IA em Configurações"); mostrarView("config"); return; }
+    if (!EP.ia) { toast(avisoFalta("a IA")); if (!PLAT) mostrarView("config"); return; }
     const b = $("#btnIA"); b.disabled = true; b.textContent = "✨ Pensando…";
     try {
       const et = R.etapas.find((e) => e.id === S.etapa);
-      const d = await post(cfg.whIA, {
+      const d = await post(EP.ia, {
         evento: "sugestao_copiloto",
         canal: S.canal, unidade: S.unidade, etapa: et.nome, objetivo_etapa: et.objetivo,
         paciente: { nome: S.paciente.nome, lead_id: S.paciente.leadId || null },
         notas: S.notas, orcamento: S.orcamento, temperatura: S.temperatura,
         objecoes: Object.keys(S.objecoes),
+        condicao: condicaoVigente() ? cfg.condicao + (cfg.validade ? " (válida até " + validadeTxt() + ")" : "") : "", garantia: cfg.garantia,
         conversa: S.conversa.slice(-25).map((m) => ({ quem: m.quem, texto: m.texto }))
       });
       const txt = d.sugestao || d.output || d.text || d.texto || "";
@@ -488,11 +500,11 @@
   /* Acompanhar WhatsApp: busca no n8n as mensagens que o Kommo recebeu/enviou */
   let pollTimer = null;
   async function poll() {
-    if (!cfg.whMsg || !S.paciente.leadId) { $("#aoVivoInfo").textContent = !cfg.whMsg ? "Configure o webhook de mensagens em Configurações." : "Informe o ID do lead no Kommo (campo à esquerda) para acompanhar."; return; }
+    if (!EP.msg || !S.paciente.leadId) { $("#aoVivoInfo").textContent = !EP.msg ? avisoFalta("o WhatsApp ao vivo") : "Informe o ID do lead no Kommo (campo à esquerda) para acompanhar."; return; }
     try {
-      const u = new URL(cfg.whMsg);
+      const u = new URL(EP.msg, location.href);
       u.searchParams.set("lead", S.paciente.leadId);
-      u.searchParams.set("desde", S.ultimoSync || S.criadoEm);
+      u.searchParams.set("desde", S.ultimoSync || "1970-01-01T00:00:00.000Z"); // 1ª busca traz o histórico recente do lead
       u.searchParams.set("token", cfg.token);
       const r = await fetch(u.toString());
       if (!r.ok) throw new Error("HTTP " + r.status);
@@ -517,12 +529,12 @@
   $("#btnTestar").addEventListener("click", async () => {
     const st = $("#testeStatus"); st.textContent = "Testando…";
     const res = [];
-    for (const [nome, url] of [["Registro", cfg.whReg], ["IA", cfg.whIA]]) {
+    for (const [nome, url] of [["Registro", EP.reg], ["IA", EP.ia]]) {
       if (!url) { res.push(nome + ": não configurado"); continue; }
       try { await post(url, { evento: "teste" }); res.push(nome + ": ✓"); } catch (e) { res.push(nome + ": ✗ " + e.message); }
     }
-    if (cfg.whMsg) {
-      try { const u = new URL(cfg.whMsg); u.searchParams.set("token", cfg.token); u.searchParams.set("lead", "0"); const r = await fetch(u); res.push("Mensagens: " + (r.ok ? "✓" : "✗ HTTP " + r.status)); }
+    if (EP.msg) {
+      try { const u = new URL(EP.msg, location.href); u.searchParams.set("token", cfg.token); u.searchParams.set("lead", "0"); const r = await fetch(u); res.push("Mensagens: " + (r.ok ? "✓" : "✗ HTTP " + r.status)); }
       catch (e) { res.push("Mensagens: ✗ " + e.message); }
     } else res.push("Mensagens: não configurado");
     st.textContent = res.join(" · ");
@@ -530,7 +542,7 @@
 
   /* ---------------- áudios (WhatsApp e gravação) ---------------- */
   async function transcreverAudio(fonte, quem = "cliente", ts) {
-    if (!cfg.whAudio) { toast("Configure o webhook de áudio em Configurações"); return null; }
+    if (!EP.audio) { toast(avisoFalta("a transcrição de áudio")); return null; }
     const fd = new FormData();
     fd.append("token", cfg.token);
     fd.append("lead", S.paciente.leadId || "");
@@ -538,7 +550,11 @@
     if (fonte.arquivo) fd.append("data", fonte.arquivo, fonte.nome || "audio.ogg");
     toast("Transcrevendo áudio…");
     try {
-      const r = await fetch(cfg.whAudio, { method: "POST", body: fd });
+      const r = PLAT
+        ? (fonte.url
+          ? await fetch(EP.audio, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ url: fonte.url }) })
+          : await fetch(EP.audio, { method: "POST", headers: { "Content-Type": fonte.arquivo.type || "audio/ogg" }, body: fonte.arquivo }))
+        : await fetch(EP.audio, { method: "POST", body: fd });
       const d = await r.json().catch(() => ({}));
       if (!r.ok || !d.texto) throw new Error(d.erro || "HTTP " + r.status);
       addMsg(quem, d.texto, "audio", { ts });
@@ -587,10 +603,10 @@
       ${a.melhorar.length ? `<p class="small muted" style="margin:6px 0 4px">Para melhorar:</p><ul class="perg small">${a.melhorar.map((m) => `<li>${esc(m)}</li>`).join("")}</ul>` : `<p class="small">Consulta conduzida de ponta a ponta. 👏</p>`}`;
   }
   $("#btnAvaliarIA").addEventListener("click", async () => {
-    if (!cfg.whIA) { toast("Configure o webhook da IA em Configurações"); mostrarView("config"); return; }
+    if (!EP.ia) { toast(avisoFalta("a IA")); if (!PLAT) mostrarView("config"); return; }
     const b = $("#btnAvaliarIA"), out = $("#avaliacaoIA"); b.disabled = true; out.textContent = "Analisando a consulta…";
     try {
-      const d = await post(cfg.whIA, {
+      const d = await post(EP.ia, {
         evento: "avaliar_consulta", canal: S.canal, unidade: S.unidade, etapa: (R.etapas.find((e) => e.id === S.etapa) || {}).nome,
         paciente: { nome: S.paciente.nome }, notas: S.notas, orcamento: S.orcamento, temperatura: S.temperatura,
         objecoes: Object.keys(S.objecoes), resultado: S.resultado, nota_local: avaliar().nota,
@@ -827,6 +843,24 @@
     toast("Atendimento de exemplo carregado");
   }
   $("#btnExemplo").addEventListener("click", () => { carregarExemplo(); mostrarView("consulta"); });
+
+  async function detectarPlataforma() {
+    if (location.protocol === "file:") return;
+    try {
+      const r = await fetch("api/config", { headers: { Accept: "application/json" } });
+      if (!r.ok) return;
+      const d = await r.json();
+      if (!d.plataforma) return;
+      PLAT = d;
+      $("#cardN8n").classList.add("hide");
+      $("#cardPlataforma").classList.remove("hide");
+      const it = (ok, nome) => `<li>${ok ? "✅" : "⚪"} ${nome}${ok ? "" : " — não configurado"}</li>`;
+      $("#platStatus").innerHTML = `<ul class="perg">${it(d.kommo, "Kommo (registrar consultas)")}${it(d.ia, "IA (sugestões e avaliação)")}${it(d.audio, "Transcrição de áudios")}${it(d.whatsapp, "WhatsApp ao vivo pelo Kommo")}</ul>`;
+      $("#btnSair").classList.remove("hide");
+      if (!EP.audio) $("#btnTranscreverGravacao").classList.add("hide");
+    } catch (e) { /* aberto fora da plataforma: segue com as configurações locais */ }
+  }
+  detectarPlataforma();
 
   aplicarTema();
   const atual = consultas[load(KEY_ATUAL, "")];

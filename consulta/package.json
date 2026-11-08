@@ -1,0 +1,17 @@
+{
+  "name": "copiloto-weiss",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Copiloto de Consulta da Weiss Odontologia — plataforma única (Kommo + IA)",
+  "type": "module",
+  "main": "servidor/server.js",
+  "scripts": {
+    "start": "node servidor/server.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "1.1.0"
+  }
+}

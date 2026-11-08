@@ -161,6 +161,7 @@ pre.code{background:var(--bg);border:1px solid var(--line);border-radius:10px;pa
   <button class="btn" id="btnExemplo">Ver exemplo</button>
   <button class="btn" id="btnNova">+ Nova consulta</button>
   <button class="btn primary" id="btnKommo">Enviar ao Kommo</button>
+  <a class="btn ghost hide" id="btnSair" href="sair">Sair</a>
 </header>
 
 <nav class="tabs" id="tabs">
@@ -418,8 +419,13 @@ pre.code{background:var(--bg);border:1px solid var(--line);border-radius:10px;pa
       <label class="f" for="cGarantia">Segurança oferecida ao paciente (sem prometer resultado)</label>
       <textarea class="i" id="cGarantia" placeholder="ex.: se você desistir antes de iniciarmos o planejamento, devolvemos integralmente o valor do sinal."></textarea>
     </div>
-    <div class="card">
-      <h2>Integração n8n → Kommo</h2>
+    <div class="card hide" id="cardPlataforma">
+      <h2>Plataforma Copiloto Weiss</h2>
+      <p class="small muted" style="margin-top:0">Esta tela está conectada direto ao Kommo e à IA. Não há nada para configurar aqui.</p>
+      <div id="platStatus"></div>
+    </div>
+    <div class="card" id="cardN8n">
+      <h2>Integração n8n → Kommo <span class="muted small">(opcional)</span></h2>
       <p class="small muted" style="margin-top:0">Cole as URLs de produção dos webhooks dos fluxos que estão na pasta <code>consulta/n8n</code>. Veja o passo a passo em <code>consulta/README.md</code>.</p>
       <label class="f" for="cWhReg">Webhook — registrar consulta no Kommo</label>
       <input class="i" id="cWhReg" placeholder="https://seu-n8n/webhook/copiloto-consulta">

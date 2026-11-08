@@ -12,4 +12,4 @@ Site de página única, animado, da Weiss Odontologia (Caruaru e Recife).
 - Telefones/WhatsApp: busque por `wa.me/55` no arquivo.
 
 ## Copiloto de Consulta
-A pasta `consulta/` contém o sistema interno que acompanha a conversa com o paciente (presencial ou WhatsApp), sugere o que responder e envia o resultado ao Kommo via n8n. Veja `consulta/README.md`.
+A pasta `consulta/` contém o sistema interno que acompanha a conversa com o paciente (presencial ou WhatsApp), sugere o que responder e envia o resultado direto ao Kommo. Ela roda como plataforma única com senha (`consulta/servidor`, publicação pelo `render.yaml`). Veja `consulta/README.md`.

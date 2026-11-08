@@ -1,13 +1,18 @@
 # Copiloto de Consulta — Weiss Odontologia
 
-Sistema para acompanhar a conversa com o paciente, **ao vivo (presencial)** ou pelo **WhatsApp**, mostrando em tempo real o que responder e conduzindo até o fechamento do orçamento. Ao final, tudo é enviado ao **Kommo**, e a **IA do n8n** acompanha junto.
+Sistema para acompanhar a conversa com o paciente, **ao vivo (presencial)** ou pelo **WhatsApp**, mostrando em tempo real o que responder e conduzindo até o fechamento do orçamento. Ao final, tudo vai direto para o **Kommo**, e a **IA (Claude)** sugere respostas e avalia a consulta.
+
+**Plataforma única:** a equipe acessa **um só endereço, com senha**. A plataforma fala direto com o Kommo, a IA e a transcrição de áudios. O n8n não é necessário.
 
 ```
 consulta/
-├── index.html      → a tela do copiloto (abrir no navegador)
+├── index.html      → a tela do copiloto
 ├── app.js          → lógica (análise da conversa, gravação, integração)
 ├── roteiro.js      → TODO o conteúdo: etapas, falas, objeções, mensagens (edite aqui)
-└── n8n/
+├── servidor/server.js → a plataforma: login, Kommo, IA, áudio e WhatsApp ao vivo
+├── .env.exemplo    → lista das configurações da plataforma
+├── Dockerfile      → para publicar em qualquer servidor
+└── n8n/            → (opcional) a mesma integração feita no n8n
     ├── 01-copiloto-registrar-no-kommo.json  → cria/atualiza lead, nota e tarefa no Kommo
     ├── 02-copiloto-sugestao-ia.json         → IA sugere a próxima fala
     ├── 03-whatsapp-ao-vivo.json             → mensagens do WhatsApp (via Kommo) chegam ao copiloto
@@ -61,16 +66,51 @@ Na aba **Fechamento & registro**: tratamento, valor, entrada, parcelas, resultad
 
 ---
 
-## 2. Instalação da integração (n8n + Kommo)
+## 2. Publicar a plataforma (uma vez só)
 
-### 2.1 Token do Kommo
+A plataforma é um pequeno servidor. Ele precisa ficar ligado o tempo todo para receber as mensagens do Kommo. O caminho mais simples é o **Render** (render.com), com custo a partir de cerca de US$ 7/mês no plano Starter mais um disco de 1 GB.
+
+### 2.1 Separe as chaves
+| O quê | Onde conseguir |
+|---|---|
+| **Token do Kommo** | Kommo › Configurações › Integrações › Criar integração (privada) › Chaves e escopos › token de longa duração |
+| **Subdomínio do Kommo** | a parte antes de `.kommo.com` no endereço do seu Kommo |
+| **Chave da IA (Claude)** | console.anthropic.com › API Keys |
+| **Chave da OpenAI** *(opcional, só para áudios)* | platform.openai.com › API keys |
+| **Senha da equipe** | invente uma senha forte |
+
+### 2.2 Publique no Render
+1. Crie uma conta em render.com e conecte o GitHub.
+2. Clique em **New › Blueprint** e escolha o repositório `edw`. O arquivo `render.yaml` já tem tudo pronto.
+3. Preencha as variáveis pedidas: `SENHA_ACESSO`, `KOMMO_SUBDOMINIO`, `KOMMO_TOKEN`, `ANTHROPIC_API_KEY` e, se quiser áudios, `OPENAI_API_KEY`. `SEGREDO_SESSAO` e `KOMMO_CHAVE_WEBHOOK` são geradas sozinhas.
+4. Ao terminar, o Render mostra o endereço, por exemplo `https://copiloto-weiss.onrender.com`. Dá para usar um endereço próprio, como `copiloto.odontoweiss.com.br`, em *Settings › Custom Domain*.
+5. Abra o endereço, digite a senha e pronto. Em **Configurações** aparece o que está ativo: Kommo, IA, Áudio e WhatsApp ao vivo.
+
+> Prefere outro lugar? Em qualquer servidor com Docker: `docker build -f consulta/Dockerfile -t copiloto-weiss .` e `docker run -p 3000:3000 --env-file consulta/.env -v copiloto-dados:/dados copiloto-weiss`. Sem Docker: `cd consulta && npm install && npm start`, com as variáveis do `.env.exemplo`.
+
+### 2.3 WhatsApp ao vivo
+No Kommo: **Configurações › Integrações › Webhooks**, cadastre o endereço
+
+`https://SEU-ENDERECO/webhooks/kommo/VALOR_DA_KOMMO_CHAVE_WEBHOOK`
+
+e marque os eventos de **mensagem recebida** e **mensagem enviada**. O valor da chave aparece no Render, em *Environment*. O webhook que a IA atual de vocês já usa continua funcionando.
+
+### 2.4 Funil do Kommo *(opcional)*
+Para a plataforma mover o lead para a etapa certa, preencha `KOMMO_FUNIL_ID` e `KOMMO_ETAPA_NEGOCIACAO`. Os IDs aparecem em `https://SEU-SUBDOMINIO.kommo.com/api/v4/leads/pipelines`, acessado com você logado no Kommo. "Fechou" e "Não fechou" já usam as etapas padrão do Kommo: 142 (venda ganha) e 143 (venda perdida).
+
+---
+
+## Alternativa: integração pelo n8n
+Só se vocês preferirem manter tudo no n8n. Com a plataforma acima, **pule esta seção**.
+
+### Token do Kommo
 1. No Kommo: **Configurações › Integrações › Criar integração** (integração privada).
 2. Na aba *Chaves e escopos*, gere o **token de longa duração** e copie.
 3. No n8n, crie uma credencial **Header Auth** chamada `Kommo API`:
    - Name: `Authorization`
    - Value: `Bearer SEU_TOKEN`
 
-### 2.2 Importar os fluxos no n8n
+### Importar os fluxos no n8n
 Para cada arquivo da pasta `n8n/`: no n8n, **Workflows › Import from File**.
 
 | Fluxo | O que ajustar | Webhook para o copiloto |
@@ -84,7 +124,7 @@ Depois, **ative** os quatro fluxos e copie as **Production URLs** para **Configu
 
 > **IDs do funil:** abra o funil no Kommo; o ID do funil aparece na URL. Para os IDs das etapas, acesse `https://SEU-SUBDOMINIO.kommo.com/api/v4/leads/pipelines` logado no Kommo. `142` (venda ganha) e `143` (venda perdida) são padrão em todas as contas.
 
-### 2.3 Mensagens do WhatsApp chegando ao copiloto
+### Mensagens do WhatsApp chegando ao copiloto (n8n)
 1. No Kommo: **Configurações › Integrações › Webhooks**: cole a Production URL do nó *Webhook Kommo* do fluxo 03 (`.../webhook/kommo-mensagens`) e marque os eventos de **mensagem recebida** e **mensagem enviada**.
 2. O Kommo aceita vários webhooks ao mesmo tempo: o webhook que a IA de vocês já usa continua funcionando.
 3. No copiloto, informe o **ID do lead** (aparece na URL do lead no Kommo, ou é preenchido sozinho após o primeiro *Enviar ao Kommo*) e ligue **Acompanhar WhatsApp**.
@@ -119,18 +159,21 @@ Depois, **ative** os quatro fluxos e copie as **Production URLs** para **Configu
 
 ## 4. Comparação com sistemas cobrados por consulta
 O áudio de referência apresenta um sistema vendido em **planos por número de consultas por mês**, com garantia de devolução no primeiro mês. Este copiloto:
-- não tem mensalidade nem limite de consultas: o único custo variável é o uso da IA e da transcrição no n8n (centavos por consulta);
+- não tem limite de consultas: o custo é a hospedagem (cerca de US$ 7/mês) mais o uso da IA e da transcrição (centavos por consulta);
 - funciona **mesmo sem internet ou IA** (roteiro, objeções, nota e resumo são locais);
-- usa o Kommo e a IA que vocês **já têm**, sem uma terceira plataforma;
+- usa o Kommo que vocês **já têm**; a plataforma é de vocês, no endereço de vocês;
 - tem o roteiro **todo editável** em `roteiro.js`, no jeito de falar da clínica.
 
 ## 5. Privacidade e LGPD
 - Os dados das consultas ficam **apenas no navegador do aparelho** (localStorage) até serem enviados ao Kommo. Na aba *Histórico*, apague consultas antigas já sincronizadas.
 - A gravação só é liberada depois de registrar a autorização do paciente. O áudio **não é enviado** a lugar nenhum; só a transcrição em texto vai para o Kommo.
-- A transcrição ao vivo do Chrome usa o serviço de reconhecimento de voz do Google. A transcrição pelo fluxo 04 envia o áudio para a OpenAI (Whisper): avise o paciente quando usar.
+- A transcrição ao vivo do Chrome usa o serviço de reconhecimento de voz do Google. A transcrição de áudios (plataforma ou fluxo 04) envia o áudio para a OpenAI (Whisper): avise o paciente quando usar.
 - A chave (`TOKEN`) impede que terceiros enviem dados para os webhooks do n8n. Use uma chave longa e diferente da senha do Kommo.
 
+- A plataforma exige senha em todas as telas e no acesso ao Kommo e à IA. As chaves ficam só no servidor, nunca no navegador.
+
 ### ⚠️ Onde hospedar
+Com a plataforma, o acesso já é protegido por senha. Se alguém abrir só o arquivo HTML, sem a plataforma, vale o alerta abaixo.
 Este repositório também publica o site. Se ele estiver no GitHub Pages ou na hospedagem pública, a página `/consulta/` **também fica acessível** a quem souber o endereço. Ela não aparece no Google (`noindex`) e não contém dados de pacientes, mas o roteiro comercial fica visível. Prefira:
 - abrir o `consulta/index.html` direto do computador ou tablet da clínica; ou
 - hospedar a pasta `consulta/` num endereço com senha (por exemplo, Netlify/Cloudflare Pages com proteção por senha); ou
