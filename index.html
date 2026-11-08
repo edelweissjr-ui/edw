@@ -9,7 +9,7 @@
   --ink:#0F3A4F; --petrol:#185878; --pearl:#FFFFFF; --mist:#DCEFEC;
   --gold:#28B0A0; --gold-soft:#5FD0C0; --aqua:#185878;
   --bg:#FFFFFF; --bg-2:#F5F5F7; --surface:#FFFFFF; --line:rgba(24,88,120,.13);
-  --fg:#0F3A4F; --fg-dim:#557580; --accent:#1F9A8B; --on-accent:#FFFFFF; --deep:#185878;
+  --fg:#0C3346; --fg-dim:#3E5A66; --accent:#1F9A8B; --on-accent:#FFFFFF; --deep:#185878;
   --f-display:"SF Pro Display","SF Pro Text",-apple-system,BlinkMacSystemFont,"Helvetica Neue",Helvetica,"Segoe UI",Roboto,Arial,sans-serif;
   --f-body:"SF Pro Display","SF Pro Text",-apple-system,BlinkMacSystemFont,"Helvetica Neue",Helvetica,"Segoe UI",Roboto,Arial,sans-serif;
   --f-mono:"SF Pro Display","SF Pro Text",-apple-system,BlinkMacSystemFont,"Helvetica Neue",Helvetica,"Segoe UI",Roboto,Arial,sans-serif;
@@ -31,7 +31,7 @@ h1,h2,h3,.stat .n,.sim-big,.portrait .sig{font-variant-numeric:lining-nums}
 h1,h2,h3{font-family:var(--f-display);font-weight:600;line-height:1.07;margin:0;text-wrap:balance;letter-spacing:-.015em}
 p{margin:0}
 .wrap{max-width:var(--max);margin:0 auto;padding-left:var(--gut);padding-right:var(--gut-r)}
-.eyebrow{font-family:var(--f-mono);font-weight:500;font-size:14px;letter-spacing:0.08em;text-transform:uppercase;color:var(--accent)}
+.eyebrow{font-family:var(--f-mono);font-weight:500;font-size:14px;letter-spacing:.04em;text-transform:uppercase;color:var(--accent)}
 .lead{color:var(--fg-dim);font-size:1.12rem;max-width:58ch}
 :focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:4px}
 
@@ -52,7 +52,7 @@ header.top{position:relative;z-index:50;background:#fff;border-bottom:1px solid 
 .brand-logo{width:150px;height:auto;display:block;mix-blend-mode:multiply}
 .brand-mark{width:34px;height:auto;flex:none;display:block}
 .brand-name{font-family:var(--f-display);font-size:22px;letter-spacing:.24em;line-height:1}
-.brand-sub{display:block;font-family:var(--f-mono);font-weight:500;font-size:14px;letter-spacing:0.08em;color:var(--fg-dim);margin-top:4px}
+.brand-sub{display:block;font-family:var(--f-mono);font-weight:500;font-size:14px;letter-spacing:.04em;color:var(--fg-dim);margin-top:4px}
 nav.links{display:flex;flex-wrap:wrap;justify-content:center;gap:8px 26px;font-size:15px}
 nav.links a{text-decoration:none;color:var(--fg-dim);transition:color .2s}
 nav.links a:hover{color:var(--fg)}
@@ -74,7 +74,7 @@ nav.links a:hover{color:var(--fg)}
 .float b{color:var(--deep)}
 .float:not(.f3){gap:.3em}
 .f3 img{width:48px;height:48px;border-radius:50%;object-fit:cover;object-position:50% 25%}
-@media (prefers-reduced-motion:no-preference){.float{animation:bob 4s ease-in-out infinite alternate}.f2{animation-delay:-1.3s}.f3{animation-delay:-2.6s}.f4{animation-delay:-.7s}.f5{animation-delay:-2s}.hero-blob{animation:morph 12s ease-in-out infinite alternate}
+@media (prefers-reduced-motion:no-preference){.float{animation:none}.f2{animation-delay:-1.3s}.f3{animation-delay:-2.6s}.f4{animation-delay:-.7s}.f5{animation-delay:-2s}.hero-blob{animation:morph 12s ease-in-out infinite alternate}
 @keyframes bob{to{transform:translateY(-5px)}}@keyframes morph{to{border-radius:58% 42% 55% 45%/45% 58% 42% 55%;transform:rotate(6deg)}}}
 @media (max-width:560px){.float{font-size:14px;padding:9px 12px}}
 .hero h1{font-size:clamp(3rem,7.5vw,5.5rem);font-weight:600;letter-spacing:-.025em}
@@ -119,7 +119,7 @@ nav.links a:hover{color:var(--fg)}
 .world h2{font-size:clamp(1.9rem,4vw,3rem);margin-top:6px}
 .world h2 em{font-style:italic;color:var(--gold-soft)}
 .flag-group{display:flex;flex-direction:column;align-items:center;gap:12px;width:100%}
-.flag-label{display:inline-flex;align-items:center;gap:8px;font-family:var(--f-mono);font-weight:600;font-size:14px;letter-spacing:.08em;text-transform:uppercase;color:var(--gold-soft)}
+.flag-label{display:inline-flex;align-items:center;gap:8px;font-family:var(--f-mono);font-weight:600;font-size:14px;letter-spacing:.04em;text-transform:uppercase;color:var(--gold-soft)}
 .flag-label svg{width:20px;height:14px;border-radius:3px}
 .flags{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;max-width:960px}
 .flag{display:inline-flex;align-items:center;gap:9px;padding:9px 16px 9px 10px;border-radius:999px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.16);font-size:17px;font-weight:500;color:#F2FAFA;white-space:nowrap;transition:background .25s,transform .25s}
@@ -199,7 +199,7 @@ input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;bac
 .portrait img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 20%}
 .portrait::after{content:"";position:absolute;inset:auto 0 0;height:26%;background:linear-gradient(180deg,transparent,rgba(7,35,48,.9) 60%)}
 .portrait .sig{position:relative;z-index:1;font-family:var(--f-display);font-style:italic;font-size:clamp(1.6rem,3vw,2.3rem);color:#fff;padding-bottom:30px;text-align:center;line-height:1.1}
-.portrait .sig small{display:block;font-family:var(--f-mono);font-weight:500;font-style:normal;font-size:14px;letter-spacing:0.08em;color:#5FD0C0;margin-top:10px}
+.portrait .sig small{display:block;font-family:var(--f-mono);font-weight:500;font-style:normal;font-size:14px;letter-spacing:.04em;color:#5FD0C0;margin-top:10px}
 @media (prefers-reduced-motion:no-preference){.portrait img{animation:breathe 14s ease-in-out infinite alternate}@keyframes breathe{from{transform:scale(1.02)}to{transform:scale(1.09)}}}
 .doc h2{font-size:clamp(2.2rem,4.4vw,3.6rem)}
 .doc .lead{margin-top:18px}
@@ -239,7 +239,7 @@ input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;bac
 .units{display:grid;grid-template-columns:1fr 1fr;gap:18px}
 .unit{border:1px solid var(--line);border-radius:28px;padding:34px;display:flex;flex-direction:column;gap:18px;background:#fff;box-shadow:0 24px 50px -36px rgba(15,58,79,.4);min-width:0}
 .unit h3{font-size:clamp(2.2rem,4vw,3rem)}
-.unit h3 small{display:block;font-family:var(--f-mono);font-weight:500;font-size:14px;letter-spacing:0.08em;color:var(--accent);margin-bottom:10px}
+.unit h3 small{display:block;font-family:var(--f-mono);font-weight:500;font-size:14px;letter-spacing:.04em;color:var(--accent);margin-bottom:10px}
 .unit address{font-style:normal;color:var(--fg-dim);font-size:17px}
 .lines{display:grid;gap:8px}
 .line{display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"k b" "v b";align-items:center;column-gap:12px;row-gap:2px;padding:12px 14px;border:1px solid var(--line);border-radius:14px;font-variant-numeric:tabular-nums}
@@ -266,7 +266,7 @@ input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;bac
 .cta-band canvas{position:absolute;inset:0;width:100%;height:100%;opacity:.55;pointer-events:none}
 .cta-band .wrap{position:relative}
 
-footer{padding-block:56px 110px;font-size:14px;color:#6E6E73;background:#F5F5F7;text-align:center}
+footer{padding-block:56px 110px;font-size:14px;color:#515154;background:#F5F5F7;text-align:center}
 footer .wrap{display:flex;flex-direction:column;align-items:center;gap:22px}
 .f-logo{width:150px;height:auto;display:block;mix-blend-mode:multiply}
 .f-links,.f-social{display:flex;flex-wrap:wrap;justify-content:center;gap:8px 0}
@@ -517,6 +517,16 @@ main>section.atiles{padding:0}
   .stats .stat{padding:22px 16px}
 }
 
+/* Crisper text */
+body{letter-spacing:-.011em;font-kerning:normal;font-feature-settings:"kern" 1;font-optical-sizing:auto}
+p,li,address,.lead{color:inherit}
+.lead,.at-sub,.plan-desc,.tech-list li,.map-body p,.review p,.story .where,.svc p{color:var(--fg-dim)}
+.rv{backface-visibility:hidden}
+.rv:not(.pre){transform:none!important;will-change:auto}
+.at-black .at-sub{color:#D2D2D7}.at-coral .at-sub,.at-violet .at-sub{color:rgba(255,255,255,.92)}.at-sun .at-sub{color:#3A2A08}
+.at-mint .at-sub,.at-gray .at-sub,.at-white .at-sub{color:#424245}
+.atile h3,.hero h1,.head h2{-webkit-font-smoothing:antialiased}
+
 .toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translateX(-50%) translateY(120px);background:var(--deep);color:var(--on-accent);padding:10px 18px;border-radius:999px;font-weight:600;font-size:15px;transition:transform .35s,visibility .35s;z-index:80;visibility:hidden}
 .toast.show{transform:translateX(-50%) translateY(0);visibility:visible}
 </style>
@@ -560,7 +570,7 @@ main>section.atiles{padding:0}
       <a class="float f2" href="#tecnologia">Scanner <b>iTero</b> 3D</a>
       <a class="float f4" href="#tecnologia"><b>Check-up digital</b> com câmera intraoral</a>
       <a class="float f5" href="#unidades">Atendimento <b>personalizado</b></a>
-      <a class="float f3" href="#doutor"><img src="assets/dr-edelweiss.jpg" alt="" width="48" height="48"><span><b>Dr. Edelweiss Jr.</b><br>CRO-PE 5131</span></a>
+      <a class="float f3" href="#doutor"><img src="assets/dr-edelweiss.jpg" alt="" width="48" height="48"><span><b>Dr. Edelweiss Jr.</b><br>CRO&#8209;PE&nbsp;5131</span></a>
       </div>
     </div>
   </div>
@@ -589,7 +599,7 @@ main>section.atiles{padding:0}
         <div class="at-media"><img src="assets/sorriso.jpg" alt="Sorriso" loading="lazy" style="object-position:55% 50%"></div>
       </article>
       <article class="atile at-mint">
-        <div class="at-txt"><p class="at-eb">Atendimento personalizado</p><h3>Dr. Edelweiss Jr.</h3><p class="at-sub">Especialista e Mestre em Ortodontia · CRO-PE 5131.</p><div class="at-links"><a href="#doutor">Conheça ›</a></div></div>
+        <div class="at-txt"><p class="at-eb">Atendimento personalizado</p><h3>Dr. Edelweiss Jr.</h3><p class="at-sub">Especialista e Mestre em Ortodontia · CRO&#8209;PE&nbsp;5131.</p><div class="at-links"><a href="#doutor">Conheça ›</a></div></div>
         <div class="at-media"><img src="assets/dr-edelweiss.jpg" alt="Dr. Edelweiss Jr." loading="lazy" style="object-position:50% 0%"></div>
       </article>
       <article class="atile at-coral">
@@ -725,7 +735,7 @@ main>section.atiles{padding:0}
   <div class="wrap doc">
     <div class="portrait reveal">
       <img src="assets/dr-edelweiss.jpg" alt="Dr. Edelweiss Barbosa Gomes Jr., ortodontista" width="900" height="900" loading="lazy">
-      <p class="sig">Dr. Edelweiss Jr.<small>ORTODONTISTA · CRO-PE 5131</small></p>
+      <p class="sig">Dr. Edelweiss Jr.<small>ORTODONTISTA · CRO&#8209;PE&nbsp;5131</small></p>
     </div>
     <div class="reveal">
       <p class="eyebrow">Quem assina o seu sorriso</p>
@@ -734,7 +744,7 @@ main>section.atiles{padding:0}
       <ul class="creds">
         <li><span>Formação</span>Especialista e Mestre em Ortodontia</li>
         <li><span>Ensino</span>Professor da Especialização em Ortodontia</li>
-        <li><span>Registro</span>CRO-PE 5131</li>
+        <li><span>Registro</span>CRO&#8209;PE&nbsp;5131</li>
         <li><span>Unidades</span>Caruaru e Recife</li>
       </ul>
     </div>
@@ -890,7 +900,7 @@ main>section.atiles{padding:0}
       <a href="#especialidades">Especialidades</a><a href="#simulador">Invisalign</a><a href="#tecnologia">Tecnologia</a><a href="#doutor">Dr. Edelweiss Jr.</a><a href="#unidades">Unidades</a><a href="#localizacao">Localização</a><a href="#privacidade" id="privLink">Privacidade</a>
     </nav>
     <div class="f-social"><a href="https://www.instagram.com/weiss.odontologia/" target="_blank" rel="noopener">@weiss.odontologia</a><a href="https://www.instagram.com/dredelweissjr/" target="_blank" rel="noopener">@dredelweissjr</a><a href="https://www.odontoweiss.com.br" target="_blank" rel="noopener">odontoweiss.com.br</a></div>
-    <p class="f-legal">Weiss Odontologia · Caruaru &nbsp;|&nbsp; WE Odontologia · Recife<br>Responsável técnico: Dr. Edelweiss Barbosa Gomes Jr., Especialista e Mestre em Ortodontia · CRO-PE 5131.</p>
+    <p class="f-legal">Weiss Odontologia · Caruaru &nbsp;|&nbsp; WE Odontologia · Recife<br>Responsável técnico: Dr. Edelweiss Barbosa Gomes Jr., Especialista e Mestre em Ortodontia · CRO&#8209;PE&nbsp;5131.</p>
   </div>
 </footer>
 
