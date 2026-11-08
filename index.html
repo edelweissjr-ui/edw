@@ -463,6 +463,16 @@ h1 em,h2 em,h3 em{font-style:normal!important;background:linear-gradient(90deg,#
 .modal-units .btn{justify-content:center}
 @media (max-width:360px){.modal-units{grid-template-columns:1fr}}
 
+/* Instagram follow */
+.ig-follow{display:flex;flex-direction:column;gap:8px}
+.ig-label{font-size:15px;font-weight:600;color:var(--fg-dim);margin:0}
+.ig-links{display:flex;flex-wrap:wrap;gap:6px 22px}
+.ig-links a{display:inline-flex;align-items:center;gap:8px;font-size:19px;font-weight:600;text-decoration:none;background:linear-gradient(90deg,#FA7E1E,#D62976 45%,#962FBF 75%,#4F5BD5);-webkit-background-clip:text;background-clip:text;color:transparent}
+.ig-links a:hover{text-decoration:underline;text-decoration-color:#D62976;text-underline-offset:4px}
+.ig-links svg{width:22px;height:22px;flex:none}
+.at-3d{width:220px;height:220px}
+@media (prefers-reduced-motion:no-preference){.scanline{animation:scanl 2.6s ease-in-out infinite alternate}@keyframes scanl{from{transform:translateY(-36px)}to{transform:translateY(36px)}}}
+
 .toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translateX(-50%) translateY(120px);background:var(--deep);color:var(--on-accent);padding:10px 18px;border-radius:999px;font-weight:600;font-size:15px;transition:transform .35s,visibility .35s;z-index:80;visibility:hidden}
 .toast.show{transform:translateX(-50%) translateY(0);visibility:visible}
 </style>
@@ -528,7 +538,7 @@ h1 em,h2 em,h3 em{font-style:normal!important;background:linear-gradient(90deg,#
       </article>
       <article class="atile at-black">
         <div class="at-txt"><p class="at-eb">Scanner iTero</p><h3>Seus dentes em 3D.</h3><p class="at-sub">Sem moldeira, em poucos minutos.</p><div class="at-links"><a href="#tecnologia">Saiba mais ›</a></div></div>
-        <div class="at-media"><img src="assets/itero-dr.jpg" alt="Dr. Edelweiss Jr. com o scanner iTero Element" loading="lazy" style="object-position:38% 30%"></div>
+        <div class="at-media"><svg class="at-ico at-3d" viewBox="0 0 120 120" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><defs><linearGradient id="g3d" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#5AC8FA"/><stop offset="1" stop-color="#2F6FE0"/></linearGradient></defs><path d="M38 22c-12 0-20 10-20 22 0 14 7 21 10 33 2 12 4 21 11 21s7-14 12-24c2-5 5-6 9-6s7 1 9 6c5 10 5 24 12 24s9-9 11-21c3-12 10-19 10-33 0-12-8-22-20-22-9 0-14 5-22 5s-13-5-22-5Z" stroke="url(#g3d)" stroke-width="3"/><path d="M12 54h96M12 66h96M12 42h96" stroke="#2997FF" stroke-width="1.2" stroke-dasharray="3 5" opacity=".7"/><path class="scanline" d="M8 60h104" stroke="#5AC8FA" stroke-width="2.5"/></svg></div>
       </article>
       <article class="atile at-white">
         <div class="at-txt"><p class="at-eb">Estética</p><h3>O detalhe que assina.</h3><p class="at-sub">Clareamento, facetas e resinas.</p><div class="at-links"><a href="#especialidades">Saiba mais ›</a><a href="https://wa.me/5581998368491?text=Ol%C3%A1!%20Gostaria%20de%20agendar%20uma%20avalia%C3%A7%C3%A3o." target="_blank" rel="noopener">Agendar ›</a></div></div>
@@ -709,7 +719,7 @@ h1 em,h2 em,h3 em{font-style:normal!important;background:linear-gradient(90deg,#
   <div class="wrap">
     <div class="head reveal">
       <div><p class="eyebrow">Histórias reais</p><h2>Sorrisos que <em>atravessam</em> gerações.</h2></div>
-      <p class="lead" style="display:flex;flex-wrap:wrap;gap:10px"><a class="btn btn-ghost" href="https://www.instagram.com/weiss.odontologia/" target="_blank" rel="noopener">Siga @weiss.odontologia</a><a class="btn btn-ghost" href="https://www.instagram.com/dredelweissjr/" target="_blank" rel="noopener">Siga @dredelweissjr</a></p>
+      <div class="ig-follow"><p class="ig-label">Siga no Instagram</p><div class="ig-links"><a href="https://www.instagram.com/weiss.odontologia/" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><defs><linearGradient id="igg" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#FEDA75"/><stop offset=".3" stop-color="#FA7E1E"/><stop offset=".6" stop-color="#D62976"/><stop offset=".85" stop-color="#962FBF"/><stop offset="1" stop-color="#4F5BD5"/></linearGradient></defs><rect x="2" y="2" width="20" height="20" rx="6" fill="none" stroke="url(#igg)" stroke-width="2"/><circle cx="12" cy="12" r="4.5" fill="none" stroke="url(#igg)" stroke-width="2"/><circle cx="17.5" cy="6.5" r="1.3" fill="url(#igg)"/></svg>@weiss.odontologia</a><a href="https://www.instagram.com/dredelweissjr/" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="2" width="20" height="20" rx="6" fill="none" stroke="url(#igg)" stroke-width="2"/><circle cx="12" cy="12" r="4.5" fill="none" stroke="url(#igg)" stroke-width="2"/><circle cx="17.5" cy="6.5" r="1.3" fill="url(#igg)"/></svg>@dredelweissjr</a></div></div>
     </div>
     <div class="stories reveal">
       <article class="story"><span class="route">Santa Cruz do Capibaribe</span><q>Cuidando de 3 gerações! Uma honra poder cuidar de toda a família há mais de 18 anos. Mãe, filho e netas!</q><div class="where"><span>Família, há 18 anos</span><a href="https://www.instagram.com/p/DbRBfj4xRuM/" target="_blank" rel="noopener">Ver no Instagram ↗</a></div></article>
