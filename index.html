@@ -436,6 +436,33 @@ h1 em,h2 em,h3 em{font-style:normal!important;background:linear-gradient(90deg,#
 .at-sun .at-links a{color:#3A2A08;text-decoration:underline;text-underline-offset:3px}
 @media (max-width:760px){.at-pair{gap:12px}.at-pair img{height:210px}.atiles{grid-template-columns:1fr}.at-wide{grid-column:auto}.atile,.at-wide{height:500px;padding-top:40px}.atile .at-media img{max-width:82%}.at-ico{width:150px;height:150px}}
 
+/* Mobile menu */
+.top .wrap{position:relative}
+.menu-btn{display:none;position:absolute;top:20px;right:var(--gut-r);width:48px;height:48px;align-items:center;justify-content:center;padding:0;border:1px solid var(--line);border-radius:50%;background:var(--bg);color:var(--fg);cursor:pointer}
+.menu-btn svg{width:22px;height:22px}
+.menu-btn .i-close,.menu-btn[aria-expanded="true"] .i-open{display:none}
+.menu-btn[aria-expanded="true"] .i-close{display:block}
+@media (max-width:900px){
+  .menu-btn{display:inline-flex}
+  nav.links.open{display:flex;flex-direction:column;flex-wrap:nowrap;gap:0;width:100%;text-align:center}
+  nav.links.open a{padding:13px 8px;border-top:1px solid var(--line);color:var(--fg);font-size:17px}
+}
+
+/* Dialogs: unit picker and privacy */
+.modal{width:min(440px,calc(100vw - 32px));max-height:85dvh;padding:0;border:0;border-radius:24px;background:var(--bg);color:var(--fg);box-shadow:0 40px 80px -30px rgba(15,58,79,.6)}
+.modal::backdrop{background:rgba(15,58,79,.55)}
+.modal-long{width:min(640px,calc(100vw - 32px))}
+.modal-in{position:relative;display:flex;flex-direction:column;gap:14px;padding:28px 24px 26px}
+.modal h2{font-size:1.7rem;padding-right:44px}
+.modal h3{font-size:1.1rem;margin-top:6px}
+.modal p,.modal li{color:var(--fg-dim);font-size:16px;overflow-wrap:anywhere}
+.modal ul{margin:0;padding-left:20px}
+.modal-x{position:absolute;top:18px;right:16px;width:44px;height:44px;display:grid;place-items:center;padding:0;border:1px solid var(--line);border-radius:50%;background:var(--bg);color:var(--fg);cursor:pointer}
+.modal-x svg{width:18px;height:18px}
+.modal-units{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:6px}
+.modal-units .btn{justify-content:center}
+@media (max-width:360px){.modal-units{grid-template-columns:1fr}}
+
 .toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translateX(-50%) translateY(120px);background:var(--deep);color:var(--on-accent);padding:10px 18px;border-radius:999px;font-weight:600;font-size:15px;transition:transform .35s,visibility .35s;z-index:80;visibility:hidden}
 .toast.show{transform:translateX(-50%) translateY(0);visibility:visible}
 </style>
@@ -446,10 +473,12 @@ h1 em,h2 em,h3 em{font-style:normal!important;background:linear-gradient(90deg,#
     <a class="brand" href="#inicio" aria-label="Weiss Clínica Odontológica, início">
       <img class="brand-logo" src="assets/logo-weiss.png" alt="Weiss Clínica Odontológica" width="440" height="705">
     </a>
-    <nav class="links" aria-label="Seções">
+    <button class="menu-btn" id="menuBtn" type="button" aria-expanded="false" aria-controls="siteNav" aria-label="Abrir menu"><svg class="i-open" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg><svg class="i-close" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    <nav class="links" id="siteNav" aria-label="Seções">
       <a href="#simulador">Invisalign</a>
       <a href="#tecnologia">Tecnologia</a>
       <a href="#doutor">Dr. Edelweiss Jr.</a>
+      <a href="#especialidades">Especialidades</a>
       <a href="#historias">Histórias</a>
       <a href="#unidades">Unidades</a>
       <a href="#localizacao">Localização</a>
@@ -804,7 +833,7 @@ h1 em,h2 em,h3 em{font-style:normal!important;background:linear-gradient(90deg,#
   <div class="wrap">
     <img class="f-logo" src="assets/logo-weiss.png" alt="Weiss Clínica Odontológica" width="440" height="705">
     <nav class="f-links" aria-label="Rodapé">
-      <a href="#especialidades">Especialidades</a><a href="#simulador">Invisalign</a><a href="#tecnologia">Tecnologia</a><a href="#doutor">Dr. Edelweiss Jr.</a><a href="#unidades">Unidades</a><a href="#localizacao">Localização</a>
+      <a href="#especialidades">Especialidades</a><a href="#simulador">Invisalign</a><a href="#tecnologia">Tecnologia</a><a href="#doutor">Dr. Edelweiss Jr.</a><a href="#unidades">Unidades</a><a href="#localizacao">Localização</a><a href="#privacidade" id="privLink">Privacidade</a>
     </nav>
     <div class="f-social"><a href="https://www.instagram.com/weiss.odontologia/" target="_blank" rel="noopener">@weiss.odontologia</a><a href="https://www.instagram.com/dredelweissjr/" target="_blank" rel="noopener">@dredelweissjr</a><a href="https://www.odontoweiss.com.br" target="_blank" rel="noopener">odontoweiss.com.br</a></div>
     <p class="f-legal">Weiss Odontologia · Caruaru &nbsp;|&nbsp; WE Odontologia · Recife<br>Responsável técnico: Dr. Edelweiss Barbosa Gomes Jr., Especialista e Mestre em Ortodontia · CRO-PE 5131.</p>
@@ -819,6 +848,38 @@ h1 em,h2 em,h3 em{font-style:normal!important;background:linear-gradient(90deg,#
   <button class="fab-btn" id="fab" type="button" aria-expanded="false" aria-controls="fabMenu" aria-label="Falar no WhatsApp"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm5.3 14.1c-.2.6-1.3 1.2-1.8 1.3-.5 0-1 .2-3.3-.7-2.8-1.1-4.6-4-4.7-4.2-.1-.2-1.1-1.5-1.1-2.9s.7-2 1-2.3c.3-.3.6-.3.8-.3h.6c.2 0 .4 0 .6.5l.9 2.1c.1.2.1.4 0 .6l-.3.5-.4.5c-.1.1-.3.3-.1.6.2.3.8 1.3 1.7 2.1 1.2 1 2.1 1.4 2.4 1.5.3.2.5.1.6 0l.9-1c.2-.3.4-.2.6-.1l2 1c.3.1.5.2.5.3.1.2.1.8-.1 1.4Z"/></svg></button>
 </div>
 <div class="toast" id="toast" role="status">Copiado</div>
+
+<dialog class="modal" id="unitPick" aria-labelledby="unitPickTitle">
+  <div class="modal-in">
+    <button class="modal-x" type="button" data-close aria-label="Fechar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    <h2 id="unitPickTitle">Qual unidade você prefere?</h2>
+    <p>Sua mensagem segue pelo WhatsApp da unidade escolhida.</p>
+    <div class="modal-units">
+      <a class="btn btn-gold" id="pickRecife" href="https://wa.me/5581973185005" target="_blank" rel="noopener">Recife</a>
+      <a class="btn btn-gold" id="pickCaruaru" href="https://wa.me/5581998368491" target="_blank" rel="noopener">Caruaru</a>
+    </div>
+  </div>
+</dialog>
+
+<dialog class="modal modal-long" id="privacy" aria-labelledby="privacyTitle">
+  <div class="modal-in">
+    <button class="modal-x" type="button" data-close aria-label="Fechar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    <h2 id="privacyTitle">Privacidade</h2>
+    <p>Este aviso explica como a Weiss Odontologia (Caruaru) e a WE Odontologia (Recife) tratam dados pessoais neste site, conforme a Lei Geral de Proteção de Dados (Lei nº 13.709/2018).</p>
+    <h3>O que este site coleta</h3>
+    <p>O site não tem formulário nem cadastro, e não usa ferramentas próprias de análise ou publicidade.</p>
+    <h3>Quando você fala com a clínica</h3>
+    <p>Ao clicar em um botão de WhatsApp, você sai deste site. Usamos seu nome, telefone e o que você escrever para responder e agendar seu atendimento.</p>
+    <h3>Serviços de terceiros</h3>
+    <p>WhatsApp, Instagram, Google Maps e Waze têm políticas de privacidade próprias. Os mapas desta página são carregados pelo Google, que pode receber dados técnicos do seu acesso.</p>
+    <h3>Seus direitos</h3>
+    <p>Você pode pedir acesso, correção ou exclusão dos seus dados pelos e-mails abaixo.</p>
+    <ul>
+      <li>caruaru@odontoweiss.com.br</li>
+      <li>recife@odontoweiss.com.br</li>
+    </ul>
+  </div>
+</dialog>
 
 <script>
 (()=>{
@@ -962,6 +1023,37 @@ if(!reduce && 'IntersectionObserver' in window){
 /* ---------- WhatsApp FAB ---------- */
 const fab=document.getElementById('fab'), menu=document.getElementById('fabMenu');
 fab.addEventListener('click',()=>{menu.hidden=!menu.hidden;fab.setAttribute('aria-expanded',String(!menu.hidden))});
+
+/* ---------- Mobile menu ---------- */
+const menuBtn=document.getElementById('menuBtn'), siteNav=document.getElementById('siteNav');
+const setMenu=open=>{siteNav.classList.toggle('open',open);menuBtn.setAttribute('aria-expanded',String(open));menuBtn.setAttribute('aria-label',open?'Fechar menu':'Abrir menu')};
+menuBtn.addEventListener('click',()=>setMenu(!siteNav.classList.contains('open')));
+siteNav.addEventListener('click',e=>{if(e.target.closest('a'))setMenu(false)});
+addEventListener('keydown',e=>{if(e.key==='Escape'&&siteNav.classList.contains('open')){setMenu(false);menuBtn.focus()}});
+
+/* ---------- Dialogs ---------- */
+document.querySelectorAll('.modal').forEach(d=>{
+  d.addEventListener('click',e=>{if(e.target===d||e.target.closest('[data-close]'))d.close()});
+});
+
+/* ---------- Unit picker: generic WhatsApp links ask which unit ---------- */
+const UNITS={pickRecife:{num:'5581973185005',name:'Recife'},pickCaruaru:{num:'5581998368491',name:'Caruaru'}};
+const unitPick=document.getElementById('unitPick');
+document.querySelectorAll('a[href^="https://wa.me/5581998368491?text="]').forEach(a=>{
+  const msg=new URL(a.href).searchParams.get('text')||'';
+  if(/Caruaru|Recife/.test(msg))return; // already names a unit
+  a.addEventListener('click',e=>{
+    if(!unitPick.showModal)return; // falls back to the link's own number
+    e.preventDefault();
+    Object.entries(UNITS).forEach(([id,u])=>{document.getElementById(id).href=`https://wa.me/${u.num}?text=${encodeURIComponent(`${msg} Unidade: ${u.name}.`)}`});
+    unitPick.showModal();
+  });
+});
+Object.keys(UNITS).forEach(id=>document.getElementById(id).addEventListener('click',()=>unitPick.close()));
+
+/* ---------- Privacy notice ---------- */
+const privacy=document.getElementById('privacy');
+document.getElementById('privLink').addEventListener('click',e=>{if(privacy.showModal){e.preventDefault();privacy.showModal()}});
 
 /* ---------- Copy buttons ---------- */
 const toast=document.getElementById('toast');let tt;
