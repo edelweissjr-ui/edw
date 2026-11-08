@@ -1,0 +1,503 @@
+{
+  "name": "Copiloto — Registrar consulta no Kommo",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## Copiloto → Kommo\nRecebe a consulta enviada pelo Copiloto, encontra (ou cria) o contato/lead pelo telefone, atualiza valor, etapa e tags, adiciona o resumo como nota e cria a tarefa de retorno.\n\n**Antes de ativar:**\n1. Edite o nó *Validar e preparar* (chave, subdomínio, IDs do funil)\n2. Em cada nó HTTP, escolha a credencial **Header Auth** do Kommo\n   (Name: `Authorization` · Value: `Bearer SEU_TOKEN_DE_LONGA_DURACAO`)\n3. Ative o fluxo e copie a *Production URL* do Webhook para o Copiloto",
+        "width": 460,
+        "height": 330
+      },
+      "id": "7e902510-b881-4208-a540-591881cd7b82",
+      "name": "Nota 6580",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -420,
+        -260
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "copiloto-consulta",
+        "options": {
+          "allowedOrigins": "*"
+        },
+        "responseMode": "responseNode"
+      },
+      "id": "591490e6-31e4-4e8e-b94e-43f96fce42ed",
+      "name": "Webhook Copiloto",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ],
+      "webhookId": "ceb8dbda-7531-4009-a31f-c333642ad8c4"
+    },
+    {
+      "parameters": {
+        "jsCode": "// ================== CONFIGURE AQUI ==================\nconst CONFIG = {\n  TOKEN: 'TROQUE-POR-UMA-CHAVE-SECRETA',   // a mesma chave das Configurações do copiloto\n  SUBDOMINIO: 'SEU-SUBDOMINIO',            // ex.: odontoweiss  (de odontoweiss.kommo.com)\n  PIPELINE_ID: null,                       // ID do funil (número) ou null para o funil padrão\n  STATUS: {                                // IDs das etapas do funil (null = não altera a etapa)\n    negociacao: null,                      // ex.: etapa \"Orçamento apresentado\"\n    fechado: 142,                          // 142 = Venda ganha (padrão do Kommo)\n    perdido: 143                           // 143 = Venda perdida (padrão do Kommo)\n  },\n  RESPONSAVEL_ID: null                     // ID do usuário responsável (opcional)\n};\n// ====================================================\n\nconst body = $input.first().json.body || {};\nif (body.token !== CONFIG.TOKEN) throw new Error('Chave do copiloto inválida');\nif (body.evento === 'teste') return [{ json: { teste: true } }];\n\nconst p = body.paciente || {};\nconst tel = String(p.telefone || '').replace(/\\D/g, '');\nif (!tel) throw new Error('Telefone do paciente ausente');\nconst telNacional = tel.startsWith('55') && tel.length > 11 ? tel.slice(2) : tel;\n\nconst c = body.consulta || {};\nconst o = body.orcamento || {};\nconst resultado = body.resultado || 'negociacao';\nconst statusId = CONFIG.STATUS[resultado] || null;\nconst canal = c.canal === 'presencial' ? 'Presencial' : 'WhatsApp';\n\nconst tags = ['Copiloto', canal, c.unidade, o.tratamento].filter(Boolean).map(name => ({ name }));\nif ((body.temperatura || 0) >= 70) tags.push({ name: 'Lead quente' });\n\n// Nota: resumo + transcrição (limitada para não estourar o tamanho da nota)\nlet transcricao = (body.transcricao || [])\n  .map(m => `${m.quem === 'cliente' ? 'Paciente' : 'Clínica'}: ${m.texto}`).join('\\n');\nif (transcricao.length > 12000) transcricao = '…\\n' + transcricao.slice(-12000);\nconst nota = (body.resumo || 'Consulta registrada pelo copiloto') + (transcricao ? '\\n\\n— TRANSCRIÇÃO —\\n' + transcricao : '');\n\nconst lead = { price: Math.round(o.valor || 0) };\nif (statusId) lead.status_id = statusId;\nif (CONFIG.PIPELINE_ID) lead.pipeline_id = CONFIG.PIPELINE_ID;\nif (CONFIG.RESPONSAVEL_ID) lead.responsible_user_id = CONFIG.RESPONSAVEL_ID;\n\nreturn [{ json: {\n  teste: false,\n  base: `https://${CONFIG.SUBDOMINIO}.kommo.com`,\n  telefone: tel, telefone_busca: telNacional,\n  nome: p.nome || 'Paciente', origem: p.origem || '',\n  lead_id_informado: p.lead_id ? Number(p.lead_id) : null,\n  lead_base: lead, tags, nota,\n  proximo_contato: body.proximo_contato || null,\n  motivo_perda: body.motivo_perda || '',\n  resultado\n}}];"
+      },
+      "id": "096ac5dc-214d-4ed7-8c07-bf806e076961",
+      "name": "Validar e preparar",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        220,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "id": "d785df13-c0ad-4565-9af0-d73b99f5130c",
+              "leftValue": "={{ $json.teste }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "3af309bd-7232-44ae-ba35-86ada82e21cc",
+      "name": "É teste?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        440,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ ok: true, teste: true }) }}",
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              }
+            ]
+          }
+        }
+      },
+      "id": "3e4bcd21-9e70-4caf-ae10-8de2a0fff3bf",
+      "name": "Responder teste",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        660,
+        -180
+      ]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $json.base }}/api/v4/contacts",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {
+          "response": {
+            "response": {
+              "neverError": true,
+              "responseFormat": "text",
+              "outputPropertyName": "data"
+            }
+          }
+        },
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "query",
+              "value": "={{ $json.telefone_busca }}"
+            },
+            {
+              "name": "with",
+              "value": "leads"
+            }
+          ]
+        }
+      },
+      "id": "266a5e73-74dc-4fde-9dda-ef8ffb2ad4f0",
+      "name": "Buscar contato no Kommo",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        660,
+        60
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const prep = $('Validar e preparar').first().json;\nlet d = {};\ntry { const raw = $input.first().json.data; d = raw ? (typeof raw === 'string' ? JSON.parse(raw) : raw) : {}; } catch (e) { d = {}; }\n\nconst contato = (d._embedded && d._embedded.contacts || [])[0] || null;\nlet leadId = prep.lead_id_informado;\nif (!leadId && contato) {\n  const leads = (contato._embedded && contato._embedded.leads) || [];\n  if (leads.length) leadId = Math.max(...leads.map(l => l.id)); // lead mais recente do contato\n}\n\n// corpo para ATUALIZAR um lead existente\nconst patch = { ...prep.lead_base, tags_to_add: prep.tags };\n\n// corpo para CRIAR lead (+ contato, se ainda não existir)\nconst novo = {\n  name: `${prep.nome} — Copiloto`,\n  ...prep.lead_base,\n  _embedded: {\n    tags: prep.tags,\n    contacts: [contato ? { id: contato.id } : {\n      first_name: prep.nome,\n      custom_fields_values: [{ field_code: 'PHONE', values: [{ value: '+' + prep.telefone, enum_code: 'MOB' }] }]\n    }]\n  }\n};\n\nreturn [{ json: { ...prep, contato_id: contato ? contato.id : null, lead_id: leadId || null, patch, novo: [novo] } }];"
+      },
+      "id": "5b4a9f45-8563-45a3-9f37-8cbcce331d53",
+      "name": "Decidir lead",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        880,
+        60
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "id": "c2b846d3-6ded-4884-b99e-7d700a59a2bb",
+              "leftValue": "={{ !!$json.lead_id }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "723ee317-bbab-4086-bb2e-0ee790e48153",
+      "name": "Já tem lead?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        1100,
+        60
+      ]
+    },
+    {
+      "parameters": {
+        "method": "PATCH",
+        "url": "={{ $json.base }}/api/v4/leads/{{ $json.lead_id }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {},
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.patch) }}"
+      },
+      "id": "43f20978-1c2a-47c0-9e43-db84297e6cd1",
+      "name": "Atualizar lead",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1320,
+        -40
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $json.base }}/api/v4/leads/complex",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {},
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.novo) }}"
+      },
+      "id": "70db25b6-111a-44b3-aa73-dd763f149dcf",
+      "name": "Criar lead e contato",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1320,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const prep = $('Decidir lead').first().json;\nconst r = $input.first().json;\nconst leadId = r.id || (Array.isArray(r) && r[0] && r[0].id) || prep.lead_id;\nlet tarefa = null;\nif (prep.proximo_contato) {\n  tarefa = [{\n    text: `Retornar contato com ${prep.nome} (combinado na consulta — copiloto)`,\n    complete_till: Math.floor(new Date(prep.proximo_contato).getTime() / 1000),\n    entity_id: leadId, entity_type: 'leads', task_type_id: 1\n  }];\n}\nreturn [{ json: { ...prep, lead_id: leadId, notas: [{ note_type: 'common', params: { text: prep.nota } }], tarefa } }];"
+      },
+      "id": "b6c02450-f2dc-4b03-8117-92612abfca04",
+      "name": "Montar nota e tarefa",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1540,
+        60
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $json.base }}/api/v4/leads/{{ $json.lead_id }}/notes",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {},
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.notas) }}"
+      },
+      "id": "9b8bad42-20c7-4303-b38b-7fee2fb5d34f",
+      "name": "Adicionar nota",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1760,
+        60
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "id": "73a307f5-edd5-4b05-8080-8462fe4f8c1c",
+              "leftValue": "={{ !!$('Montar nota e tarefa').first().json.tarefa }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "f25f5957-2f0e-4192-9846-3823cc41f959",
+      "name": "Tem próximo contato?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        1980,
+        60
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('Montar nota e tarefa').first().json.base }}/api/v4/tasks",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {},
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($('Montar nota e tarefa').first().json.tarefa) }}"
+      },
+      "id": "17eaf712-4231-4538-bcf2-5a0f5603f10d",
+      "name": "Criar tarefa de retorno",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2200,
+        -40
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ ok: true, lead_id: $('Montar nota e tarefa').first().json.lead_id }) }}",
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              }
+            ]
+          }
+        }
+      },
+      "id": "ed878d59-9c45-49ef-a9f9-b46f89d304fe",
+      "name": "Responder ao copiloto",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        2420,
+        60
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook Copiloto": {
+      "main": [
+        [
+          {
+            "node": "Validar e preparar",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validar e preparar": {
+      "main": [
+        [
+          {
+            "node": "É teste?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "É teste?": {
+      "main": [
+        [
+          {
+            "node": "Responder teste",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Buscar contato no Kommo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Buscar contato no Kommo": {
+      "main": [
+        [
+          {
+            "node": "Decidir lead",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Decidir lead": {
+      "main": [
+        [
+          {
+            "node": "Já tem lead?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Já tem lead?": {
+      "main": [
+        [
+          {
+            "node": "Atualizar lead",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Criar lead e contato",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Atualizar lead": {
+      "main": [
+        [
+          {
+            "node": "Montar nota e tarefa",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Criar lead e contato": {
+      "main": [
+        [
+          {
+            "node": "Montar nota e tarefa",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Montar nota e tarefa": {
+      "main": [
+        [
+          {
+            "node": "Adicionar nota",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Adicionar nota": {
+      "main": [
+        [
+          {
+            "node": "Tem próximo contato?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Tem próximo contato?": {
+      "main": [
+        [
+          {
+            "node": "Criar tarefa de retorno",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Responder ao copiloto",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Criar tarefa de retorno": {
+      "main": [
+        [
+          {
+            "node": "Responder ao copiloto",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {}
+}

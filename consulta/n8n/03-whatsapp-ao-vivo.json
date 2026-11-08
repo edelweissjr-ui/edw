@@ -1,0 +1,147 @@
+{
+  "name": "Copiloto — WhatsApp ao vivo (Kommo)",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## WhatsApp ao vivo (Kommo → Copiloto)\nO Kommo avisa este fluxo a cada mensagem recebida/enviada. O Copiloto consulta a cada 5 s as mensagens do lead que está aberto na tela e já mostra a orientação.\n\n**Configuração:**\n1. Troque a chave no nó *Ler mensagens*\n2. Ative o fluxo (a memória só funciona com o fluxo ATIVO)\n3. No Kommo: Configurações → Integrações → Webhooks → cole a Production URL do *Webhook Kommo* e marque os eventos de mensagem recebida/enviada\n4. Cole a Production URL do *Webhook Copiloto (GET)* no Copiloto",
+        "width": 480,
+        "height": 340
+      },
+      "id": "489f7ff1-647a-4098-bae8-487339f588c1",
+      "name": "Nota 74f6",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -420,
+        -300
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "kommo-mensagens",
+        "options": {
+          "allowedOrigins": "*"
+        }
+      },
+      "id": "f4a930da-f007-439a-84e6-ece6fd461e4d",
+      "name": "Webhook Kommo",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ],
+      "webhookId": "2281b9af-8199-451a-acf7-9c09373aa8a9"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Guarda as mensagens de WhatsApp que o Kommo recebe/envia, por lead, para o Copiloto buscar.\n// Os dados ficam na memória do próprio fluxo (static data) e são limpos após 3 dias.\nconst store = $getWorkflowStaticData('global');\nstore.leads = store.leads || {};\nconst body = $input.first().json.body || {};\n\n// O Kommo envia formulário (application/x-www-form-urlencoded). Aceita o formato aninhado e o \"achatado\".\nfunction lerMensagens(b) {\n  if (b.message && b.message.add) return Object.values(b.message.add);\n  const acc = {};\n  for (const [k, v] of Object.entries(b)) {\n    const m = k.match(/^message\\[add\\]\\[(\\d+)\\]\\[([^\\]]+)\\](?:\\[([^\\]]+)\\])?$/);\n    if (!m) continue;\n    acc[m[1]] = acc[m[1]] || {};\n    if (m[3]) { acc[m[1]][m[2]] = acc[m[1]][m[2]] || {}; acc[m[1]][m[2]][m[3]] = v; }\n    else acc[m[1]][m[2]] = v;\n  }\n  return Object.values(acc);\n}\n\nconst agora = Date.now();\nfor (const msg of lerMensagens(body)) {\n  const lead = String(msg.entity_id || msg.element_id || '');\n  if (!lead || !msg.text) continue;\n  const ts = msg.created_at ? new Date(Number(msg.created_at) * 1000).toISOString() : new Date().toISOString();\n  const autor = msg.type === 'outgoing' ? 'clinica' : 'cliente';\n  const L = store.leads[lead] = store.leads[lead] || { atualizado: agora, mensagens: [] };\n  if (!L.mensagens.some(x => x.id === msg.id)) {\n    L.mensagens.push({ id: String(msg.id || (lead + '-' + ts)), texto: String(msg.text), autor, ts });\n  }\n  L.mensagens = L.mensagens.slice(-150);\n  L.atualizado = agora;\n}\nfor (const [k, L] of Object.entries(store.leads)) {\n  if (agora - L.atualizado > 3 * 24 * 3600 * 1000) delete store.leads[k];\n}\nreturn [{ json: { ok: true } }];"
+      },
+      "id": "27d9e191-0031-4c54-b47a-be0049f12730",
+      "name": "Guardar mensagem",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        240,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "GET",
+        "path": "copiloto-mensagens",
+        "options": {
+          "allowedOrigins": "*"
+        },
+        "responseMode": "responseNode"
+      },
+      "id": "b2e1f21f-6497-4ed4-93e6-2e5659702fb5",
+      "name": "Webhook Copiloto (GET)",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        260
+      ],
+      "webhookId": "1e2ce41f-45e9-45ac-9aab-e8d726165714"
+    },
+    {
+      "parameters": {
+        "jsCode": "// ================== CONFIGURE AQUI ==================\nconst TOKEN = 'TROQUE-POR-UMA-CHAVE-SECRETA'; // a mesma chave das Configurações do copiloto\n// ====================================================\nconst q = $input.first().json.query || {};\nif (q.token !== TOKEN) return [{ json: { ok: false, erro: 'Chave do copiloto inválida', mensagens: [] } }];\nconst store = $getWorkflowStaticData('global');\nconst L = (store.leads || {})[String(q.lead || '')];\nconst desde = q.desde || '1970-01-01T00:00:00.000Z';\nconst mensagens = L ? L.mensagens.filter(m => m.ts > desde) : [];\nreturn [{ json: { ok: true, mensagens } }];"
+      },
+      "id": "12377fa0-6401-4820-b5ac-f24bd10068e5",
+      "name": "Ler mensagens",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        240,
+        260
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json) }}",
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              }
+            ]
+          }
+        }
+      },
+      "id": "7429af7e-dbbd-4fe4-b72f-1254dcae0c1e",
+      "name": "Responder ao copiloto",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        480,
+        260
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook Kommo": {
+      "main": [
+        [
+          {
+            "node": "Guardar mensagem",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook Copiloto (GET)": {
+      "main": [
+        [
+          {
+            "node": "Ler mensagens",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ler mensagens": {
+      "main": [
+        [
+          {
+            "node": "Responder ao copiloto",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {}
+}

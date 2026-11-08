@@ -1,0 +1,669 @@
+/* Copiloto de Consulta — Weiss Odontologia
+   Lógica da tela. O conteúdo (falas, objeções, mensagens) fica em roteiro.js. */
+(function () {
+  "use strict";
+  const R = window.ROTEIRO;
+  const $ = (s, el = document) => el.querySelector(s);
+  const $$ = (s, el = document) => Array.from(el.querySelectorAll(s));
+
+  /* ---------------- armazenamento local ---------------- */
+  const KEY_CONS = "copiloto.consultas", KEY_ATUAL = "copiloto.atual", KEY_CFG = "copiloto.config";
+  const load = (k, d) => { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch (e) { return d; } };
+  const store = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { /* armazenamento indisponível */ } };
+
+  const cfg = Object.assign({
+    profissional: "Dr. Edelweiss",
+    nomesClinica: "Weiss, Odonto Weiss, Clínica, Você, You",
+    tema: "auto",
+    whReg: "", whIA: "", whMsg: "", token: ""
+  }, load(KEY_CFG, {}));
+
+  let consultas = load(KEY_CONS, {});
+  let S = null; // consulta atual
+
+  function novaConsulta() {
+    const id = "c" + Date.now().toString(36);
+    return {
+      id, criadoEm: new Date().toISOString(), atualizadoEm: null,
+      canal: "whatsapp", unidade: "Caruaru",
+      paciente: { nome: "", telefone: "", origem: "", leadId: "" },
+      etapa: "acolhimento", checks: {},
+      notas: { dor: "", evento: "", livre: "" },
+      horarios: { dia1: "", hora1: "", dia2: "", hora2: "" },
+      conversa: [], msgIds: {}, alertas: [], objecoes: {}, sinaisCompra: 0, temperatura: 50,
+      orcamento: { tratamento: "", valor: "", entrada: "", parcelas: "", pagamento: "" },
+      resultado: "", motivoPerda: "", proximoContato: "",
+      consentimento: { aceito: false, em: null },
+      resumo: "", resumoEditado: false, sincronizadoEm: null, ultimoSync: null
+    };
+  }
+
+  let saveTimer = null;
+  function save() {
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(() => {
+      S.atualizadoEm = new Date().toISOString();
+      consultas[S.id] = S;
+      store(KEY_CONS, consultas);
+      store(KEY_ATUAL, S.id);
+    }, 250);
+  }
+
+  /* ---------------- utilidades ---------------- */
+  const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  const norm = (s) => String(s || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9\s]/g, " ").replace(/\s+/g, " ").trim();
+  const toNum = (v) => { if (v === "" || v == null) return NaN; const s = String(v).replace(/[^\d,.-]/g, ""); return parseFloat(s.includes(",") ? s.replace(/\./g, "").replace(",", ".") : s); };
+  const brl = (n) => isNaN(n) ? "" : n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+  const hora = (iso) => new Date(iso).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+  const dataHora = (iso) => iso ? new Date(iso).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" }) : "";
+  const digits = (s) => String(s || "").replace(/\D/g, "");
+  function telE164(t) { let d = digits(t); if (!d) return ""; if (d.length <= 11) d = "55" + d; return d; }
+
+  function toast(msg) { const t = $("#toast"); t.textContent = msg; t.classList.add("on"); clearTimeout(toast._t); toast._t = setTimeout(() => t.classList.remove("on"), 2200); }
+
+  const regexCache = new Map();
+  function gatilhoRegex(g) {
+    if (regexCache.has(g)) return regexCache.get(g);
+    const n = norm(g).replace(/ /g, "\\s");
+    // palavras curtas precisam ser palavra inteira (com plural); as demais casam pelo início da palavra
+    const re = n.length <= 4 ? new RegExp("(^|\\s)" + n + "(s|es)?(\\s|$)") : new RegExp("(^|\\s)" + n);
+    regexCache.set(g, re);
+    return re;
+  }
+  const casa = (texto, gatilhos) => { const t = norm(texto); return gatilhos.some((g) => gatilhoRegex(g).test(t)); };
+
+  function parcelaTxt() {
+    const v = toNum(S.orcamento.valor), e = toNum(S.orcamento.entrada) || 0, n = parseInt(S.orcamento.parcelas, 10);
+    if (isNaN(v) || !n) return "";
+    return `${n}x de ${brl((v - e) / n)}`;
+  }
+
+  function preencher(texto) {
+    const u = R.unidades[S.unidade] || {};
+    const nome = (S.paciente.nome || "").trim().split(/\s+/)[0];
+    const vars = {
+      nome: nome, profissional: cfg.profissional, unidade: S.unidade, endereco: u.endereco, telefone_unidade: u.whatsapp,
+      valor: brl(toNum(S.orcamento.valor)), entrada: brl(toNum(S.orcamento.entrada)), parcelas: parcelaTxt(),
+      tratamento: S.orcamento.tratamento, dor: S.notas.dor, evento: S.notas.evento,
+      dia: S.horarios.dia1, hora: S.horarios.hora1, dia2: S.horarios.dia2, hora2: S.horarios.hora2
+    };
+    return texto.replace(/\{(\w+)\}/g, (m, k) => {
+      const v = vars[k];
+      if (v) return v;
+      if (k === "nome") return "";
+      return "[" + k + "]";
+    }).replace(/,\s*!/g, "!").replace(/ ,/g, ",").replace(/Olá, !/g, "Olá!").replace(/\s{2,}/g, " ").replace(/ \n/g, "\n");
+  }
+
+  function copiar(texto) {
+    const done = () => toast("Copiado ✓");
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(texto).then(done, () => fallbackCopy(texto, done));
+    else fallbackCopy(texto, done);
+  }
+  function fallbackCopy(t, cb) { const a = document.createElement("textarea"); a.value = t; document.body.appendChild(a); a.select(); try { document.execCommand("copy"); cb(); } catch (e) { toast("Não foi possível copiar"); } a.remove(); }
+  function abrirWhats(texto) {
+    const tel = telE164(S.paciente.telefone);
+    window.open(`https://wa.me/${tel}?text=${encodeURIComponent(texto)}`, "_blank", "noopener");
+  }
+
+  /* Botões padrão de uma fala */
+  function botoesFala(texto, extra = "") {
+    return `<div class="acts">
+      <button class="btn sm" data-copy="${esc(texto)}">Copiar</button>
+      <button class="btn sm" data-wa="${esc(texto)}">WhatsApp</button>
+      <button class="btn sm" data-usar="${esc(texto)}">Marcar como dita</button>${extra}</div>`;
+  }
+  document.addEventListener("click", (ev) => {
+    const b = ev.target.closest("[data-copy],[data-wa],[data-usar],[data-ir]");
+    if (!b) return;
+    if (b.dataset.copy != null) copiar(b.dataset.copy);
+    else if (b.dataset.wa != null) abrirWhats(b.dataset.wa);
+    else if (b.dataset.usar != null) { addMsg("clinica", b.dataset.usar, "roteiro"); toast("Registrado na conversa"); }
+    else if (b.dataset.ir) { irEtapa(b.dataset.ir); mostrarView("consulta"); }
+  });
+
+  /* ---------------- abas ---------------- */
+  function mostrarView(v) {
+    $$("#tabs button").forEach((b) => b.classList.toggle("on", b.dataset.v === v));
+    $$(".view").forEach((s) => s.classList.toggle("on", s.id === "v-" + v));
+    if (v === "resumo" && !S.resumoEditado) gerarResumo();
+    if (v === "historico") renderHistorico();
+    if (v === "mensagens") renderMensagens();
+    window.scrollTo({ top: 0 });
+  }
+  $("#tabs").addEventListener("click", (e) => { const b = e.target.closest("button"); if (b) mostrarView(b.dataset.v); });
+
+  /* ---------------- etapas ---------------- */
+  function progresso(et) {
+    const tot = et.checklist.length, feitos = Object.values(S.checks[et.id] || {}).filter(Boolean).length;
+    return { tot, feitos };
+  }
+  function renderSteps() {
+    $("#steps").innerHTML = R.etapas.map((et) => {
+      const p = progresso(et);
+      const done = p.tot && p.feitos === p.tot;
+      return `<li class="${done ? "done" : ""}"><button data-et="${et.id}" class="${S.etapa === et.id ? "on" : ""}">
+        <span>${et.icone}</span><span>${esc(et.nome)}</span><span class="prog">${done ? "✓" : p.feitos + "/" + p.tot}</span></button></li>`;
+    }).join("");
+  }
+  $("#steps").addEventListener("click", (e) => { const b = e.target.closest("button"); if (b) irEtapa(b.dataset.et); });
+
+  function irEtapa(id) { S.etapa = id; save(); renderSteps(); renderEtapa(); }
+
+  function renderEtapa() {
+    const idx = R.etapas.findIndex((e) => e.id === S.etapa);
+    const et = R.etapas[idx];
+    const wa = S.canal === "whatsapp";
+    const falas = et.falas.filter((f) => !f.canal || f.canal === S.canal);
+    const checks = S.checks[et.id] || {};
+    const ant = R.etapas[idx - 1], prox = R.etapas[idx + 1];
+    $("#etapaCard").innerHTML = `
+      <div class="row" style="justify-content:space-between">
+        <h2 style="margin:0;font-size:20px;flex:1 1 auto">${et.icone} ${esc(et.nome)}</h2>
+        <div class="row" style="flex:0 0 auto">
+          ${ant ? `<button class="btn sm" data-ir="${ant.id}">← ${esc(ant.nome)}</button>` : ""}
+          ${prox ? `<button class="btn sm primary" data-ir="${prox.id}">${esc(prox.nome)} →</button>` : ""}
+        </div>
+      </div>
+      <p class="objetivo" style="margin:12px 0 0">🎯 ${esc(et.objetivo)}</p>
+      ${falas.length ? `<h3>O que falar</h3>` + falas.map((f) => {
+        const t = preencher(wa && f.wa ? f.wa : f.texto);
+        return `<div class="fala"><span class="lbl">${esc(f.rotulo)}</span>${f.canal ? `<span class="tag">${f.canal === "whatsapp" ? "WhatsApp" : "Presencial"}</span>` : ""}
+          <p>${esc(t)}</p>${botoesFala(t)}</div>`;
+      }).join("") : ""}
+      ${et.perguntas.length ? `<h3>Perguntas para fazer</h3><ul class="perg">` + et.perguntas.map((p) => {
+        const t = preencher(p);
+        return `<li>${esc(t)} <button class="btn sm ghost" data-copy="${esc(t)}">copiar</button><button class="btn sm ghost" data-usar="${esc(t)}">feita ✓</button></li>`;
+      }).join("") + `</ul>` : ""}
+      ${et.checklist.length ? `<h3>Checklist da etapa</h3>` + et.checklist.map((c, i) => `
+        <label class="check"><input type="checkbox" data-chk="${i}" ${checks[i] ? "checked" : ""}><span>${esc(c)}</span></label>`).join("") : ""}
+      ${et.dicas.length ? `<h3>Dicas</h3>` + et.dicas.map((d) => `<div class="dica">${esc(preencher(d))}</div>`).join("") : ""}
+      ${et.id === "objecoes" ? `<h3>Objeções detectadas nesta consulta</h3>${listaObjDetectadas()}` : ""}
+    `;
+    $$("#etapaCard [data-chk]").forEach((c) => c.addEventListener("change", () => {
+      S.checks[et.id] = S.checks[et.id] || {};
+      S.checks[et.id][c.dataset.chk] = c.checked;
+      save(); renderSteps();
+    }));
+  }
+
+  function listaObjDetectadas() {
+    const ids = Object.keys(S.objecoes);
+    if (!ids.length) return `<p class="small muted">Nenhuma até agora.</p>`;
+    return ids.map((id) => { const o = R.objecoes.find((x) => x.id === id); return o ? `<div class="fala"><span class="lbl">${esc(o.titulo)} (${S.objecoes[id]}x)</span><p class="small">${esc(o.entender)}</p></div>` : ""; }).join("");
+  }
+
+  /* ---------------- conversa e análise ---------------- */
+  function addMsg(quem, texto, origem = "manual", opts = {}) {
+    texto = String(texto || "").trim();
+    if (!texto) return;
+    const m = { quem, texto, ts: opts.ts || new Date().toISOString(), origem };
+    if (opts.id) { if (S.msgIds[opts.id]) return; S.msgIds[opts.id] = 1; }
+    S.conversa.push(m);
+    renderChat();
+    if (!opts.semAnalise) analisar(m);
+    save();
+  }
+
+  function renderChat() {
+    const c = $("#chat");
+    if (!S.conversa.length) { c.innerHTML = `<div class="small muted">As mensagens e falas aparecem aqui. Cole a mensagem do paciente abaixo para receber a orientação.</div>`; return; }
+    c.innerHTML = S.conversa.slice(-200).map((m) => `<div class="msg ${m.quem}"><span class="who">${m.quem === "cliente" ? esc((S.paciente.nome || "Paciente").split(" ")[0]) : "Clínica"} · ${hora(m.ts)}${m.origem === "voz" ? " · 🎙" : ""}</span>${esc(m.texto)}</div>`).join("");
+    c.scrollTop = c.scrollHeight;
+  }
+
+  const ordemEtapa = (id) => R.etapas.findIndex((e) => e.id === id);
+
+  function analisar(m) {
+    if (m.quem !== "cliente") return;
+    const novos = [];
+    R.objecoes.forEach((o) => {
+      if (casa(m.texto, o.gatilhos)) {
+        S.objecoes[o.id] = (S.objecoes[o.id] || 0) + 1;
+        S.temperatura -= 8;
+        novos.push({ tipo: "obj", ref: o.id });
+      }
+    });
+    R.intencoes.forEach((it) => {
+      if (it.somenteAntesDe && ordemEtapa(S.etapa) >= ordemEtapa(it.somenteAntesDe)) return;
+      if (casa(m.texto, it.gatilhos)) novos.push({ tipo: "int", ref: it.id });
+    });
+    if (casa(m.texto, R.sinaisCompra)) {
+      S.sinaisCompra++;
+      S.temperatura += 12;
+      novos.push({ tipo: "buy", ref: "compra" });
+    }
+    S.temperatura = Math.max(0, Math.min(100, S.temperatura));
+    novos.forEach((n) => {
+      const ultimo = S.alertas[0];
+      if (ultimo && ultimo.tipo === n.tipo && ultimo.ref === n.ref) return; // evita repetir em sequência
+      S.alertas.unshift(Object.assign(n, { ts: m.ts, trecho: m.texto.slice(0, 140) }));
+    });
+    S.alertas = S.alertas.slice(0, 40);
+    renderAlertas(); renderTermometro();
+    if (novos.some((n) => n.tipo === "obj")) renderEtapa();
+  }
+
+  function renderTermometro() {
+    const t = S.temperatura;
+    $("#thermoDot").style.left = t + "%";
+    $("#thermoLbl").textContent = t >= 70 ? "🔥 Quente — conduza ao fechamento" : t >= 40 ? "Morno" : "❄️ Frio — volte à Descoberta";
+  }
+
+  function renderAlertas() {
+    const box = $("#alerts");
+    if (!S.alertas.length) { box.innerHTML = `<div class="small muted">As orientações aparecem aqui automaticamente quando o paciente demonstra uma objeção, faz uma pergunta importante ou dá um sinal de compra.</div>`; return; }
+    box.innerHTML = S.alertas.map((a) => {
+      const trecho = a.trecho ? `<div class="small muted">“${esc(a.trecho)}”</div>` : "";
+      if (a.tipo === "obj") {
+        const o = R.objecoes.find((x) => x.id === a.ref); if (!o) return "";
+        return `<div class="alert obj"><b>🛡️ Objeção: ${esc(o.titulo)}</b>${trecho}
+          <div class="small" style="margin-top:4px"><i>${esc(o.entender)}</i></div>
+          ${o.respostas.map((r) => { const t = preencher(r); return `<div class="resp">${esc(t)}</div>${botoesFala(t)}`; }).join("")}
+          <div class="small" style="margin-top:6px">➡ ${esc(preencher(o.proximo))}</div></div>`;
+      }
+      if (a.tipo === "int") {
+        const it = R.intencoes.find((x) => x.id === a.ref); if (!it) return "";
+        const t = preencher(it.resposta);
+        return `<div class="alert int"><b>💬 ${esc(it.titulo)}</b>${trecho}<div class="small">${esc(it.orientacao)}</div><div class="resp">${esc(t)}</div>${botoesFala(t)}</div>`;
+      }
+      if (a.tipo === "buy") {
+        return `<div class="alert buy"><b>✅ Sinal de compra!</b>${trecho}<div class="small">Pare de apresentar e conduza para o fechamento.</div>
+          <div class="acts" style="margin-top:6px"><button class="btn sm primary" data-ir="fechamento">Ir para Fechamento</button></div></div>`;
+      }
+      if (a.tipo === "ia") {
+        return `<div class="alert ia"><b>✨ Sugestão da IA</b>${a.orientacao ? `<div class="small"><i>${esc(a.orientacao)}</i></div>` : ""}<div class="resp">${esc(a.texto)}</div>${botoesFala(a.texto)}</div>`;
+      }
+      if (a.tipo === "info") return `<div class="alert"><b>${esc(a.titulo)}</b><div class="small">${esc(a.texto)}</div></div>`;
+      return "";
+    }).join("");
+  }
+
+  $("#btnAddCliente").addEventListener("click", () => { addMsg("cliente", $("#inMsg").value); $("#inMsg").value = ""; });
+  $("#btnAddClinica").addEventListener("click", () => { addMsg("clinica", $("#inMsg").value); $("#inMsg").value = ""; });
+  $("#inMsg").addEventListener("keydown", (e) => { if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) { e.preventDefault(); $("#btnAddCliente").click(); } });
+  $("#btnLimparAlertas").addEventListener("click", () => { S.alertas = []; save(); renderAlertas(); });
+
+  /* Importa conversa exportada do WhatsApp ("Exportar conversa" > sem mídia) */
+  $("#btnColarConversa").addEventListener("click", () => {
+    const txt = $("#inMsg").value;
+    if (!txt.trim()) { toast("Cole a conversa exportada no campo de mensagem primeiro"); $("#inMsg").focus(); return; }
+    const re = /^\[?(\d{1,2})\/(\d{1,2})\/(\d{2,4})[,\s]+(\d{1,2}):(\d{2})(?::\d{2})?\]?\s*(?:-\s*)?([^:]{1,60}):\s?(.*)$/;
+    const clinica = cfg.nomesClinica.split(",").map(norm).filter(Boolean);
+    const msgs = [];
+    txt.split(/\r?\n/).forEach((linha) => {
+      const m = linha.replace(/[‎‏]/g, "").match(re);
+      if (m) {
+        let [, d, mo, a, h, mi, autor, corpo] = m;
+        if (a.length === 2) a = "20" + a;
+        const ts = new Date(+a, +mo - 1, +d, +h, +mi).toISOString();
+        const na = norm(autor);
+        const quem = clinica.some((c) => na.includes(c)) ? "clinica" : "cliente";
+        msgs.push({ quem, texto: corpo, ts, autor });
+      } else if (msgs.length && linha.trim()) {
+        msgs[msgs.length - 1].texto += "\n" + linha;
+      }
+    });
+    if (!msgs.length) { toast("Formato não reconhecido — use 'Exportar conversa' do WhatsApp"); return; }
+    if (!S.paciente.nome) { const c = msgs.find((m) => m.quem === "cliente"); if (c) { S.paciente.nome = c.autor.trim(); $("#pNome").value = S.paciente.nome; } }
+    msgs.filter((m) => !/<(m[ií]dia oculta|media omitted)>/i.test(m.texto)).forEach((m) => addMsg(m.quem, m.texto, "importado", { ts: m.ts }));
+    $("#inMsg").value = "";
+    toast(msgs.length + " mensagens importadas");
+  });
+
+  /* ---------------- gravação presencial ---------------- */
+  let rec = null, chunks = [], stream = null, sr = null, gravando = false, quemFala = "cliente";
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+  $("#chkConsent").addEventListener("change", (e) => {
+    S.consentimento = e.target.checked ? { aceito: true, em: new Date().toISOString() } : { aceito: false, em: null };
+    $("#btnRec").disabled = !e.target.checked;
+    if (!e.target.checked && gravando) pararGravacao();
+    save();
+  });
+  $("#segQuem").addEventListener("click", (e) => { const b = e.target.closest("button"); if (!b) return; quemFala = b.dataset.q; $$("#segQuem button").forEach((x) => x.classList.toggle("on", x === b)); });
+
+  $("#btnRec").addEventListener("click", async () => {
+    if (!S.consentimento.aceito) { toast("Registre a autorização do paciente antes de gravar"); return; }
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    } catch (e) { toast("Microfone não autorizado neste navegador"); return; }
+    chunks = [];
+    try {
+      rec = new MediaRecorder(stream);
+      rec.ondataavailable = (ev) => ev.data.size && chunks.push(ev.data);
+      rec.onstop = () => {
+        const blob = new Blob(chunks, { type: rec.mimeType || "audio/webm" });
+        const a = $("#lnkAudio");
+        a.href = URL.createObjectURL(blob);
+        a.download = `consulta-${(S.paciente.nome || "paciente").replace(/\s+/g, "-")}-${new Date().toISOString().slice(0, 10)}.webm`;
+        a.classList.remove("hide");
+      };
+      rec.start(1000);
+    } catch (e) { rec = null; }
+    gravando = true;
+    $("#pillRec").classList.remove("hide"); $("#btnRec").classList.add("hide"); $("#btnStop").classList.remove("hide");
+    if (SR) {
+      iniciarSR();
+      $("#recHint").textContent = "Transcrevendo em tempo real. Toque em “Paciente” ou “Eu” para indicar quem está falando.";
+    } else {
+      $("#recHint").textContent = "A transcrição automática funciona no Google Chrome. O áudio está sendo gravado; digite os pontos principais no campo de mensagem.";
+    }
+  });
+  $("#btnStop").addEventListener("click", pararGravacao);
+
+  function iniciarSR() {
+    sr = new SR();
+    sr.lang = "pt-BR"; sr.continuous = true; sr.interimResults = true;
+    sr.onresult = (ev) => {
+      let interim = "";
+      for (let i = ev.resultIndex; i < ev.results.length; i++) {
+        const r = ev.results[i];
+        if (r.isFinal) addMsg(quemFala, r[0].transcript, "voz");
+        else interim += r[0].transcript;
+      }
+      $("#interim").textContent = interim;
+    };
+    sr.onerror = (e) => { if (e.error === "not-allowed") { $("#recHint").textContent = "Transcrição bloqueada pelo navegador."; } };
+    sr.onend = () => { if (gravando) { try { sr.start(); } catch (e) { /* reinício */ } } };
+    try { sr.start(); } catch (e) { /* já iniciado */ }
+  }
+
+  function pararGravacao() {
+    gravando = false;
+    try { sr && sr.stop(); } catch (e) { /* */ }
+    try { rec && rec.state !== "inactive" && rec.stop(); } catch (e) { /* */ }
+    stream && stream.getTracks().forEach((t) => t.stop());
+    $("#pillRec").classList.add("hide"); $("#btnRec").classList.remove("hide"); $("#btnStop").classList.add("hide");
+    $("#interim").textContent = "";
+    $("#recHint").textContent = "Gravação encerrada. O áudio fica só neste aparelho: baixe-o se quiser anexar ao prontuário.";
+  }
+
+  /* ---------------- integração n8n ---------------- */
+  async function post(url, body) {
+    const r = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(Object.assign({ token: cfg.token }, body)) });
+    const txt = await r.text();
+    let data = {}; try { data = txt ? JSON.parse(txt) : {}; } catch (e) { data = { texto: txt }; }
+    if (!r.ok) throw new Error(data.erro || data.message || ("HTTP " + r.status));
+    return data;
+  }
+
+  function payload() {
+    return {
+      evento: "consulta_copiloto",
+      consulta: {
+        id: S.id, inicio: S.criadoEm, atualizado: new Date().toISOString(), canal: S.canal, unidade: S.unidade,
+        profissional: cfg.profissional, etapa_alcancada: S.etapa,
+        consentimento_gravacao: S.consentimento
+      },
+      paciente: { nome: S.paciente.nome, telefone: telE164(S.paciente.telefone), origem: S.paciente.origem, lead_id: S.paciente.leadId || null },
+      notas: S.notas,
+      orcamento: {
+        tratamento: S.orcamento.tratamento, valor: toNum(S.orcamento.valor) || 0, entrada: toNum(S.orcamento.entrada) || 0,
+        parcelas: parseInt(S.orcamento.parcelas, 10) || 0, forma_pagamento: S.orcamento.pagamento
+      },
+      resultado: S.resultado || "negociacao", motivo_perda: S.motivoPerda,
+      proximo_contato: S.proximoContato ? new Date(S.proximoContato).toISOString() : null,
+      temperatura: S.temperatura,
+      objecoes: Object.keys(S.objecoes).map((id) => ({ id, titulo: (R.objecoes.find((o) => o.id === id) || {}).titulo, vezes: S.objecoes[id] })),
+      checklist: R.etapas.map((e) => ({ etapa: e.nome, feitos: progresso(e).feitos, total: progresso(e).tot })),
+      resumo: S.resumoEditado ? S.resumo : gerarResumo(),
+      transcricao: S.conversa.map((m) => ({ quem: m.quem, texto: m.texto, ts: m.ts, origem: m.origem }))
+    };
+  }
+
+  async function enviarKommo() {
+    if (!cfg.whReg) { toast("Configure o webhook do n8n em Configurações"); mostrarView("config"); return; }
+    if (!S.paciente.nome || !digits(S.paciente.telefone)) { toast("Preencha nome e WhatsApp do paciente"); mostrarView("consulta"); return; }
+    const st = $("#kommoStatus"); st.textContent = "Enviando…";
+    try {
+      const d = await post(cfg.whReg, payload());
+      if (d.lead_id) { S.paciente.leadId = String(d.lead_id); $("#pLead").value = S.paciente.leadId; }
+      S.sincronizadoEm = new Date().toISOString();
+      save(); renderSync();
+      st.textContent = "✓ Enviado ao Kommo" + (d.lead_id ? " — lead " + d.lead_id : "") + " em " + dataHora(S.sincronizadoEm);
+      toast("Enviado ao Kommo ✓");
+    } catch (e) {
+      st.textContent = "Erro ao enviar: " + e.message + ". Confira a URL, a chave e se o fluxo está ativo no n8n.";
+      toast("Falha ao enviar ao Kommo");
+    }
+  }
+  $("#btnKommo").addEventListener("click", enviarKommo);
+  $("#btnKommo2").addEventListener("click", enviarKommo);
+
+  function renderSync() { $("#syncInfo").textContent = S.sincronizadoEm ? "Kommo ✓ " + dataHora(S.sincronizadoEm) : ""; }
+
+  $("#btnIA").addEventListener("click", async () => {
+    if (!cfg.whIA) { toast("Configure o webhook da IA em Configurações"); mostrarView("config"); return; }
+    const b = $("#btnIA"); b.disabled = true; b.textContent = "✨ Pensando…";
+    try {
+      const et = R.etapas.find((e) => e.id === S.etapa);
+      const d = await post(cfg.whIA, {
+        evento: "sugestao_copiloto",
+        canal: S.canal, unidade: S.unidade, etapa: et.nome, objetivo_etapa: et.objetivo,
+        paciente: { nome: S.paciente.nome, lead_id: S.paciente.leadId || null },
+        notas: S.notas, orcamento: S.orcamento, temperatura: S.temperatura,
+        objecoes: Object.keys(S.objecoes),
+        conversa: S.conversa.slice(-25).map((m) => ({ quem: m.quem, texto: m.texto }))
+      });
+      const txt = d.sugestao || d.output || d.text || d.texto || "";
+      if (!txt) throw new Error("resposta vazia");
+      S.alertas.unshift({ tipo: "ia", texto: String(txt).trim(), orientacao: d.orientacao || "", ts: new Date().toISOString() });
+      save(); renderAlertas();
+    } catch (e) { toast("IA indisponível: " + e.message); }
+    b.disabled = false; b.textContent = "✨ Sugestão da IA";
+  });
+
+  /* Acompanhar WhatsApp: busca no n8n as mensagens que o Kommo recebeu/enviou */
+  let pollTimer = null;
+  async function poll() {
+    if (!cfg.whMsg || !S.paciente.leadId) { $("#aoVivoInfo").textContent = !cfg.whMsg ? "Configure o webhook de mensagens em Configurações." : "Informe o ID do lead no Kommo (campo à esquerda) para acompanhar."; return; }
+    try {
+      const u = new URL(cfg.whMsg);
+      u.searchParams.set("lead", S.paciente.leadId);
+      u.searchParams.set("desde", S.ultimoSync || S.criadoEm);
+      u.searchParams.set("token", cfg.token);
+      const r = await fetch(u.toString());
+      if (!r.ok) throw new Error("HTTP " + r.status);
+      const d = await r.json();
+      (d.mensagens || []).forEach((m) => {
+        addMsg(m.autor === "clinica" ? "clinica" : "cliente", m.texto, "kommo", { id: m.id, ts: m.ts });
+        if (!S.ultimoSync || m.ts > S.ultimoSync) S.ultimoSync = m.ts;
+      });
+      $("#aoVivoInfo").textContent = "Conectado · última verificação " + new Date().toLocaleTimeString("pt-BR");
+    } catch (e) { $("#aoVivoInfo").textContent = "Sem conexão com o n8n (" + e.message + ")"; }
+  }
+  $("#chkAoVivo").addEventListener("change", (e) => {
+    clearInterval(pollTimer);
+    if (e.target.checked) { poll(); pollTimer = setInterval(poll, 5000); }
+    else $("#aoVivoInfo").textContent = "";
+  });
+
+  $("#btnTestar").addEventListener("click", async () => {
+    const st = $("#testeStatus"); st.textContent = "Testando…";
+    const res = [];
+    for (const [nome, url] of [["Registro", cfg.whReg], ["IA", cfg.whIA]]) {
+      if (!url) { res.push(nome + ": não configurado"); continue; }
+      try { await post(url, { evento: "teste" }); res.push(nome + ": ✓"); } catch (e) { res.push(nome + ": ✗ " + e.message); }
+    }
+    if (cfg.whMsg) {
+      try { const u = new URL(cfg.whMsg); u.searchParams.set("token", cfg.token); u.searchParams.set("lead", "0"); const r = await fetch(u); res.push("Mensagens: " + (r.ok ? "✓" : "✗ HTTP " + r.status)); }
+      catch (e) { res.push("Mensagens: ✗ " + e.message); }
+    } else res.push("Mensagens: não configurado");
+    st.textContent = res.join(" · ");
+  });
+
+  /* ---------------- resumo ---------------- */
+  function gerarResumo() {
+    const et = R.etapas.find((e) => e.id === S.etapa);
+    const res = { fechado: "FECHOU ✅", negociacao: "Em negociação ⏳", perdido: "Não fechou ❌" }[S.resultado] || "Em negociação ⏳";
+    const objs = Object.keys(S.objecoes).map((id) => "• " + ((R.objecoes.find((o) => o.id === id) || {}).titulo || id) + (S.objecoes[id] > 1 ? ` (${S.objecoes[id]}x)` : "")).join("\n") || "• Nenhuma registrada";
+    const v = toNum(S.orcamento.valor);
+    const linhas = [
+      `CONSULTA — COPILOTO WEISS`,
+      `${dataHora(S.criadoEm)} · ${S.canal === "whatsapp" ? "WhatsApp" : "Presencial"} · ${S.unidade} · ${cfg.profissional}`,
+      `Paciente: ${S.paciente.nome || "-"} · ${S.paciente.telefone || "-"}${S.paciente.origem ? " · Origem: " + S.paciente.origem : ""}`,
+      ``,
+      `RESULTADO: ${res}${S.resultado === "perdido" && S.motivoPerda ? " — " + S.motivoPerda : ""}`,
+      `Temperatura: ${S.temperatura}/100 · Etapa alcançada: ${et ? et.nome : "-"}`,
+      S.proximoContato ? `Próximo contato: ${dataHora(S.proximoContato)}` : `Próximo contato: não combinado`,
+      ``,
+      `DESCOBERTA`,
+      `• Dor principal: ${S.notas.dor || "-"}`,
+      `• Evento/prazo: ${S.notas.evento || "-"}`,
+      S.notas.livre ? `• Notas: ${S.notas.livre}` : null,
+      ``,
+      `ORÇAMENTO`,
+      `• Tratamento: ${S.orcamento.tratamento || "-"}`,
+      `• Valor: ${isNaN(v) ? "-" : brl(v)}${S.orcamento.entrada ? " · Entrada: " + brl(toNum(S.orcamento.entrada)) : ""}${parcelaTxt() ? " · " + parcelaTxt() : ""}`,
+      S.orcamento.pagamento ? `• Pagamento: ${S.orcamento.pagamento}` : null,
+      ``,
+      `OBJEÇÕES`,
+      objs,
+      ``,
+      `Sinais de compra: ${S.sinaisCompra}`,
+      S.canal === "presencial" ? `Gravação: ${S.consentimento.aceito ? "autorizada pelo paciente em " + dataHora(S.consentimento.em) : "não gravada"}` : null,
+      `Mensagens/falas registradas: ${S.conversa.length}`
+    ].filter((l) => l !== null);
+    const txt = linhas.join("\n");
+    if (!S.resumoEditado) { S.resumo = txt; const el = $("#resumoTxt"); if (el && document.activeElement !== el) el.value = txt; }
+    return txt;
+  }
+  $("#resumoTxt").addEventListener("input", (e) => { S.resumo = e.target.value; S.resumoEditado = true; save(); });
+  $("#btnGerarResumo").addEventListener("click", () => { S.resumoEditado = false; gerarResumo(); save(); });
+  $("#btnCopiarResumo").addEventListener("click", () => copiar($("#resumoTxt").value));
+  $("#btnImprimir").addEventListener("click", () => window.print());
+
+  /* ---------------- bibliotecas ---------------- */
+  function renderObjecoes() {
+    const q = norm($("#qObj").value);
+    $("#libObj").innerHTML = R.objecoes.filter((o) => !q || norm(o.titulo + " " + o.gatilhos.join(" ") + " " + o.respostas.join(" ")).includes(q)).map((o) => `
+      <div class="card"><h2>🛡️ ${esc(o.titulo)}</h2>
+        <p class="small muted" style="margin:0 0 6px"><b>Entenda:</b> ${esc(o.entender)}</p>
+        ${o.respostas.map((r) => { const t = preencher(r); return `<div class="fala"><p style="font-size:15px">${esc(t)}</p>${botoesFala(t)}</div>`; }).join("")}
+        <div class="dica">➡ ${esc(preencher(o.proximo))}</div>
+      </div>`).join("") || `<p class="muted">Nada encontrado.</p>`;
+  }
+  $("#qObj").addEventListener("input", renderObjecoes);
+
+  function renderMensagens() {
+    $("#libMsg").innerHTML = R.mensagens.map((g) => `
+      <div class="card"><h2>${esc(g.grupo)}</h2>
+        ${g.itens.map((m) => { const t = preencher(m.texto); return `<div class="fala"><span class="lbl">${esc(m.rotulo)}</span><p style="font-size:15px">${esc(t)}</p>${botoesFala(t)}</div>`; }).join("")}
+      </div>`).join("");
+  }
+
+  /* ---------------- histórico ---------------- */
+  function renderHistorico() {
+    const lista = Object.values(consultas).sort((a, b) => (b.criadoEm > a.criadoEm ? 1 : -1));
+    $("#histBody").innerHTML = lista.map((c) => `
+      <tr><td>${dataHora(c.criadoEm)}</td><td>${esc(c.paciente.nome || "—")}</td><td>${c.canal === "whatsapp" ? "WhatsApp" : "Presencial"}</td><td>${esc(c.unidade)}</td>
+        <td>${c.resultado ? `<span class="status ${c.resultado}">${{ fechado: "Fechou", negociacao: "Negociação", perdido: "Não fechou" }[c.resultado]}</span>` : "—"}</td>
+        <td>${c.sincronizadoEm ? "✓" : "—"}</td>
+        <td style="white-space:nowrap"><button class="btn sm" data-abrir="${c.id}">Abrir</button> <button class="btn sm danger" data-apagar="${c.id}">Apagar</button></td></tr>`).join("")
+      || `<tr><td colspan="7" class="muted">Nenhuma consulta salva.</td></tr>`;
+  }
+  $("#histBody").addEventListener("click", (e) => {
+    const a = e.target.closest("[data-abrir]"), d = e.target.closest("[data-apagar]");
+    if (a) { abrir(consultas[a.dataset.abrir]); mostrarView("consulta"); }
+    if (d && confirm("Apagar esta consulta deste aparelho? (o que já foi enviado ao Kommo continua lá)")) {
+      delete consultas[d.dataset.apagar]; store(KEY_CONS, consultas);
+      if (S.id === d.dataset.apagar) abrir(novaConsulta());
+      renderHistorico();
+    }
+  });
+  $("#btnExportar").addEventListener("click", () => {
+    const blob = new Blob([JSON.stringify(Object.values(consultas), null, 2)], { type: "application/json" });
+    const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "copiloto-consultas.json"; a.click();
+  });
+
+  /* ---------------- formulários ---------------- */
+  function bind(sel, get, set) {
+    const el = $(sel);
+    el.addEventListener("input", () => { set(el.value); save(); onDadosMudaram(sel); });
+    el.addEventListener("change", () => { set(el.value); save(); onDadosMudaram(sel); });
+    return () => { el.value = get() || ""; };
+  }
+  let rerenderTimer = null;
+  function onDadosMudaram(sel) {
+    if (sel === "#oValor" || sel === "#oEntrada" || sel === "#oParcelas") calcOrc();
+    clearTimeout(rerenderTimer);
+    rerenderTimer = setTimeout(() => { renderEtapa(); if (!S.resumoEditado) gerarResumo(); }, 400);
+  }
+  function calcOrc() { const p = parcelaTxt(); $("#oCalc").textContent = p ? `Saldo parcelado: ${p}` : ""; }
+
+  const binders = [
+    bind("#pNome", () => S.paciente.nome, (v) => S.paciente.nome = v),
+    bind("#pTel", () => S.paciente.telefone, (v) => S.paciente.telefone = v),
+    bind("#pOrigem", () => S.paciente.origem, (v) => S.paciente.origem = v),
+    bind("#pLead", () => S.paciente.leadId, (v) => S.paciente.leadId = digits(v)),
+    bind("#nDor", () => S.notas.dor, (v) => S.notas.dor = v),
+    bind("#nEvento", () => S.notas.evento, (v) => S.notas.evento = v),
+    bind("#nNotas", () => S.notas.livre, (v) => S.notas.livre = v),
+    bind("#hDia1", () => S.horarios.dia1, (v) => S.horarios.dia1 = v),
+    bind("#hHora1", () => S.horarios.hora1, (v) => S.horarios.hora1 = v),
+    bind("#hDia2", () => S.horarios.dia2, (v) => S.horarios.dia2 = v),
+    bind("#hHora2", () => S.horarios.hora2, (v) => S.horarios.hora2 = v),
+    bind("#oTrat", () => S.orcamento.tratamento, (v) => S.orcamento.tratamento = v),
+    bind("#oValor", () => S.orcamento.valor, (v) => S.orcamento.valor = v),
+    bind("#oEntrada", () => S.orcamento.entrada, (v) => S.orcamento.entrada = v),
+    bind("#oParcelas", () => S.orcamento.parcelas, (v) => S.orcamento.parcelas = v),
+    bind("#oPag", () => S.orcamento.pagamento, (v) => S.orcamento.pagamento = v),
+    bind("#rMotivo", () => S.motivoPerda, (v) => S.motivoPerda = v),
+    bind("#rProx", () => S.proximoContato, (v) => S.proximoContato = v)
+  ];
+  $("#rMotivo").innerHTML = `<option value="">—</option>` + R.motivosPerda.map((m) => `<option>${esc(m)}</option>`).join("");
+
+  function setCanal(c) {
+    S.canal = c;
+    $$("#segCanal button").forEach((b) => b.classList.toggle("on", b.dataset.c === c));
+    $("#pillCanal").textContent = c === "whatsapp" ? "WhatsApp" : "Presencial";
+    $("#boxPresencial").classList.toggle("hide", c !== "presencial");
+    $("#boxWhats").classList.toggle("hide", c !== "whatsapp");
+    if (c !== "presencial" && gravando) pararGravacao();
+  }
+  function setUnidade(u) { S.unidade = u; $$("#segUnidade button").forEach((b) => b.classList.toggle("on", b.dataset.u === u)); }
+  function setResultado(r) {
+    S.resultado = r;
+    $$("#segRes button").forEach((b) => b.classList.toggle("on", b.dataset.r === r));
+    $("#boxPerda").classList.toggle("hide", r !== "perdido");
+  }
+  $("#segCanal").addEventListener("click", (e) => { const b = e.target.closest("button"); if (!b) return; setCanal(b.dataset.c); save(); renderEtapa(); });
+  $("#segUnidade").addEventListener("click", (e) => { const b = e.target.closest("button"); if (!b) return; setUnidade(b.dataset.u); save(); renderEtapa(); });
+  $("#segRes").addEventListener("click", (e) => { const b = e.target.closest("button"); if (!b) return; setResultado(b.dataset.r); save(); if (!S.resumoEditado) gerarResumo(); });
+
+  /* configurações */
+  function aplicarTema() {
+    if (cfg.tema === "auto") document.documentElement.removeAttribute("data-theme");
+    else document.documentElement.setAttribute("data-theme", cfg.tema);
+    $$("#segTema button").forEach((b) => b.classList.toggle("on", b.dataset.t === cfg.tema));
+  }
+  $("#segTema").addEventListener("click", (e) => { const b = e.target.closest("button"); if (!b) return; cfg.tema = b.dataset.t; store(KEY_CFG, cfg); aplicarTema(); });
+  [["#cProf", "profissional"], ["#cNomesClinica", "nomesClinica"], ["#cWhReg", "whReg"], ["#cWhIA", "whIA"], ["#cWhMsg", "whMsg"], ["#cToken", "token"]].forEach(([sel, k]) => {
+    const el = $(sel); el.value = cfg[k] || "";
+    el.addEventListener("input", () => { cfg[k] = el.value.trim(); store(KEY_CFG, cfg); if (k === "profissional") renderEtapa(); });
+  });
+
+  /* ---------------- abrir / nova ---------------- */
+  function abrir(c) {
+    if (gravando) pararGravacao();
+    clearInterval(pollTimer); $("#chkAoVivo").checked = false; $("#aoVivoInfo").textContent = "";
+    S = Object.assign(novaConsulta(), c);
+    binders.forEach((f) => f());
+    setCanal(S.canal); setUnidade(S.unidade); setResultado(S.resultado);
+    $("#chkConsent").checked = !!S.consentimento.aceito; $("#btnRec").disabled = !S.consentimento.aceito;
+    $("#lnkAudio").classList.add("hide"); $("#recHint").textContent = "";
+    $("#resumoTxt").value = S.resumo || "";
+    $("#kommoStatus").textContent = "";
+    calcOrc(); renderSteps(); renderEtapa(); renderChat(); renderAlertas(); renderTermometro(); renderSync(); renderObjecoes();
+    save();
+  }
+  $("#btnNova").addEventListener("click", () => {
+    if (S.conversa.length && !S.sincronizadoEm && !confirm("Esta consulta ainda não foi enviada ao Kommo. Ela continua salva no Histórico. Iniciar uma nova?")) return;
+    abrir(novaConsulta()); mostrarView("consulta"); $("#pNome").focus();
+  });
+
+  aplicarTema();
+  const atual = consultas[load(KEY_ATUAL, "")];
+  abrir(atual || novaConsulta());
+})();

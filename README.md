@@ -10,3 +10,6 @@ Site de página única, animado, da Weiss Odontologia (Caruaru e Recife).
 - Cores: bloco `:root` no topo do `<style>` (`--gold`, `--ink`, `--aqua`).
 - Logotipo: o `<svg class="brand-mark">` no cabeçalho pode ser trocado por `<img src="logo.svg">`.
 - Telefones/WhatsApp: busque por `wa.me/55` no arquivo.
+
+## Copiloto de Consulta
+A pasta `consulta/` contém o sistema interno que acompanha a conversa com o paciente (presencial ou WhatsApp), sugere o que responder e envia o resultado ao Kommo via n8n. Veja `consulta/README.md`.

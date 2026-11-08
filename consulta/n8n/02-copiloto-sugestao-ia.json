@@ -1,0 +1,264 @@
+{
+  "name": "Copiloto — Sugestão da IA",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## Copiloto — Sugestão da IA\nRecebe a conversa e o contexto da consulta e devolve a próxima fala sugerida.\n\n**Antes de ativar:**\n1. Edite a chave no nó *Validar e montar prompt*\n2. No nó *Modelo de IA*, use o mesmo modelo e credencial que a IA de vocês já usa no n8n (OpenAI, Anthropic, Gemini…) — é só trocar o sub-nó\n3. Ative e copie a *Production URL* do Webhook para o Copiloto",
+        "width": 460,
+        "height": 300
+      },
+      "id": "2884bb35-97bd-4c0b-b3b3-e571a9769c96",
+      "name": "Nota a626",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -420,
+        -260
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "copiloto-sugestao",
+        "options": {
+          "allowedOrigins": "*"
+        },
+        "responseMode": "responseNode"
+      },
+      "id": "9c247622-6095-411d-832b-1774e8f62385",
+      "name": "Webhook Sugestão",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ],
+      "webhookId": "d85d1117-dcad-4f1c-9347-63e5b17a36e1"
+    },
+    {
+      "parameters": {
+        "jsCode": "// ================== CONFIGURE AQUI ==================\nconst TOKEN = 'TROQUE-POR-UMA-CHAVE-SECRETA'; // a mesma chave das Configurações do copiloto\n// ====================================================\nconst b = $input.first().json.body || {};\nif (b.token !== TOKEN) throw new Error('Chave do copiloto inválida');\nif (b.evento === 'teste') return [{ json: { teste: true } }];\n\nconst conversa = (b.conversa || []).map(m => `${m.quem === 'cliente' ? 'PACIENTE' : 'CLÍNICA'}: ${m.texto}`).join('\\n');\nconst o = b.orcamento || {};\nconst prompt = `Canal: ${b.canal === 'presencial' ? 'consulta presencial' : 'WhatsApp'} · Unidade: ${b.unidade}\nEtapa atual do roteiro: ${b.etapa} — objetivo: ${b.objetivo_etapa}\nPaciente: ${(b.paciente && b.paciente.nome) || 'não informado'}\nDor principal: ${(b.notas && b.notas.dor) || '-'} · Evento/prazo: ${(b.notas && b.notas.evento) || '-'}\nNotas: ${(b.notas && b.notas.livre) || '-'}\nOrçamento: ${o.tratamento || '-'} · valor ${o.valor || '-'} · entrada ${o.entrada || '-'} · parcelas ${o.parcelas || '-'}\nTemperatura (0-100): ${b.temperatura} · Objeções já detectadas: ${(b.objecoes || []).join(', ') || 'nenhuma'}\n\nCONVERSA (mais recente por último):\n${conversa || '(sem mensagens)'}\n\nQual a melhor próxima resposta da clínica?`;\nreturn [{ json: { teste: false, prompt } }];"
+      },
+      "id": "4c726876-a535-4a11-9c0b-b73957d1b616",
+      "name": "Validar e montar prompt",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        220,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "id": "e26dff0d-900b-4b1e-b2f9-8ca5695c2498",
+              "leftValue": "={{ $json.teste }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "7268b6cb-85cf-4aac-9b36-9502d8ba8b74",
+      "name": "É teste?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        440,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ ok: true, teste: true, sugestao: \"Conexão com a IA funcionando.\" }) }}",
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              }
+            ]
+          }
+        }
+      },
+      "id": "66785096-836b-4da4-a208-89253a450312",
+      "name": "Responder teste",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        660,
+        -180
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.prompt }}",
+        "options": {
+          "systemMessage": "Você é o copiloto comercial da Weiss Odontologia (Caruaru e Recife), clínica de Ortodontia do Dr. Edelweiss Jr, especialista e mestre em Ortodontia. Diferenciais: check-up digital e escaneamento com o scanner iTero (sorriso em 3D, sem massinha, com simulação do resultado), pioneiros do Invisalign em Caruaru, alinhadores transparentes e aparelhos fixos.\nEndereços: Caruaru — R. dos Expedicionários, 104, 1º andar, Nossa Sra. das Dores, WhatsApp (81) 99836-8491. Recife — Av. República do Líbano, 251, Torre 1, Sala 1614, Pina, WhatsApp (81) 97318-5005.\n\nSua função: ler a conversa e sugerir a PRÓXIMA fala da clínica, conduzindo o paciente com empatia para o agendamento do check-up digital ou para o fechamento do orçamento.\nRegras:\n- Português do Brasil, tom acolhedor e seguro. No WhatsApp: mensagem curta (até 3 frases), no máximo 1 emoji.\n- Termine com uma pergunta que faça a conversa avançar (de preferência com duas opções).\n- Não passe preço antes do diagnóstico: convide para o check-up digital.\n- Diante de objeção: valide o sentimento, descubra a objeção real e responda.\n- Nunca prometa ou garanta resultado; fale em planejamento e simulação. Não invente valores, prazos ou condições que não estejam na conversa ou no orçamento.\n- Não dê diagnóstico clínico pelo WhatsApp.\nResponda SOMENTE com um JSON válido, sem texto fora dele, no formato:\n{\"orientacao\": \"uma frase dizendo ao profissional o que fazer agora\", \"mensagem\": \"o texto pronto para falar ou enviar ao paciente\"}"
+        }
+      },
+      "id": "bff26dc2-fd26-4188-b2f8-de57751e5c22",
+      "name": "Agente Copiloto",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        680,
+        60
+      ]
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4o-mini"
+        },
+        "options": {
+          "temperature": 0.4
+        }
+      },
+      "id": "0bc1b278-d570-46a6-aabf-7f697fc90919",
+      "name": "Modelo de IA",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        680,
+        280
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const out = $input.first().json.output || $input.first().json.text || '';\nlet r = { orientacao: '', mensagem: String(out).trim() };\ntry {\n  const m = String(out).match(/\\{[\\s\\S]*\\}/);\n  if (m) { const j = JSON.parse(m[0]); r = { orientacao: j.orientacao || '', mensagem: j.mensagem || r.mensagem }; }\n} catch (e) { /* resposta fora do formato: devolve o texto puro */ }\nreturn [{ json: { ok: true, sugestao: r.mensagem, orientacao: r.orientacao } }];"
+      },
+      "id": "bea619e0-73a3-4b8e-90bb-4240a989bf94",
+      "name": "Formatar resposta",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1000,
+        60
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json) }}",
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              }
+            ]
+          }
+        }
+      },
+      "id": "7bfd451b-83a5-494b-be48-5f6b1fc40898",
+      "name": "Responder ao copiloto",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        1220,
+        60
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook Sugestão": {
+      "main": [
+        [
+          {
+            "node": "Validar e montar prompt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validar e montar prompt": {
+      "main": [
+        [
+          {
+            "node": "É teste?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "É teste?": {
+      "main": [
+        [
+          {
+            "node": "Responder teste",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Agente Copiloto",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Modelo de IA": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Agente Copiloto",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agente Copiloto": {
+      "main": [
+        [
+          {
+            "node": "Formatar resposta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Formatar resposta": {
+      "main": [
+        [
+          {
+            "node": "Responder ao copiloto",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {}
+}
