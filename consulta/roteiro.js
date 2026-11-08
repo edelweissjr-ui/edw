@@ -13,6 +13,7 @@
      {telefone_unidade}  WhatsApp da unidade
      {valor} {parcelas} {entrada} {tratamento}  dados do orçamento
      {dor}         dor principal anotada na Descoberta
+     {condicao} {validade} {garantia}  cadastrados em Configurações
      {evento}      data/evento importante anotado na Descoberta
    ===================================================================== */
 
@@ -309,6 +310,25 @@ window.ROTEIRO = {
           texto: "Se a gente começar agora, você chega no {evento} com o tratamento bem adiantado. Vamos garantir o seu horário?"
         },
         {
+          rotulo: "Condição especial com prazo",
+          texto: "{nome}, tem mais uma coisa que eu quero te falar: até {validade}, estamos com uma condição especial: {condicao}. Depois disso essa condição não vale mais, tá bom?",
+          requer: "condicao"
+        },
+        {
+          rotulo: "Por que essa condição existe",
+          texto: "E por que a gente faz isso? Porque a gente confia muito no nosso planejamento digital e quer que você comece logo, enquanto a vontade de mudar o sorriso está aí. Não faz sentido você esperar mais.",
+          requer: "condicao"
+        },
+        {
+          rotulo: "Segurança para decidir (reversão de risco)",
+          texto: "E pra você decidir tranquilo(a): {garantia}",
+          requer: "garantia"
+        },
+        {
+          rotulo: "Credibilidade",
+          texto: "A Weiss tem uma história construída em Caruaru e Recife, a gente foi pioneira do Invisalign em Caruaru, e eu não te recomendaria nada que não fizesse sentido pro seu caso. Você está em boas mãos."
+        },
+        {
           rotulo: "Boas-vindas (WhatsApp)",
           texto: "Seja muito bem-vindo(a) à Weiss Odontologia, {nome}! 🎉 Seu início está marcado. Qualquer dúvida, é só chamar aqui. Vamos juntos nessa transformação do seu sorriso! 😁",
           canal: "whatsapp"
@@ -317,7 +337,9 @@ window.ROTEIRO = {
       perguntas: [],
       dicas: [
         "Sinal de compra (pergunta de prazo, pagamento, horário)? Pare de apresentar e feche.",
-        "Depois do 'sim', não volte a falar do tratamento: siga para agenda e pagamento."
+        "Depois do 'sim', não volte a falar do tratamento: siga para agenda e pagamento.",
+        "Condição com prazo: use SOMENTE se for verdadeira e estiver cadastrada em Configurações. Prazo inventado destrói a confiança do paciente.",
+        "Garantia: nunca garanta resultado clínico (o Código de Ética Odontológica não permite). Dê segurança no PROCESSO: devolução do sinal antes de iniciar, valor do check-up abatido no tratamento etc."
       ]
     },
     {
@@ -568,6 +590,13 @@ window.ROTEIRO = {
         { rotulo: "D+3 — reforço de valor", texto: "{nome}, lembrei de você! Lembra da simulação do seu sorriso? 😍 Se quiser, posso te mandar de novo pra você mostrar em casa. Ficou alguma dúvida sobre o tratamento?" },
         { rotulo: "D+7 — pergunta direta", texto: "Oi, {nome}! Tudo bem? Queria saber como está sua decisão sobre o tratamento. Existe algo que esteja te impedindo de começar? Me fala com sinceridade, que eu te ajudo a encontrar o melhor caminho 🙂" },
         { rotulo: "D+15 — porta aberta", texto: "{nome}, não quero te incomodar 🙂 Só quero que saiba que seu planejamento continua salvo aqui. Quando fizer sentido pra você, é só me chamar que a gente começa!" }
+      ]
+    },
+    {
+      grupo: "Condição especial (somente se cadastrada)",
+      itens: [
+        { rotulo: "Aviso de condição com prazo", texto: "Oi, {nome}! 😊 Passando pra te avisar: até {validade}, estamos com uma condição especial: {condicao}. Quer que eu já reserve o seu início?", requer: "condicao" },
+        { rotulo: "Último dia da condição", texto: "{nome}, hoje é o último dia da condição especial ({condicao}). A partir de amanhã ela não vale mais. Posso garantir pra você?", requer: "condicao" }
       ]
     },
     {

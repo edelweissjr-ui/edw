@@ -7,8 +7,8 @@
         "width": 460,
         "height": 330
       },
-      "id": "7e902510-b881-4208-a540-591881cd7b82",
-      "name": "Nota 6580",
+      "id": "4273c493-02d0-476a-b799-34624d7a010a",
+      "name": "Nota 5203",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
       "position": [
@@ -25,7 +25,7 @@
         },
         "responseMode": "responseNode"
       },
-      "id": "591490e6-31e4-4e8e-b94e-43f96fce42ed",
+      "id": "750a1d33-2c8f-40ab-aeea-e38c37397a17",
       "name": "Webhook Copiloto",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
@@ -33,13 +33,13 @@
         0,
         0
       ],
-      "webhookId": "ceb8dbda-7531-4009-a31f-c333642ad8c4"
+      "webhookId": "931e49bd-cd03-4a1b-9844-5343e92e4213"
     },
     {
       "parameters": {
         "jsCode": "// ================== CONFIGURE AQUI ==================\nconst CONFIG = {\n  TOKEN: 'TROQUE-POR-UMA-CHAVE-SECRETA',   // a mesma chave das Configurações do copiloto\n  SUBDOMINIO: 'SEU-SUBDOMINIO',            // ex.: odontoweiss  (de odontoweiss.kommo.com)\n  PIPELINE_ID: null,                       // ID do funil (número) ou null para o funil padrão\n  STATUS: {                                // IDs das etapas do funil (null = não altera a etapa)\n    negociacao: null,                      // ex.: etapa \"Orçamento apresentado\"\n    fechado: 142,                          // 142 = Venda ganha (padrão do Kommo)\n    perdido: 143                           // 143 = Venda perdida (padrão do Kommo)\n  },\n  RESPONSAVEL_ID: null                     // ID do usuário responsável (opcional)\n};\n// ====================================================\n\nconst body = $input.first().json.body || {};\nif (body.token !== CONFIG.TOKEN) throw new Error('Chave do copiloto inválida');\nif (body.evento === 'teste') return [{ json: { teste: true } }];\n\nconst p = body.paciente || {};\nconst tel = String(p.telefone || '').replace(/\\D/g, '');\nif (!tel) throw new Error('Telefone do paciente ausente');\nconst telNacional = tel.startsWith('55') && tel.length > 11 ? tel.slice(2) : tel;\n\nconst c = body.consulta || {};\nconst o = body.orcamento || {};\nconst resultado = body.resultado || 'negociacao';\nconst statusId = CONFIG.STATUS[resultado] || null;\nconst canal = c.canal === 'presencial' ? 'Presencial' : 'WhatsApp';\n\nconst tags = ['Copiloto', canal, c.unidade, o.tratamento].filter(Boolean).map(name => ({ name }));\nif ((body.temperatura || 0) >= 70) tags.push({ name: 'Lead quente' });\n\n// Nota: resumo + transcrição (limitada para não estourar o tamanho da nota)\nlet transcricao = (body.transcricao || [])\n  .map(m => `${m.quem === 'cliente' ? 'Paciente' : 'Clínica'}: ${m.texto}`).join('\\n');\nif (transcricao.length > 12000) transcricao = '…\\n' + transcricao.slice(-12000);\nconst nota = (body.resumo || 'Consulta registrada pelo copiloto') + (transcricao ? '\\n\\n— TRANSCRIÇÃO —\\n' + transcricao : '');\n\nconst lead = { price: Math.round(o.valor || 0) };\nif (statusId) lead.status_id = statusId;\nif (CONFIG.PIPELINE_ID) lead.pipeline_id = CONFIG.PIPELINE_ID;\nif (CONFIG.RESPONSAVEL_ID) lead.responsible_user_id = CONFIG.RESPONSAVEL_ID;\n\nreturn [{ json: {\n  teste: false,\n  base: `https://${CONFIG.SUBDOMINIO}.kommo.com`,\n  telefone: tel, telefone_busca: telNacional,\n  nome: p.nome || 'Paciente', origem: p.origem || '',\n  lead_id_informado: p.lead_id ? Number(p.lead_id) : null,\n  lead_base: lead, tags, nota,\n  proximo_contato: body.proximo_contato || null,\n  motivo_perda: body.motivo_perda || '',\n  resultado\n}}];"
       },
-      "id": "096ac5dc-214d-4ed7-8c07-bf806e076961",
+      "id": "108337e2-1490-4d68-91f3-67f7dc7076b6",
       "name": "Validar e preparar",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -58,7 +58,7 @@
           },
           "conditions": [
             {
-              "id": "d785df13-c0ad-4565-9af0-d73b99f5130c",
+              "id": "db8224eb-1110-4ba3-a5ca-b3453936c905",
               "leftValue": "={{ $json.teste }}",
               "rightValue": "",
               "operator": {
@@ -72,7 +72,7 @@
         },
         "options": {}
       },
-      "id": "3af309bd-7232-44ae-ba35-86ada82e21cc",
+      "id": "00d8783a-8ccf-4fea-8eb1-5a3797edc20c",
       "name": "É teste?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2,
@@ -96,7 +96,7 @@
           }
         }
       },
-      "id": "3e4bcd21-9e70-4caf-ae10-8de2a0fff3bf",
+      "id": "e456fb93-07ab-4de6-af65-6c7a4caf04b3",
       "name": "Responder teste",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.1,
@@ -134,7 +134,7 @@
           ]
         }
       },
-      "id": "266a5e73-74dc-4fde-9dda-ef8ffb2ad4f0",
+      "id": "fc7698b7-ed55-4b45-9f90-b50b2eaa51e7",
       "name": "Buscar contato no Kommo",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
@@ -147,7 +147,7 @@
       "parameters": {
         "jsCode": "const prep = $('Validar e preparar').first().json;\nlet d = {};\ntry { const raw = $input.first().json.data; d = raw ? (typeof raw === 'string' ? JSON.parse(raw) : raw) : {}; } catch (e) { d = {}; }\n\nconst contato = (d._embedded && d._embedded.contacts || [])[0] || null;\nlet leadId = prep.lead_id_informado;\nif (!leadId && contato) {\n  const leads = (contato._embedded && contato._embedded.leads) || [];\n  if (leads.length) leadId = Math.max(...leads.map(l => l.id)); // lead mais recente do contato\n}\n\n// corpo para ATUALIZAR um lead existente\nconst patch = { ...prep.lead_base, tags_to_add: prep.tags };\n\n// corpo para CRIAR lead (+ contato, se ainda não existir)\nconst novo = {\n  name: `${prep.nome} — Copiloto`,\n  ...prep.lead_base,\n  _embedded: {\n    tags: prep.tags,\n    contacts: [contato ? { id: contato.id } : {\n      first_name: prep.nome,\n      custom_fields_values: [{ field_code: 'PHONE', values: [{ value: '+' + prep.telefone, enum_code: 'MOB' }] }]\n    }]\n  }\n};\n\nreturn [{ json: { ...prep, contato_id: contato ? contato.id : null, lead_id: leadId || null, patch, novo: [novo] } }];"
       },
-      "id": "5b4a9f45-8563-45a3-9f37-8cbcce331d53",
+      "id": "969b589a-a4f5-4abf-9524-643a53c78b5b",
       "name": "Decidir lead",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -166,7 +166,7 @@
           },
           "conditions": [
             {
-              "id": "c2b846d3-6ded-4884-b99e-7d700a59a2bb",
+              "id": "616fbb26-0d7a-46d3-b275-18fbaceee019",
               "leftValue": "={{ !!$json.lead_id }}",
               "rightValue": "",
               "operator": {
@@ -180,7 +180,7 @@
         },
         "options": {}
       },
-      "id": "723ee317-bbab-4086-bb2e-0ee790e48153",
+      "id": "6d25f4ae-b009-44de-9635-cd91b7acf81f",
       "name": "Já tem lead?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2,
@@ -200,7 +200,7 @@
         "specifyBody": "json",
         "jsonBody": "={{ JSON.stringify($json.patch) }}"
       },
-      "id": "43f20978-1c2a-47c0-9e43-db84297e6cd1",
+      "id": "b6b50837-4694-4198-8929-65f837e3f85e",
       "name": "Atualizar lead",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
@@ -220,7 +220,7 @@
         "specifyBody": "json",
         "jsonBody": "={{ JSON.stringify($json.novo) }}"
       },
-      "id": "70db25b6-111a-44b3-aa73-dd763f149dcf",
+      "id": "16d36fca-bc6d-4fb0-8afd-5b03e923adf4",
       "name": "Criar lead e contato",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
@@ -233,7 +233,7 @@
       "parameters": {
         "jsCode": "const prep = $('Decidir lead').first().json;\nconst r = $input.first().json;\nconst leadId = r.id || (Array.isArray(r) && r[0] && r[0].id) || prep.lead_id;\nlet tarefa = null;\nif (prep.proximo_contato) {\n  tarefa = [{\n    text: `Retornar contato com ${prep.nome} (combinado na consulta — copiloto)`,\n    complete_till: Math.floor(new Date(prep.proximo_contato).getTime() / 1000),\n    entity_id: leadId, entity_type: 'leads', task_type_id: 1\n  }];\n}\nreturn [{ json: { ...prep, lead_id: leadId, notas: [{ note_type: 'common', params: { text: prep.nota } }], tarefa } }];"
       },
-      "id": "b6c02450-f2dc-4b03-8117-92612abfca04",
+      "id": "ea623668-5cf3-4ca8-8fb5-b51664b95ea5",
       "name": "Montar nota e tarefa",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -253,7 +253,7 @@
         "specifyBody": "json",
         "jsonBody": "={{ JSON.stringify($json.notas) }}"
       },
-      "id": "9b8bad42-20c7-4303-b38b-7fee2fb5d34f",
+      "id": "72ab72e1-a54e-48df-8291-acfa67693c7d",
       "name": "Adicionar nota",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
@@ -272,7 +272,7 @@
           },
           "conditions": [
             {
-              "id": "73a307f5-edd5-4b05-8080-8462fe4f8c1c",
+              "id": "7afa592a-727b-451c-adea-e4c6c9a2b620",
               "leftValue": "={{ !!$('Montar nota e tarefa').first().json.tarefa }}",
               "rightValue": "",
               "operator": {
@@ -286,7 +286,7 @@
         },
         "options": {}
       },
-      "id": "f25f5957-2f0e-4192-9846-3823cc41f959",
+      "id": "50a730ed-1a00-45ea-82c8-2a63ced776f2",
       "name": "Tem próximo contato?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2,
@@ -306,7 +306,7 @@
         "specifyBody": "json",
         "jsonBody": "={{ JSON.stringify($('Montar nota e tarefa').first().json.tarefa) }}"
       },
-      "id": "17eaf712-4231-4538-bcf2-5a0f5603f10d",
+      "id": "d72af025-bab4-4a34-9101-a79514b24272",
       "name": "Criar tarefa de retorno",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
@@ -330,7 +330,7 @@
           }
         }
       },
-      "id": "ed878d59-9c45-49ef-a9f9-b46f89d304fe",
+      "id": "60d529f6-0a93-45ca-b163-773a026d145c",
       "name": "Responder ao copiloto",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.1,

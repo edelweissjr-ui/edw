@@ -254,7 +254,10 @@ pre.code{background:var(--bg);border:1px solid var(--line);border-radius:10px;pa
           </div>
           <div class="interim" id="interim"></div>
           <div class="small muted" id="recHint"></div>
-          <a class="btn sm hide" id="lnkAudio" download>⬇ Baixar áudio</a>
+          <div class="row" style="margin-top:6px">
+            <a class="btn sm hide" id="lnkAudio" download style="flex:0 0 auto">⬇ Baixar áudio</a>
+            <button class="btn sm hide" id="btnTranscreverGravacao" style="flex:0 0 auto">Transcrever gravação (IA)</button>
+          </div>
         </div>
 
         <!-- whatsapp -->
@@ -277,6 +280,10 @@ pre.code{background:var(--bg);border:1px solid var(--line);border-radius:10px;pa
         <div class="row" style="margin-top:6px">
           <button class="btn sm" id="btnColarConversa"title="Cole no campo acima o texto de Exportar conversa do WhatsApp">Importar conversa</button>
           <button class="btn sm" id="btnIA">✨ Sugestão da IA</button>
+        </div>
+        <div class="row" style="margin-top:6px">
+          <button class="btn sm" id="btnAudio" title="Envie o áudio que o paciente mandou no WhatsApp para virar texto e receber a orientação">🎧 Transcrever áudio do paciente</button>
+          <input type="file" id="fileAudio" accept="audio/*,.opus,.ogg,.m4a,.mp3,.wav,.webm" multiple class="hide">
         </div>
       </div>
 
@@ -349,6 +356,14 @@ pre.code{background:var(--bg);border:1px solid var(--line);border-radius:10px;pa
       <input class="i" id="rProx" type="datetime-local">
     </div>
 
+    <div>
+    <div class="card">
+      <h2>Nota da consulta</h2>
+      <p class="small muted" style="margin-top:0">Calculada pelo roteiro: Descoberta, iTero, proposta, objeções, fechamento e próximo passo.</p>
+      <div id="notaConsulta"></div>
+      <div class="row" style="margin-top:8px"><button class="btn" id="btnAvaliarIA" style="flex:0 0 auto">✨ Avaliação detalhada da IA</button></div>
+      <div class="small" id="avaliacaoIA" style="margin-top:8px"></div>
+    </div>
     <div class="card">
       <h2>Resumo para o Kommo</h2>
       <p class="small muted" style="margin-top:0">Este texto vai como nota no lead. Você pode editar antes de enviar.</p>
@@ -361,11 +376,16 @@ pre.code{background:var(--bg);border:1px solid var(--line);border-radius:10px;pa
       </div>
       <p class="small muted" id="kommoStatus"></p>
     </div>
+    </div>
   </div>
 </section>
 
 <!-- ================= HISTÓRICO ================= -->
 <section class="view" id="v-historico">
+  <div class="card" style="margin-bottom:14px">
+    <h2>Painel de resultados</h2>
+    <div id="metricas"></div>
+  </div>
   <div class="card hist">
     <div class="row" style="justify-content:space-between"><h2 style="flex:0 0 auto;margin:0">Consultas salvas neste aparelho</h2>
       <button class="btn sm" style="flex:0 0 auto" id="btnExportar">Exportar tudo (JSON)</button></div>
@@ -387,6 +407,17 @@ pre.code{background:var(--bg);border:1px solid var(--line);border-radius:10px;pa
       <div class="seg" id="segTema"><button data-t="auto" class="on">Automático</button><button data-t="light">Claro</button><button data-t="dark">Escuro</button></div>
     </div>
     <div class="card">
+      <h2>Condição especial e segurança</h2>
+      <p class="small muted" style="margin-top:0">Ativam as falas de fechamento com prazo e de reversão de risco. Cadastre apenas condições <b>reais</b>: ao vencer o prazo, as falas são desativadas sozinhas.</p>
+      <label class="f" for="cCondicao">Condição especial vigente</label>
+      <input class="i" id="cCondicao" placeholder="ex.: o valor do check-up digital é abatido do tratamento">
+      <label class="f" for="cValidade">Válida até</label>
+      <input class="i" id="cValidade" type="datetime-local">
+      <p class="small muted" id="condInfo"></p>
+      <label class="f" for="cGarantia">Segurança oferecida ao paciente (sem prometer resultado)</label>
+      <textarea class="i" id="cGarantia" placeholder="ex.: se você desistir antes de iniciarmos o planejamento, devolvemos integralmente o valor do sinal."></textarea>
+    </div>
+    <div class="card">
       <h2>Integração n8n → Kommo</h2>
       <p class="small muted" style="margin-top:0">Cole as URLs de produção dos webhooks dos fluxos que estão na pasta <code>consulta/n8n</code>. Veja o passo a passo em <code>consulta/README.md</code>.</p>
       <label class="f" for="cWhReg">Webhook — registrar consulta no Kommo</label>
@@ -395,6 +426,8 @@ pre.code{background:var(--bg);border:1px solid var(--line);border-radius:10px;pa
       <input class="i" id="cWhIA" placeholder="https://seu-n8n/webhook/copiloto-sugestao">
       <label class="f" for="cWhMsg">Webhook — mensagens de WhatsApp ao vivo</label>
       <input class="i" id="cWhMsg" placeholder="https://seu-n8n/webhook/copiloto-mensagens">
+      <label class="f" for="cWhAudio">Webhook — transcrição de áudios</label>
+      <input class="i" id="cWhAudio" placeholder="https://seu-n8n/webhook/copiloto-audio">
       <label class="f" for="cToken">Chave secreta do copiloto</label>
       <input class="i" id="cToken" type="password" placeholder="a mesma configurada no n8n">
       <div class="row" style="margin-top:10px">

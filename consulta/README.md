@@ -10,7 +10,8 @@ consulta/
 └── n8n/
     ├── 01-copiloto-registrar-no-kommo.json  → cria/atualiza lead, nota e tarefa no Kommo
     ├── 02-copiloto-sugestao-ia.json         → IA sugere a próxima fala
-    └── 03-whatsapp-ao-vivo.json             → mensagens do WhatsApp (via Kommo) chegam ao copiloto
+    ├── 03-whatsapp-ao-vivo.json             → mensagens do WhatsApp (via Kommo) chegam ao copiloto
+    └── 04-copiloto-transcrever-audio.json   → áudios do paciente e gravação da consulta viram texto
 ```
 
 ---
@@ -28,17 +29,32 @@ consulta/
 5. **✨ Sugestão da IA** pede ao n8n uma resposta personalizada com base em toda a conversa.
 6. O **termômetro** (frio → quente) mostra se é hora de fechar ou de voltar à Descoberta.
 
+**Áudios do paciente:** clique em **🎧 Transcrever áudio do paciente** e escolha o áudio salvo do WhatsApp. Ele vira texto e passa pela mesma análise. Com o acompanhamento pelo Kommo ligado, os áudios que chegam são transcritos sozinhos.
+
 Dá também para **Importar conversa**: no WhatsApp, abra a conversa › ⋮ › Mais › **Exportar conversa** › Sem mídia, cole o texto no campo de mensagem e clique em *Importar conversa*.
 
 ### Ao vivo (presencial)
 1. Escolha **Presencial**. Leia ao paciente a fala *Pedido para gravar* (etapa Acolhimento).
 2. Com a autorização, marque a caixa de consentimento: data e hora ficam registradas (LGPD).
 3. Clique em **Gravar e transcrever**. No **Google Chrome**, a fala vira texto em tempo real e passa pela mesma análise de objeções. Toque em *Paciente* ou *Eu* para indicar quem está falando.
-4. O áudio fica **só no aparelho**: ao parar, aparece o botão para baixá-lo e anexar ao prontuário, se quiser.
+4. O áudio fica **só no aparelho**: ao parar, aparece o botão para baixá-lo e anexar ao prontuário, se quiser. Fora do Chrome, use **Transcrever gravação (IA)** para enviar o áudio ao fluxo 04 e receber o texto.
 
 ### Roteiro de 9 etapas
 Preparação → Acolhimento → Descoberta → Check-up digital (iTero) → Apresentação da solução → Investimento → Objeções → Fechamento → Pós-consulta/Follow-up.
 Cada etapa tem objetivo, falas (versão presencial e versão curta para WhatsApp), perguntas, checklist e dicas. As falas são preenchidas automaticamente com nome do paciente, unidade, endereço, dor relatada, evento, valor, entrada e parcelas.
+
+### Técnicas de fechamento com prazo e segurança
+Em **Configurações › Condição especial e segurança** você cadastra:
+- uma **condição real** com **data e hora de validade** (ex.: "o valor do check-up digital é abatido do tratamento", até hoje às 23h59);
+- a **segurança** que a clínica oferece (ex.: "se desistir antes de iniciarmos o planejamento, devolvemos o sinal").
+
+Com isso, a etapa **Fechamento** passa a mostrar as falas *Condição especial com prazo*, *Por que essa condição existe*, *Segurança para decidir* e *Credibilidade*, e a aba Mensagens ganha os avisos de prazo. **Quando a validade vence, as falas se desativam sozinhas**: o sistema nunca sugere um prazo falso.
+> O Código de Ética Odontológica não permite prometer resultado. Por isso a "garantia" do sistema é sobre o **processo** (sinal, abatimento, desistência antes de iniciar), nunca sobre o resultado clínico.
+
+### Nota da consulta e painel de resultados
+- **Nota da consulta (0–100)**, na aba Fechamento: calculada pelo roteiro (dor anotada, Descoberta, iTero, proposta, investimento, objeções, pergunta de fechamento, próximo passo), com a lista do que melhorar. Funciona sem internet.
+- **✨ Avaliação detalhada da IA**: notas por critério, pontos fortes e pontos a melhorar, com a frase que poderia ter sido dita.
+- **Painel de resultados**, na aba Histórico: taxa de fechamento, ticket médio, total fechado, valor em negociação, fechamento por canal (WhatsApp × presencial) e objeções mais frequentes.
 
 ### Fechamento e registro
 Na aba **Fechamento & registro**: tratamento, valor, entrada, parcelas, resultado (fechou / em negociação / não fechou + motivo) e próximo contato. O resumo é gerado automaticamente e pode ser editado. **Enviar ao Kommo** manda tudo para o n8n.
@@ -62,8 +78,9 @@ Para cada arquivo da pasta `n8n/`: no n8n, **Workflows › Import from File**.
 | **01 Registrar no Kommo** | Nó *Validar e preparar*: `TOKEN`, `SUBDOMINIO`, `PIPELINE_ID`, IDs das etapas. Nos nós HTTP, escolha a credencial `Kommo API`. | `.../webhook/copiloto-consulta` |
 | **02 Sugestão da IA** | Nó *Validar e montar prompt*: `TOKEN`. Troque o sub-nó *Modelo de IA* pelo mesmo modelo e credencial que a IA de vocês já usa. | `.../webhook/copiloto-sugestao` |
 | **03 WhatsApp ao vivo** | Nó *Ler mensagens*: `TOKEN`. No Kommo, cadastre o webhook (abaixo). | `.../webhook/copiloto-mensagens` |
+| **04 Transcrição de áudio** | Nó *Validar áudio*: `TOKEN`. No nó *Transcrever (Whisper)*, escolha a credencial OpenAI. | `.../webhook/copiloto-audio` |
 
-Depois, **ative** os três fluxos e copie as **Production URLs** para **Configurações** no copiloto, junto com a mesma chave (`TOKEN`). Clique em **Testar conexão**.
+Depois, **ative** os quatro fluxos e copie as **Production URLs** para **Configurações** no copiloto, junto com a mesma chave (`TOKEN`). Clique em **Testar conexão**.
 
 > **IDs do funil:** abra o funil no Kommo; o ID do funil aparece na URL. Para os IDs das etapas, acesse `https://SEU-SUBDOMINIO.kommo.com/api/v4/leads/pipelines` logado no Kommo. `142` (venda ganha) e `143` (venda perdida) são padrão em todas as contas.
 
@@ -100,10 +117,17 @@ Depois, **ative** os três fluxos e copie as **Production URLs** para **Configur
 
 ---
 
-## 4. Privacidade e LGPD
+## 4. Comparação com sistemas cobrados por consulta
+O áudio de referência apresenta um sistema vendido em **planos por número de consultas por mês**, com garantia de devolução no primeiro mês. Este copiloto:
+- não tem mensalidade nem limite de consultas: o único custo variável é o uso da IA e da transcrição no n8n (centavos por consulta);
+- funciona **mesmo sem internet ou IA** (roteiro, objeções, nota e resumo são locais);
+- usa o Kommo e a IA que vocês **já têm**, sem uma terceira plataforma;
+- tem o roteiro **todo editável** em `roteiro.js`, no jeito de falar da clínica.
+
+## 5. Privacidade e LGPD
 - Os dados das consultas ficam **apenas no navegador do aparelho** (localStorage) até serem enviados ao Kommo. Na aba *Histórico*, apague consultas antigas já sincronizadas.
 - A gravação só é liberada depois de registrar a autorização do paciente. O áudio **não é enviado** a lugar nenhum; só a transcrição em texto vai para o Kommo.
-- A transcrição ao vivo do Chrome usa o serviço de reconhecimento de voz do Google.
+- A transcrição ao vivo do Chrome usa o serviço de reconhecimento de voz do Google. A transcrição pelo fluxo 04 envia o áudio para a OpenAI (Whisper): avise o paciente quando usar.
 - A chave (`TOKEN`) impede que terceiros enviem dados para os webhooks do n8n. Use uma chave longa e diferente da senha do Kommo.
 
 ### ⚠️ Onde hospedar
@@ -114,7 +138,7 @@ Este repositório também publica o site. Se ele estiver no GitHub Pages ou na h
 
 ---
 
-## 5. Personalizar o roteiro
+## 6. Personalizar o roteiro
 Tudo o que aparece na tela está em **`roteiro.js`**, em português e comentado:
 - **etapas**: falas, perguntas, checklist e dicas de cada etapa;
 - **objecoes**: `gatilhos` (palavras que fazem a resposta aparecer) e as respostas;
@@ -122,4 +146,4 @@ Tudo o que aparece na tela está em **`roteiro.js`**, em português e comentado:
 - **sinaisCompra**: frases que esquentam o termômetro;
 - **mensagens**: modelos de WhatsApp (confirmação, follow-up D+1/D+3/D+7/D+15, boas-vindas, indicação).
 
-Variáveis disponíveis nas falas: `{nome}`, `{profissional}`, `{unidade}`, `{endereco}`, `{dor}`, `{evento}`, `{tratamento}`, `{valor}`, `{entrada}`, `{parcelas}`, `{dia}`, `{hora}`, `{dia2}`, `{hora2}`. Se faltar um dado, ele aparece entre colchetes, por exemplo `[valor]`, para você lembrar de completar.
+Variáveis disponíveis nas falas: `{nome}`, `{profissional}`, `{unidade}`, `{endereco}`, `{dor}`, `{evento}`, `{tratamento}`, `{valor}`, `{entrada}`, `{parcelas}`, `{dia}`, `{hora}`, `{dia2}`, `{hora2}`, `{condicao}`, `{validade}`, `{garantia}`. Se faltar um dado, ele aparece entre colchetes, por exemplo `[valor]`, para você lembrar de completar.

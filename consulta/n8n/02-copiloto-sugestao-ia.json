@@ -7,8 +7,8 @@
         "width": 460,
         "height": 300
       },
-      "id": "2884bb35-97bd-4c0b-b3b3-e571a9769c96",
-      "name": "Nota a626",
+      "id": "dd748399-5942-4054-a9de-4047aff97bd4",
+      "name": "Nota f078",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
       "position": [
@@ -25,7 +25,7 @@
         },
         "responseMode": "responseNode"
       },
-      "id": "9c247622-6095-411d-832b-1774e8f62385",
+      "id": "04171aee-09f6-4cfe-b3e9-9236e52f6466",
       "name": "Webhook Sugestão",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
@@ -33,13 +33,13 @@
         0,
         0
       ],
-      "webhookId": "d85d1117-dcad-4f1c-9347-63e5b17a36e1"
+      "webhookId": "a14952f2-9e8c-4c84-ad02-ece93f214955"
     },
     {
       "parameters": {
-        "jsCode": "// ================== CONFIGURE AQUI ==================\nconst TOKEN = 'TROQUE-POR-UMA-CHAVE-SECRETA'; // a mesma chave das Configurações do copiloto\n// ====================================================\nconst b = $input.first().json.body || {};\nif (b.token !== TOKEN) throw new Error('Chave do copiloto inválida');\nif (b.evento === 'teste') return [{ json: { teste: true } }];\n\nconst conversa = (b.conversa || []).map(m => `${m.quem === 'cliente' ? 'PACIENTE' : 'CLÍNICA'}: ${m.texto}`).join('\\n');\nconst o = b.orcamento || {};\nconst prompt = `Canal: ${b.canal === 'presencial' ? 'consulta presencial' : 'WhatsApp'} · Unidade: ${b.unidade}\nEtapa atual do roteiro: ${b.etapa} — objetivo: ${b.objetivo_etapa}\nPaciente: ${(b.paciente && b.paciente.nome) || 'não informado'}\nDor principal: ${(b.notas && b.notas.dor) || '-'} · Evento/prazo: ${(b.notas && b.notas.evento) || '-'}\nNotas: ${(b.notas && b.notas.livre) || '-'}\nOrçamento: ${o.tratamento || '-'} · valor ${o.valor || '-'} · entrada ${o.entrada || '-'} · parcelas ${o.parcelas || '-'}\nTemperatura (0-100): ${b.temperatura} · Objeções já detectadas: ${(b.objecoes || []).join(', ') || 'nenhuma'}\n\nCONVERSA (mais recente por último):\n${conversa || '(sem mensagens)'}\n\nQual a melhor próxima resposta da clínica?`;\nreturn [{ json: { teste: false, prompt } }];"
+        "jsCode": "// ================== CONFIGURE AQUI ==================\nconst TOKEN = 'TROQUE-POR-UMA-CHAVE-SECRETA'; // a mesma chave das Configurações do copiloto\n// ====================================================\nconst b = $input.first().json.body || {};\nif (b.token !== TOKEN) throw new Error('Chave do copiloto inválida');\nif (b.evento === 'teste') return [{ json: { teste: true } }];\n\nconst conversa = (b.conversa || []).map(m => `${m.quem === 'cliente' ? 'PACIENTE' : 'CLÍNICA'}: ${m.texto}`).join('\\n');\nconst o = b.orcamento || {};\n\nif (b.evento === 'avaliar_consulta') {\n  const prompt = `TAREFA: AVALIAR a condução desta consulta (não sugerir fala).\nCanal: ${b.canal} · Unidade: ${b.unidade} · Etapa alcançada: ${b.etapa} · Resultado: ${b.resultado || 'não registrado'}\nDor: ${(b.notas && b.notas.dor) || '-'} · Evento: ${(b.notas && b.notas.evento) || '-'}\nOrçamento: ${o.tratamento || '-'} · ${o.valor || '-'} · Objeções: ${(b.objecoes || []).join(', ') || 'nenhuma'}\nNota calculada pelo roteiro: ${b.nota_local}/100\n\nCONVERSA:\n${conversa || '(sem mensagens)'}\n\nAvalie de 0 a 10: acolhimento, descoberta da dor, uso do iTero/simulação, apresentação da solução, apresentação do investimento, tratamento das objeções, fechamento e próximo passo.\nUse o MESMO formato JSON: em \"orientacao\" coloque \"Nota geral X/10 — frase-resumo\"; em \"mensagem\" coloque, em tópicos curtos: notas por critério, 3 pontos fortes, 3 pontos a melhorar (com a frase exata que poderia ter sido dita) e a próxima ação recomendada com esse paciente.`;\n  return [{ json: { teste: false, prompt } }];\n}\nconst prompt = `Canal: ${b.canal === 'presencial' ? 'consulta presencial' : 'WhatsApp'} · Unidade: ${b.unidade}\nEtapa atual do roteiro: ${b.etapa} — objetivo: ${b.objetivo_etapa}\nPaciente: ${(b.paciente && b.paciente.nome) || 'não informado'}\nDor principal: ${(b.notas && b.notas.dor) || '-'} · Evento/prazo: ${(b.notas && b.notas.evento) || '-'}\nNotas: ${(b.notas && b.notas.livre) || '-'}\nOrçamento: ${o.tratamento || '-'} · valor ${o.valor || '-'} · entrada ${o.entrada || '-'} · parcelas ${o.parcelas || '-'}\nTemperatura (0-100): ${b.temperatura} · Objeções já detectadas: ${(b.objecoes || []).join(', ') || 'nenhuma'}\n\nCONVERSA (mais recente por último):\n${conversa || '(sem mensagens)'}\n\nQual a melhor próxima resposta da clínica?`;\nreturn [{ json: { teste: false, prompt } }];"
       },
-      "id": "4c726876-a535-4a11-9c0b-b73957d1b616",
+      "id": "d3c97ec7-3b7e-41e8-8d67-9d53b13a9a5a",
       "name": "Validar e montar prompt",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -58,7 +58,7 @@
           },
           "conditions": [
             {
-              "id": "e26dff0d-900b-4b1e-b2f9-8ca5695c2498",
+              "id": "f909b9af-08f4-45ab-9e99-a1e3fc342b7c",
               "leftValue": "={{ $json.teste }}",
               "rightValue": "",
               "operator": {
@@ -72,7 +72,7 @@
         },
         "options": {}
       },
-      "id": "7268b6cb-85cf-4aac-9b36-9502d8ba8b74",
+      "id": "7558caf0-a9e6-4cec-aaab-96325b3542a7",
       "name": "É teste?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2,
@@ -96,7 +96,7 @@
           }
         }
       },
-      "id": "66785096-836b-4da4-a208-89253a450312",
+      "id": "c56f17f6-57bd-4220-9dd0-852415f00f0d",
       "name": "Responder teste",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.1,
@@ -113,7 +113,7 @@
           "systemMessage": "Você é o copiloto comercial da Weiss Odontologia (Caruaru e Recife), clínica de Ortodontia do Dr. Edelweiss Jr, especialista e mestre em Ortodontia. Diferenciais: check-up digital e escaneamento com o scanner iTero (sorriso em 3D, sem massinha, com simulação do resultado), pioneiros do Invisalign em Caruaru, alinhadores transparentes e aparelhos fixos.\nEndereços: Caruaru — R. dos Expedicionários, 104, 1º andar, Nossa Sra. das Dores, WhatsApp (81) 99836-8491. Recife — Av. República do Líbano, 251, Torre 1, Sala 1614, Pina, WhatsApp (81) 97318-5005.\n\nSua função: ler a conversa e sugerir a PRÓXIMA fala da clínica, conduzindo o paciente com empatia para o agendamento do check-up digital ou para o fechamento do orçamento.\nRegras:\n- Português do Brasil, tom acolhedor e seguro. No WhatsApp: mensagem curta (até 3 frases), no máximo 1 emoji.\n- Termine com uma pergunta que faça a conversa avançar (de preferência com duas opções).\n- Não passe preço antes do diagnóstico: convide para o check-up digital.\n- Diante de objeção: valide o sentimento, descubra a objeção real e responda.\n- Nunca prometa ou garanta resultado; fale em planejamento e simulação. Não invente valores, prazos ou condições que não estejam na conversa ou no orçamento.\n- Não dê diagnóstico clínico pelo WhatsApp.\nResponda SOMENTE com um JSON válido, sem texto fora dele, no formato:\n{\"orientacao\": \"uma frase dizendo ao profissional o que fazer agora\", \"mensagem\": \"o texto pronto para falar ou enviar ao paciente\"}"
         }
       },
-      "id": "bff26dc2-fd26-4188-b2f8-de57751e5c22",
+      "id": "c41e00c7-a832-4a1b-815a-067c766a7058",
       "name": "Agente Copiloto",
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 1.7,
@@ -134,7 +134,7 @@
           "temperature": 0.4
         }
       },
-      "id": "0bc1b278-d570-46a6-aabf-7f697fc90919",
+      "id": "a30e6d67-c03e-4bac-ba0f-963a08b90e42",
       "name": "Modelo de IA",
       "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
       "typeVersion": 1.2,
@@ -147,7 +147,7 @@
       "parameters": {
         "jsCode": "const out = $input.first().json.output || $input.first().json.text || '';\nlet r = { orientacao: '', mensagem: String(out).trim() };\ntry {\n  const m = String(out).match(/\\{[\\s\\S]*\\}/);\n  if (m) { const j = JSON.parse(m[0]); r = { orientacao: j.orientacao || '', mensagem: j.mensagem || r.mensagem }; }\n} catch (e) { /* resposta fora do formato: devolve o texto puro */ }\nreturn [{ json: { ok: true, sugestao: r.mensagem, orientacao: r.orientacao } }];"
       },
-      "id": "bea619e0-73a3-4b8e-90bb-4240a989bf94",
+      "id": "feb96346-f61c-44fb-b220-2dd718ea67a5",
       "name": "Formatar resposta",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -171,7 +171,7 @@
           }
         }
       },
-      "id": "7bfd451b-83a5-494b-be48-5f6b1fc40898",
+      "id": "ac7a6370-b1fd-4f50-acf6-80a605688d21",
       "name": "Responder ao copiloto",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.1,

@@ -15,7 +15,8 @@
     profissional: "Dr. Edelweiss",
     nomesClinica: "Weiss, Odonto Weiss, Clínica, Você, You",
     tema: "auto",
-    whReg: "", whIA: "", whMsg: "", token: ""
+    whReg: "", whIA: "", whMsg: "", whAudio: "", token: "",
+    condicao: "", validade: "", garantia: ""
   }, load(KEY_CFG, {}));
 
   let consultas = load(KEY_CONS, {});
@@ -78,6 +79,24 @@
     return `${n}x de ${brl((v - e) / n)}`;
   }
 
+  function condicaoVigente() { return !!cfg.condicao && (!cfg.validade || new Date(cfg.validade) > new Date()); }
+  function validadeTxt() {
+    if (!cfg.validade) return "";
+    const d = new Date(cfg.validade), hoje = new Date();
+    const h = d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }).replace(":", "h");
+    if (d.toDateString() === hoje.toDateString()) return "hoje, às " + h;
+    const am = new Date(hoje); am.setDate(am.getDate() + 1);
+    if (d.toDateString() === am.toDateString()) return "amanhã, às " + h;
+    return d.toLocaleDateString("pt-BR", { day: "2-digit", month: "long" }) + ", às " + h;
+  }
+  /* Aviso para falas que dependem de dados das Configurações (condição / garantia) */
+  function avisoRequer(item) {
+    if (!item.requer) return "";
+    if (!cfg[item.requer]) return item.requer === "condicao" ? "Cadastre uma condição especial REAL em Configurações para usar esta fala." : "Cadastre em Configurações a segurança que a clínica oferece (ex.: devolução do sinal antes de iniciar).";
+    if (item.requer === "condicao" && !condicaoVigente()) return "⚠️ A condição cadastrada está VENCIDA. Não use esta fala.";
+    return "";
+  }
+
   function preencher(texto) {
     const u = R.unidades[S.unidade] || {};
     const nome = (S.paciente.nome || "").trim().split(/\s+/)[0];
@@ -85,7 +104,8 @@
       nome: nome, profissional: cfg.profissional, unidade: S.unidade, endereco: u.endereco, telefone_unidade: u.whatsapp,
       valor: brl(toNum(S.orcamento.valor)), entrada: brl(toNum(S.orcamento.entrada)), parcelas: parcelaTxt(),
       tratamento: S.orcamento.tratamento, dor: S.notas.dor, evento: S.notas.evento,
-      dia: S.horarios.dia1, hora: S.horarios.hora1, dia2: S.horarios.dia2, hora2: S.horarios.hora2
+      dia: S.horarios.dia1, hora: S.horarios.hora1, dia2: S.horarios.dia2, hora2: S.horarios.hora2,
+      condicao: condicaoVigente() ? cfg.condicao : "", validade: validadeTxt(), garantia: cfg.garantia
     };
     return texto.replace(/\{(\w+)\}/g, (m, k) => {
       const v = vars[k];
@@ -126,8 +146,8 @@
   function mostrarView(v) {
     $$("#tabs button").forEach((b) => b.classList.toggle("on", b.dataset.v === v));
     $$(".view").forEach((s) => s.classList.toggle("on", s.id === "v-" + v));
-    if (v === "resumo" && !S.resumoEditado) gerarResumo();
-    if (v === "historico") renderHistorico();
+    if (v === "resumo") { if (!S.resumoEditado) gerarResumo(); renderNota(); }
+    if (v === "historico") { renderHistorico(); renderMetricas(); }
     if (v === "mensagens") renderMensagens();
     window.scrollTo({ top: 0 });
   }
@@ -168,8 +188,9 @@
       <p class="objetivo" style="margin:12px 0 0">🎯 ${esc(et.objetivo)}</p>
       ${falas.length ? `<h3>O que falar</h3>` + falas.map((f) => {
         const t = preencher(wa && f.wa ? f.wa : f.texto);
-        return `<div class="fala"><span class="lbl">${esc(f.rotulo)}</span>${f.canal ? `<span class="tag">${f.canal === "whatsapp" ? "WhatsApp" : "Presencial"}</span>` : ""}
-          <p>${esc(t)}</p>${botoesFala(t)}</div>`;
+        const av = avisoRequer(f);
+        return `<div class="fala"${av ? ' style="opacity:.6"' : ""}><span class="lbl">${esc(f.rotulo)}</span>${f.canal ? `<span class="tag">${f.canal === "whatsapp" ? "WhatsApp" : "Presencial"}</span>` : ""}
+          <p>${esc(t)}</p>${av ? `<div class="dica">${esc(av)}</div>` : botoesFala(t)}</div>`;
       }).join("") : ""}
       ${et.perguntas.length ? `<h3>Perguntas para fazer</h3><ul class="perg">` + et.perguntas.map((p) => {
         const t = preencher(p);
@@ -208,7 +229,7 @@
   function renderChat() {
     const c = $("#chat");
     if (!S.conversa.length) { c.innerHTML = `<div class="small muted">As mensagens e falas aparecem aqui. Cole a mensagem do paciente abaixo para receber a orientação.</div>`; return; }
-    c.innerHTML = S.conversa.slice(-200).map((m) => `<div class="msg ${m.quem}"><span class="who">${m.quem === "cliente" ? esc((S.paciente.nome || "Paciente").split(" ")[0]) : "Clínica"} · ${hora(m.ts)}${m.origem === "voz" ? " · 🎙" : ""}</span>${esc(m.texto)}</div>`).join("");
+    c.innerHTML = S.conversa.slice(-200).map((m) => `<div class="msg ${m.quem}"><span class="who">${m.quem === "cliente" ? esc((S.paciente.nome || "Paciente").split(" ")[0]) : "Clínica"} · ${hora(m.ts)}${m.origem === "voz" ? " · 🎙" : m.origem === "audio" ? " · 🎧 áudio" : ""}</span>${esc(m.texto)}</div>`).join("");
     c.scrollTop = c.scrollHeight;
   }
 
@@ -338,6 +359,8 @@
         a.href = URL.createObjectURL(blob);
         a.download = `consulta-${(S.paciente.nome || "paciente").replace(/\s+/g, "-")}-${new Date().toISOString().slice(0, 10)}.webm`;
         a.classList.remove("hide");
+        ultimoAudioBlob = blob;
+        if (cfg.whAudio) $("#btnTranscreverGravacao").classList.remove("hide");
       };
       rec.start(1000);
     } catch (e) { rec = null; }
@@ -467,7 +490,11 @@
       if (!r.ok) throw new Error("HTTP " + r.status);
       const d = await r.json();
       (d.mensagens || []).forEach((m) => {
-        addMsg(m.autor === "clinica" ? "clinica" : "cliente", m.texto, "kommo", { id: m.id, ts: m.ts });
+        if (m.anexo && m.audio) {
+          if (S.msgIds[m.id]) return;
+          S.msgIds[m.id] = 1;
+          transcreverAudio({ url: m.anexo }, m.autor === "clinica" ? "clinica" : "cliente", m.ts);
+        } else addMsg(m.autor === "clinica" ? "clinica" : "cliente", m.texto, "kommo", { id: m.id, ts: m.ts });
         if (!S.ultimoSync || m.ts > S.ultimoSync) S.ultimoSync = m.ts;
       });
       $("#aoVivoInfo").textContent = "Conectado · última verificação " + new Date().toLocaleTimeString("pt-BR");
@@ -492,6 +519,104 @@
     } else res.push("Mensagens: não configurado");
     st.textContent = res.join(" · ");
   });
+
+  /* ---------------- áudios (WhatsApp e gravação) ---------------- */
+  async function transcreverAudio(fonte, quem = "cliente", ts) {
+    if (!cfg.whAudio) { toast("Configure o webhook de áudio em Configurações"); return null; }
+    const fd = new FormData();
+    fd.append("token", cfg.token);
+    fd.append("lead", S.paciente.leadId || "");
+    if (fonte.url) fd.append("url", fonte.url);
+    if (fonte.arquivo) fd.append("data", fonte.arquivo, fonte.nome || "audio.ogg");
+    toast("Transcrevendo áudio…");
+    try {
+      const r = await fetch(cfg.whAudio, { method: "POST", body: fd });
+      const d = await r.json().catch(() => ({}));
+      if (!r.ok || !d.texto) throw new Error(d.erro || "HTTP " + r.status);
+      addMsg(quem, d.texto, "audio", { ts });
+      toast("Áudio transcrito ✓");
+      return d.texto;
+    } catch (e) { toast("Falha ao transcrever: " + e.message); addMsg(quem, "🎧 [áudio não transcrito]", "audio", { ts, semAnalise: true }); return null; }
+  }
+  $("#btnAudio").addEventListener("click", () => $("#fileAudio").click());
+  $("#fileAudio").addEventListener("change", async (e) => {
+    const files = Array.from(e.target.files || []);
+    for (const f of files) await transcreverAudio({ arquivo: f, nome: f.name }, "cliente");
+    e.target.value = "";
+  });
+  let ultimoAudioBlob = null;
+  $("#btnTranscreverGravacao").addEventListener("click", async () => {
+    if (!ultimoAudioBlob) return;
+    const b = $("#btnTranscreverGravacao"); b.disabled = true;
+    await transcreverAudio({ arquivo: ultimoAudioBlob, nome: "consulta.webm" }, "cliente");
+    b.disabled = false;
+  });
+
+  /* ---------------- nota da consulta (sem IA) ---------------- */
+  function pct(id) { const et = R.etapas.find((e) => e.id === id); const p = progresso(et); return p.tot ? p.feitos / p.tot : 0; }
+  function avaliar() {
+    const itens = [
+      { peso: 10, ok: !!S.notas.dor, txt: "Anotar a dor principal com as palavras do paciente" },
+      { peso: 5, ok: !!S.notas.evento, txt: "Descobrir uma data ou evento que crie prazo natural" },
+      { peso: 15, ok: pct("descoberta"), txt: "Completar a Descoberta (motivação, prazo, quem decide)" },
+      { peso: 10, ok: pct("diagnostico"), txt: "Mostrar o escaneamento 3D e a simulação do iTero" },
+      { peso: 10, ok: pct("solucao"), txt: "Recomendar UM tratamento ligado à dor do paciente" },
+      { peso: 10, ok: !!toNum(S.orcamento.valor), txt: "Apresentar o investimento com valor e condição" },
+      { peso: 10, ok: Object.keys(S.objecoes).length ? pct("objecoes") : 1, txt: "Tratar as objeções: ouvir, validar, isolar, responder" },
+      { peso: 10, ok: pct("fechamento") > 0 || S.resultado === "fechado", txt: "Fazer a pergunta de fechamento" },
+      { peso: 15, ok: S.resultado === "fechado" || !!S.proximoContato, txt: "Sair com o fechamento ou com data/hora do próximo contato" },
+      { peso: 5, ok: !!S.resultado, txt: "Registrar o resultado" }
+    ];
+    let nota = 0; const melhorar = [];
+    itens.forEach((i) => { const v = i.ok === true ? 1 : i.ok === false ? 0 : Number(i.ok) || 0; nota += i.peso * v; if (v < 1) melhorar.push(i.txt); });
+    return { nota: Math.round(nota), melhorar };
+  }
+  function renderNota() {
+    const el = $("#notaConsulta"); if (!el) return;
+    const a = avaliar();
+    const cor = a.nota >= 75 ? "var(--good)" : a.nota >= 50 ? "var(--warn)" : "var(--bad)";
+    el.innerHTML = `<div class="row" style="align-items:baseline"><span style="flex:0 0 auto;font-size:40px;font-weight:800;color:${cor}">${a.nota}</span><span class="muted" style="flex:0 0 auto">/100</span></div>
+      ${a.melhorar.length ? `<p class="small muted" style="margin:6px 0 4px">Para melhorar:</p><ul class="perg small">${a.melhorar.map((m) => `<li>${esc(m)}</li>`).join("")}</ul>` : `<p class="small">Consulta conduzida de ponta a ponta. 👏</p>`}`;
+  }
+  $("#btnAvaliarIA").addEventListener("click", async () => {
+    if (!cfg.whIA) { toast("Configure o webhook da IA em Configurações"); mostrarView("config"); return; }
+    const b = $("#btnAvaliarIA"), out = $("#avaliacaoIA"); b.disabled = true; out.textContent = "Analisando a consulta…";
+    try {
+      const d = await post(cfg.whIA, {
+        evento: "avaliar_consulta", canal: S.canal, unidade: S.unidade, etapa: (R.etapas.find((e) => e.id === S.etapa) || {}).nome,
+        paciente: { nome: S.paciente.nome }, notas: S.notas, orcamento: S.orcamento, temperatura: S.temperatura,
+        objecoes: Object.keys(S.objecoes), resultado: S.resultado, nota_local: avaliar().nota,
+        conversa: S.conversa.slice(-120).map((m) => ({ quem: m.quem, texto: m.texto }))
+      });
+      out.innerHTML = `${d.orientacao ? `<b>${esc(d.orientacao)}</b><br>` : ""}<span style="white-space:pre-wrap">${esc(d.sugestao || "")}</span>`;
+      S.avaliacaoIA = (d.orientacao ? d.orientacao + "\n" : "") + (d.sugestao || ""); save();
+    } catch (e) { out.textContent = "IA indisponível: " + e.message; }
+    b.disabled = false;
+  });
+
+  /* ---------------- painel de resultados ---------------- */
+  function renderMetricas() {
+    const el = $("#metricas"); if (!el) return;
+    const lista = Object.values(consultas).filter((c) => c.paciente && (c.paciente.nome || c.conversa.length));
+    const fech = lista.filter((c) => c.resultado === "fechado");
+    const decididas = lista.filter((c) => c.resultado);
+    const soma = (arr) => arr.reduce((t, c) => t + (toNum(c.orcamento.valor) || 0), 0);
+    const neg = lista.filter((c) => c.resultado === "negociacao" || !c.resultado);
+    const objs = {};
+    lista.forEach((c) => Object.keys(c.objecoes || {}).forEach((k) => objs[k] = (objs[k] || 0) + 1));
+    const top = Object.entries(objs).sort((a, b) => b[1] - a[1]).slice(0, 4).map(([k, v]) => `${esc((R.objecoes.find((o) => o.id === k) || {}).titulo || k)} (${v})`);
+    const porCanal = (canal) => { const l = decididas.filter((c) => c.canal === canal); return l.length ? Math.round(100 * l.filter((c) => c.resultado === "fechado").length / l.length) + "%" : "—"; };
+    const tile = (n, l) => `<div class="card" style="padding:12px"><div style="font-size:24px;font-weight:800">${n}</div><div class="small muted">${l}</div></div>`;
+    el.innerHTML = `<div class="lib" style="grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px">
+      ${tile(lista.length, "consultas")}
+      ${tile(decididas.length ? Math.round(100 * fech.length / decididas.length) + "%" : "—", "taxa de fechamento")}
+      ${tile(fech.length ? brl(soma(fech) / fech.length) : "—", "ticket médio fechado")}
+      ${tile(brl(soma(fech)) || "R$ 0,00", "total fechado")}
+      ${tile(brl(soma(neg)) || "R$ 0,00", "em negociação")}
+      ${tile(porCanal("whatsapp") + " / " + porCanal("presencial"), "fechamento WhatsApp / presencial")}
+    </div>
+    <p class="small" style="margin:10px 0 0"><b>Objeções mais frequentes:</b> ${top.length ? top.join(" · ") : "—"}</p>`;
+  }
 
   /* ---------------- resumo ---------------- */
   function gerarResumo() {
@@ -521,7 +646,7 @@
       `OBJEÇÕES`,
       objs,
       ``,
-      `Sinais de compra: ${S.sinaisCompra}`,
+      `Sinais de compra: ${S.sinaisCompra} · Nota da condução: ${avaliar().nota}/100`,
       S.canal === "presencial" ? `Gravação: ${S.consentimento.aceito ? "autorizada pelo paciente em " + dataHora(S.consentimento.em) : "não gravada"}` : null,
       `Mensagens/falas registradas: ${S.conversa.length}`
     ].filter((l) => l !== null);
@@ -549,7 +674,7 @@
   function renderMensagens() {
     $("#libMsg").innerHTML = R.mensagens.map((g) => `
       <div class="card"><h2>${esc(g.grupo)}</h2>
-        ${g.itens.map((m) => { const t = preencher(m.texto); return `<div class="fala"><span class="lbl">${esc(m.rotulo)}</span><p style="font-size:15px">${esc(t)}</p>${botoesFala(t)}</div>`; }).join("")}
+        ${g.itens.map((m) => { const t = preencher(m.texto), av = avisoRequer(m); return `<div class="fala"${av ? ' style="opacity:.6"' : ""}><span class="lbl">${esc(m.rotulo)}</span><p style="font-size:15px">${esc(t)}</p>${av ? `<div class="dica">${esc(av)}</div>` : botoesFala(t)}</div>`; }).join("")}
       </div>`).join("");
   }
 
@@ -588,7 +713,7 @@
   function onDadosMudaram(sel) {
     if (sel === "#oValor" || sel === "#oEntrada" || sel === "#oParcelas") calcOrc();
     clearTimeout(rerenderTimer);
-    rerenderTimer = setTimeout(() => { renderEtapa(); if (!S.resumoEditado) gerarResumo(); }, 400);
+    rerenderTimer = setTimeout(() => { renderEtapa(); if (!S.resumoEditado) gerarResumo(); renderNota(); }, 400);
   }
   function calcOrc() { const p = parcelaTxt(); $("#oCalc").textContent = p ? `Saldo parcelado: ${p}` : ""; }
 
@@ -630,7 +755,7 @@
   }
   $("#segCanal").addEventListener("click", (e) => { const b = e.target.closest("button"); if (!b) return; setCanal(b.dataset.c); save(); renderEtapa(); });
   $("#segUnidade").addEventListener("click", (e) => { const b = e.target.closest("button"); if (!b) return; setUnidade(b.dataset.u); save(); renderEtapa(); });
-  $("#segRes").addEventListener("click", (e) => { const b = e.target.closest("button"); if (!b) return; setResultado(b.dataset.r); save(); if (!S.resumoEditado) gerarResumo(); });
+  $("#segRes").addEventListener("click", (e) => { const b = e.target.closest("button"); if (!b) return; setResultado(b.dataset.r); save(); if (!S.resumoEditado) gerarResumo(); renderNota(); });
 
   /* configurações */
   function aplicarTema() {
@@ -639,10 +764,19 @@
     $$("#segTema button").forEach((b) => b.classList.toggle("on", b.dataset.t === cfg.tema));
   }
   $("#segTema").addEventListener("click", (e) => { const b = e.target.closest("button"); if (!b) return; cfg.tema = b.dataset.t; store(KEY_CFG, cfg); aplicarTema(); });
-  [["#cProf", "profissional"], ["#cNomesClinica", "nomesClinica"], ["#cWhReg", "whReg"], ["#cWhIA", "whIA"], ["#cWhMsg", "whMsg"], ["#cToken", "token"]].forEach(([sel, k]) => {
+  [["#cProf", "profissional"], ["#cNomesClinica", "nomesClinica"], ["#cWhReg", "whReg"], ["#cWhIA", "whIA"], ["#cWhMsg", "whMsg"], ["#cWhAudio", "whAudio"], ["#cToken", "token"],
+    ["#cCondicao", "condicao"], ["#cValidade", "validade"], ["#cGarantia", "garantia"]].forEach(([sel, k]) => {
     const el = $(sel); el.value = cfg[k] || "";
-    el.addEventListener("input", () => { cfg[k] = el.value.trim(); store(KEY_CFG, cfg); if (k === "profissional") renderEtapa(); });
+    const upd = () => { cfg[k] = el.value.trim(); store(KEY_CFG, cfg); renderEtapa(); renderCondicao(); };
+    el.addEventListener("input", upd); el.addEventListener("change", upd);
   });
+  function renderCondicao() {
+    const el = $("#condInfo"); if (!el) return;
+    if (!cfg.condicao) el.textContent = "Nenhuma condição cadastrada: as falas de condição especial ficam desativadas.";
+    else if (!condicaoVigente()) el.textContent = "⚠️ Condição vencida: as falas de condição ficam desativadas.";
+    else el.textContent = "✓ Condição ativa" + (cfg.validade ? " até " + validadeTxt() : " (sem prazo)") + ".";
+  }
+  renderCondicao();
 
   /* ---------------- abrir / nova ---------------- */
   function abrir(c) {
@@ -655,6 +789,8 @@
     $("#lnkAudio").classList.add("hide"); $("#recHint").textContent = "";
     $("#resumoTxt").value = S.resumo || "";
     $("#kommoStatus").textContent = "";
+    $("#avaliacaoIA").textContent = S.avaliacaoIA || "";
+    $("#btnTranscreverGravacao").classList.add("hide"); ultimoAudioBlob = null;
     calcOrc(); renderSteps(); renderEtapa(); renderChat(); renderAlertas(); renderTermometro(); renderSync(); renderObjecoes();
     save();
   }

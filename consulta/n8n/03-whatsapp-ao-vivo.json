@@ -7,8 +7,8 @@
         "width": 480,
         "height": 340
       },
-      "id": "489f7ff1-647a-4098-bae8-487339f588c1",
-      "name": "Nota 74f6",
+      "id": "cbfd940c-a7bb-4ba3-95ac-e1af34ee457d",
+      "name": "Nota 20f3",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
       "position": [
@@ -24,7 +24,7 @@
           "allowedOrigins": "*"
         }
       },
-      "id": "f4a930da-f007-439a-84e6-ece6fd461e4d",
+      "id": "c6c6ee10-3129-4a48-9a50-88fca9f5fe0f",
       "name": "Webhook Kommo",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
@@ -32,13 +32,13 @@
         0,
         0
       ],
-      "webhookId": "2281b9af-8199-451a-acf7-9c09373aa8a9"
+      "webhookId": "b5efbb4b-0934-4527-8e69-ec903253ef48"
     },
     {
       "parameters": {
-        "jsCode": "// Guarda as mensagens de WhatsApp que o Kommo recebe/envia, por lead, para o Copiloto buscar.\n// Os dados ficam na memória do próprio fluxo (static data) e são limpos após 3 dias.\nconst store = $getWorkflowStaticData('global');\nstore.leads = store.leads || {};\nconst body = $input.first().json.body || {};\n\n// O Kommo envia formulário (application/x-www-form-urlencoded). Aceita o formato aninhado e o \"achatado\".\nfunction lerMensagens(b) {\n  if (b.message && b.message.add) return Object.values(b.message.add);\n  const acc = {};\n  for (const [k, v] of Object.entries(b)) {\n    const m = k.match(/^message\\[add\\]\\[(\\d+)\\]\\[([^\\]]+)\\](?:\\[([^\\]]+)\\])?$/);\n    if (!m) continue;\n    acc[m[1]] = acc[m[1]] || {};\n    if (m[3]) { acc[m[1]][m[2]] = acc[m[1]][m[2]] || {}; acc[m[1]][m[2]][m[3]] = v; }\n    else acc[m[1]][m[2]] = v;\n  }\n  return Object.values(acc);\n}\n\nconst agora = Date.now();\nfor (const msg of lerMensagens(body)) {\n  const lead = String(msg.entity_id || msg.element_id || '');\n  if (!lead || !msg.text) continue;\n  const ts = msg.created_at ? new Date(Number(msg.created_at) * 1000).toISOString() : new Date().toISOString();\n  const autor = msg.type === 'outgoing' ? 'clinica' : 'cliente';\n  const L = store.leads[lead] = store.leads[lead] || { atualizado: agora, mensagens: [] };\n  if (!L.mensagens.some(x => x.id === msg.id)) {\n    L.mensagens.push({ id: String(msg.id || (lead + '-' + ts)), texto: String(msg.text), autor, ts });\n  }\n  L.mensagens = L.mensagens.slice(-150);\n  L.atualizado = agora;\n}\nfor (const [k, L] of Object.entries(store.leads)) {\n  if (agora - L.atualizado > 3 * 24 * 3600 * 1000) delete store.leads[k];\n}\nreturn [{ json: { ok: true } }];"
+        "jsCode": "// Guarda as mensagens de WhatsApp que o Kommo recebe/envia, por lead, para o Copiloto buscar.\n// Os dados ficam na memória do próprio fluxo (static data) e são limpos após 3 dias.\nconst store = $getWorkflowStaticData('global');\nstore.leads = store.leads || {};\nconst body = $input.first().json.body || {};\n\n// O Kommo envia formulário (application/x-www-form-urlencoded). Aceita o formato aninhado e o \"achatado\".\nfunction lerMensagens(b) {\n  if (b.message && b.message.add) return Object.values(b.message.add);\n  const acc = {};\n  for (const [k, v] of Object.entries(b)) {\n    const m = k.match(/^message\\[add\\]\\[(\\d+)\\]\\[([^\\]]+)\\](?:\\[([^\\]]+)\\])?$/);\n    if (!m) continue;\n    acc[m[1]] = acc[m[1]] || {};\n    if (m[3]) { acc[m[1]][m[2]] = acc[m[1]][m[2]] || {}; acc[m[1]][m[2]][m[3]] = v; }\n    else acc[m[1]][m[2]] = v;\n  }\n  return Object.values(acc);\n}\n\nconst agora = Date.now();\nfor (const msg of lerMensagens(body)) {\n  const lead = String(msg.entity_id || msg.element_id || '');\n  const anexo = msg.attachment && msg.attachment.link ? String(msg.attachment.link) : '';\n  const ehAudio = !!anexo && /voice|audio/i.test(String((msg.attachment && msg.attachment.type) || '') + anexo);\n  if (!lead || (!msg.text && !anexo)) continue;\n  const ts = msg.created_at ? new Date(Number(msg.created_at) * 1000).toISOString() : new Date().toISOString();\n  const autor = msg.type === 'outgoing' ? 'clinica' : 'cliente';\n  const L = store.leads[lead] = store.leads[lead] || { atualizado: agora, mensagens: [] };\n  if (!L.mensagens.some(x => x.id === msg.id)) {\n    L.mensagens.push({ id: String(msg.id || (lead + '-' + ts)), texto: String(msg.text || (ehAudio ? '[áudio]' : '[anexo]')), autor, ts, anexo: anexo || null, audio: ehAudio });\n  }\n  L.mensagens = L.mensagens.slice(-150);\n  L.atualizado = agora;\n}\nfor (const [k, L] of Object.entries(store.leads)) {\n  if (agora - L.atualizado > 3 * 24 * 3600 * 1000) delete store.leads[k];\n}\nreturn [{ json: { ok: true } }];"
       },
-      "id": "27d9e191-0031-4c54-b47a-be0049f12730",
+      "id": "4c955497-d683-404e-a33f-0988d33111b9",
       "name": "Guardar mensagem",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -56,7 +56,7 @@
         },
         "responseMode": "responseNode"
       },
-      "id": "b2e1f21f-6497-4ed4-93e6-2e5659702fb5",
+      "id": "dff96351-c762-4daa-9546-49eb5de4c44d",
       "name": "Webhook Copiloto (GET)",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
@@ -64,13 +64,13 @@
         0,
         260
       ],
-      "webhookId": "1e2ce41f-45e9-45ac-9aab-e8d726165714"
+      "webhookId": "6acf18e2-66d8-4fa5-8be3-3a1fc61bdda6"
     },
     {
       "parameters": {
         "jsCode": "// ================== CONFIGURE AQUI ==================\nconst TOKEN = 'TROQUE-POR-UMA-CHAVE-SECRETA'; // a mesma chave das Configurações do copiloto\n// ====================================================\nconst q = $input.first().json.query || {};\nif (q.token !== TOKEN) return [{ json: { ok: false, erro: 'Chave do copiloto inválida', mensagens: [] } }];\nconst store = $getWorkflowStaticData('global');\nconst L = (store.leads || {})[String(q.lead || '')];\nconst desde = q.desde || '1970-01-01T00:00:00.000Z';\nconst mensagens = L ? L.mensagens.filter(m => m.ts > desde) : [];\nreturn [{ json: { ok: true, mensagens } }];"
       },
-      "id": "12377fa0-6401-4820-b5ac-f24bd10068e5",
+      "id": "3f584d3b-f640-4a87-9736-3fe285a08c2a",
       "name": "Ler mensagens",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -94,7 +94,7 @@
           }
         }
       },
-      "id": "7429af7e-dbbd-4fe4-b72f-1254dcae0c1e",
+      "id": "a0070642-e4dc-44a2-93e6-fd46d79174f2",
       "name": "Responder ao copiloto",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.1,
