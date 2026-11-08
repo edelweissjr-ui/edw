@@ -126,6 +126,14 @@
     window.open(`https://wa.me/${tel}?text=${encodeURIComponent(texto)}`, "_blank", "noopener");
   }
 
+  /* Confirmação no próprio botão (1º toque pede confirmação, 2º executa) */
+  function confirmar(btn, rotulo) {
+    if (btn.dataset.conf === "1") { btn.dataset.conf = ""; btn.textContent = btn.dataset.orig; return true; }
+    btn.dataset.orig = btn.textContent; btn.dataset.conf = "1"; btn.textContent = rotulo;
+    setTimeout(() => { if (btn.dataset.conf === "1") { btn.dataset.conf = ""; btn.textContent = btn.dataset.orig; } }, 4000);
+    return false;
+  }
+
   /* Botões padrão de uma fala */
   function botoesFala(texto, extra = "") {
     return `<div class="acts">
@@ -691,7 +699,7 @@
   $("#histBody").addEventListener("click", (e) => {
     const a = e.target.closest("[data-abrir]"), d = e.target.closest("[data-apagar]");
     if (a) { abrir(consultas[a.dataset.abrir]); mostrarView("consulta"); }
-    if (d && confirm("Apagar esta consulta deste aparelho? (o que já foi enviado ao Kommo continua lá)")) {
+    if (d && confirmar(d, "Toque de novo para apagar")) {
       delete consultas[d.dataset.apagar]; store(KEY_CONS, consultas);
       if (S.id === d.dataset.apagar) abrir(novaConsulta());
       renderHistorico();
@@ -794,12 +802,35 @@
     calcOrc(); renderSteps(); renderEtapa(); renderChat(); renderAlertas(); renderTermometro(); renderSync(); renderObjecoes();
     save();
   }
-  $("#btnNova").addEventListener("click", () => {
-    if (S.conversa.length && !S.sincronizadoEm && !confirm("Esta consulta ainda não foi enviada ao Kommo. Ela continua salva no Histórico. Iniciar uma nova?")) return;
+  $("#btnNova").addEventListener("click", (e) => {
+    if (S.conversa.length && !S.sincronizadoEm && !S.exemplo && !confirmar(e.currentTarget, "Não enviada ao Kommo — tocar de novo")) return;
     abrir(novaConsulta()); mostrarView("consulta"); $("#pNome").focus();
   });
 
+  /* Atendimento de exemplo (fictício) para conhecer o sistema */
+  function carregarExemplo() {
+    const c = novaConsulta();
+    Object.assign(c, {
+      exemplo: true, etapa: "investimento",
+      paciente: { nome: "Maria Exemplo (fictícia)", telefone: "(81) 90000-0000", origem: "Instagram", leadId: "" },
+      notas: { dor: "os dentes da frente tortos aparecem nas fotos", evento: "casamento em maio", livre: "Já usou aparelho fixo na adolescência. Marido participa da decisão." },
+      horarios: { dia1: "terça-feira", hora1: "14h", dia2: "quinta-feira", hora2: "18h" },
+      orcamento: { tratamento: "Invisalign", valor: "12000", entrada: "2000", parcelas: "10", pagamento: "Entrada + cartão" },
+      checks: { acolhimento: { 0: true, 2: true }, descoberta: { 0: true, 1: true, 2: true, 3: true }, diagnostico: { 0: true, 1: true, 3: true } }
+    });
+    abrir(c);
+    [["cliente", "Oi! Vi o anúncio de vocês. Quanto custa o aparelho invisível?"],
+     ["clinica", "Olá, Maria! Que bom que você nos chamou 😊 Me conta: o que mais te incomoda hoje no seu sorriso?"],
+     ["cliente", "Meus dentes da frente tortos, aparecem muito nas fotos. E vou casar em maio"],
+     ["cliente", "Gostei da simulação! Mas achei caro, vou pensar e falar com meu marido"]
+    ].forEach(([q, t]) => addMsg(q, t, "exemplo"));
+    toast("Atendimento de exemplo carregado");
+  }
+  $("#btnExemplo").addEventListener("click", () => { carregarExemplo(); mostrarView("consulta"); });
+
   aplicarTema();
   const atual = consultas[load(KEY_ATUAL, "")];
-  abrir(atual || novaConsulta());
+  if (atual) abrir(atual);
+  else if (!Object.keys(consultas).length) carregarExemplo();
+  else abrir(novaConsulta());
 })();
