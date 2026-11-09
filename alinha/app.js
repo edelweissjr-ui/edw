@@ -758,7 +758,7 @@
     if (location.protocol !== "file:") {
       try { const r = await fetch("api/config", { headers: { Accept: "application/json" } }); if (r.ok) { const d = await r.json(); if (d.plataforma) PLAT = d; } } catch (e) { /* sem servidor: modo demonstração */ }
     }
-    $("#modoInfo").innerHTML = PLAT ? `Conectado · IA ${PLAT.ia ? "ativa" : "desligada"}<br><a href="sair" style="color:inherit">Sair</a>` : "Modo demonstração";
+    $("#modoInfo").innerHTML = (PLAT ? `Conectado · IA ${PLAT.ia ? "ativa" : "desligada"}<br><a href="sair" style="color:inherit">Sair</a>` : "Modo demonstração") + `<br><span style="opacity:.7">Weiss Odontologia</span>`;
     $("#pillIA").textContent = PLAT && PLAT.ia ? "IA ouvindo + roteiro" : "Dicas do roteiro";
     try { await Store.carregar(); } catch (e) { toast("Não foi possível carregar os dados: " + e.message); }
     renderAjustes(); render();
