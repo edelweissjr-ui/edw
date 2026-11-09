@@ -97,10 +97,10 @@ function falhou(ip) { const t = tentativas.get(ip) || { n: 0, em: Date.now() }; 
 function paginaLogin(erro = "") {
   return `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex">
 <title>Alinha</title><link rel="icon" href="logo.svg"><style>
-:root{--bg:#0A0A1C;--card:#13122B;--fg:#EEEDFF;--dim:#ADAAD8;--accent:#7C6CF6;--line:rgba(167,158,255,.18);--bad:#FF7A72;color-scheme:dark}
+:root{--bg:#0A0A1C;--card:#13122B;--fg:#EEEDFF;--dim:#CDCAF2;--accent:#7C6CF6;--line:rgba(167,158,255,.18);--bad:#FF7A72;color-scheme:dark}
 *{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;background:var(--bg) radial-gradient(900px 500px at 70% -10%,rgba(124,108,246,.25),transparent 60%);color:var(--fg);font:15px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;padding:16px}
 form{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:30px;width:100%;max-width:360px;display:grid;gap:12px}
-.logo{display:flex;align-items:center;gap:10px;font-weight:800;font-size:24px;letter-spacing:-.02em}.logo svg{width:36px;height:36px}p{margin:0;color:var(--dim);font-size:14px}
+.logo{display:flex;align-items:center;gap:10px;font-weight:800;font-size:24px;letter-spacing:-.02em}.logo svg{width:36px;height:36px}p{margin:0;color:var(--dim);font-size:15px}
 input{font:inherit;color:inherit;padding:11px 12px;border:1px solid var(--line);border-radius:10px;background:var(--bg)}
 button{font:inherit;font-weight:700;padding:12px;border:0;border-radius:10px;background:var(--accent);color:#fff;cursor:pointer}.err{color:var(--bad);font-weight:600}.lema{color:var(--fg);font-size:14.5px;line-height:1.5}.lema b{color:#A79BFF}.small{font-size:12px}
 </style></head><body><form method="post" action="login">
