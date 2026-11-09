@@ -22,7 +22,8 @@ const ASSETS_DIR = path.resolve(APP_DIR, "../assets");   // logotipo do site
 const env = process.env;
 const CFG = {
   porta: Number(env.PORT || 3000),
-  senha: env.SENHA_ACESSO || "",
+  senha: env.SENHA_ACESSO || "",          // senha da equipe (usuário: equipe)
+  senhaAdmin: env.SENHA_ADMIN || "",      // senha do administrador (usuário: admin)
   segredo: env.SEGREDO_SESSAO || crypto.randomBytes(32).toString("hex"),
   kommoSub: env.KOMMO_SUBDOMINIO || "",
   kommoBase: env.KOMMO_URL_BASE || "",
@@ -35,6 +36,7 @@ const CFG = {
   dados: env.PASTA_DADOS || path.join(APP_DIR, "dados")
 };
 if (!CFG.senha) console.warn("⚠️  SENHA_ACESSO não definida: defina antes de publicar.");
+if (!CFG.senhaAdmin) console.warn("ℹ️  SENHA_ADMIN não definida: a senha da equipe terá acesso de administrador.");
 const anthropic = CFG.anthropicKey ? new Anthropic({ apiKey: CFG.anthropicKey }) : null;
 
 /* ------------------------------------------------------------------ */
@@ -109,17 +111,27 @@ async function lerJSON(req) { const b = await lerCorpo(req); return b.length ? J
 
 
 const assinar = (v) => crypto.createHmac("sha256", CFG.segredo).update(v).digest("hex");
-function cookieSessao() {
+function cookieSessao(papel) {
   const exp = Date.now() + 12 * 3600 * 1000; // 12 horas
-  return `${exp}.${assinar(String(exp))}`;
+  return `${exp}.${papel}.${assinar(exp + "." + papel)}`;
 }
+// devolve o papel da sessão ("admin" ou "equipe") ou null
 function sessaoValida(req) {
   const m = (req.headers.cookie || "").match(/(?:^|;\s*)alinha=([^;]+)/);
-  if (!m) return false;
-  const [exp, sig] = decodeURIComponent(m[1]).split(".");
-  if (!exp || !sig || Number(exp) < Date.now()) return false;
-  const esperado = assinar(exp);
-  return sig.length === esperado.length && crypto.timingSafeEqual(Buffer.from(sig), Buffer.from(esperado));
+  if (!m) return null;
+  const [exp, papel, sig] = decodeURIComponent(m[1]).split(".");
+  if (!exp || !papel || !sig || Number(exp) < Date.now() || !["admin", "equipe"].includes(papel)) return null;
+  const esperado = assinar(exp + "." + papel);
+  return sig.length === esperado.length && crypto.timingSafeEqual(Buffer.from(sig), Buffer.from(esperado)) ? papel : null;
+}
+const igual = (a, b) => !!b && a.length === b.length && crypto.timingSafeEqual(Buffer.from(a), Buffer.from(b));
+function autenticar(usuario, senha) {
+  const u = String(usuario || "").trim().toLowerCase();
+  if (u === "admin") return igual(senha, CFG.senhaAdmin) ? "admin" : null;
+  if (u === "equipe" || u === "") {
+    if (igual(senha, CFG.senha)) return CFG.senhaAdmin ? "equipe" : "admin"; // sem senha de admin, a senha única dá acesso total
+  }
+  return null;
 }
 const ehHttps = (req) => (req.headers["x-forwarded-proto"] || "").includes("https");
 
@@ -140,7 +152,9 @@ button{font:inherit;font-weight:700;padding:12px;border:0;border-radius:10px;bac
 </style></head><body><form method="post" action="login">
 <div class="logo"><svg aria-hidden="true" viewBox="0 0 32 32"><defs><linearGradient id="gA" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#6A5AF0"/><stop offset="1" stop-color="#A193FF"/></linearGradient></defs><rect width="32" height="32" rx="9" fill="url(#gA)"/><path d="M10 24 16 8l6 16" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M11.9 18.6q4.1 3 8.2 0" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/></svg>Alinha</div><p class="lema">Alinha a conversa, o orçamento, o fechamento e o tratamento.<br><b>Do primeiro contato ao sorriso alinhado.</b></p><p class="small">Weiss Odontologia</p>
 ${erro ? `<p class="err">${erro}</p>` : ""}
-<label for="senha" style="font-size:13px;font-weight:600">Senha da equipe</label>
+<label for="usuario" style="font-size:13px;font-weight:600">Usuário</label>
+<input id="usuario" name="usuario" autocomplete="username" placeholder="equipe ou admin" value="equipe" autocapitalize="none" spellcheck="false">
+<label for="senha" style="font-size:13px;font-weight:600">Senha</label>
 <input id="senha" name="senha" type="password" autocomplete="current-password" required autofocus>
 <button type="submit">Entrar</button></form></body></html>`;
 }
@@ -415,23 +429,26 @@ async function rotas(req, res) {
 
   if (p === "/login" && req.method === "POST") {
     if (bloqueado(ip)) { res.writeHead(429, { "Content-Type": "text/html; charset=utf-8" }); return res.end(paginaLogin("Muitas tentativas. Aguarde 15 minutos.")); }
-    const senha = new URLSearchParams((await lerCorpo(req)).toString("utf8")).get("senha") || "";
-    const ok = CFG.senha && senha.length === CFG.senha.length && crypto.timingSafeEqual(Buffer.from(senha), Buffer.from(CFG.senha));
-    if (!ok) { falhou(ip); res.writeHead(401, { "Content-Type": "text/html; charset=utf-8" }); return res.end(paginaLogin("Senha incorreta.")); }
+    const form = new URLSearchParams((await lerCorpo(req)).toString("utf8"));
+    const papel = autenticar(form.get("usuario"), form.get("senha") || "");
+    if (!papel) { falhou(ip); res.writeHead(401, { "Content-Type": "text/html; charset=utf-8" }); return res.end(paginaLogin("Usuário ou senha incorretos.")); }
     tentativas.delete(ip);
-    res.writeHead(303, { Location: "./", "Set-Cookie": `alinha=${encodeURIComponent(cookieSessao())}; Path=/; HttpOnly; SameSite=Lax; Max-Age=43200${ehHttps(req) ? "; Secure" : ""}` });
+    res.writeHead(303, { Location: "./", "Set-Cookie": `alinha=${encodeURIComponent(cookieSessao(papel))}; Path=/; HttpOnly; SameSite=Lax; Max-Age=43200${ehHttps(req) ? "; Secure" : ""}` });
     return res.end();
   }
   if (p === "/sair") { res.writeHead(303, { Location: "login", "Set-Cookie": "alinha=; Path=/; Max-Age=0" }); return res.end(); }
   if (p === "/login") { res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" }); return res.end(paginaLogin()); }
 
-  if (!sessaoValida(req)) {
+  const papel = sessaoValida(req);
+  const soAdmin = () => { if (papel === "admin") return false; json(res, 403, { erro: "Somente o administrador pode fazer isso." }); return true; };
+  if (!papel) {
     if (p.startsWith("/api/")) return json(res, 401, { erro: "Sessão expirada. Entre novamente." });
     res.writeHead(303, { Location: "login" }); return res.end();
   }
 
-  if (p === "/api/config" && req.method === "GET") return json(res, 200, { plataforma: true, versao: VERSAO, ia: !!anthropic, kommo: kommoOk() });
+  if (p === "/api/config" && req.method === "GET") return json(res, 200, { plataforma: true, versao: VERSAO, papel, ia: !!anthropic, kommo: kommoOk() });
   if (p === "/api/backup" && req.method === "GET") {
+    if (soAdmin()) return;
     res.writeHead(200, { "Content-Type": "application/json; charset=utf-8", "Content-Disposition": `attachment; filename="alinha-dados-${new Date().toISOString().slice(0, 10)}.json"`, "Cache-Control": "no-store" });
     return res.end(JSON.stringify(DB, null, 2));
   }
@@ -447,12 +464,19 @@ async function rotas(req, res) {
     return json(res, 200, { ok: true, paciente: b });
   }
   if (p.startsWith("/api/pacientes/") && req.method === "DELETE") {
+    if (soAdmin()) return;
     const id = decodeURIComponent(p.split("/").pop());
     DB.pacientes = DB.pacientes.filter((x) => x.id !== id); salvarDB();
     return json(res, 200, { ok: true });
   }
   if (p === "/api/ajustes" && req.method === "GET") return json(res, 200, { ok: true, ajustes: DB.ajustes || {} });
-  if (p === "/api/ajustes" && req.method === "POST") { DB.ajustes = { ...(DB.ajustes || {}), ...(await lerJSON(req)) }; salvarDB(); return json(res, 200, { ok: true, ajustes: DB.ajustes }); }
+  if (p === "/api/ajustes" && req.method === "POST") {
+    const b = await lerJSON(req);
+    // a equipe só pode cadastrar a própria voz; o resto dos ajustes é do administrador
+    if (papel !== "admin" && Object.keys(b).some((k) => k !== "vozes")) return json(res, 403, { erro: "Somente o administrador pode alterar os ajustes." });
+    DB.ajustes = { ...(DB.ajustes || {}), ...b }; salvarDB();
+    return json(res, 200, { ok: true, ajustes: DB.ajustes });
+  }
 
   // IA
   if (p.startsWith("/api/ia/") && req.method === "POST") {

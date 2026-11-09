@@ -17,7 +17,7 @@ Abra `alinha/index.html` no navegador. O sistema abre em **modo demonstração**
 ## Colocar no ar para a equipe
 1. Chave da IA: **console.anthropic.com** › Billing (crédito) › API Keys › Create Key.
 2. **render.com** › New › **Blueprint** › repositório `edw` (o arquivo `render.yaml` já está pronto).
-3. Preencha `SENHA_ACESSO` e `ANTHROPIC_API_KEY` (e `KOMMO_TOKEN`, se quiser enviar o briefing ao Kommo).
+3. Preencha `SENHA_ADMIN`, `SENHA_ACESSO` e `ANTHROPIC_API_KEY` (e `KOMMO_TOKEN`, se quiser enviar o briefing ao Kommo).
 4. Abra o endereço gerado, digite a senha e cadastre a equipe em **Ajustes**.
 
 Custo: hospedagem ≈ US$ 7/mês + uso da IA (centavos por consulta). Sem limite de consultas.
@@ -27,6 +27,14 @@ Em **Ajustes › Reconhecimento de voz**, escolha o profissional, toque em **Gra
 Na consulta, o botão **🎙 Automático** fica ativo: a sua voz é marcada como **Profissional** e qualquer outra como **Paciente**. Se o Alinha errar uma frase, toque nela na transcrição para trocar.
 - Não grava áudio: guarda só uma "impressão" numérica do timbre e do tom.
 - Funciona melhor com o microfone perto do profissional e em sala silenciosa. Vozes muito parecidas podem confundir; por isso a correção com um toque continua disponível, e a IA também corrige pelo conteúdo ao gerar o briefing.
+
+## Acessos
+| Usuário | Senha (variável no Render) | Pode |
+|---|---|---|
+| `admin` | `SENHA_ADMIN` | Tudo: equipe, condição especial, apagar dados, baixar cópias, funis |
+| `equipe` | `SENHA_ACESSO` | Uso diário: consultas, briefings, follow-up, mensagens e cadastro da própria voz |
+
+Se `SENHA_ADMIN` não for definida, a senha da equipe tem acesso total. Após 8 senhas erradas, o acesso fica bloqueado por 15 minutos.
 
 ## Uso no dia a dia
 - **Na consulta:** tela Consulta › nome e WhatsApp do paciente › marque a autorização › **Iniciar**. Deixe o computador ou tablet ao lado. No fim, **Parar e gerar briefing**.

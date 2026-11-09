@@ -15,7 +15,9 @@ services:
       sizeGB: 1
     envVars:
       - key: SENHA_ACESSO
-        sync: false          # a senha que a equipe digita
+        sync: false          # senha da equipe (usuário: equipe)
+      - key: SENHA_ADMIN
+        sync: false          # senha do administrador (usuário: admin)
       - key: SEGREDO_SESSAO
         generateValue: true
       - key: PASTA_DADOS

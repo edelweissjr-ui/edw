@@ -805,7 +805,9 @@
     if (location.protocol !== "file:") {
       try { const r = await fetch("api/config", { headers: { Accept: "application/json" } }); if (r.ok) { const d = await r.json(); if (d.plataforma) { PLAT = d; if (d.versao) VERSAO = d.versao; } } } catch (e) { /* sem servidor: modo demonstração */ }
     }
-    $("#modoInfo").innerHTML = (PLAT ? `Conectado · IA ${PLAT.ia ? "ativa" : "desligada"}<br><a href="sair" style="color:inherit">Sair</a>` : "Modo demonstração") + `<br><span style="opacity:.7">Weiss Odontologia · v${VERSAO}</span>`;
+    const ehAdmin = !PLAT || PLAT.papel === "admin";
+    document.body.classList.toggle("perfil-equipe", !ehAdmin);
+    $("#modoInfo").innerHTML = (PLAT ? `${ehAdmin ? "Administrador" : "Equipe"} · IA ${PLAT.ia ? "ativa" : "desligada"}<br><a href="sair" style="color:inherit">Sair</a>` : "Modo demonstração") + `<br><span style="opacity:.7">Weiss Odontologia · v${VERSAO}</span>`;
     renderAtualizacoes();
     if (PLAT) { verificarAtualizacao(false); setInterval(() => verificarAtualizacao(false), 5 * 60 * 1000); }
     $("#pillIA").textContent = PLAT && PLAT.ia ? "IA ouvindo + roteiro" : "Dicas do roteiro";
