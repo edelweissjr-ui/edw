@@ -307,7 +307,7 @@ ${fmtTranscricao((b.transcricao || []).slice(-40))}`
 function promptBriefing(b) {
   return {
     sistema: `Você é o Alinha, copiloto comercial da ${CLINICA}
-Você recebe a transcrição de uma consulta que acabou de terminar e produz o BRIEFING para o profissional e a equipe comercial. Seja concreto, use as palavras do paciente, e não invente números: use somente valores ditos na conversa.
+Você recebe a transcrição de uma consulta que acabou de terminar e produz o BRIEFING para o profissional e a equipe comercial. Os rótulos PROFISSIONAL/PACIENTE vêm de reconhecimento automático de voz e podem ter erros: use o conteúdo das falas para corrigir quem disse o quê. Seja concreto, use as palavras do paciente, e não invente números: use somente valores ditos na conversa.
 Responda SOMENTE com JSON neste formato:
 {
  "paciente": "primeiro nome se dito, senão ''",
@@ -431,7 +431,7 @@ async function rotas(req, res) {
   }
 
   const arq = p === "/" ? "index.html" : p.slice(1);
-  if (["index.html", "app.js", "biblioteca.js", "demo.js"].includes(arq)) return servirArquivo(res, APP_DIR, arq);
+  if (["index.html", "app.js", "biblioteca.js", "demo.js", "voz.js"].includes(arq)) return servirArquivo(res, APP_DIR, arq);
   json(res, 404, { erro: "Não encontrado" });
 }
 

@@ -416,7 +416,15 @@
     return { inicio: null, seg: 0, gravando: false, pausado: false, momento: 0, falas: [], dicas: [], objecoes: new Set(), demo: false, ultimaIA: 0, temp: 25, avisouFechar: false };
   }
   C = novaSessao();
-  let quem = "paciente", tick = null, sr = null, stream = null, tipTimer = null, demoTimer = null;
+  let quem = "paciente", tick = null, sr = null, stream = null, tipTimer = null, demoTimer = null, MED = null, quemManual = false;
+  const perfilAtual = () => (AJ.vozes || {})[$("#cProf").value];
+  function atualizarAuto() {
+    const tem = !!perfilAtual();
+    $("#btnQuemAuto").classList.toggle("hide", !tem);
+    if (tem && !quemManual) quem = "auto";
+    if (!tem && quem === "auto") quem = "paciente";
+    $$("#segQuem button").forEach((x) => x.classList.toggle("on", x.dataset.q === quem));
+  }
 
   function renderMomento() {
     $("#momentoNome").textContent = MOMENTOS[C.momento];
@@ -497,13 +505,13 @@
       if (d.dica) mostrarDica({ ...d, fonte: "ia" });
     } catch (e) { /* segue com as dicas do roteiro */ }
   }
-  function addFala(q, texto, extra) {
+  function addFala(q, texto, extra, opts = {}) {
     texto = String(texto || "").trim(); if (!texto) return;
-    const f = { quem: q, texto, t: C.seg };
+    const f = { quem: q, texto, t: C.seg, auto: !!opts.auto };
     C.falas.push(f);
     const tr = $("#trans");
     if (C.falas.length === 1) tr.innerHTML = "";
-    tr.insertAdjacentHTML("beforeend", `<p class="${q === "paciente" ? "pac" : ""}"><b>${q === "paciente" ? "Paciente" : "Profissional"}</b>${esc(texto)}</p>`);
+    tr.insertAdjacentHTML("beforeend", `<p data-i="${C.falas.length - 1}" class="${q === "paciente" ? "pac" : ""}${opts.incerto ? " inc" : ""}" title="Toque para trocar quem falou"><b>${q === "paciente" ? "Paciente" : "Profissional"}${opts.auto ? " 🎙" : ""}</b>${esc(texto)}</p>`);
     tr.scrollTop = tr.scrollHeight;
     avancarMomento(texto);
     if (extra && extra.dica) mostrarDica({ ...extra.dica, citacao: texto.slice(0, 110), fonte: "ia" });
@@ -511,6 +519,15 @@
     termometro(f);
     if (q === "paciente") dicaIA();
   }
+  // tocar numa frase troca quem falou (corrige o reconhecimento)
+  $("#trans").addEventListener("click", (e) => {
+    const el = e.target.closest("p[data-i]"); if (!el) return;
+    const f = C.falas[Number(el.dataset.i)]; if (!f) return;
+    f.quem = f.quem === "paciente" ? "profissional" : "paciente"; f.corrigido = true;
+    el.classList.toggle("pac", f.quem === "paciente"); el.classList.remove("inc");
+    el.querySelector("b").textContent = f.quem === "paciente" ? "Paciente" : "Profissional";
+    if (f.quem === "paciente") { analisarLocal(f); termometro(f); }
+  });
   const mmss = (s) => String(Math.floor(s / 60)).padStart(2, "0") + ":" + String(s % 60).padStart(2, "0");
   function estadoBotoes() {
     const on = C.gravando;
@@ -531,8 +548,9 @@
     const el = $("#dica"); el.classList.add("idle"); el.innerHTML = `<div class="txt">As dicas aparecem aqui assim que o paciente falar algo importante: uma objeção, uma dúvida ou um sinal de que quer fechar.</div>`;
   }
   $("#chkConsent").addEventListener("change", estadoBotoes);
-  $("#segQuem").addEventListener("click", (e) => { const b = e.target.closest("button"); if (!b) return; quem = b.dataset.q; $$("#segQuem button").forEach((x) => x.classList.toggle("on", x === b)); });
-  $("#btnFala").addEventListener("click", () => { addFala(quem, $("#inFala").value); $("#inFala").value = ""; });
+  $("#segQuem").addEventListener("click", (e) => { const b = e.target.closest("button"); if (!b) return; quem = b.dataset.q; quemManual = quem !== "auto"; $$("#segQuem button").forEach((x) => x.classList.toggle("on", x === b)); });
+  $("#cProf").addEventListener("change", () => { quemManual = false; atualizarAuto(); });
+  $("#btnFala").addEventListener("click", () => { addFala(quem === "auto" ? "paciente" : quem, $("#inFala").value); $("#inFala").value = ""; });
   $("#inFala").addEventListener("keydown", (e) => { if (e.key === "Enter") $("#btnFala").click(); });
 
   $("#btnIniciar").addEventListener("click", async () => {
@@ -544,9 +562,23 @@
     catch (e) { $("#recHint").textContent = "O microfone não foi liberado neste aparelho. Digite as falas no campo da transcrição ou veja a consulta de demonstração."; return; }
     if (!SR) { $("#recHint").textContent = "A transcrição automática funciona no Google Chrome. Neste navegador, digite as falas principais."; return; }
     sr = new SR(); sr.lang = "pt-BR"; sr.continuous = true; sr.interimResults = false;
-    sr.onresult = (ev) => { for (let i = ev.resultIndex; i < ev.results.length; i++) if (ev.results[i].isFinal) addFala(quem, ev.results[i][0].transcript); };
+    try { MED = window.AlinhaVoz.medidor(stream); } catch (e) { MED = null; }
+    sr.onresult = (ev) => {
+      for (let i = ev.resultIndex; i < ev.results.length; i++) {
+        if (!ev.results[i].isFinal) continue;
+        const quadros = MED ? MED.pegar() : [];
+        let q = quem, opts = {};
+        if (quem === "auto") {
+          const r = window.AlinhaVoz.classificar(perfilAtual(), quadros);
+          q = r ? r.quem : (C.ultimoQuem || "paciente");
+          opts = { auto: true, incerto: !r || r.confianca < 0.12 };
+          C.ultimoQuem = q;
+        }
+        addFala(q, ev.results[i][0].transcript, null, opts);
+      }
+    };
     sr.onend = () => { if (C.gravando && !C.pausado) { try { sr.start(); } catch (e) { /* já ativo */ } } };
-    try { sr.start(); $("#recHint").textContent = "Escutando. Toque em Paciente ou Profissional para indicar quem fala."; } catch (e) { /* */ }
+    try { sr.start(); $("#recHint").textContent = quem === "auto" ? "Escutando e reconhecendo as vozes sozinho. Se errar, toque na frase para trocar." : "Escutando. Toque em Paciente ou Profissional para indicar quem fala (ou cadastre sua voz em Ajustes)."; } catch (e) { /* */ }
   });
   $("#btnPausar").addEventListener("click", () => {
     C.pausado = !C.pausado; estadoBotoes();
@@ -556,6 +588,7 @@
     C.gravando = false; clearInterval(tick); clearInterval(demoTimer);
     try { sr && sr.stop(); } catch (e) { /* */ } sr = null;
     stream && stream.getTracks().forEach((t) => t.stop()); stream = null;
+    if (MED) { MED.parar(); MED = null; }
     estadoBotoes();
   }
   $("#btnParar").addEventListener("click", async () => {
@@ -626,7 +659,52 @@
     const profs = [...new Set([...(AJ.equipe || []), ...PAC.map((p) => p.profissional).filter(Boolean)])];
     const atual = $("#cProf").value;
     $("#cProf").innerHTML = profs.map((n) => `<option${n === atual ? " selected" : ""}>${esc(n)}</option>`).join("");
+    renderVozes(); atualizarAuto();
   }
+  /* cadastro e teste da voz */
+  function renderVozes() {
+    const equipe = [...new Set([...(AJ.equipe || []), ...PAC.map((p) => p.profissional).filter(Boolean)])];
+    const atual = $("#vozProf").value || $("#cProf").value;
+    $("#vozProf").innerHTML = equipe.map((n) => `<option${n === atual ? " selected" : ""}>${esc(n)}</option>`).join("");
+    const v = AJ.vozes || {};
+    $("#vozLista").innerHTML = Object.keys(v).length ? Object.entries(v).map(([n, pf]) => `<div class="row" style="padding:6px 0;border-top:1px solid var(--line)"><span class="grow">✓ Voz de <b>${esc(n)}</b> cadastrada em ${fmtData(pf.criadoEm)}</span><button class="btn sm ghost" data-vozdel="${esc(n)}">Apagar</button></div>`).join("") : `<span class="dim">Nenhuma voz cadastrada.</span>`;
+  }
+  async function capturar(segundos, aoTique) {
+    const st = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true } });
+    const m = window.AlinhaVoz.medidor(st);
+    for (let s = segundos; s > 0; s--) { aoTique(s, m.espiar()); await new Promise((r) => setTimeout(r, 1000)); }
+    const q = m.pegar(); m.parar(); st.getTracks().forEach((t) => t.stop());
+    return q;
+  }
+  $("#btnVozGravar").addEventListener("click", async () => {
+    const nome = $("#vozProf").value; if (!nome) { toast("Cadastre a equipe primeiro"); return; }
+    const b = $("#btnVozGravar"), st = $("#vozStatus"); b.disabled = true;
+    try {
+      const q = await capturar(20, (s, n) => { st.textContent = `Gravando… leia o texto (${s} s) · ${n} trechos de voz`; });
+      const perfil = window.AlinhaVoz.criarPerfil(q);
+      await Store.ajustes({ vozes: Object.assign({}, AJ.vozes || {}, { [nome]: perfil }) });
+      st.textContent = `✓ Voz de ${nome} cadastrada. Toque em “Testar reconhecimento”.`;
+      renderVozes(); atualizarAuto();
+    } catch (e) { st.textContent = e.name === "NotAllowedError" || e.name === "NotFoundError" ? "O microfone não foi liberado neste aparelho." : e.message; }
+    b.disabled = false;
+  });
+  $("#btnVozTestar").addEventListener("click", async () => {
+    const nome = $("#vozProf").value, perfil = (AJ.vozes || {})[nome], st = $("#vozStatus");
+    if (!perfil) { st.textContent = "Cadastre a voz primeiro."; return; }
+    const b = $("#btnVozTestar"); b.disabled = true;
+    try {
+      const q = await capturar(4, (s) => { st.textContent = `Fale qualquer frase… (${s} s)`; });
+      const r = window.AlinhaVoz.classificar(perfil, q);
+      st.textContent = !r ? "Não captei voz suficiente. Fale mais perto do microfone." : r.quem === "profissional" ? `✓ Reconheci: ${nome}` : "Reconheci: outra pessoa (seria marcada como Paciente)";
+    } catch (e) { st.textContent = "O microfone não foi liberado neste aparelho."; }
+    b.disabled = false;
+  });
+  $("#vozLista").addEventListener("click", async (e) => {
+    const b = e.target.closest("[data-vozdel]"); if (!b) return;
+    const v = Object.assign({}, AJ.vozes || {}); delete v[b.dataset.vozdel];
+    AJ.vozes = v; await Store.ajustes({ vozes: v }); renderVozes(); atualizarAuto();
+  });
+
   $("#btnSalvarAjustes").addEventListener("click", async () => {
     try {
       await Store.ajustes({ equipe: $("#aEquipe").value.split(",").map((s) => s.trim()).filter(Boolean), condicao: $("#aCondicao").value.trim() });

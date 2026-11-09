@@ -5,7 +5,7 @@ FROM node:22-slim
 WORKDIR /app
 COPY alinha/package.json alinha/package-lock.json ./alinha/
 RUN cd alinha && npm ci --omit=dev
-COPY alinha/index.html alinha/app.js alinha/biblioteca.js alinha/demo.js ./alinha/
+COPY alinha/index.html alinha/app.js alinha/biblioteca.js alinha/demo.js alinha/voz.js ./alinha/
 COPY alinha/servidor ./alinha/servidor
 ENV PASTA_DADOS=/dados PORT=3000
 EXPOSE 3000

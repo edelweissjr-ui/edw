@@ -228,6 +228,11 @@ button.kpi.hl .go{color:#fff}
 .seqfim{text-align:center;padding:24px 10px;display:flex;flex-direction:column;align-items:center;gap:10px}
 .seqfim p{margin:0}
 @media (prefers-reduced-motion:reduce){button.kpi{transition:none}}
+.leitura{background:var(--surface-2);border-radius:12px;padding:12px 14px;font-size:14px;line-height:1.55}
+.leitura i{display:block;margin-top:6px;color:var(--fg)}
+.trans p{cursor:pointer}
+.trans p.inc b::after{content:" · confira";color:var(--warn)}
+.trans p:hover{outline:1px dashed var(--line-2)}
 #toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translate(-50%,120px);background:var(--fg);color:var(--bg);padding:10px 16px;border-radius:11px;font-weight:700;z-index:99;transition:transform .25s;max-width:calc(100% - 32px)}
 #toast.on{transform:translate(-50%,0)}
 @media (max-width:860px){#toast{bottom:calc(84px + env(safe-area-inset-bottom,0px))}}
@@ -302,7 +307,7 @@ button.kpi.hl .go{color:#fff}
               <button class="btn danger grow hide" id="btnParar">■ Parar e gerar briefing</button>
             </div>
             <div class="row small"><span class="dim">Quem fala:</span>
-              <div class="seg grow" id="segQuem"><button data-q="paciente" class="on">Paciente</button><button data-q="profissional">Profissional</button></div></div>
+              <div class="seg grow" id="segQuem"><button data-q="auto" class="hide" id="btnQuemAuto" title="Reconhece sua voz cadastrada">🎙 Automático</button><button data-q="paciente" class="on">Paciente</button><button data-q="profissional">Profissional</button></div></div>
             <p class="tiny dim" id="recHint" style="margin:0"></p>
           </div>
           <div class="card">
@@ -341,6 +346,14 @@ button.kpi.hl .go{color:#fff}
           <div><label class="f" for="aCondicao">Condição especial vigente (só se for real)</label><input class="in" id="aCondicao" placeholder="ex.: check-up digital abatido no tratamento até 30/11"></div>
           <div class="row"><button class="btn pri" id="btnSalvarAjustes">Salvar</button><span class="small dim" id="ajStatus"></span></div>
         </div>
+        <div class="card stack" id="cardVoz">
+          <h3>Reconhecimento de voz</h3>
+          <p class="small dim" style="margin:0">Cadastre a voz do profissional uma vez. Na consulta, o Alinha passa a separar sozinho quem fala: <b>a sua voz = Profissional</b>, qualquer outra = Paciente. Não guarda áudio, só uma "impressão" numérica do timbre e do tom.</p>
+          <div class="row"><div class="grow"><label class="f" for="vozProf">Profissional</label><select class="in" id="vozProf"></select></div></div>
+          <div class="leitura" id="vozTexto">Leia em voz alta, no seu tom normal de consulta:<br><i>“Olá, tudo bem? Que bom te receber aqui na Weiss. Me conta o que te incomoda no seu sorriso. Vamos fazer o escaneamento com o iTero: em poucos minutos você vê seus dentes em 3D e uma simulação de como o sorriso pode ficar. Pelo que você me contou, o caminho que eu recomendo é o Invisalign. O investimento fica dividido em parcelas, e a gente acompanha cada etapa até o resultado final. Faz sentido para você?”</i></div>
+          <div class="row"><button class="btn pri" id="btnVozGravar">● Gravar minha voz (20 s)</button><button class="btn" id="btnVozTestar">Testar reconhecimento</button><span class="small dim" id="vozStatus"></span></div>
+          <div id="vozLista" class="small"></div>
+        </div>
         <div class="card stack">
           <h3>Tema</h3>
           <div class="chips" id="tema"><button data-t="auto" class="on">Escuro (padrão)</button><button data-t="light">Claro</button></div>
@@ -358,6 +371,7 @@ button.kpi.hl .go{color:#fff}
 <div id="toast"></div>
 <script src="biblioteca.js"></script>
 <script src="demo.js"></script>
+<script src="voz.js"></script>
 <script src="app.js"></script>
 </body>
 </html>

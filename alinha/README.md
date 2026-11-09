@@ -20,6 +20,12 @@ Abra `alinha/index.html` no navegador. O sistema abre em **modo demonstração**
 
 Custo: hospedagem ≈ US$ 7/mês + uso da IA (centavos por consulta). Sem limite de consultas.
 
+## Reconhecimento de voz (sem trocar o botão)
+Em **Ajustes › Reconhecimento de voz**, escolha o profissional, toque em **Gravar minha voz** e leia o texto por 20 segundos. Depois toque em **Testar reconhecimento**.
+Na consulta, o botão **🎙 Automático** fica ativo: a sua voz é marcada como **Profissional** e qualquer outra como **Paciente**. Se o Alinha errar uma frase, toque nela na transcrição para trocar.
+- Não grava áudio: guarda só uma "impressão" numérica do timbre e do tom.
+- Funciona melhor com o microfone perto do profissional e em sala silenciosa. Vozes muito parecidas podem confundir; por isso a correção com um toque continua disponível, e a IA também corrige pelo conteúdo ao gerar o briefing.
+
 ## Uso no dia a dia
 - **Na consulta:** tela Consulta › nome e WhatsApp do paciente › marque a autorização › **Iniciar**. Deixe o computador ou tablet ao lado. No fim, **Parar e gerar briefing**.
 - **Todo dia de manhã:** tela **Hoje** › envie as mensagens prontas › **Enviei**.
