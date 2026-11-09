@@ -11,6 +11,14 @@ Copiloto de vendas da **Weiss Odontologia** (Caruaru e Recife). Acompanha a cons
 | **3. Mensagem pronta** | Na tela **Hoje**: a mensagem de WhatsApp certa para cada paciente, escrita com **as palavras do próprio paciente**. Botões Copiar, WhatsApp, Outra versão, Enviei e Pular. |
 | **4. Follow-up D0 a D30** | Quadro com cada paciente no toque certo (D0, D1, D3, D7, D15, D30): quem chamar hoje, atrasados, valor em aberto e **valor recuperado** pelo follow-up. Filtro por responsável. |
 
+## WhatsApp ao vivo
+As conversas dos WhatsApps de **Caruaru e Recife**, que já estão ligados ao Kommo, chegam ao Alinha em segundos. A cada mensagem do paciente, a tela **WhatsApp** mostra a objeção detectada, a orientação e a **resposta pronta** (IA + roteiro), além do **termômetro** da conversa.
+- **Responder:** "Copiar e abrir no Kommo" (a resposta sai pelo número oficial da clínica e fica registrada no CRM).
+- **Assumir atendimento / Devolver para a IA:** coloca ou tira a etiqueta "Atendimento humano" no lead. No fluxo da IA do n8n, inclua uma verificação: se o lead tiver essa etiqueta, não responder.
+- **Adicionar ao follow-up:** a conversa entra na cadência D0 a D30.
+
+**Ligar (uma vez):** no Kommo, **Configurações › Integrações › Webhooks**, cadastre `https://SEU-ENDERECO/webhooks/kommo/VALOR_DE_KOMMO_CHAVE_WEBHOOK` (o valor aparece no Render, em Environment) e marque os eventos de **mensagem recebida** e **mensagem enviada**. O webhook da IA atual continua funcionando.
+
 ## Ver funcionando agora (sem instalar nada)
 Abra `alinha/index.html` no navegador. O sistema abre em **modo demonstração**, com pacientes fictícios e uma **consulta simulada** (tela Consulta › "Ver uma consulta de demonstração").
 

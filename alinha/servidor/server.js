@@ -27,6 +27,7 @@ const CFG = {
   segredo: env.SEGREDO_SESSAO || crypto.randomBytes(32).toString("hex"),
   kommoSub: env.KOMMO_SUBDOMINIO || "",
   kommoBase: env.KOMMO_URL_BASE || "",
+  kommoChaveWebhook: env.KOMMO_CHAVE_WEBHOOK || "",   // chave no endereço do webhook de mensagens
   kommoToken: env.KOMMO_TOKEN || "",
   kommoStatus: { negociacao: null, fechado: 142, perdido: 143 },
   kommoResponsavel: env.KOMMO_RESPONSAVEL_ID ? Number(env.KOMMO_RESPONSAVEL_ID) : null,
@@ -77,6 +78,42 @@ if ((DB.esquema || 0) < MIGRACOES.length || DB.versao !== VERSAO) {
   fs.writeFileSync(ARQ_DB, JSON.stringify(DB));
   if (antes && antes !== VERSAO) console.log(`Atualizado: v${antes} → v${VERSAO} (dados preservados, cópia de segurança criada)`);
 }
+/* WhatsApp: mensagens recebidas e enviadas, entregues pelo webhook do Kommo */
+DB.whatsapp = DB.whatsapp || {};
+function lerMensagensKommo(corpo) {
+  // o Kommo envia application/x-www-form-urlencoded com chaves como message[add][0][text]
+  const acc = {};
+  for (const [k, v] of new URLSearchParams(corpo)) {
+    const m = k.match(/^message\[add\]\[(\d+)\]\[([^\]]+)\](?:\[([^\]]+)\])?$/);
+    if (!m) continue;
+    acc[m[1]] = acc[m[1]] || {};
+    if (m[3]) { acc[m[1]][m[2]] = acc[m[1]][m[2]] || {}; acc[m[1]][m[2]][m[3]] = v; } else acc[m[1]][m[2]] = v;
+  }
+  return Object.values(acc);
+}
+function guardarWhatsApp(lista) {
+  const agora = Date.now();
+  for (const msg of lista) {
+    const lead = String(msg.entity_id || msg.element_id || "");
+    const anexo = msg.attachment && msg.attachment.link ? String(msg.attachment.link) : "";
+    const ehAudio = !!anexo && /voice|audio/i.test(String((msg.attachment && msg.attachment.type) || "") + anexo);
+    if (!lead || (!msg.text && !anexo)) continue;
+    const ts = msg.created_at ? new Date(Number(msg.created_at) * 1000).toISOString() : new Date().toISOString();
+    const C = DB.whatsapp[lead] = DB.whatsapp[lead] || { lista: [], nome: "", atualizado: agora };
+    const id = String(msg.id || lead + "-" + ts);
+    const autorInfo = JSON.stringify(msg.author || {}).toLowerCase();
+    if (msg.type !== "outgoing" && msg.author && msg.author.name && !C.nome) C.nome = String(msg.author.name).slice(0, 60);
+    if (!C.lista.some((x) => x.id === id)) {
+      C.lista.push({ id, ts, autor: msg.type === "outgoing" ? "clinica" : "cliente", ia: msg.type === "outgoing" && /bot|robo|\bia\b|assistente|salesbot|n8n|gpt|claude/.test(autorInfo),
+        texto: String(msg.text || (ehAudio ? "🎧 [áudio]" : "📎 [anexo]")), anexo: anexo || null });
+      C.lista.sort((a, b) => (a.ts > b.ts ? 1 : a.ts < b.ts ? -1 : 0)); // estável: mesma hora mantém a ordem de chegada
+    }
+    C.lista = C.lista.slice(-200); C.atualizado = agora;
+  }
+  for (const [k, C] of Object.entries(DB.whatsapp)) if (agora - C.atualizado > 30 * 86400000) delete DB.whatsapp[k];
+  salvarDB();
+}
+
 backup("diario");
 setInterval(() => backup("diario"), 24 * 3600 * 1000).unref();
 let salvarTimer = null;
@@ -393,6 +430,21 @@ ${fmtTranscricao(b.transcricao) || "(vazia)"}`,
   };
 }
 
+function promptWhatsApp(b) {
+  return {
+    sistema: `Você é o Alinha, copiloto comercial da ${CLINICA}
+Você acompanha uma conversa de WhatsApp em andamento com um paciente (lead que pode ter vindo de anúncio no Meta e sido atendido antes pela IA de atendimento). Sugira a PRÓXIMA mensagem da clínica para conduzir, com empatia, ao agendamento do check-up digital (iTero) ou ao fechamento.
+Regras: mensagem curta (até 3 frases), no máximo 1 emoji, termine com uma pergunta fácil (de preferência com duas opções). Não passe preço antes do diagnóstico: convide para o check-up digital. Diante de objeção: valide, descubra a objeção real e responda. Nunca prometa resultado; não invente valores, prazos ou condições. Não dê diagnóstico pelo WhatsApp. Só use condição especial se estiver no contexto.
+Responda SOMENTE com JSON: {"orientacao": "1 frase para o atendente: o que está acontecendo e o que fazer", "mensagem": "texto pronto para enviar", "rotulo": "2 a 4 palavras, ex.: Objeção de preço", "prontidao": número de 0 a 100 (quão pronto para agendar/fechar)}`,
+    prompt: `Unidade: ${b.unidade || "-"} · Paciente: ${b.nome || "-"}
+Condição especial vigente: ${b.condicao || "nenhuma"}
+${b.versao_anterior ? "Escreva uma versão DIFERENTE desta: " + b.versao_anterior + "\n" : ""}
+CONVERSA (a mais recente por último):
+${(b.conversa || []).slice(-30).map((m) => `${m.autor === "cliente" ? "PACIENTE" : m.ia ? "IA DE ATENDIMENTO" : "CLÍNICA"}: ${m.texto}`).join("\n")}`,
+    modelo: CFG.modeloDicas
+  };
+}
+
 function promptMensagem(b) {
   const p = b.paciente || {};
   return {
@@ -424,6 +476,13 @@ async function rotas(req, res) {
 
   if (p === "/saude") return json(res, 200, { ok: true });
   if (p === "/versao") return json(res, 200, { versao: VERSAO }); // público: só o número da versão
+
+  // webhook do Kommo (sem login; protegido pela chave no endereço)
+  if (p.startsWith("/webhooks/kommo/") && req.method === "POST") {
+    if (!CFG.kommoChaveWebhook || p.split("/").pop() !== CFG.kommoChaveWebhook) return json(res, 403, { ok: false });
+    guardarWhatsApp(lerMensagensKommo((await lerCorpo(req)).toString("utf8")));
+    return json(res, 200, { ok: true });
+  }
   if (p.startsWith("/assets/")) return servirArquivo(res, ASSETS_DIR, p.slice("/assets/".length));
   if (p === "/logo.svg") return servirArquivo(res, APP_DIR, "logo.svg");
 
@@ -446,7 +505,7 @@ async function rotas(req, res) {
     res.writeHead(303, { Location: "login" }); return res.end();
   }
 
-  if (p === "/api/config" && req.method === "GET") return json(res, 200, { plataforma: true, versao: VERSAO, papel, ia: !!anthropic, kommo: kommoOk() });
+  if (p === "/api/config" && req.method === "GET") return json(res, 200, { plataforma: true, versao: VERSAO, papel, ia: !!anthropic, kommo: kommoOk(), whatsapp: !!CFG.kommoChaveWebhook, kommoUrl: CFG.kommoSub ? `https://${CFG.kommoSub}.kommo.com` : "" });
   if (p === "/api/backup" && req.method === "GET") {
     if (soAdmin()) return;
     res.writeHead(200, { "Content-Type": "application/json; charset=utf-8", "Content-Disposition": `attachment; filename="alinha-dados-${new Date().toISOString().slice(0, 10)}.json"`, "Cache-Control": "no-store" });
@@ -483,9 +542,39 @@ async function rotas(req, res) {
     if (!anthropic) return json(res, 503, { erro: "IA não configurada (ANTHROPIC_API_KEY)" });
     const b = await lerJSON(req);
     const tipo = p.split("/").pop();
-    const montar = { dica: promptDica, briefing: promptBriefing, mensagem: promptMensagem }[tipo];
+    const montar = { dica: promptDica, briefing: promptBriefing, mensagem: promptMensagem, whatsapp: promptWhatsApp }[tipo];
     if (!montar) return json(res, 404, { erro: "Não encontrado" });
     return json(res, 200, { ok: true, ...(await chamarIA(montar(b))) });
+  }
+
+  // WhatsApp
+  if (p === "/api/whatsapp/conversas" && req.method === "GET") {
+    const lista = Object.entries(DB.whatsapp).map(([lead, C]) => {
+      const u = C.lista[C.lista.length - 1] || {};
+      return { lead, nome: C.nome || "", unidade: C.unidade || "", ultima: u.texto || "", autor: u.autor || "", ts: u.ts || "", total: C.lista.length };
+    }).sort((a, b) => (a.ts < b.ts ? 1 : -1)).slice(0, 100);
+    return json(res, 200, { ok: true, conversas: lista });
+  }
+  if (p === "/api/whatsapp/mensagens" && req.method === "GET") {
+    const C = DB.whatsapp[String(url.searchParams.get("lead") || "")];
+    const desde = url.searchParams.get("desde") || "";
+    return json(res, 200, { ok: true, mensagens: C ? C.lista.filter((m) => !desde || m.ts >= desde) : [] }); // >= e o navegador ignora repetidas
+  }
+  if (p === "/api/whatsapp/lead" && req.method === "GET") {
+    if (!kommoOk()) return json(res, 503, { erro: "Kommo não configurado" });
+    const d = await lerLeadKommo({ id: url.searchParams.get("id") });
+    if (!d) return json(res, 404, { erro: "Lead não encontrado no Kommo" });
+    const C = DB.whatsapp[String(d.lead_id)];
+    if (C) { if (d.nome) C.nome = d.nome; if (d.unidade) C.unidade = d.unidade; if (d.telefone) C.telefone = d.telefone; salvarDB(); }
+    return json(res, 200, { ok: true, ...d });
+  }
+  if (p === "/api/whatsapp/atendimento" && req.method === "POST") {
+    if (!kommoOk()) return json(res, 503, { erro: "Kommo não configurado" });
+    const b = await lerJSON(req);
+    if (!b.lead_id) return json(res, 400, { erro: "Informe o lead" });
+    const tag = [{ name: AJ.etiquetaHumano || "Atendimento humano" }];
+    await kommo("PATCH", `/api/v4/leads/${Number(b.lead_id)}`, b.humano ? { tags_to_add: tag } : { tags_to_delete: tag });
+    return json(res, 200, { ok: true, humano: !!b.humano, etiqueta: tag[0].name });
   }
 
   // Kommo (opcional): registra o briefing no lead

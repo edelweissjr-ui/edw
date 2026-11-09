@@ -29,4 +29,6 @@ services:
       - key: KOMMO_SUBDOMINIO
         value: edelweissjrhotmailcom
       - key: KOMMO_TOKEN
-        sync: false          # opcional: para enviar o briefing ao Kommo
+        sync: false          # token de longa duração do Kommo (briefing, nome/unidade do lead, pausar a IA)
+      - key: KOMMO_CHAVE_WEBHOOK
+        generateValue: true  # entra no endereço do webhook de mensagens do WhatsApp

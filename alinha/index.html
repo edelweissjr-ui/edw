@@ -244,6 +244,34 @@ button.kpi.hl .go{color:#fff}
 .nov li{margin:3px 0}
 body.perfil-equipe .so-admin{display:none!important}
 body.perfil-equipe #gApagar{display:none!important}
+/* WhatsApp */
+.wa{display:grid;grid-template-columns:320px minmax(0,1fr);gap:16px;align-items:start}
+.walist{display:flex;flex-direction:column;gap:6px;max-height:calc(100vh - 200px);overflow:auto}
+.walist button{border:1px solid var(--line);background:var(--surface);border-radius:14px;padding:11px 12px;text-align:left;display:flex;gap:10px;align-items:flex-start}
+.walist button.on{border-color:var(--accent);background:var(--accent-soft)}
+.walist button .t{flex:1;min-width:0}
+.walist button b{display:block;font-size:15.5px}
+.walist button .u{font-size:13.5px;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}
+.walist button .h{font-size:12.5px;color:var(--faint);white-space:nowrap}
+.walist .nova{width:10px;height:10px;border-radius:50%;background:var(--good);display:inline-block;margin-left:6px}
+.wachat{display:flex;flex-direction:column;gap:12px;min-width:0}
+.wahead{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.thread{background:var(--surface-2);border:1px solid var(--line);border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:8px;max-height:46vh;overflow:auto}
+.bolha{max-width:78%;padding:9px 12px;border-radius:14px;font-size:15.5px;line-height:1.45;white-space:pre-wrap}
+.bolha.cli{align-self:flex-start;background:var(--surface);border:1px solid var(--line-2);border-top-left-radius:4px}
+.bolha.cl{align-self:flex-end;background:#1F5F4E;color:#EFFFF8;border-top-right-radius:4px}
+:root[data-theme="light"] .bolha.cl{background:#D9FDD3;color:#10251D}
+.bolha .m{display:block;font-size:12px;opacity:.75;margin-top:3px}
+.bolha.chegou{animation:chegou .5s ease-out}
+@keyframes chegou{from{transform:translateY(8px);opacity:0}to{transform:none;opacity:1}}
+.resp{background:var(--tip-bg);color:var(--tip-fg);border:1.5px solid var(--accent-2);border-radius:18px;padding:16px 18px;display:flex;flex-direction:column;gap:10px;box-shadow:0 0 0 4px rgba(124,108,246,.12)}
+.resp .ori{font-size:17px;font-weight:800;line-height:1.3}
+.resp textarea{width:100%;border:1px solid rgba(167,158,255,.35);border-radius:12px;background:rgba(0,0,0,.18);color:var(--tip-fg);padding:10px 12px;font-size:16px;line-height:1.5;min-height:92px;resize:vertical}
+.resp .btn{background:rgba(255,255,255,.08);color:var(--tip-fg);border-color:rgba(167,158,255,.35)}
+.resp .btn.pri{background:var(--accent);border-color:var(--accent);color:#fff}
+.voltar{display:none}
+@media (max-width:860px){.wa{grid-template-columns:1fr}.wa.aberta .walist{display:none}.wa:not(.aberta) .wachat{display:none}.voltar{display:inline-flex}.walist{max-height:none}}
+@media (prefers-reduced-motion:reduce){.bolha.chegou{animation:none}}
 #toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translate(-50%,120px);background:var(--fg);color:var(--bg);padding:10px 16px;border-radius:11px;font-weight:700;z-index:99;transition:transform .25s;max-width:calc(100% - 32px)}
 #toast.on{transform:translate(-50%,0)}
 @media (max-width:860px){#toast{bottom:calc(84px + env(safe-area-inset-bottom,0px))}}
@@ -256,6 +284,7 @@ body.perfil-equipe #gApagar{display:none!important}
     <div class="logo"><svg class="marca" viewBox="0 0 32 32" aria-hidden="true"><defs><linearGradient id="gA" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#6A5AF0"/><stop offset="1" stop-color="#A193FF"/></linearGradient></defs><rect width="32" height="32" rx="9" fill="url(#gA)"/><path d="M10 24 16 8l6 16" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M11.9 18.6q4.1 3 8.2 0" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/></svg><div><span class="nome">Alinha</span><small class="lema" aria-label="Alinha a conversa, o orçamento, o fechamento, o tratamento e o sorriso">alinha <b id="lemaPalavra">a conversa</b></small></div></div>
     <nav class="nav" id="nav">
       <button data-v="hoje" class="on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 12h4l3-8 4 16 3-8h4"/></svg>Hoje<span class="badge hide" id="badgeHoje"></span></button>
+      <button data-v="whatsapp"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.5 11.6a8.4 8.4 0 0 1-12.4 7.4L3.5 20.5l1.6-4.4A8.4 8.4 0 1 1 20.5 11.6z"/><path d="M9 9.5c.4 2 2.3 4 4.5 4.6"/></svg>WhatsApp<span class="badge hide" id="badgeWA"></span></button>
       <button data-v="consulta"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0M12 17v5"/></svg>Consulta</button>
       <button data-v="briefings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 2h9l5 5v15H6z"/><path d="M14 2v6h6M9 13h7M9 17h5"/></svg>Briefings</button>
       <button data-v="followup"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="5" height="16" rx="1.5"/><rect x="10" y="4" width="5" height="11" rx="1.5"/><rect x="17" y="4" width="4" height="7" rx="1.5"/></svg>Follow-up</button>
@@ -273,6 +302,15 @@ body.perfil-equipe #gApagar{display:none!important}
       <div class="head"><div><h1 class="titulo-forte">Quem alinhar hoje?</h1><p id="hojeData"></p></div><button class="btn pri hide" id="btnSeqHoje" data-seq="hoje">▶ Alinhar em sequência</button></div>
       <div class="kpis" id="kpisHoje"></div>
       <div class="fila" id="fila"></div>
+    </section>
+
+    <!-- WHATSAPP -->
+    <section class="view" id="v-whatsapp">
+      <div class="head"><div><h1>WhatsApp ao vivo</h1><p>As conversas de Caruaru e Recife chegam pelo Kommo. O Alinha mostra o que responder em cada mensagem.</p></div><span class="pill" id="waEstado">demonstração</span></div>
+      <div class="wa" id="wa">
+        <aside class="walist" id="waLista"></aside>
+        <section class="wachat" id="waChat"><div class="vazio">Escolha uma conversa à esquerda.</div></section>
+      </div>
     </section>
 
     <!-- CONSULTA AO VIVO -->

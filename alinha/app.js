@@ -8,8 +8,9 @@
   const BIB = window.ROTEIRO, DEMO = window.ALINHA_DEMO;
   /* Versão: na plataforma, vem do servidor (package.json) no momento em que a tela abriu.
      Ao publicar uma atualização, aumente a versão em package.json e registre em NOVIDADES. */
-  let VERSAO = "1.1.0";
+  let VERSAO = "1.2.0";
   const NOVIDADES = [
+    { v: "1.2.0", data: "nov/2026", itens: ["WhatsApp ao vivo: conversas de Caruaru e Recife chegam pelo Kommo, com o que responder em cada mensagem", "Termômetro por conversa, Assumir atendimento (pausa a IA do n8n) e Adicionar ao follow-up", "Perfis de administrador e equipe"] },
     { v: "1.1.0", data: "nov/2026", itens: ["Atualizações dentro do sistema: aviso de nova versão e botão Atualizar agora", "Cópia de segurança automática dos dados (diária e antes de cada atualização)", "Reconhecimento da voz do profissional", "Modo sequência para alinhar os pacientes do dia", "Termômetro de prontidão para o fechamento"] },
     { v: "1.0.0", data: "nov/2026", itens: ["Dicas ao vivo, briefing pós-consulta, mensagem pronta e follow-up D0 a D30"] }
   ];
@@ -446,7 +447,7 @@
   }
 
   /* Termômetro de prontidão para o fechamento (0–100) */
-  const EMOCAO = ["gostei", "adorei", "amei", "lindo", "linda", "perfeito", "exatamente", "quero", "nossa", "maravilh", "sonho", "incrivel", "que bom", "ficou otimo", "faz sentido"];
+  const EMOCAO = ["queria muito", "gostei", "adorei", "amei", "lindo", "linda", "perfeito", "exatamente", "quero", "nossa", "maravilh", "sonho", "incrivel", "que bom", "ficou otimo", "faz sentido"];
   const PRONTO = ["conseguiria comecar", "comecaria", "posso comecar", "pode ser na", "vou trazer", "vamos marcar", "pode marcar", "fecha", "bora"];
   const PRAZO = ["casar", "casamento", "formatura", "viagem", "aniversario", "entrevista"];
   const nivelTemp = (t) => t >= 70 ? ["Quente", "pronto para o fechamento"] : t >= 40 ? ["Morno", "trate as objeções e reforce o valor"] : ["Frio", "aprofunde a dor e o desejo"];
@@ -741,6 +742,167 @@
   });
 
   /* ------------------------------------------------------------ */
+  /* WhatsApp ao vivo (mensagens chegam pelo webhook do Kommo)     */
+  /* ------------------------------------------------------------ */
+  const WA = { conversas: [], sel: null, msgs: {}, info: {}, sug: {}, temp: {}, humano: {}, demo: null, timers: [], lido: ls.get("alinha.wa.lido", {}) };
+  const waModoReal = () => !!(PLAT && PLAT.whatsapp);
+  const hora = (iso) => { const d = new Date(iso), h = new Date(); return d.toDateString() === h.toDateString() ? d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }) : fmtData(iso); };
+  function preencherBib(t, lead) {
+    const i = WA.info[lead] || {}, u = BIB.unidades[i.unidade || "Caruaru"] || {};
+    return String(t).replace(/\{(\w+)\}/g, (m, k) => ({ nome: primeiro(i.nome), unidade: i.unidade || "", endereco: u.endereco || "" }[k] || "")).replace(/\s+([,.!?])/g, "$1").replace(/,\s*,/g, ",").replace(/\s{2,}/g, " ").replace(/^,\s*/, "").trim();
+  }
+  // pontuação do termômetro para uma mensagem do paciente
+  function deltaTexto(texto) {
+    let d = 0; const t = norm(texto);
+    const objs = BIB.objecoes.filter((o) => casa(texto, o.gatilhos)); d -= 6 * objs.length;
+    if (casa(texto, BIB.sinaisCompra) || PRONTO.some((w) => t.includes(w))) d += 18;
+    else if (EMOCAO.some((w) => t.includes(w))) d += 10;
+    if (PRAZO.some((w) => t.includes(w))) d += 5;
+    return d;
+  }
+  function recalcularTemp(lead) {
+    let v = 25; (WA.msgs[lead] || []).forEach((m) => { if (m.autor === "cliente") v = Math.max(0, Math.min(100, v + deltaTexto(m.texto))); });
+    WA.temp[lead] = v;
+  }
+  // sugestão imediata pelo roteiro (sem IA)
+  function sugestaoLocal(lead) {
+    const cli = (WA.msgs[lead] || []).filter((m) => m.autor === "cliente");
+    const ultima = (cli[cli.length - 1] || {}).texto || "";
+    // 1º olha só a última mensagem; se nada for detectado, considera a anterior também
+    for (const txt of [ultima, cli.slice(-2).map((m) => m.texto).join(" ")]) {
+      if (!txt) continue;
+      if (casa(txt, BIB.sinaisCompra) || PRONTO.some((w) => norm(txt).includes(w))) return { rotulo: "Sinal de compra", orientacao: "Sinal de compra! Pare de apresentar: ofereça duas datas e o próximo passo.", mensagem: preencherBib("Que ótimo, {nome}! Consigo te encaixar já nesta semana para começarmos. Prefere terça ou quinta? E sim, dá para parcelar no cartão 😊", lead), fonte: "roteiro" };
+      const o = BIB.objecoes.find((x) => casa(txt, x.gatilhos));
+      if (o) return { rotulo: o.titulo, orientacao: DICA_OBJ[o.id] || o.proximo, mensagem: preencherBib(o.respostas[0], lead), fonte: "roteiro" };
+      const it = BIB.intencoes.find((x) => casa(txt, x.gatilhos));
+      if (it) return { rotulo: it.titulo, orientacao: it.orientacao, mensagem: preencherBib(it.resposta, lead), fonte: "roteiro" };
+    }
+    return { rotulo: "Conduzir", orientacao: "Descubra a dor e convide para o check-up digital com o iTero.", mensagem: preencherBib("Entendi, {nome}! Me conta: o que mais te incomoda hoje no seu sorriso? Assim já vejo o melhor horário para o seu check-up digital 😊", lead), fonte: "roteiro" };
+  }
+  async function gerarSugestao(lead, versaoAnterior) {
+    WA.sug[lead] = WA.sug[lead] && !versaoAnterior ? WA.sug[lead] : sugestaoLocal(lead);
+    if (!versaoAnterior) WA.sug[lead] = sugestaoLocal(lead);
+    if (lead === WA.sel) renderChat();
+    if (!(PLAT && PLAT.ia)) { if (versaoAnterior) { const alt = sugestaoLocal(lead); alt.mensagem = preencherBib("Entendo você, {nome}. O que pesa mais nessa decisão agora? Se fizer sentido, eu te mostro a simulação do seu sorriso e vemos juntos o melhor caminho 🙂", lead); WA.sug[lead] = alt; renderChat(); } return; }
+    try {
+      const i = WA.info[lead] || {};
+      const d = await api("POST", "api/ia/whatsapp", { conversa: WA.msgs[lead] || [], nome: i.nome, unidade: i.unidade, condicao: AJ.condicao, versao_anterior: versaoAnterior || "" });
+      WA.sug[lead] = { rotulo: d.rotulo || "Sugestão da IA", orientacao: d.orientacao || "", mensagem: d.mensagem || "", fonte: "ia" };
+      if (typeof d.prontidao === "number") WA.temp[lead] = Math.round((WA.temp[lead] + d.prontidao) / 2);
+      if (lead === WA.sel) renderChat();
+    } catch (e) { /* fica a sugestão do roteiro */ }
+  }
+
+  async function carregarConversas() {
+    if (waModoReal()) {
+      try { WA.conversas = (await api("GET", "api/whatsapp/conversas")).conversas || []; } catch (e) { return; }
+      WA.conversas.forEach((c) => { WA.info[c.lead] = Object.assign({ nome: c.nome, unidade: c.unidade }, WA.info[c.lead] || {}); });
+    } else {
+      if (!WA.demo) { WA.demo = DEMO.whatsapp(); WA.demo.forEach((c) => { WA.msgs[c.lead] = c.lista.slice(); WA.info[c.lead] = { nome: c.nome, telefone: c.telefone, unidade: c.unidade, origem: c.origem }; recalcularTemp(c.lead); }); }
+      WA.conversas = WA.demo.map((c) => { const l = WA.msgs[c.lead], u = l[l.length - 1]; return { lead: c.lead, nome: c.nome, unidade: c.unidade, ultima: u.texto, autor: u.autor, ts: u.ts }; }).sort((a, b) => (a.ts < b.ts ? 1 : -1));
+    }
+    badgeWA();
+  }
+  function naoLida(c) { return c.autor === "cliente" && (!WA.lido[c.lead] || c.ts > WA.lido[c.lead]); }
+  function badgeWA() { const n = WA.conversas.filter(naoLida).length; const b = $("#badgeWA"); b.textContent = n; b.classList.toggle("hide", !n); }
+
+  function renderWA() {
+    $("#waEstado").textContent = waModoReal() ? "conectado ao Kommo" : PLAT ? "aguardando configuração do webhook" : "demonstração";
+    $("#waLista").innerHTML = WA.conversas.length ? WA.conversas.map((c) => { const i = WA.info[c.lead] || {}; return `<button data-wa="${esc(c.lead)}" class="${c.lead === WA.sel ? "on" : ""}"><div class="ava">${esc(iniciais(i.nome || c.nome || "?"))}</div><div class="t"><b>${esc(i.nome || c.nome || "Lead " + c.lead)}${naoLida(c) ? '<span class="nova" title="nova mensagem"></span>' : ""}</b><span class="u">${c.autor === "clinica" ? "Você: " : ""}${esc(c.ultima)}</span></div><span class="h">${c.ts ? hora(c.ts) : ""}</span></button>`; }).join("")
+      : `<div class="vazio">${PLAT ? "Nenhuma conversa ainda. Assim que o webhook do Kommo estiver configurado, as mensagens do WhatsApp aparecem aqui." : "Sem conversas."}</div>`;
+    renderChat();
+  }
+  function renderChat() {
+    const el = $("#waChat"); const lead = WA.sel;
+    $("#wa").classList.toggle("aberta", !!lead);
+    if (!lead) { el.innerHTML = `<div class="vazio">Escolha uma conversa à esquerda.</div>`; return; }
+    const i = WA.info[lead] || {}, msgs = WA.msgs[lead] || [], sg = WA.sug[lead], t = WA.temp[lead] ?? 25, hum = WA.humano[lead];
+    const kommoLink = PLAT && PLAT.kommoUrl ? `${PLAT.kommoUrl}/leads/detail/${encodeURIComponent(lead)}` : "";
+    const wa = i.telefone ? `https://wa.me/${(digits(i.telefone).length <= 11 ? "55" : "") + digits(i.telefone)}?text=${encodeURIComponent(sg ? sg.mensagem : "")}` : "";
+    const nivel = t >= 70 ? "🔥 Quente · pronto para fechar" : t >= 40 ? "🌤️ Morno" : "❄️ Frio";
+    el.innerHTML = `<div class="card wahead"><button class="btn sm ghost voltar" id="waVoltar">← Conversas</button><div class="ava">${esc(iniciais(i.nome || "?"))}</div>
+        <div class="grow"><b style="font-size:17px">${esc(i.nome || "Lead " + lead)}</b><div class="small dim">${esc([i.unidade, i.telefone, i.origem].filter(Boolean).join(" · ") || "lead " + lead)}</div></div>
+        <span class="minitermo" title="Prontidão para o fechamento">🌡 <i><b style="width:${t}%"></b></i>${t}%</span><span class="pill ${t >= 70 ? "bad" : t >= 40 ? "warn" : ""}">${nivel}</span>
+        <div class="row" style="width:100%">${hum ? `<span class="pill acc">✋ Atendimento humano · IA pausada</span><button class="btn sm" data-waact="devolver">🤖 Devolver para a IA</button>` : `<button class="btn sm" data-waact="assumir">✋ Assumir atendimento</button>`}
+          <button class="btn sm" data-waact="followup">+ Adicionar ao follow-up</button>${kommoLink ? `<a class="btn sm" href="${esc(kommoLink)}" target="_blank" rel="noopener">Abrir no Kommo</a>` : ""}</div></div>
+      <div class="thread" id="waThread">${msgs.map((m) => `<div class="bolha ${m.autor === "cliente" ? "cli" : "cl"}${m._nova ? " chegou" : ""}">${esc(m.texto)}<span class="m">${m.autor === "cliente" ? "Paciente" : m.ia ? "🤖 IA de atendimento" : "Clínica"} · ${hora(m.ts)}</span></div>`).join("") || '<p class="dim">Sem mensagens.</p>'}</div>
+      ${sg ? `<div class="resp"><div class="row"><span class="pill acc">${esc(sg.rotulo || "Sugestão")}</span><span class="small" style="color:var(--tip-dim)">${sg.fonte === "ia" ? "IA" : "roteiro"} · o que responder</span></div>
+        <div class="ori">${esc(sg.orientacao || "")}</div>
+        <textarea id="waTexto" aria-label="Resposta sugerida">${esc(sg.mensagem || "")}</textarea>
+        <div class="row"><button class="btn pri" data-waact="copiar">${kommoLink ? "Copiar e abrir no Kommo" : "Copiar"}</button>${wa ? `<a class="btn" id="waLink" href="${esc(wa)}" target="_blank" rel="noopener">Abrir no WhatsApp</a>` : ""}<button class="btn" data-waact="outra">↻ Outra versão</button></div></div>` : ""}`;
+    msgs.forEach((m) => delete m._nova);
+    const th = $("#waThread"); th.scrollTop = th.scrollHeight;
+  }
+  async function abrirConversa(lead) {
+    WA.sel = lead;
+    if (waModoReal() && !WA.msgs[lead]) {
+      try { WA.msgs[lead] = (await api("GET", "api/whatsapp/mensagens?lead=" + encodeURIComponent(lead))).mensagens || []; } catch (e) { WA.msgs[lead] = []; }
+      recalcularTemp(lead);
+    }
+    const c = WA.conversas.find((x) => x.lead === lead); if (c) { WA.lido[lead] = c.ts; ls.set("alinha.wa.lido", WA.lido); }
+    renderWA(); gerarSugestao(lead);
+    if (PLAT && PLAT.kommo && !WA.info[lead]._kommo) {
+      api("GET", "api/whatsapp/lead?id=" + encodeURIComponent(lead)).then((d) => { WA.info[lead] = Object.assign(WA.info[lead] || {}, { nome: d.nome || WA.info[lead].nome, telefone: d.telefone, unidade: d.unidade, origem: d.origem, _kommo: true }); WA.humano[lead] = d.humano; if (WA.sel === lead) renderWA(); }).catch(() => {});
+    }
+    // demonstração: novas mensagens chegam aos poucos
+    WA.timers.forEach(clearTimeout); WA.timers = [];
+    const dc = WA.demo && WA.demo.find((x) => x.lead === lead);
+    if (dc && dc.novas && dc.novas.length) dc.novas.splice(0).forEach((m, k) => WA.timers.push(setTimeout(() => receber(lead, [{ id: "n" + Date.now() + k, ts: new Date().toISOString(), ...m }]), 6000 * (k + 1))));
+  }
+  function receber(lead, novas) {
+    if (!novas.length) return;
+    const lista = WA.msgs[lead] = WA.msgs[lead] || [];
+    novas.forEach((m) => { if (!lista.some((x) => x.id === m.id)) lista.push(Object.assign(m, { _nova: true })); });
+    recalcularTemp(lead);
+    const c = WA.conversas.find((x) => x.lead === lead), u = lista[lista.length - 1];
+    if (c) Object.assign(c, { ultima: u.texto, autor: u.autor, ts: u.ts });
+    if (lead === WA.sel) { WA.lido[lead] = u.ts; ls.set("alinha.wa.lido", WA.lido); }
+    WA.conversas.sort((a, b) => (a.ts < b.ts ? 1 : -1));
+    if (vista === "whatsapp") renderWA(); badgeWA();
+    if (novas.some((m) => m.autor === "cliente") && lead === WA.sel) gerarSugestao(lead);
+  }
+  async function pollWA() {
+    if (!waModoReal()) return;
+    const antes = Object.fromEntries(WA.conversas.map((c) => [c.lead, c.ts]));
+    await carregarConversas();
+    if (WA.sel && WA.msgs[WA.sel]) {
+      const l = WA.msgs[WA.sel], desde = l.length ? l[l.length - 1].ts : "";
+      try { const d = await api("GET", "api/whatsapp/mensagens?lead=" + encodeURIComponent(WA.sel) + "&desde=" + encodeURIComponent(desde)); receber(WA.sel, d.mensagens || []); } catch (e) { /* tenta de novo */ }
+    }
+    if (vista === "whatsapp" && WA.conversas.some((c) => antes[c.lead] !== c.ts)) renderWA();
+  }
+  $("#waLista").addEventListener("click", (e) => { const b = e.target.closest("[data-wa]"); if (b) abrirConversa(b.dataset.wa); });
+  $("#waChat").addEventListener("input", (e) => {
+    if (e.target.id !== "waTexto" || !WA.sel) return;
+    if (WA.sug[WA.sel]) WA.sug[WA.sel].mensagem = e.target.value;
+    const a = $("#waLink"), i = WA.info[WA.sel] || {}; if (a && i.telefone) a.href = `https://wa.me/${(digits(i.telefone).length <= 11 ? "55" : "") + digits(i.telefone)}?text=${encodeURIComponent(e.target.value)}`;
+  });
+  $("#waChat").addEventListener("click", async (e) => {
+    if (e.target.closest("#waVoltar")) { WA.sel = null; renderWA(); return; }
+    const b = e.target.closest("[data-waact]"); if (!b || !WA.sel) return;
+    const lead = WA.sel, act = b.dataset.waact, i = WA.info[lead] || {};
+    if (act === "copiar") {
+      const txt = $("#waTexto").value;
+      try { await navigator.clipboard.writeText(txt); toast("Resposta copiada"); } catch (err) { $("#waTexto").select(); toast("Selecionado: use Ctrl+C para copiar"); }
+      if (PLAT && PLAT.kommoUrl) window.open(`${PLAT.kommoUrl}/leads/detail/${encodeURIComponent(lead)}`, "_blank", "noopener");
+    } else if (act === "outra") {
+      b.disabled = true; b.textContent = "Gerando…"; await gerarSugestao(lead, $("#waTexto").value); 
+    } else if (act === "assumir" || act === "devolver") {
+      const humano = act === "assumir";
+      try { if (PLAT && PLAT.kommo) await api("POST", "api/whatsapp/atendimento", { lead_id: lead, humano }); WA.humano[lead] = humano; renderChat(); toast(humano ? "Você assumiu: a IA do n8n fica pausada neste lead" : "Lead devolvido para a IA"); }
+      catch (err) { toast("Kommo: " + err.message); }
+    } else if (act === "followup") {
+      let p = PAC.find((x) => x.leadId && String(x.leadId) === String(lead));
+      if (p) { abrirGaveta(p); return; }
+      const cli = (WA.msgs[lead] || []).filter((m) => m.autor === "cliente");
+      const objs = [...new Set(cli.flatMap((m) => BIB.objecoes.filter((o) => casa(m.texto, o.gatilhos)).map((o) => o.id)))];
+      p = { id: novoId(), leadId: lead, nome: i.nome || "Lead " + lead, telefone: i.telefone || "", unidade: i.unidade || "", origem: i.origem || "WhatsApp", status: "aberto", consultaEm: new Date().toISOString(),
+        responsavel: (AJ.equipe || [])[0] || "", profissional: (AJ.equipe || [])[0] || "", objecoes: objs, palavras: cli.slice(-3).map((m) => m.texto.slice(0, 90)), oQueTravou: objs[0] ? OBJ_NOME[objs[0]] : "", prontidao: WA.temp[lead], toques: {} };
+      await Store.salvar(p); toast("Adicionado ao follow-up (D0 hoje)"); render();
+    }
+  });
+
+  /* ------------------------------------------------------------ */
   /* Navegação e início                                            */
   /* ------------------------------------------------------------ */
   let vista = "hoje";
@@ -757,6 +919,7 @@
     if (vista === "followup") renderFollowup();
     if (vista === "briefings") renderBriefings();
     if (vista === "ajustes") renderAjustes();
+    if (vista === "whatsapp") renderWA();
   }
 
   /* lema da marca: Alinha a conversa → o orçamento → o fechamento → o tratamento → o sorriso */
@@ -810,6 +973,8 @@
     $("#modoInfo").innerHTML = (PLAT ? `${ehAdmin ? "Administrador" : "Equipe"} · IA ${PLAT.ia ? "ativa" : "desligada"}<br><a href="sair" style="color:inherit">Sair</a>` : "Modo demonstração") + `<br><span style="opacity:.7">Weiss Odontologia · v${VERSAO}</span>`;
     renderAtualizacoes();
     if (PLAT) { verificarAtualizacao(false); setInterval(() => verificarAtualizacao(false), 5 * 60 * 1000); }
+    carregarConversas().then(() => { if (vista === "whatsapp") renderWA(); });
+    if (waModoReal()) setInterval(pollWA, 5000);
     $("#pillIA").textContent = PLAT && PLAT.ia ? "IA ouvindo + roteiro" : "Dicas do roteiro";
     try { await Store.carregar(); } catch (e) { toast("Não foi possível carregar os dados: " + e.message); }
     renderAjustes(); render();

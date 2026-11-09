@@ -77,5 +77,30 @@ window.ALINHA_DEMO = (function () {
     }
   };
 
-  return { pacientes, consulta };
+  // Conversas de WhatsApp (fictícias). "novas" chegam aos poucos quando a conversa está aberta.
+  const minAtras = (n) => new Date(Date.now() - n * 60000).toISOString();
+  const whatsapp = () => [
+    { lead: "9001", nome: "Juliana Rocha", telefone: "(81) 90000-2001", unidade: "Recife", origem: "Anúncio Meta", lista: [
+      { id: "j1", ts: minAtras(42), autor: "cliente", texto: "Oi! Vi o anúncio do aparelho invisível 😊" },
+      { id: "j2", ts: minAtras(41), autor: "clinica", ia: true, texto: "Olá, Juliana! Aqui é da Weiss Odontologia, unidade Recife. Que bom que você nos chamou! O que mais te incomoda hoje no seu sorriso?" },
+      { id: "j3", ts: minAtras(38), autor: "cliente", texto: "Meus dentes da frente são tortos, aparece muito nas fotos. Quanto custa o tratamento?" },
+      { id: "j4", ts: minAtras(37), autor: "clinica", ia: true, texto: "Entendo! O valor depende do seu caso. Por isso o primeiro passo é o check-up digital com o iTero, em que você vê a simulação do seu sorriso. Posso ver um horário?" },
+      { id: "j5", ts: minAtras(3), autor: "cliente", texto: "Hum, mas esse tipo de aparelho não é muito caro? Uma amiga fez em outro lugar mais barato" }
+    ], novas: [
+      { autor: "cliente", texto: "E também preciso ver com meu marido antes de marcar qualquer coisa" },
+      { autor: "cliente", texto: "Mas eu queria muito, vou casar em março 😅 vocês atendem sábado?" }
+    ] },
+    { lead: "9002", nome: "Patrícia Gomes", telefone: "(81) 90000-2002", unidade: "Caruaru", origem: "Anúncio Meta", lista: [
+      { id: "p1", ts: minAtras(180), autor: "cliente", texto: "Boa tarde! Fiz o check-up digital semana passada e adorei a simulação" },
+      { id: "p2", ts: minAtras(170), autor: "clinica", texto: "Que alegria, Patrícia! Ficou alguma dúvida sobre o plano?" },
+      { id: "p3", ts: minAtras(12), autor: "cliente", texto: "Quando posso começar? Dá pra parcelar no cartão?" }
+    ] },
+    { lead: "9003", nome: "Marcos Lima", telefone: "(81) 90000-2003", unidade: "Caruaru", origem: "Instagram", lista: [
+      { id: "m1", ts: minAtras(300), autor: "cliente", texto: "Olá, tenho 45 anos, será que ainda dá pra usar aparelho?" },
+      { id: "m2", ts: minAtras(290), autor: "clinica", ia: true, texto: "Olá, Marcos! Dá sim: com dentes e gengiva saudáveis não há idade limite. Quer agendar seu check-up digital?" },
+      { id: "m3", ts: minAtras(60), autor: "cliente", texto: "Vou pensar e te aviso" }
+    ] }
+  ];
+
+  return { pacientes, consulta, whatsapp };
 })();
