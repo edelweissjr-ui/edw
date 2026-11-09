@@ -6,6 +6,13 @@
 (function () {
   "use strict";
   const BIB = window.ROTEIRO, DEMO = window.ALINHA_DEMO;
+  /* Versão: na plataforma, vem do servidor (package.json) no momento em que a tela abriu.
+     Ao publicar uma atualização, aumente a versão em package.json e registre em NOVIDADES. */
+  let VERSAO = "1.1.0";
+  const NOVIDADES = [
+    { v: "1.1.0", data: "nov/2026", itens: ["Atualizações dentro do sistema: aviso de nova versão e botão Atualizar agora", "Cópia de segurança automática dos dados (diária e antes de cada atualização)", "Reconhecimento da voz do profissional", "Modo sequência para alinhar os pacientes do dia", "Termômetro de prontidão para o fechamento"] },
+    { v: "1.0.0", data: "nov/2026", itens: ["Dicas ao vivo, briefing pós-consulta, mensagem pronta e follow-up D0 a D30"] }
+  ];
   const $ = (s, el = document) => el.querySelector(s);
   const $$ = (s, el = document) => Array.from(el.querySelectorAll(s));
   const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -765,13 +772,42 @@
   }
   lema();
 
+  /* atualizações: verifica se o servidor já está numa versão mais nova que esta tela */
+  const cmpVersao = (a, b) => { const x = String(a).split(".").map(Number), y = String(b).split(".").map(Number); for (let i = 0; i < 3; i++) { if ((x[i] || 0) !== (y[i] || 0)) return (x[i] || 0) - (y[i] || 0); } return 0; };
+  async function verificarAtualizacao(manual) {
+    if (!PLAT) { if (manual) $("#atStatus").textContent = "No modo demonstração, você está sempre na versão mais recente publicada."; return; }
+    try {
+      const d = await (await fetch("versao", { cache: "no-store" })).json();
+      const nova = d.versao && cmpVersao(d.versao, VERSAO) !== 0;
+      $("#bannerAtualizacao").classList.toggle("hide", !nova);
+      if (nova) $("#atNova").textContent = d.versao;
+      if (manual) $("#atStatus").textContent = nova ? `Nova versão ${d.versao} disponível.` : "✓ Você está na versão mais recente.";
+    } catch (e) { if (manual) $("#atStatus").textContent = "Não foi possível verificar agora. Confira a internet."; }
+  }
+  function atualizarAgora() {
+    // recarrega ignorando o cache, preservando o que está salvo
+    const u = new URL(location.href); u.searchParams.set("v", Date.now()); location.replace(u.toString());
+  }
+  document.addEventListener("click", (e) => {
+    if (e.target.closest("#btnAtualizarAgora")) atualizarAgora();
+    if (e.target.closest("#btnVerificarAt")) verificarAtualizacao(true);
+  });
+  function renderAtualizacoes() {
+    const el = $("#atVersao"); if (!el) return;
+    el.textContent = VERSAO;
+    $("#atNovidades").innerHTML = NOVIDADES.map((n) => `<div class="nov"><b>Versão ${n.v}</b> <span class="dim small">· ${n.data}</span><ul>${n.itens.map((i) => `<li>${esc(i)}</li>`).join("")}</ul></div>`).join("");
+    $("#btnBackup").classList.toggle("hide", !PLAT);
+  }
+
   async function iniciar() {
     aplicarTema(ls.get("alinha.tema", "auto"));
     renderMomento(); renderTermo();
     if (location.protocol !== "file:") {
-      try { const r = await fetch("api/config", { headers: { Accept: "application/json" } }); if (r.ok) { const d = await r.json(); if (d.plataforma) PLAT = d; } } catch (e) { /* sem servidor: modo demonstração */ }
+      try { const r = await fetch("api/config", { headers: { Accept: "application/json" } }); if (r.ok) { const d = await r.json(); if (d.plataforma) { PLAT = d; if (d.versao) VERSAO = d.versao; } } } catch (e) { /* sem servidor: modo demonstração */ }
     }
-    $("#modoInfo").innerHTML = (PLAT ? `Conectado · IA ${PLAT.ia ? "ativa" : "desligada"}<br><a href="sair" style="color:inherit">Sair</a>` : "Modo demonstração") + `<br><span style="opacity:.7">Weiss Odontologia</span>`;
+    $("#modoInfo").innerHTML = (PLAT ? `Conectado · IA ${PLAT.ia ? "ativa" : "desligada"}<br><a href="sair" style="color:inherit">Sair</a>` : "Modo demonstração") + `<br><span style="opacity:.7">Weiss Odontologia · v${VERSAO}</span>`;
+    renderAtualizacoes();
+    if (PLAT) { verificarAtualizacao(false); setInterval(() => verificarAtualizacao(false), 5 * 60 * 1000); }
     $("#pillIA").textContent = PLAT && PLAT.ia ? "IA ouvindo + roteiro" : "Dicas do roteiro";
     try { await Store.carregar(); } catch (e) { toast("Não foi possível carregar os dados: " + e.message); }
     renderAjustes(); render();

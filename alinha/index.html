@@ -239,6 +239,9 @@ button.kpi.hl .go{color:#fff}
 .trans p{cursor:pointer}
 .trans p.inc b::after{content:" · confira";color:var(--warn)}
 .trans p:hover{outline:1px dashed var(--line-2)}
+.nov{padding:8px 0;border-top:1px solid var(--line)}
+.nov ul{margin:6px 0 0;padding-left:20px}
+.nov li{margin:3px 0}
 #toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translate(-50%,120px);background:var(--fg);color:var(--bg);padding:10px 16px;border-radius:11px;font-weight:700;z-index:99;transition:transform .25s;max-width:calc(100% - 32px)}
 #toast.on{transform:translate(-50%,0)}
 @media (max-width:860px){#toast{bottom:calc(84px + env(safe-area-inset-bottom,0px))}}
@@ -260,6 +263,7 @@ button.kpi.hl .go{color:#fff}
   </aside>
 
   <main>
+    <div class="banner hide" id="bannerAtualizacao" role="status">🎉 Nova versão do Alinha disponível (<b id="atNova"></b>). Seus dados continuam salvos. <button class="btn sm pri" id="btnAtualizarAgora">Atualizar agora</button></div>
     <div class="banner hide" id="bannerDemo">Você está vendo dados de exemplo (pacientes fictícios). <button class="btn sm" id="btnLimparExemplos">Começar do zero</button></div>
 
     <!-- HOJE -->
@@ -351,6 +355,13 @@ button.kpi.hl .go{color:#fff}
           <div><label class="f" for="aEquipe">Nomes (separados por vírgula)</label><input class="in" id="aEquipe"></div>
           <div><label class="f" for="aCondicao">Condição especial vigente (só se for real)</label><input class="in" id="aCondicao" placeholder="ex.: check-up digital abatido no tratamento até 30/11"></div>
           <div class="row"><button class="btn pri" id="btnSalvarAjustes">Salvar</button><span class="small dim" id="ajStatus"></span></div>
+        </div>
+        <div class="card stack" id="cardAtualizacoes">
+          <h3>Atualizações</h3>
+          <div class="row"><span class="grow">Versão instalada: <b id="atVersao"></b></span><button class="btn" id="btnVerificarAt">Verificar atualizações</button></div>
+          <p class="small dim" id="atStatus" style="margin:0">Quando uma nova versão for publicada, aparece um aviso no topo com o botão “Atualizar agora”. Seus pacientes e ajustes são mantidos, e uma cópia de segurança é feita antes de cada atualização.</p>
+          <div class="row"><a class="btn sm hide" id="btnBackup" href="api/backup">Baixar cópia dos dados</a></div>
+          <div><span class="label">Novidades</span><div id="atNovidades" style="margin-top:6px"></div></div>
         </div>
         <div class="card stack" id="cardVoz">
           <h3>Reconhecimento de voz</h3>

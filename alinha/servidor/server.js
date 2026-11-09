@@ -42,8 +42,41 @@ const anthropic = CFG.anthropicKey ? new Anthropic({ apiKey: CFG.anthropicKey })
 /* ------------------------------------------------------------------ */
 fs.mkdirSync(CFG.dados, { recursive: true });
 const ARQ_DB = path.join(CFG.dados, "alinha.json");
-let DB = { pacientes: [], ajustes: {} };
+const VERSAO = JSON.parse(fs.readFileSync(path.join(APP_DIR, "package.json"), "utf8")).version;
+
+/* Estrutura dos dados: quando uma atualização muda o formato, uma migração converte os dados
+   antigos automaticamente (com cópia de segurança antes). Para criar uma nova: adicione ao fim da lista. */
+const MIGRACOES = [
+  // 1: versão inicial do formato (pacientes + ajustes)
+  (db) => { db.pacientes = db.pacientes || []; db.ajustes = db.ajustes || {}; }
+];
+const PASTA_BACKUP = path.join(CFG.dados, "backups");
+fs.mkdirSync(PASTA_BACKUP, { recursive: true });
+function backup(motivo) {
+  if (!fs.existsSync(ARQ_DB)) return null;
+  const nome = `alinha-${new Date().toISOString().slice(0, 10)}-${motivo}.json`;
+  fs.copyFileSync(ARQ_DB, path.join(PASTA_BACKUP, nome));
+  // guarda as 7 cópias diárias mais recentes e todas as de atualização dos últimos 90 dias
+  const lista = fs.readdirSync(PASTA_BACKUP).filter((f) => f.endsWith(".json")).sort();
+  const diarias = lista.filter((f) => f.includes("-diario"));
+  diarias.slice(0, Math.max(0, diarias.length - 7)).forEach((f) => fs.unlinkSync(path.join(PASTA_BACKUP, f)));
+  lista.filter((f) => !f.includes("-diario")).forEach((f) => { const d = new Date(f.slice(7, 17)); if (Date.now() - d > 90 * 86400000) fs.unlinkSync(path.join(PASTA_BACKUP, f)); });
+  return nome;
+}
+
+let DB = { pacientes: [], ajustes: {}, esquema: 0, versao: null };
 try { DB = { ...DB, ...JSON.parse(fs.readFileSync(ARQ_DB, "utf8")) }; } catch { /* primeiro uso */ }
+if ((DB.esquema || 0) < MIGRACOES.length || DB.versao !== VERSAO) {
+  const antes = DB.versao;
+  if (antes && antes !== VERSAO) backup(`antes-da-v${VERSAO}`);
+  for (let i = DB.esquema || 0; i < MIGRACOES.length; i++) MIGRACOES[i](DB);
+  DB.esquema = MIGRACOES.length;
+  DB.versao = VERSAO;
+  fs.writeFileSync(ARQ_DB, JSON.stringify(DB));
+  if (antes && antes !== VERSAO) console.log(`Atualizado: v${antes} → v${VERSAO} (dados preservados, cópia de segurança criada)`);
+}
+backup("diario");
+setInterval(() => backup("diario"), 24 * 3600 * 1000).unref();
 let salvarTimer = null;
 function salvarDB() {
   clearTimeout(salvarTimer);
@@ -376,6 +409,7 @@ async function rotas(req, res) {
   const ip = (req.headers["x-forwarded-for"] || req.socket.remoteAddress || "").split(",")[0].trim();
 
   if (p === "/saude") return json(res, 200, { ok: true });
+  if (p === "/versao") return json(res, 200, { versao: VERSAO }); // público: só o número da versão
   if (p.startsWith("/assets/")) return servirArquivo(res, ASSETS_DIR, p.slice("/assets/".length));
   if (p === "/logo.svg") return servirArquivo(res, APP_DIR, "logo.svg");
 
@@ -396,7 +430,11 @@ async function rotas(req, res) {
     res.writeHead(303, { Location: "login" }); return res.end();
   }
 
-  if (p === "/api/config" && req.method === "GET") return json(res, 200, { plataforma: true, ia: !!anthropic, kommo: kommoOk() });
+  if (p === "/api/config" && req.method === "GET") return json(res, 200, { plataforma: true, versao: VERSAO, ia: !!anthropic, kommo: kommoOk() });
+  if (p === "/api/backup" && req.method === "GET") {
+    res.writeHead(200, { "Content-Type": "application/json; charset=utf-8", "Content-Disposition": `attachment; filename="alinha-dados-${new Date().toISOString().slice(0, 10)}.json"`, "Cache-Control": "no-store" });
+    return res.end(JSON.stringify(DB, null, 2));
+  }
 
   // pacientes (follow-up)
   if (p === "/api/pacientes" && req.method === "GET") return json(res, 200, { ok: true, pacientes: DB.pacientes });
@@ -458,5 +496,5 @@ http.createServer((req, res) => {
     if (!res.headersSent) json(res, 500, { erro: msg }); else res.end();
   });
 }).listen(CFG.porta, () => {
-  console.log(`Alinha rodando na porta ${CFG.porta} · IA: ${anthropic ? "✓ " + CFG.modelo : "não configurada"} · Kommo: ${kommoOk() ? "✓" : "não configurado"}`);
+  console.log(`Alinha v${VERSAO} rodando na porta ${CFG.porta} · IA: ${anthropic ? "✓ " + CFG.modelo : "não configurada"} · Kommo: ${kommoOk() ? "✓" : "não configurado"}`);
 });

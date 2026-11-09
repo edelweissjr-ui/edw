@@ -33,6 +33,15 @@ Na consulta, o botão **🎙 Automático** fica ativo: a sua voz é marcada como
 - **Todo dia de manhã:** tela **Hoje** › envie as mensagens prontas › **Enviei**.
 - **Quando o paciente fechar:** abra o paciente no Follow-up › **Fechou** (com o valor).
 
+## Atualizações
+O Alinha foi feito para receber novas versões sem perder dados:
+1. **Publicar:** o desenvolvedor aumenta a versão em `package.json`, registra as novidades em `CHANGELOG.md` e na lista `NOVIDADES` (em `app.js`) e envia ao repositório.
+2. **Instalar:** o Render instala a versão nova sozinho em ~2 minutos (`autoDeploy`).
+3. **Antes de trocar a versão,** o servidor faz uma **cópia de segurança** dos dados (`backups/alinha-AAAA-MM-DD-antes-da-vX.json`) e, se o formato dos dados mudou, converte tudo automaticamente (lista `MIGRACOES` em `servidor/server.js`). Também há uma cópia diária (7 últimas).
+4. **Na tela:** quem estiver com o Alinha aberto vê o aviso **"Nova versão disponível · Atualizar agora"**. Em **Ajustes › Atualizações** ficam a versão instalada, o botão "Verificar atualizações", as novidades e o botão "Baixar cópia dos dados".
+
+**Para vender a várias clínicas:** cada clínica tem a própria instalação (dados separados) ligada ao mesmo repositório. Ao publicar uma versão, todas recebem a atualização automaticamente. Recomenda-se manter um ramo `estavel` para as clínicas e testar as novidades antes em uma instalação de teste.
+
 ## Ética e privacidade
 - A gravação só começa com a autorização do paciente marcada (LGPD). O áudio **não é gravado nem enviado**; só o texto da conversa vai para a IA gerar dicas e o briefing.
 - A IA segue o Código de Ética Odontológica: não promete resultado, não inventa desconto, prazo ou condição, não fala mal de concorrentes.

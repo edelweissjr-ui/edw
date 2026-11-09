@@ -7,6 +7,7 @@ services:
     buildCommand: npm install --omit=dev
     startCommand: npm start
     healthCheckPath: /saude
+    autoDeploy: true         # cada nova versão enviada ao repositório é instalada sozinha (os dados ficam no disco)
     plan: starter            # plano pago: sempre ligado e com disco para guardar os pacientes
     disk:
       name: dados
