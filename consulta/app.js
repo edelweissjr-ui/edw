@@ -247,7 +247,7 @@
   function renderChat() {
     const c = $("#chat");
     if (!S.conversa.length) { c.innerHTML = `<div class="small muted">As mensagens e falas aparecem aqui. Cole a mensagem do paciente abaixo para receber a orientação.</div>`; return; }
-    c.innerHTML = S.conversa.slice(-200).map((m) => `<div class="msg ${m.quem}"><span class="who">${m.quem === "cliente" ? esc((S.paciente.nome || "Paciente").split(" ")[0]) : "Clínica"} · ${hora(m.ts)}${m.origem === "voz" ? " · 🎙" : m.origem === "audio" ? " · 🎧 áudio" : ""}</span>${esc(m.texto)}</div>`).join("");
+    c.innerHTML = S.conversa.slice(-200).map((m) => `<div class="msg ${m.quem}"><span class="who">${m.quem === "cliente" ? esc((S.paciente.nome || "Paciente").split(" ")[0]) : "Clínica"} · ${hora(m.ts)}${m.origem === "voz" ? " · 🎙" : m.origem === "audio" ? " · 🎧 áudio" : m.origem === "kommo-ia" ? " · 🤖 IA" : ""}</span>${esc(m.texto)}</div>`).join("");
     c.scrollTop = c.scrollHeight;
   }
 
@@ -514,7 +514,7 @@
           if (S.msgIds[m.id]) return;
           S.msgIds[m.id] = 1;
           transcreverAudio({ url: m.anexo }, m.autor === "clinica" ? "clinica" : "cliente", m.ts);
-        } else addMsg(m.autor === "clinica" ? "clinica" : "cliente", m.texto, "kommo", { id: m.id, ts: m.ts });
+        } else addMsg(m.autor === "clinica" ? "clinica" : "cliente", m.texto, m.ia ? "kommo-ia" : "kommo", { id: m.id, ts: m.ts });
         if (!S.ultimoSync || m.ts > S.ultimoSync) S.ultimoSync = m.ts;
       });
       $("#aoVivoInfo").textContent = "Conectado · última verificação " + new Date().toLocaleTimeString("pt-BR");
@@ -813,6 +813,8 @@
     $("#lnkAudio").classList.add("hide"); $("#recHint").textContent = "";
     $("#resumoTxt").value = S.resumo || "";
     $("#kommoStatus").textContent = "";
+    $("#kommoLeadInfo").textContent = S.kommo ? `${S.kommo.funil || ""}${S.kommo.etapa ? " › " + S.kommo.etapa : ""} · ${S.kommo.humano ? "✋ Atendimento humano (IA pausada)" : "🤖 IA atendendo"}` : "";
+    mostrarSituacaoIA(S.kommo && S.kommo.humano);
     $("#avaliacaoIA").textContent = S.avaliacaoIA || "";
     $("#btnTranscreverGravacao").classList.add("hide"); ultimoAudioBlob = null;
     calcOrc(); renderSteps(); renderEtapa(); renderChat(); renderAlertas(); renderTermometro(); renderSync(); renderObjecoes();
@@ -844,6 +846,83 @@
   }
   $("#btnExemplo").addEventListener("click", () => { carregarExemplo(); mostrarView("consulta"); });
 
+  /* ---------------- Kommo direto (plataforma) ---------------- */
+  async function apiGet(rota) {
+    const r = await fetch(rota, { headers: { Accept: "application/json" } });
+    if (r.status === 401) { location.href = "login"; throw new Error("sessão expirada"); }
+    const d = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(d.erro || "HTTP " + r.status);
+    return d;
+  }
+  function mostrarSituacaoIA(humano) {
+    $("#btnAssumir").classList.toggle("hide", !!humano);
+    $("#btnDevolverIA").classList.toggle("hide", !humano);
+  }
+  $("#btnPuxarKommo").addEventListener("click", async () => {
+    const id = S.paciente.leadId, tel = digits(S.paciente.telefone);
+    if (!id && !tel) { toast("Informe o WhatsApp ou o ID do lead"); return; }
+    const info = $("#kommoLeadInfo"); info.textContent = "Buscando no Kommo…";
+    try {
+      const d = await apiGet("api/kommo/lead?" + (id ? "id=" + encodeURIComponent(id) : "telefone=" + encodeURIComponent(tel)));
+      S.paciente.leadId = String(d.lead_id); $("#pLead").value = S.paciente.leadId;
+      if (d.nome && !S.paciente.nome) { S.paciente.nome = d.nome; $("#pNome").value = d.nome; }
+      if (d.telefone && !digits(S.paciente.telefone)) { S.paciente.telefone = d.telefone; $("#pTel").value = d.telefone; }
+      if (d.unidade) setUnidade(d.unidade);
+      if (d.origem) { S.paciente.origem = d.origem; $("#pOrigem").value = d.origem; }
+      S.kommo = { funil: d.funil, etapa: d.etapa, humano: d.humano };
+      info.innerHTML = `Lead <b>${esc(d.lead_id)}</b>${d.funil ? " · " + esc(d.funil) : ""}${d.etapa ? " › " + esc(d.etapa) : ""}${d.unidade ? " · " + esc(d.unidade) : " · unidade não identificada"}<br>${d.humano ? "✋ Atendimento humano (IA pausada)" : "🤖 IA atendendo"}`;
+      mostrarSituacaoIA(d.humano);
+      save(); renderEtapa();
+      if (EP.msg) { S.ultimoSync = null; await poll(); }
+      toast("Dados do Kommo carregados");
+    } catch (e) { info.textContent = e.message; }
+  });
+  async function trocarAtendimento(humano) {
+    if (!S.paciente.leadId) { toast("Puxe o lead do Kommo primeiro"); return; }
+    try {
+      const d = await post("api/kommo/atendimento", { lead_id: S.paciente.leadId, humano });
+      S.kommo = Object.assign(S.kommo || {}, { humano: d.humano }); save();
+      mostrarSituacaoIA(d.humano);
+      $("#kommoLeadInfo").innerHTML = $("#kommoLeadInfo").innerHTML.replace(/(✋ Atendimento humano \(IA pausada\)|🤖 IA atendendo)/, d.humano ? "✋ Atendimento humano (IA pausada)" : "🤖 IA atendendo");
+      toast(d.humano ? "Você assumiu — etiqueta \"" + d.etiqueta + "\" adicionada" : "Lead devolvido para a IA");
+    } catch (e) { toast("Kommo: " + e.message); }
+  }
+  $("#btnAssumir").addEventListener("click", () => trocarAtendimento(true));
+  $("#btnDevolverIA").addEventListener("click", () => trocarAtendimento(false));
+
+  let FUNIS = [];
+  function opcoes(sel, lista, valor, vazio) {
+    $(sel).innerHTML = (vazio ? `<option value="">${vazio}</option>` : "") + lista.map((x) => `<option value="${x.id}"${String(x.id) === String(valor) ? " selected" : ""}>${esc(x.nome)}</option>`).join("");
+  }
+  function etapasDe(funilId) { const f = FUNIS.find((x) => String(x.id) === String(funilId)); return f ? f.etapas : []; }
+  async function carregarFunis() {
+    const st = $("#funisStatus");
+    try {
+      const [f, a] = await Promise.all([apiGet("api/kommo/funis"), apiGet("api/ajustes")]);
+      FUNIS = f.funis; const aj = a.ajustes;
+      const adivinha = (re) => (FUNIS.find((x) => re.test(x.nome)) || {}).id;
+      const lead = aj.funilLead || adivinha(/lead/i) || "";
+      const cli = aj.funilCliente || adivinha(/client/i) || "";
+      opcoes("#fFunilLead", FUNIS, lead, "— escolha —");
+      opcoes("#fFunilCliente", FUNIS, cli, "— escolha —");
+      opcoes("#fEtapaNeg", etapasDe(lead), aj.etapaNegociacao, "não mudar a etapa");
+      opcoes("#fEtapaPerdido", etapasDe(lead), aj.etapaPerdido || 143);
+      opcoes("#fEtapaCliente", etapasDe(cli), aj.etapaCliente, "— escolha —");
+      $("#fEtiqueta").value = aj.etiquetaHumano || "Atendimento humano";
+      st.textContent = aj.funilLead ? "" : "Confira os funis sugeridos e clique em Salvar.";
+    } catch (e) { st.textContent = "Não foi possível ler os funis: " + e.message; }
+  }
+  $("#fFunilLead").addEventListener("change", (e) => { opcoes("#fEtapaNeg", etapasDe(e.target.value), "", "não mudar a etapa"); opcoes("#fEtapaPerdido", etapasDe(e.target.value), 143); });
+  $("#fFunilCliente").addEventListener("change", (e) => opcoes("#fEtapaCliente", etapasDe(e.target.value), "", "— escolha —"));
+  $("#btnSalvarFunis").addEventListener("click", async () => {
+    try {
+      await post("api/ajustes", { funilLead: $("#fFunilLead").value, etapaNegociacao: $("#fEtapaNeg").value, etapaPerdido: $("#fEtapaPerdido").value,
+        funilCliente: $("#fFunilCliente").value, etapaCliente: $("#fEtapaCliente").value, etiquetaHumano: $("#fEtiqueta").value.trim() });
+      $("#funisStatus").textContent = "✓ Salvo. Fechou → funil de clientes; negociação e perda → funil de leads.";
+      toast("Funis salvos");
+    } catch (e) { $("#funisStatus").textContent = "Erro ao salvar: " + e.message; }
+  });
+
   async function detectarPlataforma() {
     if (location.protocol === "file:") return;
     try {
@@ -857,6 +936,7 @@
       const it = (ok, nome) => `<li>${ok ? "✅" : "⚪"} ${nome}${ok ? "" : " — não configurado"}</li>`;
       $("#platStatus").innerHTML = `<ul class="perg">${it(d.kommo, "Kommo (registrar consultas)")}${it(d.ia, "IA (sugestões e avaliação)")}${it(d.audio, "Transcrição de áudios")}${it(d.whatsapp, "WhatsApp ao vivo pelo Kommo")}</ul>`;
       $("#btnSair").classList.remove("hide");
+      if (d.kommo) { $("#boxKommoLead").classList.remove("hide"); $("#cardFunis").classList.remove("hide"); carregarFunis(); }
       if (!EP.audio) $("#btnTranscreverGravacao").classList.add("hide");
     } catch (e) { /* aberto fora da plataforma: segue com as configurações locais */ }
   }

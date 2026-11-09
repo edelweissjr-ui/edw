@@ -45,6 +45,22 @@ if (!CFG.senha) console.warn("⚠️  SENHA_ACESSO não definida: defina antes d
 
 const anthropic = CFG.anthropicKey ? new Anthropic({ apiKey: CFG.anthropicKey }) : null;
 
+/* Ajustes feitos pela tela (funis do Kommo, etiqueta de atendimento humano).
+   Ficam em PASTA_DADOS/ajustes.json; as variáveis de ambiente servem de valor inicial. */
+fs.mkdirSync(CFG.dados, { recursive: true });
+const ARQ_AJUSTES = path.join(CFG.dados, "ajustes.json");
+const AJUSTES_PADRAO = {
+  funilLead: CFG.kommoPipeline,                 // funil de leads (onde a IA do Meta coloca os contatos)
+  etapaNegociacao: CFG.kommoStatus.negociacao,  // etapa do funil de leads para "em negociação"
+  etapaPerdido: CFG.kommoStatus.perdido,        // 143 = venda perdida
+  funilCliente: env.KOMMO_FUNIL_CLIENTE_ID ? Number(env.KOMMO_FUNIL_CLIENTE_ID) : null, // funil de clientes
+  etapaCliente: env.KOMMO_ETAPA_CLIENTE ? Number(env.KOMMO_ETAPA_CLIENTE) : null,       // etapa de entrada ao fechar
+  etiquetaHumano: env.KOMMO_ETIQUETA_HUMANO || "Atendimento humano"
+};
+let AJ = { ...AJUSTES_PADRAO };
+try { AJ = { ...AJ, ...JSON.parse(fs.readFileSync(ARQ_AJUSTES, "utf8")) }; } catch { /* primeiro uso */ }
+const salvarAjustes = () => fs.writeFileSync(ARQ_AJUSTES, JSON.stringify(AJ, null, 2));
+
 /* ------------------------------------------------------------------ */
 /* utilidades HTTP                                                     */
 /* ------------------------------------------------------------------ */
@@ -124,20 +140,82 @@ async function kommo(metodo, rota, corpo) {
   return d;
 }
 
+/* Fechou → funil de clientes. Em negociação / não fechou → continua no funil de leads. */
+function destinoNoFunil(resultado) {
+  if (resultado === "fechado") {
+    if (AJ.funilCliente && AJ.etapaCliente) return { pipeline_id: AJ.funilCliente, status_id: AJ.etapaCliente };
+    return AJ.funilLead ? { pipeline_id: AJ.funilLead, status_id: 142 } : { status_id: 142 };
+  }
+  if (resultado === "perdido") {
+    const st = AJ.etapaPerdido || 143;
+    return AJ.funilLead ? { pipeline_id: AJ.funilLead, status_id: st } : { status_id: st };
+  }
+  if (AJ.funilLead && AJ.etapaNegociacao) return { pipeline_id: AJ.funilLead, status_id: AJ.etapaNegociacao };
+  return {};
+}
+
+const UNIDADES = { Caruaru: ["caruaru", "998368491", "37212866"], Recife: ["recife", "973185005", "30911895"] };
+function detectarUnidade(...fontes) {
+  const t = JSON.stringify(fontes).toLowerCase().replace(/[\s()+-]/g, "");
+  for (const [u, pistas] of Object.entries(UNIDADES)) if (pistas.some((x) => t.includes(x))) return u;
+  return "";
+}
+function detectarOrigem(...fontes) {
+  const t = JSON.stringify(fontes).toLowerCase();
+  if (/facebook|instagram|meta|fb_|\bfb\b|ig_|utm_source.{0,6}(fb|ig)/.test(t)) return "Anúncio Meta";
+  if (/google/.test(t)) return "Google";
+  if (/indica/.test(t)) return "Indicação";
+  return "";
+}
+
+/* Lê um lead do Kommo (por ID ou telefone) com contato, funil, etapa, unidade e situação da IA */
+async function lerLeadKommo({ id, telefone }) {
+  let leadId = id ? Number(id) : null;
+  if (!leadId && telefone) {
+    const tel = String(telefone).replace(/\D/g, "");
+    const nac = tel.startsWith("55") && tel.length > 11 ? tel.slice(2) : tel;
+    const busca = await kommo("GET", `/api/v4/contacts?query=${encodeURIComponent(nac)}&with=leads`);
+    const ct = busca && busca._embedded && busca._embedded.contacts && busca._embedded.contacts[0];
+    const leads = ct && ct._embedded && ct._embedded.leads || [];
+    if (leads.length) leadId = Math.max(...leads.map((l) => l.id));
+  }
+  if (!leadId) return null;
+  const lead = await kommo("GET", `/api/v4/leads/${leadId}?with=contacts,source`);
+  if (!lead) return null;
+  const ctRef = lead._embedded && lead._embedded.contacts && (lead._embedded.contacts.find((c) => c.is_main) || lead._embedded.contacts[0]);
+  const contato = ctRef ? await kommo("GET", `/api/v4/contacts/${ctRef.id}`) : null;
+  const campoTel = contato && (contato.custom_fields_values || []).find((f) => f.field_code === "PHONE");
+  const tags = (lead._embedded && lead._embedded.tags || []).map((t) => t.name);
+  let funil = "", etapa = "";
+  try {
+    const pl = await kommo("GET", `/api/v4/leads/pipelines/${lead.pipeline_id}`);
+    funil = pl ? pl.name : "";
+    const st = pl && pl._embedded && pl._embedded.statuses.find((x) => x.id === lead.status_id);
+    etapa = st ? st.name : "";
+  } catch { /* sem permissão para funis */ }
+  const fontes = [tags, lead._embedded && lead._embedded.source, lead.custom_fields_values, contato && contato.custom_fields_values, funil];
+  return {
+    lead_id: lead.id,
+    nome: (contato && contato.name) || lead.name || "",
+    telefone: campoTel && campoTel.values && campoTel.values[0] ? campoTel.values[0].value : "",
+    unidade: detectarUnidade(...fontes),
+    origem: detectarOrigem(...fontes),
+    funil, etapa, valor: lead.price || 0, tags,
+    humano: tags.some((t) => t.toLowerCase() === String(AJ.etiquetaHumano).toLowerCase())
+  };
+}
+
 async function registrarNoKommo(b) {
   const p = b.paciente || {}, c = b.consulta || {}, o = b.orcamento || {};
   const tel = String(p.telefone || "").replace(/\D/g, "");
   if (!tel) throw new Error("Telefone do paciente ausente");
   const telNacional = tel.startsWith("55") && tel.length > 11 ? tel.slice(2) : tel;
   const resultado = b.resultado || "negociacao";
-  const statusId = CFG.kommoStatus[resultado] || null;
   const canal = c.canal === "presencial" ? "Presencial" : "WhatsApp";
   const tags = ["Copiloto", canal, c.unidade, o.tratamento].filter(Boolean).map((name) => ({ name }));
   if ((b.temperatura || 0) >= 70) tags.push({ name: "Lead quente" });
 
-  const lead = { price: Math.round(o.valor || 0) };
-  if (statusId) lead.status_id = statusId;
-  if (CFG.kommoPipeline) lead.pipeline_id = CFG.kommoPipeline;
+  const lead = { price: Math.round(o.valor || 0), ...destinoNoFunil(resultado) };
   if (CFG.kommoResponsavel) lead.responsible_user_id = CFG.kommoResponsavel;
 
   // 1) encontra o lead: o informado na tela ou o mais recente do contato com esse telefone
@@ -299,7 +377,9 @@ function guardarMensagens(lista) {
     const L = mensagens[lead] = mensagens[lead] || { atualizado: agora, lista: [] };
     const id = String(msg.id || lead + "-" + ts);
     if (!L.lista.some((x) => x.id === id)) {
-      L.lista.push({ id, texto: String(msg.text || (ehAudio ? "[áudio]" : "[anexo]")), autor: msg.type === "outgoing" ? "clinica" : "cliente", ts, anexo: anexo || null, audio: ehAudio });
+      const autorInfo = JSON.stringify(msg.author || {}).toLowerCase();
+      const ia = msg.type === "outgoing" && /bot|robo|robô|\bia\b|assistente|salesbot|n8n|gpt|claude/.test(autorInfo);
+      L.lista.push({ id, texto: String(msg.text || (ehAudio ? "[áudio]" : "[anexo]")), autor: msg.type === "outgoing" ? "clinica" : "cliente", ia, ts, anexo: anexo || null, audio: ehAudio });
     }
     L.lista = L.lista.slice(-150);
     L.atualizado = agora;
@@ -352,6 +432,46 @@ async function rotas(req, res) {
 
   if (p === "/api/config" && req.method === "GET") {
     return json(res, 200, { plataforma: true, kommo: kommoOk(), ia: !!anthropic, audio: !!CFG.openaiKey, whatsapp: !!CFG.kommoChaveWebhook });
+  }
+
+  if (p === "/api/kommo/lead" && req.method === "GET") {
+    if (!kommoOk()) return json(res, 503, { erro: "Kommo não configurado na plataforma" });
+    const d = await lerLeadKommo({ id: url.searchParams.get("id"), telefone: url.searchParams.get("telefone") });
+    if (!d) return json(res, 404, { erro: "Nenhum lead encontrado no Kommo com esse ID ou telefone" });
+    return json(res, 200, { ok: true, ...d });
+  }
+
+  if (p === "/api/kommo/atendimento" && req.method === "POST") {
+    if (!kommoOk()) return json(res, 503, { erro: "Kommo não configurado na plataforma" });
+    const b = await lerJSON(req);
+    if (!b.lead_id) return json(res, 400, { erro: "Informe o lead" });
+    const tag = [{ name: AJ.etiquetaHumano }];
+    await kommo("PATCH", `/api/v4/leads/${Number(b.lead_id)}`, b.humano ? { tags_to_add: tag } : { tags_to_delete: tag });
+    return json(res, 200, { ok: true, humano: !!b.humano, etiqueta: AJ.etiquetaHumano });
+  }
+
+  if (p === "/api/kommo/funis" && req.method === "GET") {
+    if (!kommoOk()) return json(res, 503, { erro: "Kommo não configurado na plataforma" });
+    const d = await kommo("GET", "/api/v4/leads/pipelines");
+    const funis = (d && d._embedded && d._embedded.pipelines || []).map((pl) => ({
+      id: pl.id, nome: pl.name, principal: !!pl.is_main,
+      etapas: (pl._embedded && pl._embedded.statuses || []).sort((a, b) => a.sort - b.sort).map((st) => ({ id: st.id, nome: st.name }))
+    }));
+    return json(res, 200, { ok: true, funis });
+  }
+
+  if (p === "/api/ajustes" && req.method === "GET") return json(res, 200, { ok: true, ajustes: AJ });
+  if (p === "/api/ajustes" && req.method === "POST") {
+    const b = await lerJSON(req);
+    const num = (v) => (v === "" || v == null ? null : Number(v));
+    AJ = {
+      ...AJ,
+      funilLead: num(b.funilLead), etapaNegociacao: num(b.etapaNegociacao), etapaPerdido: num(b.etapaPerdido) || 143,
+      funilCliente: num(b.funilCliente), etapaCliente: num(b.etapaCliente),
+      etiquetaHumano: String(b.etiquetaHumano || "Atendimento humano").slice(0, 60)
+    };
+    salvarAjustes();
+    return json(res, 200, { ok: true, ajustes: AJ });
   }
 
   if (p === "/api/consulta" && req.method === "POST") {

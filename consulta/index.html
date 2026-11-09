@@ -204,6 +204,14 @@ pre.code{background:var(--bg);border:1px solid var(--line);border-radius:10px;pa
         </select>
         <label class="f" for="pLead">ID do lead no Kommo <span class="muted">(opcional)</span></label>
         <input class="i" id="pLead" inputmode="numeric" placeholder="preenchido ao sincronizar">
+        <div id="boxKommoLead" class="hide" style="margin-top:10px">
+          <button class="btn sm" id="btnPuxarKommo" style="width:100%">⤓ Puxar dados do Kommo</button>
+          <div class="small muted" id="kommoLeadInfo" style="margin-top:6px"></div>
+          <div class="row" style="margin-top:6px">
+            <button class="btn sm" id="btnAssumir" title="Pausa a IA do n8n para este lead (etiqueta no Kommo)">✋ Assumir atendimento</button>
+            <button class="btn sm hide" id="btnDevolverIA" title="Remove a etiqueta e a IA volta a responder">🤖 Devolver para a IA</button>
+          </div>
+        </div>
       </div>
       <div class="card">
         <h2>Etapas</h2>
@@ -423,6 +431,24 @@ pre.code{background:var(--bg);border:1px solid var(--line);border-radius:10px;pa
       <h2>Plataforma Copiloto Weiss</h2>
       <p class="small muted" style="margin-top:0">Esta tela está conectada direto ao Kommo e à IA. Não há nada para configurar aqui.</p>
       <div id="platStatus"></div>
+    </div>
+    <div class="card hide" id="cardFunis">
+      <h2>Funis do Kommo</h2>
+      <p class="small muted" style="margin-top:0">Para onde o lead vai quando você clica em <b>Enviar ao Kommo</b>.</p>
+      <label class="f" for="fFunilLead">Funil de leads (onde a IA coloca quem vem dos anúncios)</label>
+      <select class="i" id="fFunilLead"></select>
+      <div class="row">
+        <div><label class="f" for="fEtapaNeg">Em negociação → etapa</label><select class="i" id="fEtapaNeg"></select></div>
+        <div><label class="f" for="fEtapaPerdido">Não fechou → etapa</label><select class="i" id="fEtapaPerdido"></select></div>
+      </div>
+      <label class="f" for="fFunilCliente">Fechou → funil de clientes</label>
+      <select class="i" id="fFunilCliente"></select>
+      <label class="f" for="fEtapaCliente">Etapa de entrada no funil de clientes</label>
+      <select class="i" id="fEtapaCliente"></select>
+      <label class="f" for="fEtiqueta">Etiqueta que pausa a IA (atendimento humano)</label>
+      <input class="i" id="fEtiqueta" placeholder="Atendimento humano">
+      <div class="row" style="margin-top:10px"><button class="btn primary" id="btnSalvarFunis" style="flex:0 0 auto">Salvar</button></div>
+      <p class="small muted" id="funisStatus"></p>
     </div>
     <div class="card" id="cardN8n">
       <h2>Integração n8n → Kommo <span class="muted small">(opcional)</span></h2>

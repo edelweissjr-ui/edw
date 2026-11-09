@@ -21,6 +21,38 @@ consulta/
 
 ---
 
+## Como o Copiloto se encaixa no que vocês já têm
+
+```
+Anúncio no Meta ──► WhatsApp (Caruaru 99836-8491 ou Recife 97318-5005) ──► Kommo ──► IA no n8n
+                                                                          │
+                                                                          ▼
+                                                                   FUNIL DE LEADS
+                                                                          │  a IA qualifica e passa para a equipe
+                                                                          ▼
+                                       COPILOTO: Puxar do Kommo ► Assumir atendimento (IA pausa)
+                                                 roteiro, objeções, sugestões, nota da consulta
+                                                                          │
+                                         Enviar ao Kommo ─────────────────┤
+                                                                          ▼
+                       Fechou ► FUNIL DE CLIENTES        Em negociação / Não fechou ► fica no FUNIL DE LEADS
+```
+
+- **Puxar dados do Kommo:** com o WhatsApp ou o ID do lead, traz nome, telefone, **unidade**, **origem** ("Anúncio Meta"), funil e etapa, além da conversa que o paciente já teve com a IA. As mensagens da IA aparecem marcadas com 🤖.
+- **Unidade automática:** a plataforma identifica Caruaru ou Recife pelo número do WhatsApp, pela fonte do lead ou pelas etiquetas no Kommo. Se não conseguir, escolha manualmente.
+- **Assumir atendimento / Devolver para a IA:** coloca ou retira a etiqueta **"Atendimento humano"** no lead do Kommo.
+- **Funis:** em Configurações › *Funis do Kommo*, escolha uma vez o funil de leads, o funil de clientes e as etapas. A plataforma sugere os funis pelo nome.
+
+### ⚠️ Um ajuste na IA do n8n (uma vez só)
+Para a IA **parar de responder** quando alguém assume o atendimento, quem cuida do n8n precisa incluir no início do fluxo da IA uma verificação simples:
+
+1. Depois do gatilho que recebe a mensagem do Kommo, adicione um nó **HTTP Request** `GET https://SEU-SUBDOMINIO.kommo.com/api/v4/leads/{{ID do lead}}`, com a mesma credencial do Kommo que o fluxo já usa.
+2. Em seguida, um nó **IF**: se `{{ $json._embedded.tags.map(t => t.name).includes("Atendimento humano") }}` for verdadeiro, **encerre** o fluxo sem responder.
+
+Assim a IA atende os leads dos anúncios e se cala quando a equipe assume. Ao clicar em **Devolver para a IA**, ela volta a responder.
+
+---
+
 ## 1. Como funciona na prática
 
 ### Pelo WhatsApp (uso principal)
@@ -137,7 +169,11 @@ Depois, **ative** os quatro fluxos e copie as **Production URLs** para **Configu
 
 ---
 
-## 3. Os dois números de WhatsApp — recomendação
+## 3. Os dois números de WhatsApp
+
+**Situação atual de vocês:** os dois números (Caruaru +55 81 99836-8491 e Recife +55 81 97318-5005) já estão ligados ao Kommo, que já está ligado ao n8n. É exatamente a opção recomendada abaixo, e o Copiloto lê os dois pelo Kommo.
+
+### Referência — opções
 
 **Opção A, recomendada: os dois números das clínicas na API oficial, ligados ao Kommo**
 
