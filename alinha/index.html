@@ -1,0 +1,326 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>Alinha</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap">
+<style>
+/* Layout: barra lateral fixa + área de trabalho; no celular, barra inferior. Identidade Weiss (verde-petróleo). */
+:root{
+  --bg:#F2F5F5; --surface:#FFFFFF; --surface-2:#F7FAFA; --line:rgba(11,46,59,.12); --line-2:rgba(11,46,59,.2);
+  --fg:#0B2E3B; --dim:#56717A; --faint:#8AA0A7;
+  --accent:#127E72; --accent-ink:#FFFFFF; --accent-soft:#DDF0EC; --accent-2:#0E5E77;
+  --good:#1D8A55; --good-bg:#E3F4EA; --warn:#A86B12; --warn-bg:#FBF0DC; --bad:#B4382D; --bad-bg:#FBE7E4;
+  --tip-bg:#0B2E3B; --tip-fg:#F2FBFA; --tip-dim:#A8C7CC;
+  --shadow:0 1px 2px rgba(11,46,59,.05),0 8px 24px rgba(11,46,59,.07);
+  --f:"Plus Jakarta Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  --r:16px;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#071820; --surface:#0E242E; --surface-2:#122C37; --line:rgba(170,215,222,.12); --line-2:rgba(170,215,222,.22);
+    --fg:#E4F0F2; --dim:#97B2B9; --faint:#6F8D95;
+    --accent:#3BB5A5; --accent-ink:#04201C; --accent-soft:#103A37; --accent-2:#5CB7D3;
+    --good:#4CC488; --good-bg:#123326; --warn:#E3A84A; --warn-bg:#352812; --bad:#EE7A6E; --bad-bg:#3A1A17;
+    --tip-bg:#E9F6F4; --tip-fg:#082028; --tip-dim:#3F5F66; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#071820; --surface:#0E242E; --surface-2:#122C37; --line:rgba(170,215,222,.12); --line-2:rgba(170,215,222,.22);
+  --fg:#E4F0F2; --dim:#97B2B9; --faint:#6F8D95;
+  --accent:#3BB5A5; --accent-ink:#04201C; --accent-soft:#103A37; --accent-2:#5CB7D3;
+  --good:#4CC488; --good-bg:#123326; --warn:#E3A84A; --warn-bg:#352812; --bad:#EE7A6E; --bad-bg:#3A1A17;
+  --tip-bg:#E9F6F4; --tip-fg:#082028; --tip-dim:#3F5F66; color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--f);font-size:15px;line-height:1.45;-webkit-font-smoothing:antialiased}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+h1,h2,h3{margin:0;line-height:1.2;text-wrap:balance}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.hide{display:none!important}
+.dim{color:var(--dim)} .small{font-size:13px} .tiny{font-size:11.5px}
+.num{font-variant-numeric:tabular-nums}
+.label{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--faint)}
+
+/* casca */
+.app{display:grid;grid-template-columns:232px minmax(0,1fr);min-height:100vh}
+.side{position:sticky;top:0;height:100vh;padding:22px 14px;border-right:1px solid var(--line);background:var(--surface);display:flex;flex-direction:column;gap:6px}
+.logo{font-weight:800;font-size:24px;letter-spacing:-.03em;padding:0 10px 14px}
+.logo b{color:var(--accent)}
+.logo small{display:block;font-size:11.5px;font-weight:600;letter-spacing:0;color:var(--dim);margin-top:2px}
+.nav{display:flex;flex-direction:column;gap:2px}
+.nav button{display:flex;align-items:center;gap:10px;border:0;background:none;padding:10px 12px;border-radius:10px;font-weight:600;color:var(--dim);text-align:left}
+.nav button svg{width:18px;height:18px;flex:none}
+.nav button:hover{background:var(--surface-2);color:var(--fg)}
+.nav button.on{background:var(--accent-soft);color:var(--accent)}
+.nav .badge{margin-left:auto;background:var(--bad);color:#fff;border-radius:999px;font-size:11px;padding:1px 7px;font-weight:700}
+.side .foot{margin-top:auto;padding:10px;font-size:12px;color:var(--faint)}
+main{padding:26px max(16px,env(safe-area-inset-right,0px)) 90px max(16px,env(safe-area-inset-left,0px));max-width:1320px;width:100%}
+.view{display:none} .view.on{display:block}
+.head{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:18px}
+.head h1{font-size:26px;letter-spacing:-.02em}
+.head p{margin:4px 0 0;color:var(--dim)}
+@media (max-width:860px){
+  .app{grid-template-columns:1fr}
+  .side{position:fixed;inset:auto 0 0 0;height:auto;flex-direction:row;padding:6px max(8px,env(safe-area-inset-left,0px)) calc(6px + env(safe-area-inset-bottom,0px));border-right:0;border-top:1px solid var(--line);z-index:30}
+  .side .logo,.side .foot{display:none}
+  .nav{flex-direction:row;width:100%;justify-content:space-around}
+  .nav button{flex-direction:column;gap:3px;font-size:11px;padding:6px 4px;flex:1;align-items:center;text-align:center}
+  .nav .badge{position:absolute;margin-left:16px;margin-top:-4px}
+  main{padding-top:18px}
+}
+
+/* blocos */
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:18px}
+.stack{display:flex;flex-direction:column;gap:14px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.grow{flex:1;min-width:0}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;border:1px solid var(--line-2);background:var(--surface);border-radius:11px;padding:9px 14px;font-weight:700;font-size:14px;white-space:nowrap;text-decoration:none;color:var(--fg)}
+.btn:hover{border-color:var(--accent)}
+.btn.pri{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.danger{background:var(--bad);border-color:var(--bad);color:#fff}
+.btn.ghost{border-color:transparent;background:transparent;color:var(--dim)}
+.btn.sm{padding:6px 10px;font-size:12.5px;border-radius:9px}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn svg{width:16px;height:16px}
+.pill{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:700;padding:3px 9px;border-radius:999px;background:var(--surface-2);border:1px solid var(--line);color:var(--dim);white-space:nowrap}
+.pill.good{background:var(--good-bg);color:var(--good);border-color:transparent}
+.pill.warn{background:var(--warn-bg);color:var(--warn);border-color:transparent}
+.pill.bad{background:var(--bad-bg);color:var(--bad);border-color:transparent}
+.pill.acc{background:var(--accent-soft);color:var(--accent);border-color:transparent}
+label.f{display:block;font-size:12px;font-weight:700;color:var(--dim);margin:0 0 5px}
+.in{width:100%;padding:9px 11px;border:1px solid var(--line-2);border-radius:10px;background:var(--surface-2)}
+textarea.in{resize:vertical;min-height:80px;line-height:1.5}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chips button{border:1px solid var(--line-2);background:var(--surface);border-radius:999px;padding:6px 12px;font-weight:600;font-size:13px;color:var(--dim)}
+.chips button.on{background:var(--fg);border-color:var(--fg);color:var(--bg)}
+
+/* números */
+.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:18px}
+@media (max-width:980px){.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px}
+.kpi b{display:block;font-size:24px;letter-spacing:-.02em;margin-top:6px}
+.kpi span{font-size:12px;color:var(--dim)}
+.kpi.hl{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.kpi.hl .label,.kpi.hl span{color:inherit;opacity:.85}
+
+/* hoje: fila de mensagens */
+.fila{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:14px}
+@media (max-width:420px){.fila{grid-template-columns:1fr}}
+.msgcard{display:flex;flex-direction:column;gap:10px}
+.msgcard .top{display:flex;gap:10px;align-items:flex-start}
+.ava{width:36px;height:36px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;font-weight:800;font-size:13px;flex:none}
+.msgcard h3{font-size:15.5px}
+.msgcard .meta{font-size:12.5px;color:var(--dim)}
+.sug{border:1px solid var(--line-2);border-radius:12px;background:var(--surface-2);padding:10px 12px}
+.sug textarea{width:100%;border:0;background:transparent;resize:vertical;min-height:96px;font-size:14.5px;line-height:1.5;padding:0}
+.sug textarea:focus{outline:none}
+.vazio{padding:36px 18px;text-align:center;color:var(--dim);border:1px dashed var(--line-2);border-radius:var(--r)}
+
+/* consulta ao vivo */
+.live{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:16px;align-items:start}
+@media (max-width:1060px){.live{grid-template-columns:1fr}}
+.momento .steps{display:grid;grid-template-columns:repeat(6,1fr);gap:5px;margin-top:12px}
+.momento .steps i{height:6px;border-radius:99px;background:var(--line-2)}
+.momento .steps i.done{background:var(--accent-2)} .momento .steps i.cur{background:var(--accent)}
+.momento .names{display:grid;grid-template-columns:repeat(6,1fr);gap:5px;margin-top:6px}
+.momento .names span{font-size:10.5px;color:var(--faint);font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.momento .names span.cur{color:var(--accent)}
+.momento h2{font-size:30px;letter-spacing:-.03em;margin-top:4px}
+.dica{background:var(--tip-bg);color:var(--tip-fg);border-radius:20px;padding:22px 24px;min-height:190px;display:flex;flex-direction:column;justify-content:center;gap:12px;transition:opacity .3s}
+.dica .rot{display:inline-flex;gap:8px;align-items:center;font-size:12px;font-weight:700;color:var(--tip-dim)}
+.dica .rot b{background:var(--accent);color:var(--accent-ink);padding:3px 9px;border-radius:999px;font-size:11px}
+.dica .txt{font-size:clamp(20px,2.4vw,28px);font-weight:800;letter-spacing:-.02em;line-height:1.22}
+.dica .cit{font-size:13.5px;color:var(--tip-dim)}
+.dica .cit b{background:rgba(59,181,165,.22);color:var(--tip-fg);padding:2px 7px;border-radius:6px;font-size:11px;margin-right:6px}
+.dica .bar{height:3px;border-radius:9px;background:rgba(127,127,127,.25);overflow:hidden}
+.dica .bar i{display:block;height:100%;background:var(--accent);width:100%}
+.dica.idle .txt{font-weight:600;font-size:18px;color:var(--tip-dim)}
+.hist{display:flex;flex-direction:column;gap:8px;max-height:340px;overflow:auto}
+.hist .h{border:1px solid var(--line);border-radius:12px;padding:9px 12px;background:var(--surface)}
+.hist .h b{font-size:13.5px;display:block}
+.hist .h span{font-size:12px;color:var(--dim)}
+.rec{display:flex;flex-direction:column;gap:12px}
+.timer{font-size:54px;font-weight:800;letter-spacing:-.04em;line-height:1}
+.dot{width:9px;height:9px;border-radius:50%;background:var(--bad);display:inline-block;animation:pulse 1s infinite}
+@keyframes pulse{50%{opacity:.2}}
+@media (prefers-reduced-motion:reduce){.dot{animation:none}.dica{transition:none}}
+.trans{max-height:260px;overflow:auto;display:flex;flex-direction:column;gap:6px;font-size:13.5px}
+.trans p{margin:0;padding:6px 9px;border-radius:9px;background:var(--surface-2)}
+.trans p.pac{border-left:3px solid var(--accent)}
+.trans p b{font-size:11px;color:var(--faint);display:block}
+.consent{border:1px solid var(--warn);background:var(--warn-bg);border-radius:12px;padding:10px 12px;font-size:13px;display:flex;gap:8px;align-items:flex-start}
+.seg{display:flex;border:1px solid var(--line-2);border-radius:10px;overflow:hidden}
+.seg button{flex:1;border:0;background:none;padding:7px 8px;font-weight:700;font-size:12.5px;color:var(--dim)}
+.seg button.on{background:var(--accent);color:var(--accent-ink)}
+
+/* briefing */
+.brief{display:grid;grid-template-columns:280px minmax(0,1fr);gap:16px;align-items:start}
+@media (max-width:980px){.brief{grid-template-columns:1fr}}
+.blist{display:flex;flex-direction:column;gap:6px}
+.blist button{border:1px solid var(--line);background:var(--surface);border-radius:12px;padding:10px 12px;text-align:left}
+.blist button.on{border-color:var(--accent);background:var(--accent-soft)}
+.blist button b{display:block;font-size:14px}
+.blist button span{font-size:12px;color:var(--dim)}
+.manchete{font-size:clamp(20px,2.4vw,27px);font-weight:800;letter-spacing:-.025em;line-height:1.2;margin:6px 0 16px}
+.bk{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));border:1px solid var(--line-2);border-radius:14px;overflow:hidden}
+.bk > div{padding:12px 14px;border-right:1px solid var(--line)}
+.bk > div:last-child{border-right:0;background:var(--accent-soft)}
+.bk strong{display:block;font-size:16px;margin:6px 0 2px;line-height:1.25}
+.bk span{font-size:12px;color:var(--dim)}
+@media (max-width:760px){.bk{grid-template-columns:1fr 1fr}.bk > div:nth-child(2){border-right:0}.bk > div:nth-child(-n+2){border-bottom:1px solid var(--line)}}
+.aconteceu{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media (max-width:640px){.aconteceu{grid-template-columns:1fr}}
+.aconteceu > div{background:var(--surface-2);border-radius:12px;padding:12px 14px;display:flex;gap:10px}
+.aconteceu i{font-style:normal;font-weight:800;color:var(--accent);font-size:13px}
+.aconteceu p{margin:3px 0 0;font-size:14px}
+.aval{display:flex;flex-direction:column;gap:10px}
+.aval .a{display:grid;grid-template-columns:150px minmax(0,1fr) minmax(0,1fr);gap:10px;border:1px solid var(--line);border-radius:12px;padding:12px;align-items:start}
+@media (max-width:760px){.aval .a{grid-template-columns:1fr}}
+.aval .a .box{border-radius:10px;padding:9px 11px;font-size:13.5px}
+.aval .a .peso{background:var(--bad-bg)} .aval .a .como{background:var(--good-bg)}
+.aval .a .box .label{color:inherit;opacity:.8;display:block;margin-bottom:3px}
+.aval .a .peso .label{color:var(--bad)} .aval .a .como .label{color:var(--good)}
+
+/* follow-up */
+.kanban{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(220px,1fr);gap:12px;overflow-x:auto;padding-bottom:8px}
+.col{background:var(--surface-2);border:1px solid var(--line);border-radius:var(--r);padding:12px;display:flex;flex-direction:column;gap:9px;min-height:200px}
+.col h3{font-size:14px;display:flex;justify-content:space-between;align-items:center}
+.col .sub{font-size:11.5px;color:var(--dim);margin-top:-4px}
+.pc{border:1px solid var(--line);background:var(--surface);border-radius:12px;padding:10px 11px;text-align:left;display:flex;flex-direction:column;gap:4px;border-left:3px solid var(--line-2)}
+.pc.late{border-left-color:var(--bad)} .pc.today{border-left-color:var(--accent)}
+.pc b{font-size:13.5px}
+.pc .v{font-size:13px;font-weight:700}
+.pc .m{font-size:11.5px;color:var(--dim)}
+
+/* gaveta */
+.veil{position:fixed;inset:0;background:rgba(4,20,26,.45);z-index:50;display:flex;justify-content:flex-end}
+.drawer{width:min(520px,100%);height:100%;background:var(--bg);padding:22px max(18px,env(safe-area-inset-right,0px)) 30px 18px;overflow:auto;display:flex;flex-direction:column;gap:14px}
+#toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translate(-50%,120px);background:var(--fg);color:var(--bg);padding:10px 16px;border-radius:11px;font-weight:700;z-index:99;transition:transform .25s;max-width:calc(100% - 32px)}
+#toast.on{transform:translate(-50%,0)}
+@media (max-width:860px){#toast{bottom:calc(84px + env(safe-area-inset-bottom,0px))}}
+.banner{background:var(--accent-soft);color:var(--accent);border-radius:12px;padding:10px 14px;font-size:13.5px;font-weight:600;margin-bottom:16px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="side">
+    <div class="logo">alinha<b>.</b><small>Weiss Odontologia</small></div>
+    <nav class="nav" id="nav">
+      <button data-v="hoje" class="on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 12h4l3-8 4 16 3-8h4"/></svg>Hoje<span class="badge hide" id="badgeHoje"></span></button>
+      <button data-v="consulta"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0M12 17v5"/></svg>Consulta</button>
+      <button data-v="briefings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 2h9l5 5v15H6z"/><path d="M14 2v6h6M9 13h7M9 17h5"/></svg>Briefings</button>
+      <button data-v="followup"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="5" height="16" rx="1.5"/><rect x="10" y="4" width="5" height="11" rx="1.5"/><rect x="17" y="4" width="4" height="7" rx="1.5"/></svg>Follow-up</button>
+      <button data-v="ajustes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1.2l2-1.5-2-3.4-2.4 1a7 7 0 0 0-2-1.2L14 3h-4l-.5 2.6a7 7 0 0 0-2 1.2l-2.4-1-2 3.4 2 1.5A7 7 0 0 0 5 12c0 .4 0 .8.1 1.2l-2 1.5 2 3.4 2.4-1a7 7 0 0 0 2 1.2L10 21h4l.5-2.6a7 7 0 0 0 2-1.2l2.4 1 2-3.4-2-1.5c.1-.4.1-.8.1-1.2z"/></svg>Ajustes</button>
+    </nav>
+    <div class="foot" id="modoInfo">Modo demonstração</div>
+  </aside>
+
+  <main>
+    <div class="banner hide" id="bannerDemo">Você está vendo dados de exemplo (pacientes fictícios). <button class="btn sm" id="btnLimparExemplos">Começar do zero</button></div>
+
+    <!-- HOJE -->
+    <section class="view on" id="v-hoje">
+      <div class="head"><div><h1>Quem chamar hoje</h1><p id="hojeData"></p></div></div>
+      <div class="kpis" id="kpisHoje"></div>
+      <div class="fila" id="fila"></div>
+    </section>
+
+    <!-- CONSULTA AO VIVO -->
+    <section class="view" id="v-consulta">
+      <div class="head"><div><h1>Consulta ao vivo</h1><p>O Alinha escuta a conversa e mostra, na hora, o que fazer.</p></div>
+        <button class="btn" id="btnDemoConsulta">▶ Ver uma consulta de demonstração</button></div>
+      <div class="live">
+        <div class="stack">
+          <div class="card momento">
+            <div class="row"><span class="label grow">Momento da consulta</span><span class="pill" id="pillIA">Dicas do roteiro</span></div>
+            <h2 id="momentoNome">Acolhimento</h2>
+            <div class="steps" id="momentoSteps"></div>
+            <div class="names" id="momentoNames"></div>
+          </div>
+          <div class="dica idle" id="dica"><div class="txt">As dicas aparecem aqui assim que o paciente falar algo importante: uma objeção, uma dúvida ou um sinal de que quer fechar.</div></div>
+          <div class="card">
+            <div class="row"><span class="label grow">Dicas desta consulta</span><span class="tiny dim" id="histCount"></span></div>
+            <div class="hist" id="hist" style="margin-top:10px"><p class="small dim" style="margin:0">Nenhuma dica ainda.</p></div>
+          </div>
+        </div>
+        <div class="stack">
+          <div class="card rec">
+            <div class="row"><span class="label grow">Gravação</span><span class="small dim hide" id="recState"><span class="dot"></span> gravando</span></div>
+            <div class="timer num" id="timer">00:00</div>
+            <div class="grid2" style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+              <div><label class="f" for="cNome">Paciente</label><input class="in" id="cNome" placeholder="Nome"></div>
+              <div><label class="f" for="cTel">WhatsApp</label><input class="in" id="cTel" inputmode="tel" placeholder="(81) 9…"></div>
+              <div><label class="f" for="cUnidade">Unidade</label><select class="in" id="cUnidade"><option>Caruaru</option><option>Recife</option></select></div>
+              <div><label class="f" for="cProf">Profissional</label><select class="in" id="cProf"></select></div>
+            </div>
+            <label class="consent"><input type="checkbox" id="chkConsent" style="margin-top:2px"><span>O paciente <b>autorizou</b> a gravação (LGPD).</span></label>
+            <div class="row">
+              <button class="btn pri grow" id="btnIniciar" disabled>● Iniciar</button>
+              <button class="btn hide" id="btnPausar">❚❚</button>
+              <button class="btn danger grow hide" id="btnParar">■ Parar e gerar briefing</button>
+            </div>
+            <div class="row small"><span class="dim">Quem fala:</span>
+              <div class="seg grow" id="segQuem"><button data-q="paciente" class="on">Paciente</button><button data-q="profissional">Profissional</button></div></div>
+            <p class="tiny dim" id="recHint" style="margin:0"></p>
+          </div>
+          <div class="card">
+            <span class="label">Transcrição</span>
+            <div class="trans" id="trans" style="margin-top:8px"><p class="dim">A conversa aparece aqui.</p></div>
+            <div class="row" style="margin-top:8px"><input class="in grow" id="inFala" placeholder="Digite o que o paciente disse…"><button class="btn sm" id="btnFala">Adicionar</button></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- BRIEFINGS -->
+    <section class="view" id="v-briefings">
+      <div class="head"><div><h1>Briefing pós-consulta</h1><p>O que travou, o que foi bem e o que fazer agora.</p></div></div>
+      <div class="brief">
+        <div class="blist" id="blist"></div>
+        <div id="bdetail"></div>
+      </div>
+    </section>
+
+    <!-- FOLLOW-UP -->
+    <section class="view" id="v-followup">
+      <div class="head"><div><h1>Follow-up D0 a D30</h1><p>Cada paciente no toque certo. Ninguém esquecido.</p></div>
+        <div class="chips" id="filtroResp"></div></div>
+      <div class="kpis" id="kpisFU"></div>
+      <div class="kanban" id="kanban"></div>
+    </section>
+
+    <!-- AJUSTES -->
+    <section class="view" id="v-ajustes">
+      <div class="head"><div><h1>Ajustes</h1></div></div>
+      <div class="stack" style="max-width:720px">
+        <div class="card stack">
+          <h3>Equipe</h3>
+          <div><label class="f" for="aEquipe">Nomes (separados por vírgula)</label><input class="in" id="aEquipe"></div>
+          <div><label class="f" for="aCondicao">Condição especial vigente (só se for real)</label><input class="in" id="aCondicao" placeholder="ex.: check-up digital abatido no tratamento até 30/11"></div>
+          <div class="row"><button class="btn pri" id="btnSalvarAjustes">Salvar</button><span class="small dim" id="ajStatus"></span></div>
+        </div>
+        <div class="card stack">
+          <h3>Tema</h3>
+          <div class="chips" id="tema"><button data-t="auto" class="on">Automático</button><button data-t="light">Claro</button><button data-t="dark">Escuro</button></div>
+        </div>
+        <div class="card stack">
+          <h3>Dados</h3>
+          <p class="small dim" style="margin:0" id="dadosInfo"></p>
+          <div class="row"><button class="btn" id="btnExemplos">Carregar pacientes de exemplo</button><button class="btn" id="btnApagarTudo">Apagar todos os dados</button></div>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+<div id="drawerHost"></div>
+<div id="toast"></div>
+<script src="biblioteca.js"></script>
+<script src="demo.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

@@ -1,35 +1,27 @@
-# Publicação do Copiloto Weiss no Render (render.com) — "New > Blueprint" e escolha este repositório.
+# Publicação do Alinha no Render (render.com) — "New > Blueprint" e escolha este repositório.
 services:
   - type: web
-    name: copiloto-weiss
+    name: alinha-weiss
     runtime: node
-    rootDir: consulta
+    rootDir: alinha
     buildCommand: npm install --omit=dev
     startCommand: npm start
     healthCheckPath: /saude
-    plan: starter            # plano pago: fica sempre ligado (necessário para receber o WhatsApp do Kommo)
+    plan: starter            # plano pago: sempre ligado e com disco para guardar os pacientes
     disk:
       name: dados
       mountPath: /var/data
       sizeGB: 1
     envVars:
       - key: SENHA_ACESSO
-        sync: false          # você digita no painel: a senha da equipe
+        sync: false          # a senha que a equipe digita
       - key: SEGREDO_SESSAO
         generateValue: true
       - key: PASTA_DADOS
         value: /var/data
-      - key: KOMMO_SUBDOMINIO
-        value: edelweissjrhotmailcom   # edelweissjrhotmailcom.kommo.com
-      - key: KOMMO_TOKEN
-        sync: false
-      - key: KOMMO_CHAVE_WEBHOOK
-        generateValue: true
-      - key: KOMMO_FUNIL_ID
-        sync: false
-      - key: KOMMO_ETAPA_NEGOCIACAO
-        sync: false
       - key: ANTHROPIC_API_KEY
-        sync: false
-      - key: OPENAI_API_KEY
-        sync: false
+        sync: false          # chave da IA (console.anthropic.com)
+      - key: KOMMO_SUBDOMINIO
+        value: edelweissjrhotmailcom
+      - key: KOMMO_TOKEN
+        sync: false          # opcional: para enviar o briefing ao Kommo
