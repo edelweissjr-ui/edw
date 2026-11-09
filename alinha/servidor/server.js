@@ -57,7 +57,7 @@ const AJ = new Proxy({}, { get: (_, k) => (DB.ajustes || {})[k] ?? ({ etapaPerdi
 /* ------------------------------------------------------------------ */
 /* utilidades HTTP e sessão                                            */
 /* ------------------------------------------------------------------ */
-const TIPOS = { ".html": "text/html; charset=utf-8", ".js": "text/javascript; charset=utf-8", ".png": "image/png", ".jpg": "image/jpeg", ".json": "application/json", ".css": "text/css" };
+const TIPOS = { ".svg": "image/svg+xml", ".html": "text/html; charset=utf-8", ".js": "text/javascript; charset=utf-8", ".png": "image/png", ".jpg": "image/jpeg", ".json": "application/json", ".css": "text/css" };
 
 function json(res, status, obj) {
   res.writeHead(status, { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" });
@@ -96,15 +96,15 @@ function falhou(ip) { const t = tentativas.get(ip) || { n: 0, em: Date.now() }; 
 
 function paginaLogin(erro = "") {
   return `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex">
-<title>Alinha</title><style>
+<title>Alinha</title><link rel="icon" href="logo.svg"><style>
 :root{--bg:#0A0A1C;--card:#13122B;--fg:#EEEDFF;--dim:#ADAAD8;--accent:#7C6CF6;--line:rgba(167,158,255,.18);--bad:#FF7A72;color-scheme:dark}
 *{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;background:var(--bg) radial-gradient(900px 500px at 70% -10%,rgba(124,108,246,.25),transparent 60%);color:var(--fg);font:15px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;padding:16px}
 form{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:30px;width:100%;max-width:360px;display:grid;gap:12px}
-.logo{font-weight:800;font-size:26px;letter-spacing:-.02em}.logo b{color:var(--accent)}p{margin:0;color:var(--dim);font-size:14px}
+.logo{display:flex;align-items:center;gap:10px;font-weight:800;font-size:24px;letter-spacing:-.02em}.logo svg{width:36px;height:36px}p{margin:0;color:var(--dim);font-size:14px}
 input{font:inherit;color:inherit;padding:11px 12px;border:1px solid var(--line);border-radius:10px;background:var(--bg)}
 button{font:inherit;font-weight:700;padding:12px;border:0;border-radius:10px;background:var(--accent);color:#fff;cursor:pointer}.err{color:var(--bad);font-weight:600}
 </style></head><body><form method="post" action="login">
-<div class="logo">alinha<b>.</b></div><p>Weiss Odontologia · do diagnóstico ao fechamento</p>
+<div class="logo"><svg aria-hidden="true" viewBox="0 0 32 32"><defs><linearGradient id="gA" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#6A5AF0"/><stop offset="1" stop-color="#A193FF"/></linearGradient></defs><rect width="32" height="32" rx="9" fill="url(#gA)"/><path d="M10 24 16 8l6 16" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M11.9 18.6q4.1 3 8.2 0" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/></svg>Alinha</div><p>Weiss Odontologia · do diagnóstico ao fechamento</p>
 ${erro ? `<p class="err">${erro}</p>` : ""}
 <label for="senha" style="font-size:13px;font-weight:600">Senha da equipe</label>
 <input id="senha" name="senha" type="password" autocomplete="current-password" required autofocus>
@@ -375,6 +375,7 @@ async function rotas(req, res) {
 
   if (p === "/saude") return json(res, 200, { ok: true });
   if (p.startsWith("/assets/")) return servirArquivo(res, ASSETS_DIR, p.slice("/assets/".length));
+  if (p === "/logo.svg") return servirArquivo(res, APP_DIR, "logo.svg");
 
   if (p === "/login" && req.method === "POST") {
     if (bloqueado(ip)) { res.writeHead(429, { "Content-Type": "text/html; charset=utf-8" }); return res.end(paginaLogin("Muitas tentativas. Aguarde 15 minutos.")); }

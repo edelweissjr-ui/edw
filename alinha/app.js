@@ -198,7 +198,7 @@
   /* ------------------------------------------------------------ */
   function kpis(el, itens) {
     $(el).innerHTML = itens.map(([rot, val, sub, hl, seq]) => seq
-      ? `<button class="kpi click${hl ? " hl" : ""}" data-seq="${seq}" ${val ? "" : "disabled"}><div class="label">${rot}</div><b class="num">${val}</b><span>${sub}</span>${val ? `<em class="go">Chamar em sequência →</em>` : ""}</button>`
+      ? `<button class="kpi click${hl ? " hl" : ""}" data-seq="${seq}" ${val ? "" : "disabled"}><div class="label">${rot}</div><b class="num">${val}</b><span>${sub}</span>${val ? `<em class="go">Alinhar em sequência →</em>` : ""}</button>`
       : `<div class="kpi${hl ? " hl" : ""}"><div class="label">${rot}</div><b class="num">${val}</b><span>${sub}</span></div>`).join("");
   }
   document.addEventListener("click", (e) => { const b = e.target.closest("[data-seq]"); if (b && !b.disabled) abrirSequencia(b.dataset.seq); });
@@ -209,7 +209,7 @@
   let SEQ = null;
   function abrirSequencia(tipo) {
     const lista = paraHoje().filter((o) => tipo !== "atrasados" || o.x.atraso > 0);
-    if (!lista.length) { toast("Ninguém para chamar agora"); return; }
+    if (!lista.length) { toast("Ninguém para alinhar agora"); return; }
     SEQ = { tipo, ids: lista.map((o) => o.p.id), i: 0, feitos: {} };
     renderSeq();
   }
@@ -219,7 +219,7 @@
     // pula quem já não tem toque pendente para hoje (ex.: resolvido em outra aba)
     while (SEQ.i < total) { const p = PAC.find((x) => x.id === SEQ.ids[SEQ.i]); const x = p && proximo(p); if (p && x && !x.fim && x.atraso >= 0 && !SEQ.feitos[p.id]) break; SEQ.i++; }
     const pontos = SEQ.ids.map((id, k) => `<i class="${SEQ.feitos[id] === "enviado" ? "ok" : SEQ.feitos[id] === "pulado" ? "skip" : k === SEQ.i ? "cur" : ""}"></i>`).join("");
-    const titulo = SEQ.tipo === "atrasados" ? "Atrasados" : "Chamar hoje";
+    const titulo = SEQ.tipo === "atrasados" ? "Atrasados" : "Alinhar hoje";
     let corpo;
     if (SEQ.i >= total) {
       const env = Object.values(SEQ.feitos).filter((v) => v === "enviado").length, pul = Object.values(SEQ.feitos).filter((v) => v === "pulado").length;
@@ -254,16 +254,16 @@
   }
   function renderHoje() {
     const N = numeros();
-    const bs = $("#btnSeqHoje"); if (bs) { bs.classList.toggle("hide", !N.hoje); bs.textContent = `▶ Chamar em sequência (${N.hoje})`; }
+    const bs = $("#btnSeqHoje"); if (bs) { bs.classList.toggle("hide", !N.hoje); bs.textContent = `▶ Alinhar em sequência (${N.hoje})`; }
     $("#hojeData").textContent = new Date().toLocaleDateString("pt-BR", { weekday: "long", day: "2-digit", month: "long" });
     kpis("#kpisHoje", [
       ["Valor em aberto", brl(N.emAberto), `${N.nAbertos} pacientes em follow-up`],
-      ["Para chamar hoje", N.hoje, N.hoje ? "toque para chamar um por um" : "ninguém hoje", false, "hoje"],
+      ["Para alinhar hoje", N.hoje, N.hoje ? "toque para alinhar um por um" : "ninguém hoje", false, "hoje"],
       ["Atrasados", N.atrasados, N.atrasados ? "comece por estes" : "tudo em dia", false, "atrasados"],
       ["Recuperado no follow-up", brl(N.recuperado), `${N.nRec} fecharam depois da consulta, no mês`, true]
     ]);
     const fila = paraHoje();
-    $("#fila").innerHTML = fila.length ? fila.map((o) => cardMensagem(o.p, o.x)).join("") : `<div class="vazio">Ninguém para chamar hoje. Quando uma consulta terminar sem fechamento, o paciente aparece aqui no dia certo.</div>`;
+    $("#fila").innerHTML = fila.length ? fila.map((o) => cardMensagem(o.p, o.x)).join("") : `<div class="vazio">Ninguém para alinhar hoje. Quando uma consulta terminar sem fechamento, o paciente aparece aqui no dia certo.</div>`;
     fila.forEach((o) => garantirMensagemIA(o.p, o.x.dia));
     const b = $("#badgeHoje"); b.textContent = N.hoje; b.classList.toggle("hide", !N.hoje);
   }
@@ -284,7 +284,7 @@
     colunas.push({ d: "ok", titulo: "Fecharam", sub: "no mês", itens: lista.filter((p) => p.status === "fechado" && doMes(p.fechadoEm)) });
     $("#kanban").innerHTML = colunas.map((c) => `<div class="col"><h3>${c.titulo}<span class="pill">${c.itens.length}</span></h3><div class="sub">${c.sub}</div>
       ${c.itens.map((p) => { const x = proximo(p); const cls = x && !x.fim ? (x.atraso > 0 ? "late" : x.atraso === 0 ? "today" : "") : "";
-        const quando = !x ? (p.status === "fechado" ? `fechou ${p.fechadoEm ? fmtData(p.fechadoEm) : ""}` : "") : x.fim ? "todos os toques feitos" : x.atraso > 0 ? `<span style="color:var(--bad)">${x.atraso} dia${x.atraso > 1 ? "s" : ""} de atraso</span>` : x.atraso === 0 ? "chamar hoje" : `em ${-x.atraso} dia${x.atraso < -1 ? "s" : ""}`;
+        const quando = !x ? (p.status === "fechado" ? `fechou ${p.fechadoEm ? fmtData(p.fechadoEm) : ""}` : "") : x.fim ? "todos os toques feitos" : x.atraso > 0 ? `<span style="color:var(--bad)">${x.atraso} dia${x.atraso > 1 ? "s" : ""} de atraso</span>` : x.atraso === 0 ? "alinhar hoje" : `em ${-x.atraso} dia${x.atraso < -1 ? "s" : ""}`;
         return `<button class="pc ${cls}" data-id="${p.id}" data-act="abrir"><b>${esc(p.nome)}</b><span class="v num">${brl(p.status === "fechado" ? p.valorFechado : p.valorApresentado)}</span><span class="m">${quando}</span>${p.status === "aberto" ? miniTermo(p.prontidao) : ""}<span class="m">${esc(p.responsavel || "")}${(p.objecoes || [])[0] ? " · " + esc(OBJ_NOME[p.objecoes[0]] || "") : ""}</span></button>`; }).join("") || `<span class="tiny dim">vazio</span>`}
     </div>`).join("");
   }
