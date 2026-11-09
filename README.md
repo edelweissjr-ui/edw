@@ -11,5 +11,5 @@ Site de página única, animado, da Weiss Odontologia (Caruaru e Recife).
 - Logotipo: o `<svg class="brand-mark">` no cabeçalho pode ser trocado por `<img src="logo.svg">`.
 - Telefones/WhatsApp: busque por `wa.me/55` no arquivo.
 
-## Copiloto de Consulta
-A pasta `consulta/` contém o sistema interno que acompanha a conversa com o paciente (presencial ou WhatsApp), sugere o que responder e envia o resultado direto ao Kommo. Ela roda como plataforma única com senha (`consulta/servidor`, publicação pelo `render.yaml`). Veja `consulta/README.md`.
+## Alinha (copiloto de fechamento)
+A pasta `alinha/` contém o sistema interno da equipe: dicas ao vivo durante a consulta, briefing pós-consulta, mensagem pronta de WhatsApp e follow-up D0 a D30. Publicação pelo `render.yaml`. Veja `alinha/README.md`.
