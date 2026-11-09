@@ -20,7 +20,7 @@ services:
       - key: PASTA_DADOS
         value: /var/data
       - key: KOMMO_SUBDOMINIO
-        sync: false
+        value: edelweissjrhotmailcom   # edelweissjrhotmailcom.kommo.com
       - key: KOMMO_TOKEN
         sync: false
       - key: KOMMO_CHAVE_WEBHOOK
