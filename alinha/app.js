@@ -752,6 +752,19 @@
     if (vista === "ajustes") renderAjustes();
   }
 
+  /* lema da marca: Alinha a conversa → o orçamento → o fechamento → o tratamento → o sorriso */
+  function lema() {
+    const el = $("#lemaPalavra"); if (!el) return;
+    const palavras = ["a conversa", "o orçamento", "o fechamento", "o tratamento", "o sorriso"];
+    if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) { el.textContent = "do diálogo ao sorriso"; return; }
+    let i = 0;
+    setInterval(() => {
+      el.classList.add("saindo");
+      setTimeout(() => { i = (i + 1) % palavras.length; el.textContent = palavras[i]; el.classList.remove("saindo"); }, 350);
+    }, 2600);
+  }
+  lema();
+
   async function iniciar() {
     aplicarTema(ls.get("alinha.tema", "auto"));
     renderMomento(); renderTermo();

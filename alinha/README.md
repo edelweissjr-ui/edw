@@ -1,5 +1,7 @@
 # Alinha — do diagnóstico ao fechamento
 
+**A marca:** *Alinha* é alinhar com o cliente — **a conversa, o orçamento, o fechamento e o tratamento** — e é também o alinhamento da Ortodontia: **do primeiro contato ao sorriso alinhado**. O logo é um "A" cujo traço do meio é um sorriso.
+
 Copiloto de vendas da **Weiss Odontologia** (Caruaru e Recife). Acompanha a consulta e o paciente até o fechamento do tratamento, em quatro partes:
 
 | | O que faz |
