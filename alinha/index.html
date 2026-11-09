@@ -10,33 +10,28 @@
 <style>
 /* Layout: barra lateral fixa + área de trabalho; no celular, barra inferior. Identidade Weiss (verde-petróleo). */
 :root{
-  --bg:#F2F5F5; --surface:#FFFFFF; --surface-2:#F7FAFA; --line:rgba(11,46,59,.12); --line-2:rgba(11,46,59,.2);
-  --fg:#0B2E3B; --dim:#56717A; --faint:#8AA0A7;
-  --accent:#127E72; --accent-ink:#FFFFFF; --accent-soft:#DDF0EC; --accent-2:#0E5E77;
-  --good:#1D8A55; --good-bg:#E3F4EA; --warn:#A86B12; --warn-bg:#FBF0DC; --bad:#B4382D; --bad-bg:#FBE7E4;
-  --tip-bg:#0B2E3B; --tip-fg:#F2FBFA; --tip-dim:#A8C7CC;
-  --shadow:0 1px 2px rgba(11,46,59,.05),0 8px 24px rgba(11,46,59,.07);
+  /* Paleta: azul-noite com destaques em violeta (escuro é o padrão) */
+  --bg:#0A0A1C; --surface:#13122B; --surface-2:#1A1938; --line:rgba(167,158,255,.13); --line-2:rgba(167,158,255,.24);
+  --fg:#EEEDFF; --dim:#ADAAD8; --faint:#7E7AAE;
+  --accent:#7C6CF6; --accent-ink:#FFFFFF; --accent-soft:rgba(124,108,246,.18); --accent-2:#A79BFF;
+  --good:#4FD08F; --good-bg:rgba(79,208,143,.14); --warn:#F2B45A; --warn-bg:rgba(242,180,90,.14); --bad:#FF7A72; --bad-bg:rgba(255,122,114,.14);
+  --tip-bg:#1D1A47; --tip-fg:#F4F2FF; --tip-dim:#B9B3F2;
+  --glow:radial-gradient(1200px 600px at 70% -10%,rgba(124,108,246,.22),transparent 60%),radial-gradient(900px 500px at 0% 100%,rgba(70,60,190,.18),transparent 60%);
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 10px 30px rgba(0,0,0,.35);
   --f:"Plus Jakarta Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
-  --r:16px;
+  --r:16px; color-scheme:dark;
 }
-@media (prefers-color-scheme: dark){
-  :root:not([data-theme="light"]){
-    --bg:#071820; --surface:#0E242E; --surface-2:#122C37; --line:rgba(170,215,222,.12); --line-2:rgba(170,215,222,.22);
-    --fg:#E4F0F2; --dim:#97B2B9; --faint:#6F8D95;
-    --accent:#3BB5A5; --accent-ink:#04201C; --accent-soft:#103A37; --accent-2:#5CB7D3;
-    --good:#4CC488; --good-bg:#123326; --warn:#E3A84A; --warn-bg:#352812; --bad:#EE7A6E; --bad-bg:#3A1A17;
-    --tip-bg:#E9F6F4; --tip-fg:#082028; --tip-dim:#3F5F66; color-scheme:dark;
-  }
-}
-:root[data-theme="dark"]{
-  --bg:#071820; --surface:#0E242E; --surface-2:#122C37; --line:rgba(170,215,222,.12); --line-2:rgba(170,215,222,.22);
-  --fg:#E4F0F2; --dim:#97B2B9; --faint:#6F8D95;
-  --accent:#3BB5A5; --accent-ink:#04201C; --accent-soft:#103A37; --accent-2:#5CB7D3;
-  --good:#4CC488; --good-bg:#123326; --warn:#E3A84A; --warn-bg:#352812; --bad:#EE7A6E; --bad-bg:#3A1A17;
-  --tip-bg:#E9F6F4; --tip-fg:#082028; --tip-dim:#3F5F66; color-scheme:dark;
+:root[data-theme="light"]{
+  --bg:#F5F4FF; --surface:#FFFFFF; --surface-2:#F0EEFF; --line:rgba(40,30,110,.12); --line-2:rgba(40,30,110,.22);
+  --fg:#16133A; --dim:#5B5888; --faint:#8C89B5;
+  --accent:#5B4BE0; --accent-ink:#FFFFFF; --accent-soft:#E7E3FF; --accent-2:#8577F0;
+  --good:#1E8A57; --good-bg:#E2F5EA; --warn:#A8690F; --warn-bg:#FBF0DC; --bad:#C0392B; --bad-bg:#FCE8E6;
+  --tip-bg:#1D1A47; --tip-fg:#F4F2FF; --tip-dim:#B9B3F2;
+  --glow:radial-gradient(1200px 600px at 70% -10%,rgba(124,108,246,.12),transparent 60%);
+  --shadow:0 1px 2px rgba(20,10,80,.05),0 8px 24px rgba(20,10,80,.08); color-scheme:light;
 }
 *{box-sizing:border-box}
-html,body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--f);font-size:15px;line-height:1.45;-webkit-font-smoothing:antialiased}
+html,body{margin:0;background:var(--bg) var(--glow) fixed;color:var(--fg);font-family:var(--f);font-size:15px;line-height:1.45;-webkit-font-smoothing:antialiased}
 button,input,select,textarea{font:inherit;color:inherit}
 button{cursor:pointer}
 h1,h2,h3{margin:0;line-height:1.2;text-wrap:balance}
@@ -48,7 +43,7 @@ h1,h2,h3{margin:0;line-height:1.2;text-wrap:balance}
 
 /* casca */
 .app{display:grid;grid-template-columns:232px minmax(0,1fr);min-height:100vh}
-.side{position:sticky;top:0;height:100vh;padding:22px 14px;border-right:1px solid var(--line);background:var(--surface);display:flex;flex-direction:column;gap:6px}
+.side{position:sticky;top:0;height:100vh;padding:22px 14px;border-right:1px solid var(--line);background:color-mix(in srgb,var(--surface) 88%,transparent);backdrop-filter:blur(10px);display:flex;flex-direction:column;gap:6px}
 .logo{font-weight:800;font-size:24px;letter-spacing:-.03em;padding:0 10px 14px}
 .logo b{color:var(--accent)}
 .logo small{display:block;font-size:11.5px;font-weight:600;letter-spacing:0;color:var(--dim);margin-top:2px}
@@ -81,7 +76,7 @@ main{padding:26px max(16px,env(safe-area-inset-right,0px)) 90px max(16px,env(saf
 .grow{flex:1;min-width:0}
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;border:1px solid var(--line-2);background:var(--surface);border-radius:11px;padding:9px 14px;font-weight:700;font-size:14px;white-space:nowrap;text-decoration:none;color:var(--fg)}
 .btn:hover{border-color:var(--accent)}
-.btn.pri{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.pri{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);box-shadow:0 6px 18px rgba(124,108,246,.35)}
 .btn.danger{background:var(--bad);border-color:var(--bad);color:#fff}
 .btn.ghost{border-color:transparent;background:transparent;color:var(--dim)}
 .btn.sm{padding:6px 10px;font-size:12.5px;border-radius:9px}
@@ -105,7 +100,7 @@ textarea.in{resize:vertical;min-height:80px;line-height:1.5}
 .kpi{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px}
 .kpi b{display:block;font-size:24px;letter-spacing:-.02em;margin-top:6px}
 .kpi span{font-size:12px;color:var(--dim)}
-.kpi.hl{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.kpi.hl{background:linear-gradient(135deg,#6A5AF0,#9A8CFF);border-color:transparent;color:#fff;box-shadow:0 10px 30px rgba(124,108,246,.35)}
 .kpi.hl .label,.kpi.hl span{color:inherit;opacity:.85}
 
 /* hoje: fila de mensagens */
@@ -131,12 +126,12 @@ textarea.in{resize:vertical;min-height:80px;line-height:1.5}
 .momento .names span{font-size:10.5px;color:var(--faint);font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .momento .names span.cur{color:var(--accent)}
 .momento h2{font-size:30px;letter-spacing:-.03em;margin-top:4px}
-.dica{background:var(--tip-bg);color:var(--tip-fg);border-radius:20px;padding:22px 24px;min-height:190px;display:flex;flex-direction:column;justify-content:center;gap:12px;transition:opacity .3s}
+.dica{background:var(--tip-bg);color:var(--tip-fg);border:1.5px solid var(--accent-2);box-shadow:0 0 0 4px rgba(124,108,246,.12),0 18px 40px rgba(40,20,140,.35);border-radius:20px;padding:22px 24px;min-height:190px;display:flex;flex-direction:column;justify-content:center;gap:12px;transition:opacity .3s}
 .dica .rot{display:inline-flex;gap:8px;align-items:center;font-size:12px;font-weight:700;color:var(--tip-dim)}
 .dica .rot b{background:var(--accent);color:var(--accent-ink);padding:3px 9px;border-radius:999px;font-size:11px}
 .dica .txt{font-size:clamp(20px,2.4vw,28px);font-weight:800;letter-spacing:-.02em;line-height:1.22}
 .dica .cit{font-size:13.5px;color:var(--tip-dim)}
-.dica .cit b{background:rgba(59,181,165,.22);color:var(--tip-fg);padding:2px 7px;border-radius:6px;font-size:11px;margin-right:6px}
+.dica .cit b{background:rgba(79,208,170,.22);color:var(--tip-fg);padding:2px 7px;border-radius:6px;font-size:11px;margin-right:6px}
 .dica .bar{height:3px;border-radius:9px;background:rgba(127,127,127,.25);overflow:hidden}
 .dica .bar i{display:block;height:100%;background:var(--accent);width:100%}
 .dica.idle .txt{font-weight:600;font-size:18px;color:var(--tip-dim)}
@@ -306,7 +301,7 @@ textarea.in{resize:vertical;min-height:80px;line-height:1.5}
         </div>
         <div class="card stack">
           <h3>Tema</h3>
-          <div class="chips" id="tema"><button data-t="auto" class="on">Automático</button><button data-t="light">Claro</button><button data-t="dark">Escuro</button></div>
+          <div class="chips" id="tema"><button data-t="auto" class="on">Escuro (padrão)</button><button data-t="light">Claro</button></div>
         </div>
         <div class="card stack">
           <h3>Dados</h3>

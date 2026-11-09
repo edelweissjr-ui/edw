@@ -97,9 +97,8 @@ function falhou(ip) { const t = tentativas.get(ip) || { n: 0, em: Date.now() }; 
 function paginaLogin(erro = "") {
   return `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex">
 <title>Alinha</title><style>
-:root{--bg:#F3F6F6;--card:#fff;--fg:#0B2E3B;--dim:#557079;--accent:#127E72;--line:rgba(11,46,59,.14);--bad:#B4382D}
-@media (prefers-color-scheme:dark){:root{--bg:#081A21;--card:#0F2630;--fg:#E4F0F2;--dim:#93AEB6;--accent:#37B3A3;--line:rgba(160,210,220,.16);color-scheme:dark}}
-*{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;background:var(--bg);color:var(--fg);font:15px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;padding:16px}
+:root{--bg:#0A0A1C;--card:#13122B;--fg:#EEEDFF;--dim:#ADAAD8;--accent:#7C6CF6;--line:rgba(167,158,255,.18);--bad:#FF7A72;color-scheme:dark}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;background:var(--bg) radial-gradient(900px 500px at 70% -10%,rgba(124,108,246,.25),transparent 60%);color:var(--fg);font:15px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;padding:16px}
 form{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:30px;width:100%;max-width:360px;display:grid;gap:12px}
 .logo{font-weight:800;font-size:26px;letter-spacing:-.02em}.logo b{color:var(--accent)}p{margin:0;color:var(--dim);font-size:14px}
 input{font:inherit;color:inherit;padding:11px 12px;border:1px solid var(--line);border-radius:10px;background:var(--bg)}
