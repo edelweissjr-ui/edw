@@ -73,7 +73,13 @@
     const toques = p.toques || {};
     const dia = CAD.find((d) => !toques[d]);
     if (dia === undefined) return { fim: true };
-    const due = new Date(inicioDia(p.consultaEm).getTime() + dia * DIA);
+    // vence no dia da cadência, mas nunca antes do intervalo mínimo desde o último contato (evita 2 mensagens no mesmo dia)
+    let due = new Date(inicioDia(p.consultaEm).getTime() + dia * DIA);
+    const k = CAD.indexOf(dia), ant = CAD[k - 1];
+    if (k > 0 && toques[ant] && toques[ant].em) {
+      const minimo = new Date(inicioDia(toques[ant].em).getTime() + (dia - ant) * DIA);
+      if (minimo > due) due = minimo;
+    }
     const atraso = Math.round((hoje0() - due) / DIA);
     return { dia, n: CAD.indexOf(dia) + 1, due, atraso };
   }
@@ -177,10 +183,12 @@
     } else if (act === "outra" && x) {
       b.disabled = true; b.textContent = "Gerando…";
       try { await outraVersao(p, x.dia); } catch (err) { toast(err.message); }
-      render(); if ($("#drawerHost").innerHTML) abrirGaveta(p);
+      render(); if (SEQ) renderSeq(); else if ($("#drawerHost").innerHTML) abrirGaveta(p);
     } else if ((act === "enviei" || act === "pular") && x && !x.fim) {
       p.toques = Object.assign(p.toques || {}, { [x.dia]: { status: act === "enviei" ? "enviado" : "pulado", em: new Date().toISOString() } });
-      await Store.salvar(p); toast(act === "enviei" ? `Toque D${x.dia} registrado` : `D${x.dia} pulado`);
+      await Store.salvar(p);
+      if (SEQ) { SEQ.feitos[p.id] = act === "enviei" ? "enviado" : "pulado"; SEQ.i++; render(); renderSeq(); return; }
+      toast(act === "enviei" ? `Toque D${x.dia} registrado` : `D${x.dia} pulado`);
       fecharGaveta(); render();
     }
   });
@@ -189,7 +197,49 @@
   /* Telas: Hoje e Follow-up                                       */
   /* ------------------------------------------------------------ */
   function kpis(el, itens) {
-    $(el).innerHTML = itens.map(([rot, val, sub, hl]) => `<div class="kpi${hl ? " hl" : ""}"><div class="label">${rot}</div><b class="num">${val}</b><span>${sub}</span></div>`).join("");
+    $(el).innerHTML = itens.map(([rot, val, sub, hl, seq]) => seq
+      ? `<button class="kpi click${hl ? " hl" : ""}" data-seq="${seq}" ${val ? "" : "disabled"}><div class="label">${rot}</div><b class="num">${val}</b><span>${sub}</span>${val ? `<em class="go">Chamar em sequência →</em>` : ""}</button>`
+      : `<div class="kpi${hl ? " hl" : ""}"><div class="label">${rot}</div><b class="num">${val}</b><span>${sub}</span></div>`).join("");
+  }
+  document.addEventListener("click", (e) => { const b = e.target.closest("[data-seq]"); if (b && !b.disabled) abrirSequencia(b.dataset.seq); });
+
+  /* ------------------------------------------------------------ */
+  /* Modo sequência: um paciente por vez, até chamar todos         */
+  /* ------------------------------------------------------------ */
+  let SEQ = null;
+  function abrirSequencia(tipo) {
+    const lista = paraHoje().filter((o) => tipo !== "atrasados" || o.x.atraso > 0);
+    if (!lista.length) { toast("Ninguém para chamar agora"); return; }
+    SEQ = { tipo, ids: lista.map((o) => o.p.id), i: 0, feitos: {} };
+    renderSeq();
+  }
+  function renderSeq() {
+    if (!SEQ) return;
+    const total = SEQ.ids.length;
+    // pula quem já não tem toque pendente para hoje (ex.: resolvido em outra aba)
+    while (SEQ.i < total) { const p = PAC.find((x) => x.id === SEQ.ids[SEQ.i]); const x = p && proximo(p); if (p && x && !x.fim && x.atraso >= 0 && !SEQ.feitos[p.id]) break; SEQ.i++; }
+    const pontos = SEQ.ids.map((id, k) => `<i class="${SEQ.feitos[id] === "enviado" ? "ok" : SEQ.feitos[id] === "pulado" ? "skip" : k === SEQ.i ? "cur" : ""}"></i>`).join("");
+    const titulo = SEQ.tipo === "atrasados" ? "Atrasados" : "Chamar hoje";
+    let corpo;
+    if (SEQ.i >= total) {
+      const env = Object.values(SEQ.feitos).filter((v) => v === "enviado").length, pul = Object.values(SEQ.feitos).filter((v) => v === "pulado").length;
+      corpo = `<div class="seqfim"><div style="font-size:44px">🎉</div><h2>Pronto! Você passou por todos.</h2><p class="dim">${env === 1 ? "1 mensagem enviada" : env + " mensagens enviadas"}${pul ? ` · ${pul} pulado${pul > 1 ? "s" : ""}` : ""}. Amanhã o Alinha prepara a próxima lista.</p><button class="btn pri" id="seqFechar2">Concluir</button></div>`;
+    } else {
+      const p = PAC.find((x) => x.id === SEQ.ids[SEQ.i]), x = proximo(p);
+      garantirMensagemIA(p, x.dia);
+      const ctx = [p.dor && `<div><span class="label">Dor</span><br>${esc(p.dor)}</div>`, p.oQueTravou && `<div><span class="label">O que travou</span><br>${esc(p.oQueTravou)}</div>`, (p.palavras || []).length && `<div><span class="label">Palavras do paciente</span><br>${p.palavras.slice(0, 2).map((w) => "“" + esc(w) + "”").join(" · ")}</div>`].filter(Boolean).join("");
+      corpo = `${ctx ? `<div class="seqctx small">${ctx}</div>` : ""}${cardMensagem(p, x)}
+        <div class="row"><button class="btn ghost" id="seqAnt" ${SEQ.i === 0 ? "disabled" : ""}>← Anterior</button><span class="grow"></span><button class="btn ghost" id="seqProx">Deixar para depois →</button></div>`;
+    }
+    $("#drawerHost").innerHTML = `<div class="veil center" id="veil"><div class="seq" role="dialog" aria-label="${titulo} em sequência">
+      <div class="row"><div class="grow"><span class="label">${titulo} · em sequência</span><h2 style="font-size:20px;margin-top:2px">${Math.min(SEQ.i + 1, total)} de ${total}</h2></div><button class="btn sm ghost" id="seqFechar" aria-label="Fechar">✕</button></div>
+      <div class="seqdots">${pontos}</div>${corpo}</div></div>`;
+    $("#veil").addEventListener("click", (e) => { if (e.target.id === "veil") fecharGaveta(); });
+    $("#seqFechar").onclick = fecharGaveta;
+    if ($("#seqFechar2")) $("#seqFechar2").onclick = fecharGaveta;
+    if ($("#seqAnt")) $("#seqAnt").onclick = () => { let k = SEQ.i - 1; while (k > 0 && SEQ.feitos[SEQ.ids[k]]) k--; if (!SEQ.feitos[SEQ.ids[k]]) { SEQ.i = k; renderSeq(); } };
+    if ($("#seqProx")) $("#seqProx").onclick = () => { SEQ.feitos[SEQ.ids[SEQ.i]] = "depois"; SEQ.i++; renderSeq(); };
+    const ta = $("#drawerHost textarea[data-msg]"); if (ta) ta.focus({ preventScroll: true });
   }
   function numeros() {
     const abertos = PAC.filter((p) => p.status === "aberto");
@@ -204,11 +254,12 @@
   }
   function renderHoje() {
     const N = numeros();
+    const bs = $("#btnSeqHoje"); if (bs) { bs.classList.toggle("hide", !N.hoje); bs.textContent = `▶ Chamar em sequência (${N.hoje})`; }
     $("#hojeData").textContent = new Date().toLocaleDateString("pt-BR", { weekday: "long", day: "2-digit", month: "long" });
     kpis("#kpisHoje", [
       ["Valor em aberto", brl(N.emAberto), `${N.nAbertos} pacientes em follow-up`],
-      ["Para chamar hoje", N.hoje, "mensagens prontas abaixo"],
-      ["Atrasados", N.atrasados, N.atrasados ? "comece por estes" : "tudo em dia"],
+      ["Para chamar hoje", N.hoje, N.hoje ? "toque para chamar um por um" : "ninguém hoje", false, "hoje"],
+      ["Atrasados", N.atrasados, N.atrasados ? "comece por estes" : "tudo em dia", false, "atrasados"],
       ["Recuperado no follow-up", brl(N.recuperado), `${N.nRec} fecharam depois da consulta, no mês`, true]
     ]);
     const fila = paraHoje();
@@ -221,7 +272,7 @@
     const N = numeros();
     kpis("#kpisFU", [
       ["Valor em aberto", brl(N.emAberto), `${N.nAbertos} pacientes`, true],
-      ["Atrasados hoje", N.atrasados, "toques vencidos"],
+      ["Atrasados hoje", N.atrasados, "toques vencidos", false, "atrasados"],
       ["Fecharam no mês", N.fecharamMes, "pacientes"],
       ["Recuperado", brl(N.recuperado), "fechados pelo follow-up"]
     ]);
@@ -271,7 +322,7 @@
       await Store.remover(p.id); fecharGaveta(); render(); toast("Paciente apagado");
     };
   }
-  function fecharGaveta() { $("#drawerHost").innerHTML = ""; }
+  function fecharGaveta() { $("#drawerHost").innerHTML = ""; if (SEQ) { SEQ = null; render(); } }
   document.addEventListener("keydown", (e) => { if (e.key === "Escape") fecharGaveta(); });
 
   /* ------------------------------------------------------------ */
