@@ -608,6 +608,45 @@ window.ROTEIRO = {
     }
   ],
 
+  /* ------------------------------------------------------------------
+     MÉTODO DE VENDAS DO ALINHA
+     SPIN, N.E.A.T., Venda conceitual, SNAP, Venda desafiadora (Challenger),
+     Sandler e Venda centrada no cliente — adaptados à consulta de Ortodontia.
+     ------------------------------------------------------------------ */
+  metodos: {
+    spin: {
+      S: { nome: "Situação", objetivo: "Entender o contexto do paciente", perguntas: ["Você já usou aparelho antes? Como foi?", "Como é a sua rotina: trabalho, fotos, falar em público?", "O que te fez procurar a gente agora?"] },
+      P: { nome: "Problema", objetivo: "Fazer o paciente dizer o que incomoda", perguntas: ["O que mais te incomoda hoje no seu sorriso?", "Há quanto tempo isso te incomoda?", "Tem algo que você evita fazer por causa disso?"] },
+      I: { nome: "Implicação", objetivo: "Mostrar o peso do problema na vida dele", perguntas: ["Em que momentos isso mais te atrapalha: fotos, trabalho, sorrir em público?", "Como isso afeta a sua confiança no dia a dia?", "Dentes desalinhados acumulam mais placa e podem desgastar com o tempo. Você já percebeu algo assim?"] },
+      N: { nome: "Necessidade", objetivo: "Fazer o paciente descrever o valor da solução", perguntas: ["Se a gente resolvesse isso, o que mudaria pra você?", "Como seria chegar no seu evento com o sorriso que você quer?", "O que seria um resultado perfeito pra você?"] }
+    },
+    neat: {
+      N: { nome: "Necessidade", dica: "Qual a dor real e o resultado desejado?", pergunta: "O que mais te incomoda e como você imagina o resultado?" },
+      E: { nome: "Impacto econômico", dica: "Quanto vale para ele resolver e quanto cabe no mês?", pergunta: "Pensando no seu planejamento, que valor de parcela ficaria confortável?" },
+      A: { nome: "Quem decide", dica: "Quem participa da decisão? Traga essa pessoa para a conversa.", pergunta: "Além de você, mais alguém participa dessa decisão?" },
+      T: { nome: "Prazo", dica: "Existe uma data que cria motivo para começar agora?", pergunta: "Tem alguma data importante pela frente: casamento, formatura, viagem?" }
+    },
+    conceitual: {
+      ideia: "As pessoas não compram o aparelho; compram o resultado que imaginam (o 'conceito'). Descubra esse conceito e confirme com as palavras do paciente.",
+      perguntas: ["Quando você imagina o seu sorriso ideal, como ele é?", "Deixa eu confirmar: o mais importante pra você é…, certo?", "O que precisaria acontecer para você se sentir seguro(a) para começar?"]
+    },
+    sandler: {
+      contrato: "Antes de começar: vou te fazer algumas perguntas, te mostrar o escaneamento e, no final, você me diz com sinceridade se faz sentido ou não. Tudo bem se for um não. Combinado?",
+      funil: ["Me conta mais sobre isso.", "Pode me dar um exemplo?", "Há quanto tempo isso acontece?", "O que você já tentou para resolver?", "Como você se sente com isso?"],
+      principio: "Deixe o paciente à vontade para dizer não: quem não se sente pressionado decide com mais clareza."
+    },
+    challenger: {
+      ideia: "Ensine algo novo e relevante, adapte ao caso e conduza com segurança ao próximo passo (sem pressão).",
+      insights: ["Alinhar os dentes também facilita a higiene e protege a gengiva, não é só estética.", "Com o planejamento digital, você vê o resultado antes de começar, então decide com segurança.", "Muitos adultos começam hoje justamente porque os alinhadores ninguém percebe no trabalho."]
+    },
+    snap: {
+      regras: ["Simples: uma ideia por mensagem, curta.", "Valiosa: traga algo útil (simulação, caso parecido, resposta clara).", "Alinhada: use o objetivo e as palavras do paciente.", "Prioridade: mostre por que vale decidir agora (o prazo dele), sem pressão."]
+    },
+    centrada: {
+      regras: ["Faça perguntas antes de apresentar.", "Fale do resultado que o paciente quer, não das características do aparelho.", "Recomende uma solução para o caso dele, não um catálogo.", "Confirme o entendimento com as palavras dele."]
+    }
+  },
+
   /* Motivos de perda (vão para o Kommo) */
   motivosPerda: [
     "Preço / sem condições no momento",

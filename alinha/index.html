@@ -272,6 +272,22 @@ body.perfil-equipe #gApagar{display:none!important}
 .voltar{display:none}
 @media (max-width:860px){.wa{grid-template-columns:1fr}.wa.aberta .walist{display:none}.wa:not(.aberta) .wachat{display:none}.voltar{display:inline-flex}.walist{max-height:none}}
 @media (prefers-reduced-motion:reduce){.bolha.chegou{animation:none}}
+/* método */
+.metodo{display:flex;flex-direction:column;gap:10px}
+.mrow{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.mlab{width:78px;font-size:13px;font-weight:800;color:var(--dim)}
+.mchips button{font-size:13.5px;padding:5px 11px}
+.mchips button.ok{background:var(--good-bg);color:var(--good);border-color:transparent}
+.mchips button.ok::before{content:"✓ "}
+.proxq{background:var(--accent-soft);border-radius:12px;padding:10px 12px;font-size:15px}
+.proxq b{color:var(--accent-2)}
+.proxq .btn{margin-top:6px}
+.mguia summary{cursor:pointer;font-weight:700;color:var(--accent-2);font-size:14.5px}
+.mguia h4{margin:12px 0 4px;font-size:14.5px}
+.mguia ul{margin:0;padding-left:18px;font-size:14.5px}
+.mguia li{margin:3px 0}
+.mbrief{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px}
+.mbrief > div{background:var(--surface-2);border-radius:12px;padding:12px 14px}
 #toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translate(-50%,120px);background:var(--fg);color:var(--bg);padding:10px 16px;border-radius:11px;font-weight:700;z-index:99;transition:transform .25s;max-width:calc(100% - 32px)}
 #toast.on{transform:translate(-50%,0)}
 @media (max-width:860px){#toast{bottom:calc(84px + env(safe-area-inset-bottom,0px))}}
@@ -335,6 +351,14 @@ body.perfil-equipe #gApagar{display:none!important}
             </div>
           </div>
           <div class="dica idle" id="dica"><div class="txt">As dicas aparecem aqui assim que o paciente falar algo importante: uma objeção, uma dúvida ou um sinal de que quer fechar.</div></div>
+          <div class="card metodo" id="metodo">
+            <div class="row"><span class="label grow">Método da consulta</span><span class="tiny dim">SPIN · N.E.A.T. · Sandler</span></div>
+            <div class="mrow"><span class="mlab">SPIN</span><div class="chips mchips" id="mSpin"></div></div>
+            <div class="proxq" id="mProx"></div>
+            <div class="mrow"><span class="mlab">N.E.A.T.</span><div class="chips mchips" id="mNeat"></div></div>
+            <div class="mrow"><span class="mlab">Sandler</span><div class="chips mchips" id="mSandler"></div></div>
+            <details class="mguia"><summary>Guia rápido das técnicas</summary><div id="mGuia"></div></details>
+          </div>
           <div class="card">
             <div class="row"><span class="label grow">Dicas desta consulta</span><span class="tiny dim" id="histCount"></span></div>
             <div class="hist" id="hist" style="margin-top:10px"><p class="small dim" style="margin:0">Nenhuma dica ainda.</p></div>

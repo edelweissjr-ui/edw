@@ -11,6 +11,13 @@ Copiloto de vendas da **Weiss Odontologia** (Caruaru e Recife). Acompanha a cons
 | **3. Mensagem pronta** | Na tela **Hoje**: a mensagem de WhatsApp certa para cada paciente, escrita com **as palavras do próprio paciente**. Botões Copiar, WhatsApp, Outra versão, Enviei e Pular. |
 | **4. Follow-up D0 a D30** | Quadro com cada paciente no toque certo (D0, D1, D3, D7, D15, D30): quem chamar hoje, atrasados, valor em aberto e **valor recuperado** pelo follow-up. Filtro por responsável. |
 
+## Método de vendas
+O Alinha aplica, adaptadas à Ortodontia, as técnicas **SPIN Selling** (Situação, Problema, Implicação, Necessidade), **N.E.A.T.** (Necessidade, impacto Econômico, Acesso a quem decide, Tempo), **Venda conceitual** (o resultado que o paciente imagina), **SNAP** (mensagens simples, valiosas, alinhadas e que priorizam), **Venda desafiadora** (ensinar algo novo e conduzir), **Sandler** (contrato inicial e funil da dor) e **Venda centrada no cliente**.
+- **Na consulta:** painel "Método da consulta" marca sozinho o que já foi feito e sugere a próxima pergunta. Os itens também podem ser marcados à mão. O "Guia rápido das técnicas" traz as perguntas de cada uma.
+- **Na IA:** dicas ao vivo, respostas de WhatsApp e mensagens de follow-up seguem as técnicas.
+- **No briefing:** avaliação por técnica e a pergunta que faltou, pronta para usar no retorno.
+- As perguntas e frases ficam em `biblioteca.js` (`metodos`) e podem ser ajustadas ao jeito da clínica.
+
 ## WhatsApp ao vivo
 As conversas dos WhatsApps de **Caruaru e Recife**, que já estão ligados ao Kommo, chegam ao Alinha em segundos. A cada mensagem do paciente, a tela **WhatsApp** mostra a objeção detectada, a orientação e a **resposta pronta** (IA + roteiro), além do **termômetro** da conversa.
 - **Responder:** "Copiar e abrir no Kommo" (a resposta sai pelo número oficial da clínica e fica registrada no CRM).

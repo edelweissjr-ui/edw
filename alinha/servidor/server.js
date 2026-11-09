@@ -371,12 +371,23 @@ async function chamarIA({ sistema, prompt, esforco = "low", modelo }) {
 }
 const fmtTranscricao = (lista = []) => lista.map((m) => `${m.quem === "paciente" ? "PACIENTE" : m.quem === "acompanhante" ? "ACOMPANHANTE" : "PROFISSIONAL"}: ${m.texto}`).join("\n");
 
+const METODO = `MÉTODO DE VENDAS (use de forma natural, sem citar nomes de técnicas ao paciente):
+- SPIN: conduza por perguntas de Situação, Problema, Implicação e Necessidade de solução; o paciente deve dizer com as palavras dele o que incomoda e o que mudaria.
+- N.E.A.T.: qualifique Necessidade real, impacto Econômico (o que cabe no mês e o valor de resolver), Acesso a quem decide (cônjuge, pais) e Tempo (prazo/evento).
+- Venda conceitual: descubra como o paciente imagina o resultado ideal e confirme esse "conceito" com as palavras dele.
+- SNAP (principalmente no WhatsApp): mensagens Simples, que tragam algo de Valor, Alinhadas ao objetivo do paciente e que ajudem a Priorizar a decisão.
+- Venda desafiadora: ensine algo novo e relevante (ex.: alinhar facilita a higiene; o planejamento digital mostra o resultado antes), adapte ao caso e conduza ao próximo passo com segurança.
+- Sandler: faça o "contrato inicial" (no fim, o paciente diz com sinceridade se faz sentido ou não), aprofunde a dor com perguntas e deixe o paciente à vontade para dizer não.
+- Venda centrada no cliente: mais perguntas que apresentação; fale do resultado, não do aparelho; recomende uma solução para o caso dele.`;
+
 const MOMENTOS = ["Acolhimento", "Investigação", "Diagnóstico", "Apresentação", "Negociação", "Fechamento"];
 
 function promptDica(b) {
   return {
     sistema: `Você é o Alinha, copiloto que acompanha AO VIVO uma consulta de Ortodontia da ${CLINICA}
-Você lê o trecho mais recente da conversa e decide se o profissional precisa de uma dica AGORA. A dica aparece na tela por poucos segundos, então ela tem de ser lida num relance.
+Você lê o trecho mais recente da conversa e decide se o profissional precisa de uma dica AGORA.
+${METODO}
+Quando fizer sentido, a dica pode ser a próxima pergunta SPIN que falta, o próximo item N.E.A.T. a descobrir (ex.: quem decide, prazo) ou um insight da venda desafiadora. Indique a técnica no rótulo quando for o caso (ex.: "SPIN · Implicação", "N.E.A.T. · Prazo", "Sandler · Contrato"). A dica aparece na tela por poucos segundos, então ela tem de ser lida num relance.
 - Dica: 1 ou 2 frases curtas, no imperativo, específicas para o que o paciente acabou de dizer (ex.: "Segure o desconto. Descubra com o que ela está comparando e traduza o valor em parcela mensal.").
 - Se não houver nada importante a dizer, responda com "dica": "".
 - Momentos possíveis: ${MOMENTOS.join(", ")}.
@@ -393,7 +404,9 @@ ${fmtTranscricao((b.transcricao || []).slice(-40))}`,
 function promptBriefing(b) {
   return {
     sistema: `Você é o Alinha, copiloto comercial da ${CLINICA}
-Você recebe a transcrição de uma consulta que acabou de terminar e produz o BRIEFING para o profissional e a equipe comercial. Os rótulos PROFISSIONAL/PACIENTE vêm de reconhecimento automático de voz e podem ter erros: use o conteúdo das falas para corrigir quem disse o quê. Seja concreto, use as palavras do paciente, e não invente números: use somente valores ditos na conversa.
+Você recebe a transcrição de uma consulta que acabou de terminar e produz o BRIEFING para o profissional e a equipe comercial. Os rótulos PROFISSIONAL/PACIENTE vêm de reconhecimento automático de voz e podem ter erros: use o conteúdo das falas para corrigir quem disse o quê.
+${METODO}
+Avalie também a consulta por essas técnicas. Seja concreto, use as palavras do paciente, e não invente números: use somente valores ditos na conversa.
 Responda SOMENTE com JSON neste formato:
 {
  "paciente": "primeiro nome se dito, senão ''",
@@ -419,7 +432,15 @@ Responda SOMENTE com JSON neste formato:
  "evento": "prazo ou evento citado, ou ''",
  "decisor": "quem decide junto, ou ''",
  "temperatura": "quente|morno|frio",
- "nota": número de 0 a 10
+ "nota": número de 0 a 10,
+ "metodos": {
+   "spin": {"S": true|false, "P": true|false, "I": true|false, "N": true|false},
+   "neat": {"N": true|false, "E": true|false, "A": true|false, "T": true|false},
+   "conceito": "como o paciente imagina o resultado ideal, ou ''",
+   "contrato_inicial": true|false,
+   "insight": true|false,
+   "pergunta_que_faltou": "a pergunta mais importante que não foi feita (literal, pronta para usar no retorno)"
+ }
 }`,
     prompt: `Profissional: ${b.profissional || "-"} · Unidade: ${b.unidade || "-"} · Duração: ${b.duracao_min || "?"} min
 Anotações do profissional: ${b.notas || "-"}
@@ -434,7 +455,8 @@ function promptWhatsApp(b) {
   return {
     sistema: `Você é o Alinha, copiloto comercial da ${CLINICA}
 Você acompanha uma conversa de WhatsApp em andamento com um paciente (lead que pode ter vindo de anúncio no Meta e sido atendido antes pela IA de atendimento). Sugira a PRÓXIMA mensagem da clínica para conduzir, com empatia, ao agendamento do check-up digital (iTero) ou ao fechamento.
-Regras: mensagem curta (até 3 frases), no máximo 1 emoji, termine com uma pergunta fácil (de preferência com duas opções). Não passe preço antes do diagnóstico: convide para o check-up digital. Diante de objeção: valide, descubra a objeção real e responda. Nunca prometa resultado; não invente valores, prazos ou condições. Não dê diagnóstico pelo WhatsApp. Só use condição especial se estiver no contexto.
+${METODO}
+Regras: mensagem curta (até 3 frases), no máximo 1 emoji, termine com uma pergunta fácil (de preferência com duas opções). Se faltar algo do N.E.A.T. (ex.: quem decide, prazo), use a pergunta para descobrir. Não passe preço antes do diagnóstico: convide para o check-up digital. Diante de objeção: valide, descubra a objeção real e responda. Nunca prometa resultado; não invente valores, prazos ou condições. Não dê diagnóstico pelo WhatsApp. Só use condição especial se estiver no contexto.
 Responda SOMENTE com JSON: {"orientacao": "1 frase para o atendente: o que está acontecendo e o que fazer", "mensagem": "texto pronto para enviar", "rotulo": "2 a 4 palavras, ex.: Objeção de preço", "prontidao": número de 0 a 100 (quão pronto para agendar/fechar)}`,
     prompt: `Unidade: ${b.unidade || "-"} · Paciente: ${b.nome || "-"}
 Condição especial vigente: ${b.condicao || "nenhuma"}
@@ -449,7 +471,7 @@ function promptMensagem(b) {
   const p = b.paciente || {};
   return {
     sistema: `Você é o Alinha, copiloto comercial da ${CLINICA}
-Escreva UMA mensagem de WhatsApp de follow-up para um paciente que fez consulta e ainda não fechou (ou fechou e falta um passo). A mensagem deve:
+Escreva UMA mensagem de WhatsApp de follow-up para um paciente que fez consulta e ainda não fechou (ou fechou e falta um passo). Siga o SNAP (simples, valiosa, alinhada ao objetivo dele, ajuda a priorizar) e, se couber, um insight da venda desafiadora. A mensagem deve:
 - usar as palavras do próprio paciente quando possível (dor, desejo, evento);
 - tratar a objeção dele de forma leve, sem pressão;
 - ser curta (até 4 linhas), calorosa, no máximo 1 emoji, terminar com uma pergunta fácil de responder;

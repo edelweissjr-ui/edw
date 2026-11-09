@@ -1,5 +1,11 @@
 # Novidades do Alinha
 
+## 1.3.0 — nov/2026
+- Método de vendas integrado: SPIN, N.E.A.T., Venda conceitual, SNAP, Venda desafiadora (Challenger), Sandler e Venda centrada no cliente.
+- Painel "Método da consulta": perguntas SPIN feitas, qualificação N.E.A.T., contrato inicial (Sandler) e a próxima pergunta sugerida; guia rápido das técnicas.
+- Briefing com avaliação por técnica, "conceito" do paciente e a pergunta que faltou.
+- A IA aplica as técnicas nas dicas ao vivo, nas respostas de WhatsApp (SNAP) e nas mensagens de follow-up.
+
 ## 1.2.0 — nov/2026
 - WhatsApp ao vivo: as conversas de Caruaru e Recife chegam pelo webhook do Kommo, com orientação e resposta pronta a cada mensagem do paciente.
 - Termômetro por conversa, "Assumir atendimento" (pausa a IA do n8n pela etiqueta no Kommo) e "Adicionar ao follow-up".

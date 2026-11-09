@@ -8,8 +8,9 @@
   const BIB = window.ROTEIRO, DEMO = window.ALINHA_DEMO;
   /* Versão: na plataforma, vem do servidor (package.json) no momento em que a tela abriu.
      Ao publicar uma atualização, aumente a versão em package.json e registre em NOVIDADES. */
-  let VERSAO = "1.2.0";
+  let VERSAO = "1.3.0";
   const NOVIDADES = [
+    { v: "1.3.0", data: "nov/2026", itens: ["Método de vendas: SPIN, N.E.A.T., Venda conceitual, SNAP, Venda desafiadora, Sandler e Venda centrada no cliente", "Painel Método na consulta: perguntas SPIN, qualificação N.E.A.T., contrato inicial e próxima pergunta sugerida", "Briefing avalia a consulta por técnica e mostra a pergunta que faltou", "IA usa as técnicas nas dicas, no WhatsApp e no follow-up"] },
     { v: "1.2.0", data: "nov/2026", itens: ["WhatsApp ao vivo: conversas de Caruaru e Recife chegam pelo Kommo, com o que responder em cada mensagem", "Termômetro por conversa, Assumir atendimento (pausa a IA do n8n) e Adicionar ao follow-up", "Perfis de administrador e equipe"] },
     { v: "1.1.0", data: "nov/2026", itens: ["Atualizações dentro do sistema: aviso de nova versão e botão Atualizar agora", "Cópia de segurança automática dos dados (diária e antes de cada atualização)", "Reconhecimento da voz do profissional", "Modo sequência para alinhar os pacientes do dia", "Termômetro de prontidão para o fechamento"] },
     { v: "1.0.0", data: "nov/2026", itens: ["Dicas ao vivo, briefing pós-consulta, mensagem pronta e follow-up D0 a D30"] }
@@ -367,6 +368,14 @@
       </div>
       ${(B.avaliacao || []).length ? `<h3 style="margin-top:6px">Como foi a condução</h3><div class="aval">${B.avaliacao.map((v) => { const nv = NIVEL[v.nivel] || NIVEL.atencao; return `<div class="a"><div><b>${esc(v.etapa)}</b><br><span class="pill ${nv[0]}" style="margin-top:6px">${nv[1]}</span><p class="small dim" style="margin:6px 0 0">${esc(v.resumo || "")}</p></div>
         <div class="box peso"><span class="label">Por que pesa</span>${esc(v.por_que_pesa || "")}</div><div class="box como"><span class="label">Como fazer da próxima</span>${esc(v.como_fazer || "")}</div></div>`; }).join("")}</div>` : ""}
+      ${B.metodos ? (() => { const M = B.metodos, ch = (ok, t) => `<span class="pill ${ok ? "good" : ""}">${ok ? "✓ " : ""}${t}</span>`;
+        return `<h3 style="margin-top:6px">Métodos de venda</h3><div class="mbrief">
+          <div><span class="label">SPIN</span><div class="row" style="margin-top:6px">${["S", "P", "I", "N"].map((k) => ch((M.spin || {})[k], BIB.metodos.spin[k].nome)).join("")}</div></div>
+          <div><span class="label">N.E.A.T.</span><div class="row" style="margin-top:6px">${["N", "E", "A", "T"].map((k) => ch((M.neat || {})[k], BIB.metodos.neat[k].nome)).join("")}</div></div>
+          <div><span class="label">Sandler · Desafiadora</span><div class="row" style="margin-top:6px">${ch(M.contrato_inicial, "Contrato inicial")}${ch(M.insight, "Insight ensinado")}</div></div>
+          ${M.conceito ? `<div><span class="label">Conceito do paciente</span><p style="margin:4px 0 0">${esc(M.conceito)}</p></div>` : ""}
+          ${M.pergunta_que_faltou ? `<div style="grid-column:1/-1;background:var(--accent-soft)"><span class="label">Pergunta que faltou (use no retorno)</span><p style="margin:4px 0 0;font-weight:700">“${esc(M.pergunta_que_faltou)}”</p></div>` : ""}
+        </div>`; })() : ""}
       ${(B.palavras_do_paciente || []).length ? `<div class="small"><span class="label">Palavras do paciente (usadas nas mensagens)</span><br>${B.palavras_do_paciente.map((w) => "“" + esc(w) + "”").join(" · ")}</div>` : ""}
       <div class="row"><button class="btn pri" data-id="${p.id}" data-act="abrir">Mensagem e follow-up</button>${PLAT && PLAT.kommo ? `<button class="btn" id="btnKommo" data-k="${p.id}">Enviar ao Kommo</button>` : ""}<span class="small dim" id="kommoSt"></span></div>
     </div>`;
@@ -421,7 +430,7 @@
 
   let C = null; // sessão de consulta
   function novaSessao() {
-    return { inicio: null, seg: 0, gravando: false, pausado: false, momento: 0, falas: [], dicas: [], objecoes: new Set(), demo: false, ultimaIA: 0, temp: 25, avisouFechar: false };
+    return { inicio: null, seg: 0, gravando: false, pausado: false, momento: 0, falas: [], dicas: [], objecoes: new Set(), demo: false, ultimaIA: 0, temp: 25, avisouFechar: false, spin: {}, neat: {}, contrato: false };
   }
   C = novaSessao();
   let quem = "paciente", tick = null, sr = null, stream = null, tipTimer = null, demoTimer = null, MED = null, quemManual = false;
@@ -442,7 +451,7 @@
   function avancarMomento(txt) {
     const t = norm(txt), antes = C.momento;
     PISTAS.forEach(([i, ps]) => { if (i > C.momento && ps.some((p) => t.includes(p))) C.momento = Math.min(i, C.momento + 2); });
-    if (C.momento > antes) ajustarTemp(3 * (C.momento - antes), "a consulta avançou para " + MOMENTOS[C.momento]);
+    if (C.momento > antes) { ajustarTemp(3 * (C.momento - antes), "a consulta avançou para " + MOMENTOS[C.momento]); renderMetodo(); }
     renderMomento();
   }
 
@@ -470,6 +479,50 @@
     }
     if (C.temp < 60) C.avisouFechar = false;
   }
+  /* Método: SPIN, N.E.A.T. e Sandler detectados na conversa (e marcáveis à mão) */
+  const MET = BIB.metodos;
+  const PISTA_SPIN = { S: ["ja usou", "rotina", "trabalha", "o que te fez procurar", "como e o seu dia"], P: ["incomoda", "problema", "o que te chateia", "ha quanto tempo"], I: ["atrapalha", "afeta", "momentos", "deixa de", "evita", "confianca"], N: ["se a gente resolvesse", "o que mudaria", "como seria", "resultado perfeito", "sorriso ideal"] };
+  const PISTA_NEAT = { N: ["incomoda", "vergonha", "foto", "torto", "dor", "quero melhorar", "nao gosto"], E: ["valor", "investir", "investimento", "parcela", "caro", "preco", "quanto custa", "orcamento", "cabe no", "dinheiro", "separado", "juntando", "condicoes"], A: ["marido", "esposa", "noivo", "noiva", "namorad", "meus pais", "minha mae", "meu pai", "eu mesma decido", "eu decido", "quem decide", "participa da decisao"], T: ["casamento", "casar", "formatura", "viagem", "aniversario", "ano que vem", "mes que vem", "ate o", "prazo", "data importante"] };
+  function detectarMetodos(f) {
+    const t = norm(f.texto);
+    if (f.quem === "profissional") {
+      Object.entries(PISTA_SPIN).forEach(([k, ps]) => { if (ps.some((x) => t.includes(x))) C.spin[k] = true; });
+      if (/no final|ao final/.test(t) && /(faz sentido|sim ou nao|tudo bem se)/.test(t)) C.contrato = true;
+      if (t.includes("participa da decisao") || t.includes("quem decide")) C.neat.A = C.neat.A || "perguntado";
+    } else {
+      Object.entries(PISTA_NEAT).forEach(([k, ps]) => { if (ps.some((x) => t.includes(x))) C.neat[k] = true; });
+    }
+    renderMetodo();
+  }
+  function renderMetodo() {
+    if (!$("#mSpin")) return;
+    $("#mSpin").innerHTML = ["S", "P", "I", "N"].map((k) => `<button class="${C.spin[k] ? "ok" : ""}" data-mspin="${k}" title="${esc(MET.spin[k].objetivo)}">${k} · ${MET.spin[k].nome}</button>`).join("");
+    $("#mNeat").innerHTML = ["N", "E", "A", "T"].map((k) => `<button class="${C.neat[k] ? "ok" : ""}" data-mneat="${k}" title="${esc(MET.neat[k].dica)}">${MET.neat[k].nome}</button>`).join("");
+    $("#mSandler").innerHTML = `<button class="${C.contrato ? "ok" : ""}" data-mcontrato="1" title="Combinar no início que o paciente dirá sim ou não no final">Contrato inicial</button>`;
+    // próxima pergunta: contrato (no começo) → SPIN na ordem → N.E.A.T. que falta
+    let rot = "", q = "";
+    if (!C.contrato && C.momento <= 1) { rot = "Sandler · Contrato inicial"; q = MET.sandler.contrato; }
+    else { const k = ["S", "P", "I", "N"].find((x) => !C.spin[x]); if (k) { rot = "SPIN · " + MET.spin[k].nome; q = MET.spin[k].perguntas[0]; } else { const n = ["N", "E", "A", "T"].find((x) => !C.neat[x]); if (n) { rot = "N.E.A.T. · " + MET.neat[n].nome; q = MET.neat[n].pergunta; } } }
+    $("#mProx").innerHTML = q ? `<span class="small dim">Próxima pergunta sugerida · <b>${esc(rot)}</b></span><div style="margin-top:4px">“${esc(q)}”</div>` : `<span class="small"><b>Tudo coberto.</b> Conduza ao fechamento.</span>`;
+    if (!$("#mGuia").innerHTML) {
+      const L = (arr) => `<ul>${arr.map((x) => `<li>${esc(x)}</li>`).join("")}</ul>`;
+      $("#mGuia").innerHTML = `<h4>SPIN</h4>${L(["S", "P", "I", "N"].map((k) => MET.spin[k].nome + ": " + MET.spin[k].perguntas[0]))}
+        <h4>N.E.A.T.</h4>${L(["N", "E", "A", "T"].map((k) => MET.neat[k].nome + ": " + MET.neat[k].pergunta))}
+        <h4>Venda conceitual</h4><p class="small" style="margin:0 0 4px">${esc(MET.conceitual.ideia)}</p>${L(MET.conceitual.perguntas)}
+        <h4>Sandler</h4>${L([MET.sandler.contrato, MET.sandler.principio, "Funil da dor: " + MET.sandler.funil.join(" · ")])}
+        <h4>Venda desafiadora</h4><p class="small" style="margin:0 0 4px">${esc(MET.challenger.ideia)}</p>${L(MET.challenger.insights)}
+        <h4>SNAP (WhatsApp)</h4>${L(MET.snap.regras)}
+        <h4>Venda centrada no cliente</h4>${L(MET.centrada.regras)}`;
+    }
+  }
+  $("#metodo").addEventListener("click", (e) => {
+    const b = e.target.closest("[data-mspin],[data-mneat],[data-mcontrato]"); if (!b) return;
+    if (b.dataset.mspin) C.spin[b.dataset.mspin] = !C.spin[b.dataset.mspin];
+    if (b.dataset.mneat) C.neat[b.dataset.mneat] = !C.neat[b.dataset.mneat];
+    if (b.dataset.mcontrato) C.contrato = !C.contrato;
+    renderMetodo();
+  });
+
   function termometro(f) {
     if (f.quem !== "paciente") return;
     const objs = BIB.objecoes.filter((o) => casa(f.texto, o.gatilhos));
@@ -525,6 +578,7 @@
     if (extra && extra.dica) mostrarDica({ ...extra.dica, citacao: texto.slice(0, 110), fonte: "ia" });
     else analisarLocal(f);
     termometro(f);
+    detectarMetodos(f);
     if (q === "paciente") dicaIA();
   }
   // tocar numa frase troca quem falou (corrige o reconhecimento)
@@ -549,7 +603,7 @@
     tick = setInterval(() => { if (C.gravando && !C.pausado) { C.seg++; $("#timer").textContent = mmss(C.seg); } }, 1000);
   }
   function reiniciarTela() {
-    C = novaSessao(); $("#timer").textContent = "00:00"; renderMomento(); renderTermo();
+    C = novaSessao(); $("#timer").textContent = "00:00"; renderMomento(); renderTermo(); renderMetodo();
     $("#termoMot").textContent = "Começa frio. Sobe com desejo e sinais de compra; cai com objeções.";
     $("#trans").innerHTML = `<p class="dim">A conversa aparece aqui.</p>`;
     $("#hist").innerHTML = `<p class="small dim" style="margin:0">Nenhuma dica ainda.</p>`; $("#histCount").textContent = "";
@@ -632,7 +686,12 @@
       fechadoEm: B.desfecho === "fechado" ? new Date().toISOString() : undefined,
       consultaEm: C.inicio || new Date().toISOString(), duracaoMin: Math.max(1, Math.round(C.seg / 60)),
       dor: B.dor || "", evento: B.evento || "", decisor: B.decisor || "", objecoes: B.objecoes || [], palavras: B.palavras_do_paciente || [], oQueTravou: B.o_que_travou || "",
-      briefing: Object.assign(B, { prontidao: Math.round(C.temp), temperatura: B.temperatura || (C.temp >= 70 ? "quente" : C.temp >= 40 ? "morno" : "frio") }),
+      briefing: Object.assign(B, { prontidao: Math.round(C.temp), temperatura: B.temperatura || (C.temp >= 70 ? "quente" : C.temp >= 40 ? "morno" : "frio"),
+        metodos: (() => { const m = B.metodos || {}; const or = (a = {}, b = {}) => Object.fromEntries(["S", "P", "I", "N"].map((k) => [k, !!(a[k] || b[k])]));
+          const spin = or(m.spin, C.spin), neat = Object.fromEntries(["N", "E", "A", "T"].map((k) => [k, !!((m.neat || {})[k] || C.neat[k])]));
+          const faltaS = ["S", "P", "I", "N"].find((k) => !spin[k]), faltaN = ["N", "E", "A", "T"].find((k) => !neat[k]);
+          return { spin, neat, conceito: m.conceito || "", contrato_inicial: !!(m.contrato_inicial || C.contrato), insight: !!m.insight,
+            pergunta_que_faltou: m.pergunta_que_faltou || (faltaS ? MET.spin[faltaS].perguntas[0] : faltaN ? MET.neat[faltaN].pergunta : "") }; })() }),
       prontidao: Math.round(C.temp), transcricao: C.falas, toques: {}
     };
     await Store.salvar(p);
@@ -964,7 +1023,7 @@
 
   async function iniciar() {
     aplicarTema(ls.get("alinha.tema", "auto"));
-    renderMomento(); renderTermo();
+    renderMomento(); renderTermo(); renderMetodo();
     if (location.protocol !== "file:") {
       try { const r = await fetch("api/config", { headers: { Accept: "application/json" } }); if (r.ok) { const d = await r.json(); if (d.plataforma) { PLAT = d; if (d.versao) VERSAO = d.versao; } } } catch (e) { /* sem servidor: modo demonstração */ }
     }

@@ -35,9 +35,9 @@ window.ALINHA_DEMO = (function () {
   const consulta = {
     paciente: { nome: "Priscila Andrade", telefone: "(81) 90000-1010", unidade: "Caruaru" },
     falas: [
-      { quem: "profissional", texto: "Oi, Priscila! Que bom te receber. Me conta: o que te fez procurar a gente agora?" },
+      { quem: "profissional", texto: "Oi, Priscila! Que bom te receber. Vou te fazer algumas perguntas, te mostrar o escaneamento e, no final, você me diz com sinceridade se faz sentido ou não, tudo bem se for um não. Me conta: o que te fez procurar a gente agora?" },
       { quem: "paciente", texto: "Então, doutor, eu tenho vergonha de sorrir nas fotos. Os dentes da frente são tortos e isso me incomoda há anos." },
-      { quem: "profissional", texto: "Entendi. E tem alguma data importante chegando?" },
+      { quem: "profissional", texto: "Entendi. Há quanto tempo isso te incomoda? E tem alguma data importante chegando?" },
       { quem: "paciente", texto: "Vou casar em maio do ano que vem. Queria estar com o sorriso bonito no casamento." },
       { quem: "profissional", texto: "Vamos fazer o escaneamento com o iTero, você vai ver seu sorriso em 3D e uma simulação de como pode ficar." },
       { quem: "paciente", texto: "Nossa, que diferente! Mas isso dói? Eu tenho um pouco de medo." },
@@ -73,7 +73,8 @@ window.ALINHA_DEMO = (function () {
       ],
       objecoes: ["preco", "concorrente", "decisor", "medo"],
       palavras_do_paciente: ["tenho vergonha de sorrir nas fotos", "vou casar em maio", "é exatamente isso que eu queria", "a gente tá juntando dinheiro pro casamento"],
-      dor: "vergonha de sorrir nas fotos por causa dos dentes da frente tortos", evento: "casamento em maio", decisor: "noivo", nota: 7
+      dor: "vergonha de sorrir nas fotos por causa dos dentes da frente tortos", evento: "casamento em maio", decisor: "noivo", nota: 7,
+      metodos: { spin: { S: true, P: true, I: false, N: false }, neat: { N: true, E: true, A: true, T: true }, conceito: "Sorrir sem vergonha nas fotos do casamento, com os dentes da frente alinhados.", contrato_inicial: true, insight: false, pergunta_que_faltou: "Se a gente resolvesse isso até maio, o que mudaria pra você no dia do casamento?" }
     }
   };
 
