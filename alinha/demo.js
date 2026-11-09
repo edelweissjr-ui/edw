@@ -5,29 +5,29 @@ window.ALINHA_DEMO = (function () {
   const toques = (...feitos) => Object.fromEntries(feitos.map(([d, st, n]) => [d, { status: st, em: diasAtras(n) }]));
 
   const pacientes = () => [
-    { id: "ex1", exemplo: true, nome: "Larissa Menezes", telefone: "(81) 90000-1001", unidade: "Recife", tratamento: "Aparelho ortodôntico", valorApresentado: 6200, status: "aberto", responsavel: "Renata", profissional: "Dra. Paula", consultaEm: diasAtras(8),
+    { id: "ex1", exemplo: true, prontidao: 48, nome: "Larissa Menezes", telefone: "(81) 90000-1001", unidade: "Recife", tratamento: "Aparelho ortodôntico", valorApresentado: 6200, status: "aberto", responsavel: "Renata", profissional: "Dra. Paula", consultaEm: diasAtras(8),
       dor: "dente torto na frente que aparece quando sorri", evento: "", decisor: "o pai", objecoes: ["decisor"], oQueTravou: "Decide com o pai", palavras: ["meu pai que vai ver isso comigo", "eu evito sorrir em foto"],
       toques: toques([0, "enviado", 8], [1, "enviado", 7], [3, "enviado", 5]) },
-    { id: "ex2", exemplo: true, nome: "Bianca Rocha", telefone: "(81) 90000-1002", unidade: "Caruaru", tratamento: "Invisalign", valorApresentado: 12900, status: "aberto", responsavel: "Renata", profissional: "Dr. Edelweiss", consultaEm: diasAtras(4),
+    { id: "ex2", exemplo: true, prontidao: 55, nome: "Bianca Rocha", telefone: "(81) 90000-1002", unidade: "Caruaru", tratamento: "Invisalign", valorApresentado: 12900, status: "aberto", responsavel: "Renata", profissional: "Dr. Edelweiss", consultaEm: diasAtras(4),
       dor: "dentes de baixo apinhados", evento: "formatura em março", decisor: "", objecoes: ["preco"], oQueTravou: "Valor da parcela", palavras: ["passou do que eu tinha separado", "queria muito estar com o sorriso pronto na formatura"],
       toques: toques([0, "enviado", 4], [1, "enviado", 3]) },
-    { id: "ex3", exemplo: true, nome: "Tatiane Alves", telefone: "(81) 90000-1003", unidade: "Caruaru", tratamento: "Invisalign", valorApresentado: 8400, status: "aberto", responsavel: "Joana", profissional: "Dr. Edelweiss", consultaEm: diasAtras(7),
+    { id: "ex3", exemplo: true, prontidao: 62, nome: "Tatiane Alves", telefone: "(81) 90000-1003", unidade: "Caruaru", tratamento: "Invisalign", valorApresentado: 8400, status: "aberto", responsavel: "Joana", profissional: "Dr. Edelweiss", consultaEm: diasAtras(7),
       dor: "diastema entre os dentes da frente", evento: "casamento em maio", decisor: "noivo", objecoes: ["pensar", "decisor"], oQueTravou: "Vai pensar com o noivo", palavras: ["vou conversar com o Thiago e te aviso", "o casamento é em maio"],
       toques: toques([0, "enviado", 7], [1, "enviado", 6], [3, "pulado", 4]) },
-    { id: "ex4", exemplo: true, nome: "Igor Barros", telefone: "(81) 90000-1004", unidade: "Recife", tratamento: "Aparelho fixo estético", valorApresentado: 1800, status: "aberto", responsavel: "Joana", profissional: "Dra. Paula", consultaEm: diasAtras(1),
+    { id: "ex4", exemplo: true, prontidao: 35, nome: "Igor Barros", telefone: "(81) 90000-1004", unidade: "Recife", tratamento: "Aparelho fixo estético", valorApresentado: 1800, status: "aberto", responsavel: "Joana", profissional: "Dra. Paula", consultaEm: diasAtras(1),
       dor: "mordida cruzada", evento: "", decisor: "", objecoes: ["tempo"], oQueTravou: "Medo de demorar", palavras: ["quanto tempo eu vou ficar com isso?"],
       toques: toques([0, "enviado", 1]) },
-    { id: "ex5", exemplo: true, nome: "Rogério Lins", telefone: "(81) 90000-1005", unidade: "Caruaru", tratamento: "Invisalign", valorApresentado: 11100, status: "aberto", responsavel: "Renata", profissional: "Dr. Edelweiss", consultaEm: diasAtras(3),
+    { id: "ex5", exemplo: true, prontidao: 44, nome: "Rogério Lins", telefone: "(81) 90000-1005", unidade: "Caruaru", tratamento: "Invisalign", valorApresentado: 11100, status: "aberto", responsavel: "Renata", profissional: "Dr. Edelweiss", consultaEm: diasAtras(3),
       dor: "dentes tortos que atrapalham a mastigação", evento: "", decisor: "esposa", objecoes: ["concorrente"], oQueTravou: "Comparando com outra clínica", palavras: ["vi um orçamento mais em conta", "eu quero algo que ninguém perceba"],
       toques: toques([0, "enviado", 3]) },
-    { id: "ex6", exemplo: true, nome: "Davi Coelho", telefone: "(81) 90000-1006", unidade: "Recife", tratamento: "Invisalign", valorApresentado: 5400, status: "aberto", responsavel: "Dr. Edelweiss", profissional: "Dr. Edelweiss", consultaEm: diasAtras(0),
+    { id: "ex6", exemplo: true, prontidao: 72, nome: "Davi Coelho", telefone: "(81) 90000-1006", unidade: "Recife", tratamento: "Invisalign", valorApresentado: 5400, status: "aberto", responsavel: "Dr. Edelweiss", profissional: "Dr. Edelweiss", consultaEm: diasAtras(0),
       dor: "dentes da frente sobrepostos", evento: "", decisor: "", objecoes: ["medo"], oQueTravou: "Medo de dor", palavras: ["eu tenho pavor de dentista, sério"], toques: {} },
-    { id: "ex7", exemplo: true, nome: "Sônia Prado", telefone: "(81) 90000-1007", unidade: "Caruaru", tratamento: "Contenção / finalização", valorApresentado: 2400, status: "aberto", responsavel: "Joana", profissional: "Dra. Paula", consultaEm: diasAtras(18),
+    { id: "ex7", exemplo: true, prontidao: 20, nome: "Sônia Prado", telefone: "(81) 90000-1007", unidade: "Caruaru", tratamento: "Contenção / finalização", valorApresentado: 2400, status: "aberto", responsavel: "Joana", profissional: "Dra. Paula", consultaEm: diasAtras(18),
       dor: "dentes voltaram a entortar depois do aparelho antigo", evento: "", decisor: "", objecoes: ["pensar"], oQueTravou: "Sem urgência", palavras: ["não é prioridade agora"],
       toques: toques([0, "enviado", 18], [1, "enviado", 17], [3, "enviado", 15], [7, "enviado", 11]) },
-    { id: "ex8", exemplo: true, nome: "Letícia Moraes", telefone: "(81) 90000-1008", unidade: "Recife", tratamento: "Invisalign", valorApresentado: 9800, valorFechado: 9800, status: "fechado", recuperado: true, responsavel: "Renata", profissional: "Dr. Edelweiss", consultaEm: diasAtras(9), fechadoEm: diasAtras(2),
+    { id: "ex8", exemplo: true, prontidao: 90, nome: "Letícia Moraes", telefone: "(81) 90000-1008", unidade: "Recife", tratamento: "Invisalign", valorApresentado: 9800, valorFechado: 9800, status: "fechado", recuperado: true, responsavel: "Renata", profissional: "Dr. Edelweiss", consultaEm: diasAtras(9), fechadoEm: diasAtras(2),
       dor: "sorriso torto", evento: "", decisor: "", objecoes: ["preco"], oQueTravou: "Parcela", palavras: [], toques: toques([0, "enviado", 9], [1, "enviado", 8], [3, "enviado", 6], [7, "respondeu", 2]) },
-    { id: "ex9", exemplo: true, nome: "Caio Bezerra", telefone: "(81) 90000-1009", unidade: "Caruaru", tratamento: "Invisalign", valorApresentado: 13200, valorFechado: 13200, status: "fechado", responsavel: "Dr. Edelweiss", profissional: "Dr. Edelweiss", consultaEm: diasAtras(5), fechadoEm: diasAtras(5),
+    { id: "ex9", exemplo: true, prontidao: 95, nome: "Caio Bezerra", telefone: "(81) 90000-1009", unidade: "Caruaru", tratamento: "Invisalign", valorApresentado: 13200, valorFechado: 13200, status: "fechado", responsavel: "Dr. Edelweiss", profissional: "Dr. Edelweiss", consultaEm: diasAtras(5), fechadoEm: diasAtras(5),
       dor: "", evento: "", decisor: "", objecoes: [], oQueTravou: "", palavras: [], toques: {} }
   ];
 
@@ -73,7 +73,7 @@ window.ALINHA_DEMO = (function () {
       ],
       objecoes: ["preco", "concorrente", "decisor", "medo"],
       palavras_do_paciente: ["tenho vergonha de sorrir nas fotos", "vou casar em maio", "é exatamente isso que eu queria", "a gente tá juntando dinheiro pro casamento"],
-      dor: "vergonha de sorrir nas fotos por causa dos dentes da frente tortos", evento: "casamento em maio", decisor: "noivo", temperatura: "morno", nota: 7
+      dor: "vergonha de sorrir nas fotos por causa dos dentes da frente tortos", evento: "casamento em maio", decisor: "noivo", nota: 7
     }
   };
 

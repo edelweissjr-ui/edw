@@ -129,6 +129,7 @@
       render();
     } catch (e) { /* fica com o modelo */ }
   }
+  const miniTermo = (v) => v == null ? "" : `<span class="minitermo" title="Prontidão para o fechamento">🌡 <i><b style="width:${v}%"></b></i>${v}%</span>`;
   const linkWhats = (p, txt) => `https://wa.me/${(digits(p.telefone).length <= 11 ? "55" : "") + digits(p.telefone)}?text=${encodeURIComponent(txt)}`;
 
   function cardMensagem(p, x) {
@@ -137,7 +138,7 @@
     const obj = (p.objecoes || []).map((o) => OBJ_NOME[o]).filter(Boolean)[0];
     return `<article class="card msgcard" data-id="${p.id}">
       <div class="top"><div class="ava">${esc(iniciais(p.nome))}</div>
-        <div class="grow"><h3>${esc(p.nome)}</h3><div class="meta">${esc(p.tratamento || "")} · ${brl(p.valorApresentado)} · ${esc(p.unidade || "")}</div></div>${atraso}</div>
+        <div class="grow"><h3>${esc(p.nome)}</h3><div class="meta">${esc(p.tratamento || "")} · ${brl(p.valorApresentado)} · ${esc(p.unidade || "")}</div>${miniTermo(p.prontidao)}</div>${atraso}</div>
       <div class="row small"><span class="pill">Toque ${x.n} · D${x.dia}</span><span class="dim">${CAD_NOME[x.dia]}</span>${obj ? `<span class="pill warn">${esc(obj)}</span>` : ""}</div>
       <div class="sug"><div class="label" style="margin-bottom:6px">Mensagem sugerida · edite se quiser</div><textarea data-msg="${x.dia}" aria-label="Mensagem para ${esc(p.nome)}">${esc(txt)}</textarea></div>
       <div class="row">
@@ -233,7 +234,7 @@
     $("#kanban").innerHTML = colunas.map((c) => `<div class="col"><h3>${c.titulo}<span class="pill">${c.itens.length}</span></h3><div class="sub">${c.sub}</div>
       ${c.itens.map((p) => { const x = proximo(p); const cls = x && !x.fim ? (x.atraso > 0 ? "late" : x.atraso === 0 ? "today" : "") : "";
         const quando = !x ? (p.status === "fechado" ? `fechou ${p.fechadoEm ? fmtData(p.fechadoEm) : ""}` : "") : x.fim ? "todos os toques feitos" : x.atraso > 0 ? `<span style="color:var(--bad)">${x.atraso} dia${x.atraso > 1 ? "s" : ""} de atraso</span>` : x.atraso === 0 ? "chamar hoje" : `em ${-x.atraso} dia${x.atraso < -1 ? "s" : ""}`;
-        return `<button class="pc ${cls}" data-id="${p.id}" data-act="abrir"><b>${esc(p.nome)}</b><span class="v num">${brl(p.status === "fechado" ? p.valorFechado : p.valorApresentado)}</span><span class="m">${quando}</span><span class="m">${esc(p.responsavel || "")}${(p.objecoes || [])[0] ? " · " + esc(OBJ_NOME[p.objecoes[0]] || "") : ""}</span></button>`; }).join("") || `<span class="tiny dim">vazio</span>`}
+        return `<button class="pc ${cls}" data-id="${p.id}" data-act="abrir"><b>${esc(p.nome)}</b><span class="v num">${brl(p.status === "fechado" ? p.valorFechado : p.valorApresentado)}</span><span class="m">${quando}</span>${p.status === "aberto" ? miniTermo(p.prontidao) : ""}<span class="m">${esc(p.responsavel || "")}${(p.objecoes || [])[0] ? " · " + esc(OBJ_NOME[p.objecoes[0]] || "") : ""}</span></button>`; }).join("") || `<span class="tiny dim">vazio</span>`}
     </div>`).join("");
   }
   $("#filtroResp").addEventListener("click", (e) => { const b = e.target.closest("[data-f]"); if (b) { filtro = b.dataset.f; renderFollowup(); } });
@@ -293,7 +294,7 @@
     const prazo = B.proximo_passo_prazo_dias != null ? new Date(new Date(p.consultaEm).getTime() + B.proximo_passo_prazo_dias * DIA).toLocaleDateString("pt-BR", { weekday: "short", day: "2-digit", month: "short" }) : "";
     return `<div class="card stack">
       <div class="row small dim"><span>${esc(p.nome)} · ${esc(p.profissional || "")}${p.duracaoMin ? ` · ${p.duracaoMin} min` : ""} · ${fmtData(p.consultaEm)}</span><span class="grow"></span>
-        <span class="pill ${B.temperatura === "quente" ? "good" : B.temperatura === "frio" ? "bad" : "warn"}">${B.temperatura === "quente" ? "🔥 quente" : B.temperatura === "frio" ? "❄️ frio" : "🌤️ morno"}</span>${B.nota != null ? `<span class="pill">nota ${esc(B.nota)}/10</span>` : ""}${p.exemplo || B.exemplo ? `<span class="pill">exemplo</span>` : ""}</div>
+        <span class="pill ${B.temperatura === "quente" ? "good" : B.temperatura === "frio" ? "bad" : "warn"}">${B.temperatura === "quente" ? "🔥 quente" : B.temperatura === "frio" ? "❄️ frio" : "🌤️ morno"}</span>${miniTermo(B.prontidao ?? p.prontidao)}${B.nota != null ? `<span class="pill">nota ${esc(B.nota)}/10</span>` : ""}${p.exemplo || B.exemplo ? `<span class="pill">exemplo</span>` : ""}</div>
       <div class="manchete">${esc(B.manchete || "")}</div>
       <div class="bk">
         <div><span class="label">Desfecho</span><strong><span class="pill ${desf[0]}">${desf[1]}</span></strong><span>${esc(B.desfecho_detalhe || "")}</span></div>
@@ -361,7 +362,7 @@
 
   let C = null; // sessão de consulta
   function novaSessao() {
-    return { inicio: null, seg: 0, gravando: false, pausado: false, momento: 0, falas: [], dicas: [], objecoes: new Set(), demo: false, ultimaIA: 0 };
+    return { inicio: null, seg: 0, gravando: false, pausado: false, momento: 0, falas: [], dicas: [], objecoes: new Set(), demo: false, ultimaIA: 0, temp: 25, avisouFechar: false };
   }
   C = novaSessao();
   let quem = "paciente", tick = null, sr = null, stream = null, tipTimer = null, demoTimer = null;
@@ -372,9 +373,43 @@
     $("#momentoNames").innerHTML = MOMENTOS.map((m, i) => `<span class="${i === C.momento ? "cur" : ""}">${m}</span>`).join("");
   }
   function avancarMomento(txt) {
-    const t = norm(txt);
+    const t = norm(txt), antes = C.momento;
     PISTAS.forEach(([i, ps]) => { if (i > C.momento && ps.some((p) => t.includes(p))) C.momento = Math.min(i, C.momento + 2); });
+    if (C.momento > antes) ajustarTemp(3 * (C.momento - antes), "a consulta avançou para " + MOMENTOS[C.momento]);
     renderMomento();
+  }
+
+  /* Termômetro de prontidão para o fechamento (0–100) */
+  const EMOCAO = ["gostei", "adorei", "amei", "lindo", "linda", "perfeito", "exatamente", "quero", "nossa", "maravilh", "sonho", "incrivel", "que bom", "ficou otimo", "faz sentido"];
+  const PRONTO = ["conseguiria comecar", "comecaria", "posso comecar", "pode ser na", "vou trazer", "vamos marcar", "pode marcar", "fecha", "bora"];
+  const PRAZO = ["casar", "casamento", "formatura", "viagem", "aniversario", "entrevista"];
+  const nivelTemp = (t) => t >= 70 ? ["Quente", "pronto para o fechamento"] : t >= 40 ? ["Morno", "trate as objeções e reforce o valor"] : ["Frio", "aprofunde a dor e o desejo"];
+  function renderTermo() {
+    const t = Math.round(C.temp), [n, o] = nivelTemp(t);
+    $("#termoPct").textContent = t + "%";
+    $("#termoEst").textContent = n + " · " + o;
+    $("#termoMarc").style.left = t + "%";
+    $("#termoBarra").setAttribute("aria-valuenow", t);
+    $("#termo").classList.toggle("quente", t >= 70);
+  }
+  function ajustarTemp(delta, motivo) {
+    if (!delta) return;
+    C.temp = Math.max(0, Math.min(100, C.temp + delta));
+    $("#termoMot").textContent = `${delta > 0 ? "▲ +" : "▼ "}${delta} · ${motivo}`;
+    renderTermo();
+    if (C.temp >= 70 && !C.avisouFechar) {
+      C.avisouFechar = true;
+      setTimeout(() => mostrarDica({ rotulo: "Hora de fechar", tipo: "sinal_compra", dica: "O paciente está pronto. Faça agora a pergunta de fechamento: “Prefere começar nesta semana ou na próxima?”", fonte: "termometro" }), 900);
+    }
+    if (C.temp < 60) C.avisouFechar = false;
+  }
+  function termometro(f) {
+    if (f.quem !== "paciente") return;
+    const objs = BIB.objecoes.filter((o) => casa(f.texto, o.gatilhos));
+    if (objs.length) ajustarTemp(-6 * objs.length, "objeção: " + objs.map((o) => o.titulo.toLowerCase()).join(", "));
+    if (casa(f.texto, BIB.sinaisCompra) || PRONTO.some((w) => norm(f.texto).includes(w))) ajustarTemp(18, "sinal de compra");
+    else if (EMOCAO.some((w) => norm(f.texto).includes(w))) ajustarTemp(10, "demonstrou entusiasmo");
+    if (PRAZO.some((w) => norm(f.texto).includes(w))) ajustarTemp(5, "tem um prazo importante");
   }
   function mostrarDica(d) {
     if (!d || !d.dica) return;
@@ -382,7 +417,7 @@
     C.dicas.unshift(d);
     const el = $("#dica");
     el.classList.remove("idle");
-    el.innerHTML = `<div class="rot"><b>${esc(d.rotulo || "Dica")}</b>${d.fonte === "ia" ? (C.demo ? "IA · demonstração" : "IA") : "roteiro"} · agora</div>
+    el.innerHTML = `<div class="rot"><b>${esc(d.rotulo || "Dica")}</b>${d.fonte === "ia" ? (C.demo ? "IA · demonstração" : "IA") : d.fonte === "termometro" ? "termômetro" : "roteiro"} · agora</div>
       <div class="txt">${esc(d.dica)}</div>
       ${d.citacao ? `<div class="cit"><b>Paciente</b>“${esc(d.citacao)}”</div>` : ""}
       <div class="bar"><i id="tipBar"></i></div><div class="tiny" style="color:var(--tip-dim)">some em 12 s</div>`;
@@ -407,6 +442,7 @@
     try {
       const d = await api("POST", "api/ia/dica", { momento: MOMENTOS[C.momento], transcricao: C.falas.slice(-40), ja_mostradas: C.dicas.slice(0, 8).map((x) => x.dica) });
       const i = MOMENTOS.indexOf(d.momento); if (i > C.momento) { C.momento = i; renderMomento(); }
+      if (typeof d.prontidao === "number") { const alvo = Math.max(0, Math.min(100, d.prontidao)); ajustarTemp(Math.round((alvo - C.temp) / 2), "leitura da IA"); }
       if (d.dica) mostrarDica({ ...d, fonte: "ia" });
     } catch (e) { /* segue com as dicas do roteiro */ }
   }
@@ -421,6 +457,7 @@
     avancarMomento(texto);
     if (extra && extra.dica) mostrarDica({ ...extra.dica, citacao: texto.slice(0, 110), fonte: "ia" });
     else analisarLocal(f);
+    termometro(f);
     if (q === "paciente") dicaIA();
   }
   const mmss = (s) => String(Math.floor(s / 60)).padStart(2, "0") + ":" + String(s % 60).padStart(2, "0");
@@ -436,7 +473,8 @@
     tick = setInterval(() => { if (C.gravando && !C.pausado) { C.seg++; $("#timer").textContent = mmss(C.seg); } }, 1000);
   }
   function reiniciarTela() {
-    C = novaSessao(); $("#timer").textContent = "00:00"; renderMomento();
+    C = novaSessao(); $("#timer").textContent = "00:00"; renderMomento(); renderTermo();
+    $("#termoMot").textContent = "Começa frio. Sobe com desejo e sinais de compra; cai com objeções.";
     $("#trans").innerHTML = `<p class="dim">A conversa aparece aqui.</p>`;
     $("#hist").innerHTML = `<p class="small dim" style="margin:0">Nenhuma dica ainda.</p>`; $("#histCount").textContent = "";
     const el = $("#dica"); el.classList.add("idle"); el.innerHTML = `<div class="txt">As dicas aparecem aqui assim que o paciente falar algo importante: uma objeção, uma dúvida ou um sinal de que quer fechar.</div>`;
@@ -502,7 +540,8 @@
       fechadoEm: B.desfecho === "fechado" ? new Date().toISOString() : undefined,
       consultaEm: C.inicio || new Date().toISOString(), duracaoMin: Math.max(1, Math.round(C.seg / 60)),
       dor: B.dor || "", evento: B.evento || "", decisor: B.decisor || "", objecoes: B.objecoes || [], palavras: B.palavras_do_paciente || [], oQueTravou: B.o_que_travou || "",
-      briefing: B, transcricao: C.falas, toques: {}
+      briefing: Object.assign(B, { prontidao: Math.round(C.temp), temperatura: B.temperatura || (C.temp >= 70 ? "quente" : C.temp >= 40 ? "morno" : "frio") }),
+      prontidao: Math.round(C.temp), transcricao: C.falas, toques: {}
     };
     await Store.salvar(p);
     briefSel = p.id; mostrar("briefings"); toast("Briefing pronto");
@@ -586,7 +625,7 @@
 
   async function iniciar() {
     aplicarTema(ls.get("alinha.tema", "auto"));
-    renderMomento();
+    renderMomento(); renderTermo();
     if (location.protocol !== "file:") {
       try { const r = await fetch("api/config", { headers: { Accept: "application/json" } }); if (r.ok) { const d = await r.json(); if (d.plataforma) PLAT = d; } } catch (e) { /* sem servidor: modo demonstração */ }
     }

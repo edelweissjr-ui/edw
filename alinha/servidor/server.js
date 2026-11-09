@@ -295,7 +295,7 @@ Você lê o trecho mais recente da conversa e decide se o profissional precisa d
 - Dica: 1 ou 2 frases curtas, no imperativo, específicas para o que o paciente acabou de dizer (ex.: "Segure o desconto. Descubra com o que ela está comparando e traduza o valor em parcela mensal.").
 - Se não houver nada importante a dizer, responda com "dica": "".
 - Momentos possíveis: ${MOMENTOS.join(", ")}.
-Responda SOMENTE com JSON: {"momento": "...", "tipo": "objecao|sinal_compra|oportunidade|alerta", "rotulo": "2 a 4 palavras, ex.: Objeção de preço", "dica": "...", "citacao": "a frase do paciente que motivou a dica, literal e curta"}`,
+Responda SOMENTE com JSON: {"momento": "...", "tipo": "objecao|sinal_compra|oportunidade|alerta", "rotulo": "2 a 4 palavras, ex.: Objeção de preço", "dica": "...", "citacao": "a frase do paciente que motivou a dica, literal e curta", "prontidao": número de 0 a 100 indicando o quanto o paciente está pronto para fechar agora (desejo, sinais de compra, objeções pendentes, decisor presente)}`,
     prompt: `Momento atual na tela: ${b.momento || "Acolhimento"}
 Dicas já mostradas (não repita): ${(b.ja_mostradas || []).join(" | ") || "nenhuma"}
 

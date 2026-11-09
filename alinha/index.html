@@ -126,6 +126,25 @@ textarea.in{resize:vertical;min-height:80px;line-height:1.5}
 .momento .names span{font-size:10.5px;color:var(--faint);font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .momento .names span.cur{color:var(--accent)}
 .momento h2{font-size:30px;letter-spacing:-.03em;margin-top:4px}
+.duo{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media (max-width:720px){.duo{grid-template-columns:1fr}}
+.termo{transition:box-shadow .4s,border-color .4s}
+.termo .topo{display:flex;align-items:baseline;gap:10px;margin-top:4px}
+.termo .pct{font-size:34px;font-weight:800;letter-spacing:-.03em}
+.termo .est{font-weight:700;font-size:14px}
+.termo .barra{height:14px;border-radius:99px;background:linear-gradient(90deg,#4C7DFF 0%,#8E7CFF 42%,#F2B45A 70%,#FF6B6B 100%);position:relative;margin:16px 0 6px}
+.termo .meta{position:absolute;left:70%;top:-7px;bottom:-7px;width:2px;background:var(--fg);opacity:.55;border-radius:2px}
+.termo .marc{position:absolute;top:50%;width:24px;height:24px;border-radius:50%;background:var(--surface);border:3px solid var(--fg);transform:translate(-50%,-50%);transition:left .7s cubic-bezier(.2,.8,.2,1);box-shadow:0 2px 8px rgba(0,0,0,.35)}
+.termo .escala{position:relative;height:16px;font-size:11px;font-weight:700;color:var(--faint)}
+.termo .escala span{position:absolute;top:0;transform:translateX(-50%);white-space:nowrap}
+.termo .escala span:first-child{transform:none}
+.termo .mot{font-size:12.5px;color:var(--dim);margin-top:8px;min-height:18px}
+.termo.quente{border-color:var(--bad);box-shadow:0 0 0 4px rgba(255,107,107,.14),0 14px 36px rgba(255,107,107,.18)}
+.termo.quente .est{color:var(--bad)}
+.minitermo{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:700;color:var(--dim)}
+.minitermo i{display:block;width:46px;height:6px;border-radius:9px;background:var(--line-2);position:relative;overflow:hidden}
+.minitermo i b{position:absolute;inset:0 auto 0 0;border-radius:9px;background:linear-gradient(90deg,#4C7DFF,#8E7CFF 60%,#F2B45A 85%,#FF6B6B)}
+@media (prefers-reduced-motion:reduce){.termo .marc{transition:none}}
 .dica{background:var(--tip-bg);color:var(--tip-fg);border:1.5px solid var(--accent-2);box-shadow:0 0 0 4px rgba(124,108,246,.12),0 18px 40px rgba(40,20,140,.35);border-radius:20px;padding:22px 24px;min-height:190px;display:flex;flex-direction:column;justify-content:center;gap:12px;transition:opacity .3s}
 .dica .rot{display:inline-flex;gap:8px;align-items:center;font-size:12px;font-weight:700;color:var(--tip-dim)}
 .dica .rot b{background:var(--accent);color:var(--accent-ink);padding:3px 9px;border-radius:999px;font-size:11px}
@@ -231,11 +250,20 @@ textarea.in{resize:vertical;min-height:80px;line-height:1.5}
         <button class="btn" id="btnDemoConsulta">▶ Ver uma consulta de demonstração</button></div>
       <div class="live">
         <div class="stack">
-          <div class="card momento">
+          <div class="duo">
+            <div class="card momento">
             <div class="row"><span class="label grow">Momento da consulta</span><span class="pill" id="pillIA">Dicas do roteiro</span></div>
             <h2 id="momentoNome">Acolhimento</h2>
             <div class="steps" id="momentoSteps"></div>
             <div class="names" id="momentoNames"></div>
+          </div>
+            <div class="card termo" id="termo">
+              <div class="row"><span class="label grow">Pronto para o fechamento?</span><span class="tiny dim">termômetro</span></div>
+              <div class="topo"><span class="pct num" id="termoPct">25%</span><span class="est" id="termoEst">Frio</span></div>
+              <div class="barra" role="meter" aria-label="Prontidão para o fechamento" aria-valuemin="0" aria-valuemax="100" id="termoBarra"><span class="meta" title="Hora de fechar"></span><span class="marc" id="termoMarc" style="left:25%"></span></div>
+              <div class="escala"><span style="left:0">Frio</span><span style="left:40%">Morno</span><span style="left:70%">▲ Fechar</span></div>
+              <div class="mot" id="termoMot">Começa frio. Sobe com desejo e sinais de compra; cai com objeções.</div>
+            </div>
           </div>
           <div class="dica idle" id="dica"><div class="txt">As dicas aparecem aqui assim que o paciente falar algo importante: uma objeção, uma dúvida ou um sinal de que quer fechar.</div></div>
           <div class="card">
