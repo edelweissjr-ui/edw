@@ -358,6 +358,7 @@ pre.code{background:var(--bg);border:1px solid var(--line);border-radius:10px;pa
         <button data-r="negociacao">Em negociação</button>
         <button data-r="perdido">Não fechou</button>
       </div>
+      <label class="check" style="margin-top:10px;border:0"><input type="checkbox" id="chkCompareceu"><span><b>Paciente compareceu na clínica</b><br><span class="small muted">Só com esta opção marcada o card passa para o funil de clientes no Kommo.</span></span></label>
       <div id="boxPerda" class="hide">
         <label class="f" for="rMotivo">Motivo</label>
         <select class="i" id="rMotivo"></select>
@@ -435,16 +436,20 @@ pre.code{background:var(--bg);border:1px solid var(--line);border-radius:10px;pa
     <div class="card hide" id="cardFunis">
       <h2>Funis do Kommo</h2>
       <p class="small muted" style="margin-top:0">Para onde o lead vai quando você clica em <b>Enviar ao Kommo</b>.</p>
-      <label class="f" for="fFunilLead">Funil de leads (onde a IA coloca quem vem dos anúncios)</label>
+      <label class="f" for="fFunilLead">Funil de leads (a IA coloca aqui quem vem dos anúncios; o card fica aqui até o paciente comparecer)</label>
       <select class="i" id="fFunilLead"></select>
       <div class="row">
-        <div><label class="f" for="fEtapaNeg">Em negociação → etapa</label><select class="i" id="fEtapaNeg"></select></div>
+        <div><label class="f" for="fEtapaNeg">Ainda não veio (negociação / agendado) → etapa</label><select class="i" id="fEtapaNeg"></select></div>
         <div><label class="f" for="fEtapaPerdido">Não fechou → etapa</label><select class="i" id="fEtapaPerdido"></select></div>
       </div>
-      <label class="f" for="fFunilCliente">Fechou → funil de clientes</label>
+      <label class="f" for="fFunilCliente">Compareceu na clínica → funil de clientes</label>
       <select class="i" id="fFunilCliente"></select>
-      <label class="f" for="fEtapaCliente">Etapa de entrada no funil de clientes</label>
+      <label class="f" for="fEtapaCliente">Compareceu (em negociação) → etapa</label>
       <select class="i" id="fEtapaCliente"></select>
+      <div class="row">
+        <div><label class="f" for="fEtapaCliFechou">Compareceu e fechou → etapa</label><select class="i" id="fEtapaCliFechou"></select></div>
+        <div><label class="f" for="fEtapaCliPerdido">Compareceu e não fechou → etapa</label><select class="i" id="fEtapaCliPerdido"></select></div>
+      </div>
       <label class="f" for="fEtiqueta">Etiqueta que pausa a IA (atendimento humano)</label>
       <input class="i" id="fEtiqueta" placeholder="Atendimento humano">
       <div class="row" style="margin-top:10px"><button class="btn primary" id="btnSalvarFunis" style="flex:0 0 auto">Salvar</button></div>

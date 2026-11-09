@@ -436,7 +436,7 @@
       consulta: {
         id: S.id, inicio: S.criadoEm, atualizado: new Date().toISOString(), canal: S.canal, unidade: S.unidade,
         profissional: cfg.profissional, etapa_alcancada: S.etapa,
-        consentimento_gravacao: S.consentimento
+        consentimento_gravacao: S.consentimento, compareceu: compareceu()
       },
       paciente: { nome: S.paciente.nome, telefone: telE164(S.paciente.telefone), origem: S.paciente.origem, lead_id: S.paciente.leadId || null },
       notas: S.notas,
@@ -654,6 +654,7 @@
       `Paciente: ${S.paciente.nome || "-"} · ${S.paciente.telefone || "-"}${S.paciente.origem ? " · Origem: " + S.paciente.origem : ""}`,
       ``,
       `RESULTADO: ${res}${S.resultado === "perdido" && S.motivoPerda ? " — " + S.motivoPerda : ""}`,
+      `Compareceu na clínica: ${compareceu() ? "sim" : "não (conversa pelo WhatsApp)"}`,
       `Temperatura: ${S.temperatura}/100 · Etapa alcançada: ${et ? et.nome : "-"}`,
       S.proximoContato ? `Próximo contato: ${dataHora(S.proximoContato)}` : `Próximo contato: não combinado`,
       ``,
@@ -763,6 +764,10 @@
   ];
   $("#rMotivo").innerHTML = `<option value="">—</option>` + R.motivosPerda.map((m) => `<option>${esc(m)}</option>`).join("");
 
+  /* Compareceu na clínica: marcado sozinho na consulta presencial, mas pode ser alterado */
+  function compareceu() { return S.compareceu == null ? S.canal === "presencial" : !!S.compareceu; }
+  $("#chkCompareceu").addEventListener("change", (e) => { S.compareceu = e.target.checked; save(); if (!S.resumoEditado) gerarResumo(); });
+
   function setCanal(c) {
     S.canal = c;
     $$("#segCanal button").forEach((b) => b.classList.toggle("on", b.dataset.c === c));
@@ -770,6 +775,7 @@
     $("#boxPresencial").classList.toggle("hide", c !== "presencial");
     $("#boxWhats").classList.toggle("hide", c !== "whatsapp");
     if (c !== "presencial" && gravando) pararGravacao();
+    $("#chkCompareceu").checked = compareceu();
   }
   function setUnidade(u) { S.unidade = u; $$("#segUnidade button").forEach((b) => b.classList.toggle("on", b.dataset.u === u)); }
   function setResultado(r) {
@@ -908,17 +914,24 @@
       opcoes("#fEtapaNeg", etapasDe(lead), aj.etapaNegociacao, "não mudar a etapa");
       opcoes("#fEtapaPerdido", etapasDe(lead), aj.etapaPerdido || 143);
       opcoes("#fEtapaCliente", etapasDe(cli), aj.etapaCliente, "— escolha —");
+      opcoes("#fEtapaCliFechou", etapasDe(cli), aj.etapaClienteFechou, "mesma etapa de quem compareceu");
+      opcoes("#fEtapaCliPerdido", etapasDe(cli), aj.etapaClientePerdido || 143);
       $("#fEtiqueta").value = aj.etiquetaHumano || "Atendimento humano";
       st.textContent = aj.funilLead ? "" : "Confira os funis sugeridos e clique em Salvar.";
     } catch (e) { st.textContent = "Não foi possível ler os funis: " + e.message; }
   }
   $("#fFunilLead").addEventListener("change", (e) => { opcoes("#fEtapaNeg", etapasDe(e.target.value), "", "não mudar a etapa"); opcoes("#fEtapaPerdido", etapasDe(e.target.value), 143); });
-  $("#fFunilCliente").addEventListener("change", (e) => opcoes("#fEtapaCliente", etapasDe(e.target.value), "", "— escolha —"));
+  $("#fFunilCliente").addEventListener("change", (e) => {
+    opcoes("#fEtapaCliente", etapasDe(e.target.value), "", "— escolha —");
+    opcoes("#fEtapaCliFechou", etapasDe(e.target.value), "", "mesma etapa de quem compareceu");
+    opcoes("#fEtapaCliPerdido", etapasDe(e.target.value), 143);
+  });
   $("#btnSalvarFunis").addEventListener("click", async () => {
     try {
       await post("api/ajustes", { funilLead: $("#fFunilLead").value, etapaNegociacao: $("#fEtapaNeg").value, etapaPerdido: $("#fEtapaPerdido").value,
-        funilCliente: $("#fFunilCliente").value, etapaCliente: $("#fEtapaCliente").value, etiquetaHumano: $("#fEtiqueta").value.trim() });
-      $("#funisStatus").textContent = "✓ Salvo. Fechou → funil de clientes; negociação e perda → funil de leads.";
+        funilCliente: $("#fFunilCliente").value, etapaCliente: $("#fEtapaCliente").value,
+        etapaClienteFechou: $("#fEtapaCliFechou").value, etapaClientePerdido: $("#fEtapaCliPerdido").value, etiquetaHumano: $("#fEtiqueta").value.trim() });
+      $("#funisStatus").textContent = "✓ Salvo. O card só vai para o funil de clientes quando o paciente comparece.";
       toast("Funis salvos");
     } catch (e) { $("#funisStatus").textContent = "Erro ao salvar: " + e.message; }
   });

@@ -35,12 +35,14 @@ Anúncio no Meta ──► WhatsApp (Caruaru 99836-8491 ou Recife 97318-5005) �
                                                                           │
                                          Enviar ao Kommo ─────────────────┤
                                                                           ▼
-                       Fechou ► FUNIL DE CLIENTES        Em negociação / Não fechou ► fica no FUNIL DE LEADS
+          Paciente COMPARECEU na clínica ► FUNIL DE CLIENTES (etapa conforme fechou / negociação / não fechou)
+          Ainda NÃO veio (só WhatsApp)   ► continua no FUNIL DE LEADS
 ```
 
 - **Puxar dados do Kommo:** com o WhatsApp ou o ID do lead, traz nome, telefone, **unidade**, **origem** ("Anúncio Meta"), funil e etapa, além da conversa que o paciente já teve com a IA. As mensagens da IA aparecem marcadas com 🤖.
 - **Unidade automática:** a plataforma identifica Caruaru ou Recife pelo número do WhatsApp, pela fonte do lead ou pelas etiquetas no Kommo. Se não conseguir, escolha manualmente.
 - **Assumir atendimento / Devolver para a IA:** coloca ou retira a etiqueta **"Atendimento humano"** no lead do Kommo.
+- **Regra do card:** ele **só passa para o funil de clientes quando o paciente comparece na clínica**. A opção "Paciente compareceu na clínica", na aba Fechamento, já vem marcada na consulta presencial e desmarcada no WhatsApp. Quem fecha pelo WhatsApp sem ter vindo continua no funil de leads, com a etiqueta "Fechou — aguardando comparecimento".
 - **Funis:** em Configurações › *Funis do Kommo*, escolha uma vez o funil de leads, o funil de clientes e as etapas. A plataforma sugere os funis pelo nome.
 
 ### ⚠️ Um ajuste na IA do n8n (uma vez só)

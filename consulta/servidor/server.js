@@ -54,7 +54,9 @@ const AJUSTES_PADRAO = {
   etapaNegociacao: CFG.kommoStatus.negociacao,  // etapa do funil de leads para "em negociação"
   etapaPerdido: CFG.kommoStatus.perdido,        // 143 = venda perdida
   funilCliente: env.KOMMO_FUNIL_CLIENTE_ID ? Number(env.KOMMO_FUNIL_CLIENTE_ID) : null, // funil de clientes
-  etapaCliente: env.KOMMO_ETAPA_CLIENTE ? Number(env.KOMMO_ETAPA_CLIENTE) : null,       // etapa de entrada ao fechar
+  etapaCliente: env.KOMMO_ETAPA_CLIENTE ? Number(env.KOMMO_ETAPA_CLIENTE) : null,       // compareceu (entrada)
+  etapaClienteFechou: null,                                                              // compareceu e fechou
+  etapaClientePerdido: 143,                                                              // compareceu e não fechou
   etiquetaHumano: env.KOMMO_ETIQUETA_HUMANO || "Atendimento humano"
 };
 let AJ = { ...AJUSTES_PADRAO };
@@ -140,16 +142,20 @@ async function kommo(metodo, rota, corpo) {
   return d;
 }
 
-/* Fechou → funil de clientes. Em negociação / não fechou → continua no funil de leads. */
-function destinoNoFunil(resultado) {
-  if (resultado === "fechado") {
-    if (AJ.funilCliente && AJ.etapaCliente) return { pipeline_id: AJ.funilCliente, status_id: AJ.etapaCliente };
-    return AJ.funilLead ? { pipeline_id: AJ.funilLead, status_id: 142 } : { status_id: 142 };
+/* Regra da Weiss: o card só vai para o FUNIL DE CLIENTES quando o paciente COMPARECE na clínica.
+   Enquanto não comparece (conversa só pelo WhatsApp), ele continua no FUNIL DE LEADS. */
+function destinoNoFunil(resultado, compareceu) {
+  if (compareceu && AJ.funilCliente) {
+    const st = resultado === "fechado" ? (AJ.etapaClienteFechou || AJ.etapaCliente)
+      : resultado === "perdido" ? (AJ.etapaClientePerdido || 143)
+      : AJ.etapaCliente;
+    return st ? { pipeline_id: AJ.funilCliente, status_id: st } : { pipeline_id: AJ.funilCliente };
   }
   if (resultado === "perdido") {
     const st = AJ.etapaPerdido || 143;
     return AJ.funilLead ? { pipeline_id: AJ.funilLead, status_id: st } : { status_id: st };
   }
+  // em negociação, ou fechou pelo WhatsApp sem ter vindo: segue no funil de leads
   if (AJ.funilLead && AJ.etapaNegociacao) return { pipeline_id: AJ.funilLead, status_id: AJ.etapaNegociacao };
   return {};
 }
@@ -213,9 +219,11 @@ async function registrarNoKommo(b) {
   const resultado = b.resultado || "negociacao";
   const canal = c.canal === "presencial" ? "Presencial" : "WhatsApp";
   const tags = ["Copiloto", canal, c.unidade, o.tratamento].filter(Boolean).map((name) => ({ name }));
+  if (c.compareceu) tags.push({ name: "Compareceu" });
+  else if (resultado === "fechado") tags.push({ name: "Fechou — aguardando comparecimento" });
   if ((b.temperatura || 0) >= 70) tags.push({ name: "Lead quente" });
 
-  const lead = { price: Math.round(o.valor || 0), ...destinoNoFunil(resultado) };
+  const lead = { price: Math.round(o.valor || 0), ...destinoNoFunil(resultado, !!c.compareceu) };
   if (CFG.kommoResponsavel) lead.responsible_user_id = CFG.kommoResponsavel;
 
   // 1) encontra o lead: o informado na tela ou o mais recente do contato com esse telefone
@@ -468,6 +476,7 @@ async function rotas(req, res) {
       ...AJ,
       funilLead: num(b.funilLead), etapaNegociacao: num(b.etapaNegociacao), etapaPerdido: num(b.etapaPerdido) || 143,
       funilCliente: num(b.funilCliente), etapaCliente: num(b.etapaCliente),
+      etapaClienteFechou: num(b.etapaClienteFechou), etapaClientePerdido: num(b.etapaClientePerdido) || 143,
       etiquetaHumano: String(b.etiquetaHumano || "Atendimento humano").slice(0, 60)
     };
     salvarAjustes();
