@@ -21,6 +21,8 @@ services:
         value: /var/data
       - key: ANTHROPIC_API_KEY
         sync: false          # chave da IA (console.anthropic.com)
+      - key: MODELO_DICAS
+        sync: false          # opcional: claude-haiku-5-5 deixa as dicas ao vivo mais rápidas e baratas
       - key: KOMMO_SUBDOMINIO
         value: edelweissjrhotmailcom
       - key: KOMMO_TOKEN

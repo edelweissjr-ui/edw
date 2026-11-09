@@ -31,6 +31,7 @@ const CFG = {
   kommoResponsavel: env.KOMMO_RESPONSAVEL_ID ? Number(env.KOMMO_RESPONSAVEL_ID) : null,
   anthropicKey: env.ANTHROPIC_API_KEY || "",
   modelo: env.MODELO_IA || "claude-opus-5-5",
+  modeloDicas: env.MODELO_DICAS || env.MODELO_IA || "claude-opus-5-5", // dicas ao vivo (pode usar um modelo mais rápido/barato)
   dados: env.PASTA_DADOS || path.join(APP_DIR, "dados")
 };
 if (!CFG.senha) console.warn("⚠️  SENHA_ACESSO não definida: defina antes de publicar.");
@@ -268,9 +269,9 @@ const CLINICA = `Weiss Odontologia (Caruaru e Recife), clínica de Ortodontia do
 Caruaru: R. dos Expedicionários, 104, 1º andar, Nossa Sra. das Dores · WhatsApp (81) 99836-8491. Recife: Av. República do Líbano, 251, Torre 1, Sala 1614, Pina · WhatsApp (81) 97318-5005.
 Regras éticas: nunca prometer ou garantir resultado clínico; não inventar valores, descontos, prazos ou condições; urgência só se for real; não falar mal de concorrentes; não dar diagnóstico pelo WhatsApp.`;
 
-async function chamarIA({ sistema, prompt, esforco = "low" }) {
+async function chamarIA({ sistema, prompt, esforco = "low", modelo }) {
   const resp = await anthropic.beta.messages.create({
-    model: CFG.modelo,
+    model: modelo || CFG.modelo,
     max_tokens: 16000,
     betas: ["server-side-fallback-2026-07-01"],
     fallbacks: "default",
@@ -300,7 +301,8 @@ Responda SOMENTE com JSON: {"momento": "...", "tipo": "objecao|sinal_compra|opor
 Dicas já mostradas (não repita): ${(b.ja_mostradas || []).join(" | ") || "nenhuma"}
 
 CONVERSA ATÉ AGORA (o final é o mais recente):
-${fmtTranscricao((b.transcricao || []).slice(-40))}`
+${fmtTranscricao((b.transcricao || []).slice(-40))}`,
+    modelo: CFG.modeloDicas
   };
 }
 
