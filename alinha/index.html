@@ -288,6 +288,11 @@ body.perfil-equipe #gApagar{display:none!important}
 .mguia li{margin:3px 0}
 .mbrief{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px}
 .mbrief > div{background:var(--surface-2);border-radius:12px;padding:12px 14px}
+.qrbox{display:inline-flex;flex-direction:column;align-items:center;gap:8px;background:#fff;color:#0A0A1C;border-radius:16px;padding:16px}
+.qrbox p{margin:0;color:#3A3760}
+.qrbox img,.qrbox canvas{display:block}
+.qrmini{background:#fff;border-radius:12px;padding:10px;line-height:0}
+.qrmini:empty{display:none}
 #toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translate(-50%,120px);background:var(--fg);color:var(--bg);padding:10px 16px;border-radius:11px;font-weight:700;z-index:99;transition:transform .25s;max-width:calc(100% - 32px)}
 #toast.on{transform:translate(-50%,0)}
 @media (max-width:860px){#toast{bottom:calc(84px + env(safe-area-inset-bottom,0px))}}
@@ -420,6 +425,18 @@ body.perfil-equipe #gApagar{display:none!important}
           <div><label class="f" for="aCondicao">Condição especial vigente (só se for real)</label><input class="in" id="aCondicao" placeholder="ex.: check-up digital abatido no tratamento até 30/11"></div>
           <div class="row"><button class="btn pri" id="btnSalvarAjustes">Salvar</button><span class="small dim" id="ajStatus"></span></div>
         </div>
+        <div class="card stack so-admin" id="cardCelular">
+          <div class="row"><h3 class="grow">Conectar celular (WhatsApp) por QR code</h3><span class="pill" id="celEstado">…</span></div>
+          <p class="small dim" style="margin:0">As conversas desse número aparecem na tela WhatsApp e você responde direto do Alinha. No celular: <b>WhatsApp › Aparelhos conectados › Conectar um aparelho</b> e aponte para o QR code.</p>
+          <div class="consent" style="margin:0"><span>⚠️ Conexão não oficial (WhatsApp Web): existe risco de bloqueio do número. Use um número que <b>não</b> esteja na API oficial do Kommo (os de Caruaru e Recife continuam pelo Kommo).</span></div>
+          <div class="row"><button class="btn pri" id="btnCelConectar">Gerar QR code</button><button class="btn hide" id="btnCelDesconectar">Desconectar</button></div>
+          <div id="celQr"></div>
+          <p class="small dim" id="celAviso" style="margin:0"></p>
+        </div>
+        <div class="card stack" id="cardAbrirCelular">
+          <h3>Abrir o Alinha no celular</h3>
+          <div class="row" style="align-items:flex-start"><div id="abrirQr" class="qrmini"></div><div class="grow"><p class="small" style="margin:0">Aponte a câmera do celular para o QR code e entre com o seu usuário e senha. Dica: no celular, use “Adicionar à tela de início” para abrir como um app.</p><p class="small dim num" id="abrirUrl" style="margin:8px 0 0;word-break:break-all"></p></div></div>
+        </div>
         <div class="card stack" id="cardAtualizacoes">
           <h3>Atualizações</h3>
           <div class="row"><span class="grow">Versão instalada: <b id="atVersao"></b></span><button class="btn" id="btnVerificarAt">Verificar atualizações</button></div>
@@ -450,6 +467,7 @@ body.perfil-equipe #gApagar{display:none!important}
 </div>
 <div id="drawerHost"></div>
 <div id="toast"></div>
+<script src="qrcode.js"></script>
 <script src="biblioteca.js"></script>
 <script src="demo.js"></script>
 <script src="voz.js"></script>

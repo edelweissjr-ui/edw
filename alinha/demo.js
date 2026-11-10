@@ -96,6 +96,10 @@ window.ALINHA_DEMO = (function () {
       { id: "p2", ts: minAtras(170), autor: "clinica", texto: "Que alegria, Patrícia! Ficou alguma dúvida sobre o plano?" },
       { id: "p3", ts: minAtras(12), autor: "cliente", texto: "Quando posso começar? Dá pra parcelar no cartão?" }
     ] },
+    { lead: "tel-5581900002004", nome: "Renata Alves", telefone: "+55 81 90000-2004", unidade: "", origem: "celular", lista: [
+      { id: "r1", ts: minAtras(25), autor: "cliente", texto: "Oi doutor! Aqui é a Renata, indicada pela Patrícia. Vocês fazem aquele escaneamento 3D?" },
+      { id: "r2", ts: minAtras(20), autor: "cliente", texto: "Tenho medo de doer, já usei aparelho quando era criança e foi horrível" }
+    ] },
     { lead: "9003", nome: "Marcos Lima", telefone: "(81) 90000-2003", unidade: "Caruaru", origem: "Instagram", lista: [
       { id: "m1", ts: minAtras(300), autor: "cliente", texto: "Olá, tenho 45 anos, será que ainda dá pra usar aparelho?" },
       { id: "m2", ts: minAtras(290), autor: "clinica", ia: true, texto: "Olá, Marcos! Dá sim: com dentes e gengiva saudáveis não há idade limite. Quer agendar seu check-up digital?" },

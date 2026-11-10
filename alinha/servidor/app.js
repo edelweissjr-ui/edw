@@ -29,6 +29,10 @@ const CFG = {
   kommoSub: env.KOMMO_SUBDOMINIO || "",
   kommoBase: env.KOMMO_URL_BASE || "",
   kommoChaveWebhook: env.KOMMO_CHAVE_WEBHOOK || "",   // chave no endereço do webhook de mensagens
+  // Celular por QR code (Evolution API — conector de WhatsApp Web, não oficial)
+  evoUrl: (env.EVOLUTION_URL || "").replace(/\/$/, ""),
+  evoKey: env.EVOLUTION_API_KEY || "",
+  evoInst: env.EVOLUTION_INSTANCIA || "alinha",
   kommoToken: env.KOMMO_TOKEN || "",
   kommoStatus: { negociacao: null, fechado: 142, perdido: 143 },
   kommoResponsavel: env.KOMMO_RESPONSAVEL_ID ? Number(env.KOMMO_RESPONSAVEL_ID) : null,
@@ -73,6 +77,75 @@ export function iniciar() {
   })().catch((e) => { pronto = null; throw e; });
   return pronto;
 }
+
+/* ------------------------------------------------------------------ */
+/* Celular conectado por QR code (Evolution API)                       */
+/* ------------------------------------------------------------------ */
+const evoOk = () => !!(CFG.evoUrl && CFG.evoKey);
+const chaveWebhookEvo = () => crypto.createHash("sha256").update("evo|" + CFG.segredo).digest("hex").slice(0, 32);
+async function evo(metodo, rota, corpo) {
+  const r = await fetch(CFG.evoUrl + rota, { method: metodo, headers: { apikey: CFG.evoKey, "Content-Type": "application/json" }, body: corpo ? JSON.stringify(corpo) : undefined });
+  const txt = await r.text(); let d = null; try { d = txt ? JSON.parse(txt) : null; } catch { d = { texto: txt }; }
+  if (!r.ok) { const e = new Error(`Conector do WhatsApp respondeu ${r.status}: ${(d && (d.message || d.error || (d.response && JSON.stringify(d.response.message)))) || txt.slice(0, 160)}`); e.status = r.status; throw e; }
+  return d;
+}
+async function evoEstado() {
+  try {
+    const d = await evo("GET", `/instance/connectionState/${encodeURIComponent(CFG.evoInst)}`);
+    const st = (d && (d.instance ? d.instance.state : d.state)) || "close";
+    let numero = "";
+    if (st === "open") { try { const f = await evo("GET", `/instance/fetchInstances?instanceName=${encodeURIComponent(CFG.evoInst)}`); const it = Array.isArray(f) ? f[0] : f; numero = String((it && (it.ownerJid || (it.instance && it.instance.owner) || it.owner)) || "").split("@")[0]; } catch { /* sem número */ } }
+    return { estado: st === "open" ? "conectado" : st === "connecting" ? "aguardando" : "desconectado", numero };
+  } catch (e) { if (e.status === 404) return { estado: "desconectado", numero: "" }; throw e; }
+}
+async function evoConectar(baseUrl) {
+  // cria a instância (se ainda não existir), aponta o webhook para o Alinha e pede o QR code
+  try { await evo("POST", "/instance/create", { instanceName: CFG.evoInst, qrcode: true, integration: "WHATSAPP-BAILEYS" }); }
+  catch (e) { if (![403, 409].includes(e.status) && !/already|exist|em uso|in use/i.test(e.message)) throw e; }
+  const urlWebhook = `${baseUrl}/webhooks/evolution/${chaveWebhookEvo()}`;
+  try { await evo("POST", `/webhook/set/${encodeURIComponent(CFG.evoInst)}`, { webhook: { enabled: true, url: urlWebhook, webhookByEvents: false, webhookBase64: false, events: ["MESSAGES_UPSERT"] } }); }
+  catch { await evo("POST", `/webhook/set/${encodeURIComponent(CFG.evoInst)}`, { enabled: true, url: urlWebhook, webhook_by_events: false, events: ["MESSAGES_UPSERT"] }); } // formato da v1
+  const d = await evo("GET", `/instance/connect/${encodeURIComponent(CFG.evoInst)}`);
+  let qr = (d && (d.base64 || (d.qrcode && d.qrcode.base64))) || "";
+  if (qr && !qr.startsWith("data:")) qr = "data:image/png;base64," + qr;
+  return { qr, codigo: (d && d.pairingCode) || "", estado: qr ? "aguardando" : "conectado" };
+}
+// mensagem da Evolution → formato de conversa do Alinha (lead = "tel-" + número)
+function lerMensagemEvo(corpo) {
+  const ev = String(corpo.event || "").toLowerCase().replace(/_/g, ".");
+  if (ev && ev !== "messages.upsert") return [];
+  const itens = Array.isArray(corpo.data) ? corpo.data : corpo.data && corpo.data.messages ? corpo.data.messages : [corpo.data];
+  const out = [];
+  for (const m of itens) {
+    if (!m || !m.key) continue;
+    const jid = String(m.key.remoteJid || "");
+    if (!jid.endsWith("@s.whatsapp.net") && !jid.endsWith("@c.us")) continue; // ignora grupos e status
+    const msg = m.message || {};
+    const texto = msg.conversation || (msg.extendedTextMessage && msg.extendedTextMessage.text) || (msg.imageMessage && (msg.imageMessage.caption || "📷 [imagem]")) || (msg.videoMessage && (msg.videoMessage.caption || "🎬 [vídeo]")) || (msg.audioMessage && "🎧 [áudio]") || (msg.documentMessage && "📎 [documento]") || "";
+    if (!texto) continue;
+    const tel = jid.split("@")[0];
+    out.push({ lead: "tel-" + tel, tel, id: String(m.key.id || ""), deMim: !!m.key.fromMe, nome: m.pushName || "", texto, ts: new Date(Number(m.messageTimestamp || Date.now() / 1000) * 1000).toISOString() });
+  }
+  return out;
+}
+async function guardarMensagensEvo(lista) {
+  const porLead = {};
+  lista.forEach((m) => (porLead[m.lead] = porLead[m.lead] || []).push(m));
+  for (const [lead, msgs] of Object.entries(porLead)) {
+    const C = (await STORE.conversa(lead)) || { lista: [], nome: "", atualizado: 0, origem: "celular" };
+    let mudou = false;
+    for (const m of msgs) {
+      if (!m.deMim && m.nome && !C.nome) C.nome = m.nome.slice(0, 60);
+      C.telefone = C.telefone || "+" + m.tel; C.origem = "celular";
+      if (C.lista.some((x) => x.id === m.id)) continue;
+      C.lista.push({ id: m.id, ts: m.ts, autor: m.deMim ? "clinica" : "cliente", texto: m.texto }); mudou = true;
+    }
+    if (!mudou) continue;
+    C.lista.sort((a, b) => (a.ts > b.ts ? 1 : a.ts < b.ts ? -1 : 0)); C.lista = C.lista.slice(-200); C.atualizado = Date.now();
+    await STORE.salvarConversa(lead, C);
+  }
+}
+const baseDaRequisicao = (req) => `${(req.headers["x-forwarded-proto"] || "http").split(",")[0]}://${req.headers["x-forwarded-host"] || req.headers.host}`;
 
 /* WhatsApp: mensagens recebidas e enviadas, entregues pelo webhook do Kommo */
 function lerMensagensKommo(corpo) {
@@ -492,6 +565,12 @@ async function rotas(req, res) {
   if (p === "/versao") return json(res, 200, { versao: VERSAO }); // público: só o número da versão
 
   // webhook do Kommo (sem login; protegido pela chave no endereço)
+  if (p.startsWith("/webhooks/evolution/") && req.method === "POST") {
+    if (!evoOk() || p.split("/").pop() !== chaveWebhookEvo()) return json(res, 403, { ok: false });
+    let corpo = {}; try { corpo = JSON.parse((await lerCorpo(req, 8 * 1024 * 1024)).toString("utf8") || "{}"); } catch { /* ignora */ }
+    await guardarMensagensEvo(lerMensagemEvo(corpo));
+    return json(res, 200, { ok: true });
+  }
   if (p.startsWith("/webhooks/kommo/") && req.method === "POST") {
     if (!CFG.kommoChaveWebhook || p.split("/").pop() !== CFG.kommoChaveWebhook) return json(res, 403, { ok: false });
     await guardarWhatsApp(lerMensagensKommo((await lerCorpo(req)).toString("utf8")));
@@ -519,7 +598,7 @@ async function rotas(req, res) {
     res.writeHead(303, { Location: "login" }); return res.end();
   }
 
-  if (p === "/api/config" && req.method === "GET") return json(res, 200, { plataforma: true, versao: VERSAO, papel, ia: !!anthropic, kommo: kommoOk(), whatsapp: !!CFG.kommoChaveWebhook, armazenamento: STORE.tipo, dadosPersistentes: STORE.persistente, kommoUrl: CFG.kommoSub ? `https://${CFG.kommoSub}.kommo.com` : "" });
+  if (p === "/api/config" && req.method === "GET") return json(res, 200, { plataforma: true, versao: VERSAO, papel, ia: !!anthropic, kommo: kommoOk(), whatsapp: !!CFG.kommoChaveWebhook || evoOk(), celular: evoOk(), armazenamento: STORE.tipo, dadosPersistentes: STORE.persistente, kommoUrl: CFG.kommoSub ? `https://${CFG.kommoSub}.kommo.com` : "" });
   if (p === "/api/backup" && req.method === "GET") {
     if (soAdmin()) return;
     res.writeHead(200, { "Content-Type": "application/json; charset=utf-8", "Content-Disposition": `attachment; filename="alinha-dados-${new Date().toISOString().slice(0, 10)}.json"`, "Cache-Control": "no-store" });
@@ -579,6 +658,35 @@ async function rotas(req, res) {
     if (C) { if (d.nome) C.nome = d.nome; if (d.unidade) C.unidade = d.unidade; if (d.telefone) C.telefone = d.telefone; await STORE.salvarConversa(String(d.lead_id), C); }
     return json(res, 200, { ok: true, ...d });
   }
+  // celular por QR code
+  if (p === "/api/celular/estado" && req.method === "GET") {
+    if (!evoOk()) return json(res, 200, { ok: true, configurado: false });
+    return json(res, 200, { ok: true, configurado: true, ...(await evoEstado()) });
+  }
+  if (p === "/api/celular/conectar" && req.method === "POST") {
+    if (soAdmin()) return;
+    if (!evoOk()) return json(res, 503, { erro: "Conector do WhatsApp não configurado (EVOLUTION_URL e EVOLUTION_API_KEY)" });
+    return json(res, 200, { ok: true, ...(await evoConectar(baseDaRequisicao(req))) });
+  }
+  if (p === "/api/celular/desconectar" && req.method === "POST") {
+    if (soAdmin()) return;
+    if (!evoOk()) return json(res, 503, { erro: "Conector do WhatsApp não configurado" });
+    await evo("DELETE", `/instance/logout/${encodeURIComponent(CFG.evoInst)}`);
+    return json(res, 200, { ok: true });
+  }
+  if (p === "/api/whatsapp/enviar" && req.method === "POST") {
+    const b = await lerJSON(req);
+    const lead = String(b.lead || ""), texto = String(b.texto || "").trim();
+    if (!lead.startsWith("tel-") || !texto) return json(res, 400, { erro: "Envio direto só para conversas do celular conectado" });
+    if (!evoOk()) return json(res, 503, { erro: "Conector do WhatsApp não configurado" });
+    const numero = lead.slice(4);
+    let d;
+    try { d = await evo("POST", `/message/sendText/${encodeURIComponent(CFG.evoInst)}`, { number: numero, text: texto }); }
+    catch (e) { if (e.status !== 400) throw e; d = await evo("POST", `/message/sendText/${encodeURIComponent(CFG.evoInst)}`, { number: numero, textMessage: { text: texto } }); } // v1
+    const id = String((d && d.key && d.key.id) || "env-" + Date.now());
+    await guardarMensagensEvo([{ lead, tel: numero, id, deMim: true, nome: "", texto, ts: new Date().toISOString() }]);
+    return json(res, 200, { ok: true, id });
+  }
   if (p === "/api/whatsapp/atendimento" && req.method === "POST") {
     if (!kommoOk()) return json(res, 503, { erro: "Kommo não configurado" });
     const b = await lerJSON(req);
@@ -598,7 +706,7 @@ async function rotas(req, res) {
   }
 
   const arq = p === "/" ? "index.html" : p.slice(1);
-  if (["index.html", "app.js", "biblioteca.js", "demo.js", "voz.js"].includes(arq)) return servirArquivo(res, APP_DIR, arq);
+  if (["index.html", "app.js", "biblioteca.js", "demo.js", "voz.js", "qrcode.js"].includes(arq)) return servirArquivo(res, APP_DIR, arq);
   json(res, 404, { erro: "Não encontrado" });
 }
 

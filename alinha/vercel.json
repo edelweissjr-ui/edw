@@ -4,7 +4,7 @@
   "functions": {
     "api/index.js": {
       "maxDuration": 60,
-      "includeFiles": "{index.html,app.js,biblioteca.js,demo.js,voz.js,logo.svg,package.json}"
+      "includeFiles": "{index.html,app.js,biblioteca.js,demo.js,voz.js,qrcode.js,logo.svg,package.json}"
     }
   },
   "rewrites": [

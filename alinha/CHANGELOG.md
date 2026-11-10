@@ -1,5 +1,10 @@
 # Novidades do Alinha
 
+## 1.4.0 — nov/2026
+- Conectar celular (WhatsApp) por QR code em Ajustes (via Evolution API): as conversas entram na tela WhatsApp e a resposta é enviada direto do Alinha.
+- Abrir o Alinha no celular por QR code.
+- Hospedagem na Vercel com banco Upstash Redis (o Render e o computador continuam funcionando com arquivo).
+
 ## 1.3.0 — nov/2026
 - Método de vendas integrado: SPIN, N.E.A.T., Venda conceitual, SNAP, Venda desafiadora (Challenger), Sandler e Venda centrada no cliente.
 - Painel "Método da consulta": perguntas SPIN feitas, qualificação N.E.A.T., contrato inicial (Sandler) e a próxima pergunta sugerida; guia rápido das técnicas.

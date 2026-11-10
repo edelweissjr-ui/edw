@@ -30,5 +30,9 @@ services:
         value: edelweissjrhotmailcom
       - key: KOMMO_TOKEN
         sync: false          # token de longa duração do Kommo (briefing, nome/unidade do lead, pausar a IA)
+      - key: EVOLUTION_URL
+        sync: false          # opcional: conector para conectar celular por QR code
+      - key: EVOLUTION_API_KEY
+        sync: false
       - key: KOMMO_CHAVE_WEBHOOK
         generateValue: true  # entra no endereço do webhook de mensagens do WhatsApp

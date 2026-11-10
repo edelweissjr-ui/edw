@@ -26,6 +26,15 @@ As conversas dos WhatsApps de **Caruaru e Recife**, que já estão ligados ao Ko
 
 **Ligar (uma vez):** no Kommo, **Configurações › Integrações › Webhooks**, cadastre `https://SEU-ENDERECO/webhooks/kommo/VALOR_DE_KOMMO_CHAVE_WEBHOOK` (o valor aparece no Render, em Environment) e marque os eventos de **mensagem recebida** e **mensagem enviada**. O webhook da IA atual continua funcionando.
 
+## Conectar celular por QR code (WhatsApp)
+Em **Ajustes › Conectar celular**, o administrador gera um QR code; no celular: **WhatsApp › Aparelhos conectados › Conectar um aparelho**. As conversas desse número aparecem na tela WhatsApp e o botão **"Enviar pelo celular"** manda a resposta direto do Alinha.
+- Usa a **Evolution API** (conector gratuito de WhatsApp Web, muito usado com n8n), que precisa rodar em um servidor próprio com Docker (Render, Railway, VPS) ou num provedor que a ofereça. Se a IA de vocês no n8n já usa uma Evolution API, use a mesma.
+- Configure no Alinha: `EVOLUTION_URL` (endereço da Evolution API), `EVOLUTION_API_KEY` (a chave global dela) e, opcional, `EVOLUTION_INSTANCIA` (padrão `alinha`). O Alinha cria a instância e aponta o webhook sozinho.
+- ⚠️ É uma conexão **não oficial**: há risco de bloqueio do número. Use um número que **não** esteja na API oficial do Kommo; os de Caruaru e Recife continuam pelo Kommo.
+
+## Abrir no celular
+Em **Ajustes › Abrir o Alinha no celular**, aponte a câmera para o QR code e entre com usuário e senha. No celular, "Adicionar à tela de início" deixa o Alinha com cara de app.
+
 ## Ver funcionando agora (sem instalar nada)
 Abra `alinha/index.html` no navegador. O sistema abre em **modo demonstração**, com pacientes fictícios e uma **consulta simulada** (tela Consulta › "Ver uma consulta de demonstração").
 

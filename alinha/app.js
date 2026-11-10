@@ -8,8 +8,9 @@
   const BIB = window.ROTEIRO, DEMO = window.ALINHA_DEMO;
   /* Versão: na plataforma, vem do servidor (package.json) no momento em que a tela abriu.
      Ao publicar uma atualização, aumente a versão em package.json e registre em NOVIDADES. */
-  let VERSAO = "1.3.0";
+  let VERSAO = "1.4.0";
   const NOVIDADES = [
+    { v: "1.4.0", data: "nov/2026", itens: ["Conectar celular (WhatsApp) por QR code em Ajustes, com envio da resposta direto do Alinha", "Abrir o Alinha no celular por QR code", "Pronto para hospedar na Vercel (banco Upstash Redis)"] },
     { v: "1.3.0", data: "nov/2026", itens: ["Método de vendas: SPIN, N.E.A.T., Venda conceitual, SNAP, Venda desafiadora, Sandler e Venda centrada no cliente", "Painel Método na consulta: perguntas SPIN, qualificação N.E.A.T., contrato inicial e próxima pergunta sugerida", "Briefing avalia a consulta por técnica e mostra a pergunta que faltou", "IA usa as técnicas nas dicas, no WhatsApp e no follow-up"] },
     { v: "1.2.0", data: "nov/2026", itens: ["WhatsApp ao vivo: conversas de Caruaru e Recife chegam pelo Kommo, com o que responder em cada mensagem", "Termômetro por conversa, Assumir atendimento (pausa a IA do n8n) e Adicionar ao follow-up", "Perfis de administrador e equipe"] },
     { v: "1.1.0", data: "nov/2026", itens: ["Atualizações dentro do sistema: aviso de nova versão e botão Atualizar agora", "Cópia de segurança automática dos dados (diária e antes de cada atualização)", "Reconhecimento da voz do profissional", "Modo sequência para alinhar os pacientes do dia", "Termômetro de prontidão para o fechamento"] },
@@ -727,7 +728,65 @@
     const atual = $("#cProf").value;
     $("#cProf").innerHTML = profs.map((n) => `<option${n === atual ? " selected" : ""}>${esc(n)}</option>`).join("");
     renderVozes(); atualizarAuto();
+    estadoCelular(); renderAbrirCelular();
   }
+  /* ------------------------------------------------------------ */
+  /* Conectar celular (WhatsApp) por QR code · Abrir no celular    */
+  /* ------------------------------------------------------------ */
+  let celTimer = null;
+  async function estadoCelular() {
+    const st = $("#celEstado"); if (!st) return;
+    if (!PLAT) { st.className = "pill"; st.textContent = "demonstração"; return; }
+    if (!PLAT.celular) { st.className = "pill"; st.textContent = "conector não configurado"; $("#celAviso").textContent = "Para usar, configure o conector do WhatsApp (Evolution API) no servidor: EVOLUTION_URL e EVOLUTION_API_KEY. Veja o manual."; return { estado: "off" }; }
+    try {
+      const d = await api("GET", "api/celular/estado");
+      st.className = "pill " + (d.estado === "conectado" ? "good" : d.estado === "aguardando" ? "warn" : "");
+      st.textContent = d.estado === "conectado" ? `✓ conectado${d.numero ? " · +" + d.numero : ""}` : d.estado === "aguardando" ? "aguardando leitura do QR code" : "desconectado";
+      $("#btnCelDesconectar").classList.toggle("hide", d.estado !== "conectado");
+      if (d.estado === "conectado") { $("#celQr").innerHTML = ""; clearInterval(celTimer); }
+      return d;
+    } catch (e) { st.className = "pill bad"; st.textContent = "sem resposta do conector"; $("#celAviso").textContent = e.message; }
+  }
+  $("#btnCelConectar").addEventListener("click", async () => {
+    const b = $("#btnCelConectar"); b.disabled = true; b.textContent = "Gerando QR code…";
+    try {
+      if (!PLAT) { // demonstração
+        $("#celQr").innerHTML = `<div class="qrbox"><div id="qrDemo"></div><p class="small dim">QR code de demonstração · conecta sozinho em 6 s</p></div>`;
+        desenharQR("qrDemo", "alinha-demonstracao-" + Date.now(), 220);
+        setTimeout(() => { $("#celQr").innerHTML = ""; $("#celEstado").className = "pill good"; $("#celEstado").textContent = "✓ conectado (demonstração)"; toast("Celular conectado (demonstração)"); }, 6000);
+      } else {
+        const d = await api("POST", "api/celular/conectar");
+        if (d.qr) {
+          $("#celQr").innerHTML = `<div class="qrbox"><img src="${esc(d.qr)}" alt="QR code para conectar o WhatsApp" width="240" height="240">${d.codigo ? `<p class="small">ou use o código: <b class="num">${esc(d.codigo)}</b></p>` : ""}<p class="small dim">O QR code expira em cerca de 40 s. Se expirar, gere de novo.</p></div>`;
+          clearInterval(celTimer); celTimer = setInterval(estadoCelular, 3000);
+        } else toast("Este celular já está conectado");
+        estadoCelular();
+      }
+    } catch (e) { toast(e.message); }
+    b.disabled = false; b.textContent = "Gerar QR code";
+  });
+  $("#btnCelDesconectar").addEventListener("click", async (e) => {
+    const b = e.currentTarget;
+    if (b.dataset.c !== "1") { b.dataset.c = "1"; b.textContent = "Toque de novo para desconectar"; setTimeout(() => { b.dataset.c = ""; b.textContent = "Desconectar"; }, 4000); return; }
+    try { await api("POST", "api/celular/desconectar"); toast("Celular desconectado"); } catch (err) { toast(err.message); }
+    b.dataset.c = ""; b.textContent = "Desconectar"; estadoCelular();
+  });
+  // QR code desenhado no navegador (biblioteca qrcodejs; se não carregar, mostra o endereço)
+  function desenharQR(id, texto, tam) {
+    const el = document.getElementById(id); if (!el) return;
+    el.innerHTML = "";
+    if (window.qrcode) {
+      try { const q = window.qrcode(0, "M"); q.addData(texto); q.make(); const n = q.getModuleCount(); el.innerHTML = q.createSvgTag({ cellSize: Math.max(2, Math.floor(tam / (n + 4))), margin: 2, scalable: false }); return; }
+      catch (e) { /* segue */ }
+    }
+    el.innerHTML = `<p class="small">${esc(texto)}</p>`;
+  }
+  function renderAbrirCelular() {
+    const url = location.protocol === "file:" ? "Publique o Alinha para gerar o QR code do endereço" : location.origin + location.pathname.replace(/[^/]*$/, "");
+    $("#abrirUrl").textContent = url;
+    if (location.protocol !== "file:") desenharQR("abrirQr", url, 180);
+  }
+
   /* cadastro e teste da voz */
   function renderVozes() {
     const equipe = [...new Set([...(AJ.equipe || []), ...PAC.map((p) => p.profissional).filter(Boolean)])];
@@ -878,19 +937,20 @@
     $("#wa").classList.toggle("aberta", !!lead);
     if (!lead) { el.innerHTML = `<div class="vazio">Escolha uma conversa à esquerda.</div>`; return; }
     const i = WA.info[lead] || {}, msgs = WA.msgs[lead] || [], sg = WA.sug[lead], t = WA.temp[lead] ?? 25, hum = WA.humano[lead];
-    const kommoLink = PLAT && PLAT.kommoUrl ? `${PLAT.kommoUrl}/leads/detail/${encodeURIComponent(lead)}` : "";
+    const doCelular = lead.startsWith("tel-") || i.origem === "celular";
+    const kommoLink = !doCelular && PLAT && PLAT.kommoUrl ? `${PLAT.kommoUrl}/leads/detail/${encodeURIComponent(lead)}` : "";
     const wa = i.telefone ? `https://wa.me/${(digits(i.telefone).length <= 11 ? "55" : "") + digits(i.telefone)}?text=${encodeURIComponent(sg ? sg.mensagem : "")}` : "";
     const nivel = t >= 70 ? "🔥 Quente · pronto para fechar" : t >= 40 ? "🌤️ Morno" : "❄️ Frio";
     el.innerHTML = `<div class="card wahead"><button class="btn sm ghost voltar" id="waVoltar">← Conversas</button><div class="ava">${esc(iniciais(i.nome || "?"))}</div>
         <div class="grow"><b style="font-size:17px">${esc(i.nome || "Lead " + lead)}</b><div class="small dim">${esc([i.unidade, i.telefone, i.origem].filter(Boolean).join(" · ") || "lead " + lead)}</div></div>
         <span class="minitermo" title="Prontidão para o fechamento">🌡 <i><b style="width:${t}%"></b></i>${t}%</span><span class="pill ${t >= 70 ? "bad" : t >= 40 ? "warn" : ""}">${nivel}</span>
-        <div class="row" style="width:100%">${hum ? `<span class="pill acc">✋ Atendimento humano · IA pausada</span><button class="btn sm" data-waact="devolver">🤖 Devolver para a IA</button>` : `<button class="btn sm" data-waact="assumir">✋ Assumir atendimento</button>`}
+        <div class="row" style="width:100%">${doCelular ? `<span class="pill acc">📱 Celular conectado</span>` : hum ? `<span class="pill acc">✋ Atendimento humano · IA pausada</span><button class="btn sm" data-waact="devolver">🤖 Devolver para a IA</button>` : `<button class="btn sm" data-waact="assumir">✋ Assumir atendimento</button>`}
           <button class="btn sm" data-waact="followup">+ Adicionar ao follow-up</button>${kommoLink ? `<a class="btn sm" href="${esc(kommoLink)}" target="_blank" rel="noopener">Abrir no Kommo</a>` : ""}</div></div>
       <div class="thread" id="waThread">${msgs.map((m) => `<div class="bolha ${m.autor === "cliente" ? "cli" : "cl"}${m._nova ? " chegou" : ""}">${esc(m.texto)}<span class="m">${m.autor === "cliente" ? "Paciente" : m.ia ? "🤖 IA de atendimento" : "Clínica"} · ${hora(m.ts)}</span></div>`).join("") || '<p class="dim">Sem mensagens.</p>'}</div>
       ${sg ? `<div class="resp"><div class="row"><span class="pill acc">${esc(sg.rotulo || "Sugestão")}</span><span class="small" style="color:var(--tip-dim)">${sg.fonte === "ia" ? "IA" : "roteiro"} · o que responder</span></div>
         <div class="ori">${esc(sg.orientacao || "")}</div>
         <textarea id="waTexto" aria-label="Resposta sugerida">${esc(sg.mensagem || "")}</textarea>
-        <div class="row"><button class="btn pri" data-waact="copiar">${kommoLink ? "Copiar e abrir no Kommo" : "Copiar"}</button>${wa ? `<a class="btn" id="waLink" href="${esc(wa)}" target="_blank" rel="noopener">Abrir no WhatsApp</a>` : ""}<button class="btn" data-waact="outra">↻ Outra versão</button></div></div>` : ""}`;
+        <div class="row">${doCelular ? `<button class="btn pri" data-waact="enviar">➤ Enviar pelo celular</button><button class="btn" data-waact="copiar">Copiar</button>` : `<button class="btn pri" data-waact="copiar">${kommoLink ? "Copiar e abrir no Kommo" : "Copiar"}</button>`}${wa ? `<a class="btn" id="waLink" href="${esc(wa)}" target="_blank" rel="noopener">Abrir no WhatsApp</a>` : ""}<button class="btn" data-waact="outra">↻ Outra versão</button></div></div>` : ""}`;
     msgs.forEach((m) => delete m._nova);
     const th = $("#waThread"); th.scrollTop = th.scrollHeight;
   }
@@ -902,7 +962,7 @@
     }
     const c = WA.conversas.find((x) => x.lead === lead); if (c) { WA.lido[lead] = c.ts; ls.set("alinha.wa.lido", WA.lido); }
     renderWA(); gerarSugestao(lead);
-    if (PLAT && PLAT.kommo && !WA.info[lead]._kommo) {
+    if (PLAT && PLAT.kommo && !lead.startsWith("tel-") && !WA.info[lead]._kommo) {
       api("GET", "api/whatsapp/lead?id=" + encodeURIComponent(lead)).then((d) => { WA.info[lead] = Object.assign(WA.info[lead] || {}, { nome: d.nome || WA.info[lead].nome, telefone: d.telefone, unidade: d.unidade, origem: d.origem, _kommo: true }); WA.humano[lead] = d.humano; if (WA.sel === lead) renderWA(); }).catch(() => {});
     }
     // demonstração: novas mensagens chegam aos poucos
@@ -945,7 +1005,15 @@
     if (act === "copiar") {
       const txt = $("#waTexto").value;
       try { await navigator.clipboard.writeText(txt); toast("Resposta copiada"); } catch (err) { $("#waTexto").select(); toast("Selecionado: use Ctrl+C para copiar"); }
-      if (PLAT && PLAT.kommoUrl) window.open(`${PLAT.kommoUrl}/leads/detail/${encodeURIComponent(lead)}`, "_blank", "noopener");
+      if (PLAT && PLAT.kommoUrl && !lead.startsWith("tel-")) window.open(`${PLAT.kommoUrl}/leads/detail/${encodeURIComponent(lead)}`, "_blank", "noopener");
+    } else if (act === "enviar") {
+      const txt = $("#waTexto").value.trim(); if (!txt) return;
+      b.disabled = true; b.textContent = "Enviando…";
+      try {
+        if (PLAT) { const d = await api("POST", "api/whatsapp/enviar", { lead, texto: txt }); receber(lead, [{ id: d.id, ts: new Date().toISOString(), autor: "clinica", texto: txt }]); }
+        else receber(lead, [{ id: "e" + Date.now(), ts: new Date().toISOString(), autor: "clinica", texto: txt }]);
+        toast("Mensagem enviada pelo celular ✓");
+      } catch (err) { toast("Não enviou: " + err.message); b.disabled = false; b.textContent = "➤ Enviar pelo celular"; }
     } else if (act === "outra") {
       b.disabled = true; b.textContent = "Gerando…"; await gerarSugestao(lead, $("#waTexto").value); 
     } else if (act === "assumir" || act === "devolver") {
