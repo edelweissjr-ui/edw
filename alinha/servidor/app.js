@@ -443,7 +443,12 @@ const METODO = `MÉTODO DE VENDAS (use de forma natural, sem citar nomes de téc
 - SNAP (principalmente no WhatsApp): mensagens Simples, que tragam algo de Valor, Alinhadas ao objetivo do paciente e que ajudem a Priorizar a decisão.
 - Venda desafiadora: ensine algo novo e relevante (ex.: alinhar facilita a higiene; o planejamento digital mostra o resultado antes), adapte ao caso e conduza ao próximo passo com segurança.
 - Sandler: faça o "contrato inicial" (no fim, o paciente diz com sinceridade se faz sentido ou não), aprofunde a dor com perguntas e deixe o paciente à vontade para dizer não.
-- Venda centrada no cliente: mais perguntas que apresentação; fale do resultado, não do aparelho; recomende uma solução para o caso dele.`;
+- Venda centrada no cliente: mais perguntas que apresentação; fale do resultado, não do aparelho; recomende uma solução para o caso dele.
+PRINCÍPIOS DE ATENDIMENTO (funis de clínica):
+- Acolha antes de vender; nunca responda com catálogo frio. O objetivo da avaliação é entender o caso e indicar o melhor caminho.
+- O check-up digital com o iTero é o "diagnóstico que mostra valor": conduza o lead até ele com um convite suave ("Quer que eu veja os horários?").
+- Escassez só se for real. Faça o próximo agendamento antes de o paciente sair. Use prova social (casos parecidos, depoimentos) com autorização e dentro das normas do CFO.
+- Quem não fechou é reativado com 30, 60 e 90 dias, sempre com algo de valor e sem pressão.`;
 
 const MOMENTOS = ["Acolhimento", "Investigação", "Diagnóstico", "Apresentação", "Negociação", "Fechamento"];
 
@@ -471,7 +476,7 @@ function promptBriefing(b) {
     sistema: `Você é o Alinha, copiloto comercial da ${CLINICA}
 Você recebe a transcrição de uma consulta que acabou de terminar e produz o BRIEFING para o profissional e a equipe comercial. Os rótulos PROFISSIONAL/PACIENTE vêm de reconhecimento automático de voz e podem ter erros: use o conteúdo das falas para corrigir quem disse o quê.
 ${METODO}
-Avalie também a consulta por essas técnicas. Seja concreto, use as palavras do paciente, e não invente números: use somente valores ditos na conversa.
+Avalie também a consulta por essas técnicas e se o próximo passo ficou agendado antes de o paciente sair. Seja concreto, use as palavras do paciente, e não invente números: use somente valores ditos na conversa.
 Responda SOMENTE com JSON neste formato:
 {
  "paciente": "primeiro nome se dito, senão ''",
@@ -540,9 +545,10 @@ Escreva UMA mensagem de WhatsApp de follow-up para um paciente que fez consulta 
 - usar as palavras do próprio paciente quando possível (dor, desejo, evento);
 - tratar a objeção dele de forma leve, sem pressão;
 - ser curta (até 4 linhas), calorosa, no máximo 1 emoji, terminar com uma pergunta fácil de responder;
-- respeitar o momento da cadência: D0 = resumo do plano no mesmo dia; D1 = tirar dúvidas; D3 = reforçar valor (simulação, vídeo do dentista, caso parecido); D7 = pergunta direta sobre o que impede; D15 = porta aberta / condição real se houver; D30 = encerramento gentil.
+- respeitar o momento da cadência: D0 = resumo do plano no mesmo dia; D1 = tirar dúvidas; D3 = reforçar valor (simulação, vídeo do dentista, caso parecido); D7 = pergunta direta sobre o que impede; D15 = porta aberta / condição real se houver; D30 = encerramento gentil; R30/R60/R90 = REATIVAÇÃO de quem não fechou, 30/60/90 dias depois (saber como está, oferecer algo de valor como a simulação, convidar sem pressão).
+${METODO}
 Não invente desconto, prazo ou condição. Responda SOMENTE com JSON: {"mensagem": "..."}`,
-    prompt: `Toque: ${b.toque} (D${b.dia})
+    prompt: `Toque: ${b.toque} (${String(b.dia).startsWith("R") ? b.dia + " — reativação" : "D" + b.dia})
 Paciente: ${p.nome || "-"} · Unidade: ${p.unidade || "-"} · Tratamento: ${p.tratamento || "-"} · Valor apresentado: ${p.valorApresentado || "-"}
 Dor: ${p.dor || "-"} · Evento: ${p.evento || "-"} · Decisor: ${p.decisor || "-"}
 Objeções: ${(p.objecoes || []).join(", ") || "-"} · O que travou: ${p.oQueTravou || "-"}

@@ -609,6 +609,61 @@ window.ROTEIRO = {
   ],
 
   /* ------------------------------------------------------------------
+     FUNIS E MODELOS (materiais "7 Funis de Vendas Comprovados para Clínicas"
+     e "Atraia Clientes de Alto Valor", adaptados à Ortodontia e às regras do CFO)
+     ------------------------------------------------------------------ */
+  principios: [
+    "Acolha antes de vender: nunca responda com catálogo frio (\"veja nossos serviços\").",
+    "O objetivo da avaliação é entender o caso e indicar o melhor caminho, não empurrar um tratamento.",
+    "Convite suave, com opção fácil: \"Consigo te encaixar esta semana. Quer que eu veja os horários?\"",
+    "O check-up digital com o iTero é o diagnóstico que mostra valor logo de início: leve o paciente até ele.",
+    "Escassez só se for real: vagas limitadas ou dias específicos de verdade.",
+    "Faça o próximo agendamento antes de o paciente sair da clínica.",
+    "Prova social: depoimentos e casos parecidos, com autorização do paciente e dentro das normas do CFO.",
+    "Reative a base: quem não fechou recebe contato com 30, 60 e 90 dias.",
+    "Peça avaliação e indicação depois de uma boa experiência."
+  ],
+  funis: [
+    { nome: "Funil de Diagnóstico", ideia: "Uma avaliação que gera valor logo de início e leva ao tratamento.", noAlinha: "O check-up digital com o iTero é a porta de entrada: mostre o 3D e a simulação, conecte com a dor e apresente o plano." },
+    { nome: "Funil Social Selling", ideia: "Relacionamento direto (direct/WhatsApp) com perguntas que qualificam.", noAlinha: "Na tela WhatsApp, use as perguntas SPIN e N.E.A.T. antes de convidar para a avaliação." },
+    { nome: "Funil de Recepção", ideia: "Boas-vindas rápidas e personalizadas para quem acabou de chegar.", noAlinha: "Responda o lead em minutos com o modelo de primeiro contato; quem não agendar recebe as mensagens do dia 1 e do dia 3." },
+    { nome: "Funil de Elevação", ideia: "Conteúdo educativo → interação → convite claro → pós-venda.", noAlinha: "Depois da consulta, o follow-up D0 a D30 leva da dúvida à decisão; após o fechamento, peça avaliação e indicação." },
+    { nome: "Funil Efeito Cascata", ideia: "Educar com conteúdo ao longo do tempo até a decisão.", noAlinha: "Nos toques de follow-up, mande algo de valor (simulação, caso parecido, vídeo do dentista), não só cobrança." },
+    { nome: "Funil de Destaques", ideia: "Destaques do Instagram com processo, equipe, depoimentos e dúvidas.", noAlinha: "Envie o link do destaque certo na conversa (ex.: \"Invisalign\", \"Depoimentos\", \"iTero\") para gerar confiança." },
+    { nome: "Funil de Hot Seat", ideia: "Sessão ao vivo para tirar dúvidas e mostrar soluções.", noAlinha: "Uma live ou encontro \"Tire suas dúvidas sobre Invisalign\" para leads mornos; depois, convite individual para o check-up." }
+  ],
+  modelos: [
+    { grupo: "Primeiro contato", quando: "Lead novo (anúncio, Instagram, site)", itens: [
+      { rotulo: "Boas-vindas humanizada", texto: "Oi, {nome}! Aqui é da Weiss Odontologia, unidade {unidade} 😊 Vi que você se interessou pelo tratamento. Me conta: o que mais te incomoda hoje no seu sorriso?" },
+      { rotulo: "Convite suave para a avaliação", texto: "Consigo te encaixar esta semana para o check-up digital com {profissional}: em poucos minutos você vê seu sorriso em 3D e uma simulação do resultado. Quer que eu veja os horários?" }
+    ] },
+    { grupo: "Quem ainda não agendou", quando: "Lead que conversou mas não marcou", itens: [
+      { rotulo: "Dia 1", texto: "Oi, {nome}! Estamos com horários nesta semana para o check-up digital. Posso verificar um pra você?" },
+      { rotulo: "Dia 3", texto: "{nome}, ainda quer fazer sua avaliação? É a melhor forma de entender o seu caso e ver a simulação do seu sorriso 🙂" }
+    ] },
+    { grupo: "Lembretes", quando: "Antes da consulta (reduz faltas)", itens: [
+      { rotulo: "24 horas antes", texto: "Oi, {nome}! Seu check-up digital é amanhã às {hora} com {profissional}, na unidade {unidade}. 📍 {endereco}. Estamos te esperando!" },
+      { rotulo: "No dia", texto: "Bom dia, {nome}! Está tudo certo para hoje às {hora}?" }
+    ] },
+    { grupo: "Pós-consulta", quando: "Depois do atendimento", itens: [
+      { rotulo: "Agradecimento + avaliação", texto: "Obrigado pela visita, {nome}! Se puder, deixe sua avaliação sobre o atendimento: [link do Google]. Isso ajuda outras pessoas a nos encontrarem 💜" },
+      { rotulo: "Próximo atendimento", texto: "{nome}, {profissional} recomendou o próximo atendimento para daqui 30 dias. Quer já deixar agendado?" }
+    ] },
+    { grupo: "Reativação", quando: "Quem não fechou ou parou (30/60/90 dias)", itens: [
+      { rotulo: "30 dias", texto: "Oi, {nome}! Aqui é da Weiss. Já faz um tempinho desde a sua avaliação e queríamos saber como você está. Seu planejamento continua salvo aqui: que tal conversarmos sobre ele esta semana?" },
+      { rotulo: "60 dias", texto: "{nome}, lembrei de você! Ainda pensa em alinhar o sorriso? Posso te mandar de novo a simulação para você ver com calma 🙂" },
+      { rotulo: "90 dias", texto: "Oi, {nome}! Passando para dizer que a porta continua aberta. Quando fizer sentido pra você, temos horários para retomar seu planejamento. Um abraço da equipe Weiss!" },
+      { rotulo: "Tratamento interrompido", texto: "Oi, {nome}! Vimos que seu tratamento ficou em pausa e queríamos saber como você está. Vamos retomar? Temos horários nesta semana." }
+    ] },
+    { grupo: "Campanha da semana", quando: "Somente com vagas ou condição REAL", requer: "condicao", itens: [
+      { rotulo: "Vagas da semana", texto: "Oi, {nome}! Esta semana estamos com {condicao}. Quem responder hoje já garante o horário 🙂" }
+    ] },
+    { grupo: "Indicação", quando: "Paciente satisfeito", itens: [
+      { rotulo: "Pedido de indicação", texto: "Que alegria acompanhar seu sorriso, {nome}! Se alguém próximo também sonha em alinhar os dentes, pode nos indicar? Vamos cuidar com o mesmo carinho 💜" }
+    ] }
+  ],
+
+  /* ------------------------------------------------------------------
      MÉTODO DE VENDAS DO ALINHA
      SPIN, N.E.A.T., Venda conceitual, SNAP, Venda desafiadora (Challenger),
      Sandler e Venda centrada no cliente — adaptados à consulta de Ortodontia.

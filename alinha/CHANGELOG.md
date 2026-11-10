@@ -1,5 +1,11 @@
 # Novidades do Alinha
 
+## 1.5.0 — nov/2026
+- Base de conhecimento ampliada com os materiais "7 Funis de Vendas Comprovados para Clínicas" e "Atraia Clientes de Alto Valor", adaptados à Ortodontia e às regras do CFO.
+- Reativação automática: quem não fechou (ou terminou a cadência) recebe contato com 30, 60 e 90 dias.
+- Modelos de mensagem por situação, acessíveis na conversa de WhatsApp e nos cartões de follow-up.
+- Princípios de atendimento e os 7 funis no guia rápido; a IA aplica nos textos e no briefing (inclui "próximo agendamento antes da saída").
+
 ## 1.4.0 — nov/2026
 - Conectar celular (WhatsApp) por QR code em Ajustes (via Evolution API): as conversas entram na tela WhatsApp e a resposta é enviada direto do Alinha.
 - Abrir o Alinha no celular por QR code.

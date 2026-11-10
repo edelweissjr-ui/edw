@@ -8,8 +8,9 @@
   const BIB = window.ROTEIRO, DEMO = window.ALINHA_DEMO;
   /* Versão: na plataforma, vem do servidor (package.json) no momento em que a tela abriu.
      Ao publicar uma atualização, aumente a versão em package.json e registre em NOVIDADES. */
-  let VERSAO = "1.4.0";
+  let VERSAO = "1.5.0";
   const NOVIDADES = [
+    { v: "1.5.0", data: "nov/2026", itens: ["Reativação automática de quem não fechou: 30, 60 e 90 dias, na lista Quem alinhar hoje e na coluna Reativação", "Modelos de mensagem (primeiro contato, quem não agendou, lembretes, pós-consulta, reativação, campanha, indicação) na conversa de WhatsApp e nos cartões", "Princípios de atendimento e os 7 funis no guia; a IA passa a usá-los"] },
     { v: "1.4.0", data: "nov/2026", itens: ["Conectar celular (WhatsApp) por QR code em Ajustes, com envio da resposta direto do Alinha", "Abrir o Alinha no celular por QR code", "Pronto para hospedar na Vercel (banco Upstash Redis)"] },
     { v: "1.3.0", data: "nov/2026", itens: ["Método de vendas: SPIN, N.E.A.T., Venda conceitual, SNAP, Venda desafiadora, Sandler e Venda centrada no cliente", "Painel Método na consulta: perguntas SPIN, qualificação N.E.A.T., contrato inicial e próxima pergunta sugerida", "Briefing avalia a consulta por técnica e mostra a pergunta que faltou", "IA usa as técnicas nas dicas, no WhatsApp e no follow-up"] },
     { v: "1.2.0", data: "nov/2026", itens: ["WhatsApp ao vivo: conversas de Caruaru e Recife chegam pelo Kommo, com o que responder em cada mensagem", "Termômetro por conversa, Assumir atendimento (pausa a IA do n8n) e Adicionar ao follow-up", "Perfis de administrador e equipe"] },
@@ -77,22 +78,35 @@
   /* Cadência de follow-up                                         */
   /* ------------------------------------------------------------ */
   const CAD = [0, 1, 3, 7, 15, 30];
-  const CAD_NOME = { 0: "Resumo do plano", 1: "Tirar dúvidas", 3: "Reforçar valor", 7: "Pergunta direta", 15: "Porta aberta", 30: "Encerramento" };
+  const CAD_NOME = { 0: "Resumo do plano", 1: "Tirar dúvidas", 3: "Reforçar valor", 7: "Pergunta direta", 15: "Porta aberta", 30: "Encerramento", R30: "Reativação · 30 dias", R60: "Reativação · 60 dias", R90: "Reativação · 90 dias" };
+  // reativação de quem não fechou (ou terminou a cadência sem decidir): 30, 60 e 90 dias
+  const REAT = ["R30", "R60", "R90"], REAT_DIAS = { R30: 30, R60: 60, R90: 90 };
+  const ultimoToque = (p) => Object.values(p.toques || {}).map((t) => t && t.em).filter(Boolean).sort().pop();
   function proximo(p) {
-    if (p.status !== "aberto") return null;
+    if (p.status === "fechado") return null;
     const toques = p.toques || {};
-    const dia = CAD.find((d) => !toques[d]);
-    if (dia === undefined) return { fim: true };
-    // vence no dia da cadência, mas nunca antes do intervalo mínimo desde o último contato (evita 2 mensagens no mesmo dia)
-    let due = new Date(inicioDia(p.consultaEm).getTime() + dia * DIA);
-    const k = CAD.indexOf(dia), ant = CAD[k - 1];
-    if (k > 0 && toques[ant] && toques[ant].em) {
-      const minimo = new Date(inicioDia(toques[ant].em).getTime() + (dia - ant) * DIA);
-      if (minimo > due) due = minimo;
+    if (p.status === "aberto") {
+      const dia = CAD.find((d) => !toques[d]);
+      if (dia !== undefined) {
+        // vence no dia da cadência, mas nunca antes do intervalo mínimo desde o último contato (evita 2 mensagens no mesmo dia)
+        let due = new Date(inicioDia(p.consultaEm).getTime() + dia * DIA);
+        const k = CAD.indexOf(dia), ant = CAD[k - 1];
+        if (k > 0 && toques[ant] && toques[ant].em) {
+          const minimo = new Date(inicioDia(toques[ant].em).getTime() + (dia - ant) * DIA);
+          if (minimo > due) due = minimo;
+        }
+        return { dia, n: k + 1, due, atraso: Math.round((hoje0() - due) / DIA) };
+      }
     }
-    const atraso = Math.round((hoje0() - due) / DIA);
-    return { dia, n: CAD.indexOf(dia) + 1, due, atraso };
+    const r = REAT.find((k) => !toques[k]);
+    if (!r) return p.status === "aberto" ? { fim: true } : null;
+    const k = REAT.indexOf(r);
+    const base = k > 0 && toques[REAT[k - 1]] ? toques[REAT[k - 1]].em : (p.status === "perdido" ? (p.encerradoEm || ultimoToque(p) || p.consultaEm) : (ultimoToque(p) || p.consultaEm));
+    const intervalo = k > 0 ? REAT_DIAS[r] - REAT_DIAS[REAT[k - 1]] : REAT_DIAS[r];
+    const due = new Date(inicioDia(base).getTime() + intervalo * DIA);
+    return { dia: r, reativ: true, n: k + 1, due, atraso: Math.round((hoje0() - due) / DIA) };
   }
+  const numToque = (dia) => typeof dia === "string" ? "reativação " + dia : CAD.indexOf(dia) + 1;
   const paraHoje = () => PAC.map((p) => ({ p, x: proximo(p) })).filter((o) => o.x && !o.x.fim && o.x.atraso >= 0).sort((a, b) => b.x.atraso - a.x.atraso);
   const doMes = (iso) => { if (!iso) return false; const d = new Date(iso), h = new Date(); return d.getMonth() === h.getMonth() && d.getFullYear() === h.getFullYear(); };
 
@@ -118,17 +132,46 @@
       },
       7: [`Oi, ${n}! Queria te perguntar com sinceridade: existe algo que esteja te impedindo de começar? Me fala, que eu te ajudo a encontrar o melhor caminho 🙂`, `${n}, de 0 a 10, quanto você quer começar o tratamento? O que falta para chegar no 10?`],
       15: [AJ.condicao ? `Oi, ${n}! Lembrei de você: estamos com ${AJ.condicao}. Quer aproveitar?` : `Oi, ${n}! Seu planejamento continua salvo aqui. Quando fizer sentido pra você, é só me chamar que a gente começa 🙂`, `${n}, como você está? Se quiser, revisamos juntos o plano e as condições. Posso te ligar rapidinho?`],
+      R30: [preencherModelo(modeloBib("Reativação", 0), p), `Oi, ${n}! Como você está? Lembrei de você e do seu planejamento. Quer que eu te mande de novo a simulação do seu sorriso?`],
+      R60: [preencherModelo(modeloBib("Reativação", 1), p), `${n}, tudo bem? Se ainda pensa em alinhar o sorriso, consigo um horário nesta semana para revisarmos seu plano. Quer?`],
+      R90: [preencherModelo(modeloBib("Reativação", 2), p), `Oi, ${n}! Passando só para deixar a porta aberta: quando quiser retomar, é só responder aqui 🙂`],
       30: [`${n}, não quero te incomodar 🙂 Vou deixar seu plano guardado. Se um dia quiser retomar, é só responder esta mensagem. Um abraço da equipe Weiss!`, `Oi, ${n}! Vou encerrar seu acompanhamento por aqui, mas a porta fica aberta. Quando quiser, conte com a gente!`]
     };
     let lista = M[dia];
     if (dia === 3) lista = M[3][obj === "concorrente" ? "preco" : obj] || M[3].padrao;
     return lista[v % lista.length];
   }
+  /* modelos da biblioteca (funis): preenchidos com os dados do paciente */
+  const modeloBib = (grupo, i) => { const g = (BIB.modelos || []).find((x) => x.grupo === grupo); return g && g.itens[i] ? g.itens[i].texto : ""; };
+  function preencherModelo(t, p = {}) {
+    const u = BIB.unidades[p.unidade || "Caruaru"] || {};
+    const prof = p.profissional || (AJ.equipe || [])[0] || "o Dr. Edelweiss";
+    return String(t || "").replace(/\{(\w+)\}/g, (m, k) => ({ nome: primeiro(p.nome), unidade: p.unidade || "", endereco: u.endereco || "", profissional: prof, condicao: AJ.condicao || "", tratamento: p.tratamento || "seu tratamento" }[k] ?? "[" + k + "]"))
+      .replace(/\s+([,.!?])/g, "$1").replace(/,\s*,/g, ",").replace(/^,\s*/, "").replace(/\s{2,}/g, " ").trim();
+  }
+  function abrirModelos(p, aoUsar) {
+    const G = BIB.modelos || [];
+    $("#drawerHost").innerHTML = `<div class="veil" id="veil"><div class="drawer" role="dialog" aria-label="Modelos de mensagem">
+      <div class="row"><h2 class="grow" style="font-size:20px">Modelos de mensagem</h2><button class="btn sm ghost" id="mdFechar" aria-label="Fechar">✕</button></div>
+      <p class="small dim" style="margin:0">Toque em <b>Usar</b> para colocar o texto na resposta. Você pode editar antes de enviar.</p>
+      ${G.map((g, gi) => { const bloqueado = g.requer === "condicao" && !AJ.condicao; return `<div class="card stack" style="gap:8px"><div><b>${esc(g.grupo)}</b> <span class="small dim">· ${esc(g.quando)}</span></div>
+        ${bloqueado ? `<p class="small" style="margin:0;color:var(--warn)">Cadastre uma condição real em Ajustes para usar este modelo.</p>` : ""}
+        ${g.itens.map((it, ii) => `<div class="sug"><div class="label">${esc(it.rotulo)}</div><p style="margin:4px 0 8px">${esc(preencherModelo(it.texto, p))}</p><button class="btn sm pri" data-usar="${gi}.${ii}" ${bloqueado ? "disabled" : ""}>Usar</button></div>`).join("")}</div>`; }).join("")}
+      <details class="mguia"><summary>Princípios de atendimento</summary><ul>${(BIB.principios || []).map((x) => `<li>${esc(x)}</li>`).join("")}</ul></details>
+    </div></div>`;
+    $("#mdFechar").onclick = fecharGaveta;
+    $("#veil").addEventListener("click", (e) => {
+      if (e.target.id === "veil") return fecharGaveta();
+      const b = e.target.closest("[data-usar]"); if (!b) return;
+      const [gi, ii] = b.dataset.usar.split(".").map(Number);
+      aoUsar(preencherModelo(G[gi].itens[ii].texto, p)); fecharGaveta(); toast("Modelo aplicado — revise e envie");
+    });
+  }
   function textoMensagem(p, dia) { return (p.mensagens || {})[dia] || modelo(p, dia, (p.variante || {})[dia] || 0); }
   async function outraVersao(p, dia) {
     const atual = textoMensagem(p, dia);
     if (PLAT && PLAT.ia) {
-      const d = await api("POST", "api/ia/mensagem", { paciente: p, dia, toque: CAD.indexOf(dia) + 1, condicao: AJ.condicao, versao_anterior: atual });
+      const d = await api("POST", "api/ia/mensagem", { paciente: p, dia, toque: numToque(dia), condicao: AJ.condicao, versao_anterior: atual });
       p.mensagens = Object.assign(p.mensagens || {}, { [dia]: d.mensagem });
     } else {
       p.variante = Object.assign(p.variante || {}, { [dia]: ((p.variante || {})[dia] || 0) + 1 });
@@ -139,7 +182,7 @@
   async function garantirMensagemIA(p, dia) {
     if (!(PLAT && PLAT.ia) || (p.mensagens || {})[dia]) return;
     try {
-      const d = await api("POST", "api/ia/mensagem", { paciente: p, dia, toque: CAD.indexOf(dia) + 1, condicao: AJ.condicao });
+      const d = await api("POST", "api/ia/mensagem", { paciente: p, dia, toque: numToque(dia), condicao: AJ.condicao });
       p.mensagens = Object.assign(p.mensagens || {}, { [dia]: d.mensagem });
       await Store.salvar(p);
       render();
@@ -155,12 +198,13 @@
     return `<article class="card msgcard" data-id="${p.id}">
       <div class="top"><div class="ava">${esc(iniciais(p.nome))}</div>
         <div class="grow"><h3>${esc(p.nome)}</h3><div class="meta">${esc(p.tratamento || "")} · ${brl(p.valorApresentado)} · ${esc(p.unidade || "")}</div>${miniTermo(p.prontidao)}</div>${atraso}</div>
-      <div class="row small"><span class="pill">Toque ${x.n} · D${x.dia}</span><span class="dim">${CAD_NOME[x.dia]}</span>${obj ? `<span class="pill warn">${esc(obj)}</span>` : ""}</div>
+      <div class="row small"><span class="pill ${x.reativ ? "acc" : ""}">${x.reativ ? `Reativação ${x.n}/3` : `Toque ${x.n} · D${x.dia}`}</span><span class="dim">${CAD_NOME[x.dia]}</span>${obj ? `<span class="pill warn">${esc(obj)}</span>` : ""}</div>
       <div class="sug"><div class="label" style="margin-bottom:6px">Mensagem sugerida · edite se quiser</div><textarea data-msg="${x.dia}" aria-label="Mensagem para ${esc(p.nome)}">${esc(txt)}</textarea></div>
       <div class="row">
         <button class="btn sm pri" data-act="copiar">Copiar</button>
         <a class="btn sm" data-act="whats" href="${esc(linkWhats(p, txt))}" target="_blank" rel="noopener">WhatsApp</a>
         <button class="btn sm" data-act="outra">↻ Outra versão</button>
+        <button class="btn sm" data-act="modelos">📋 Modelos</button>
         <span class="grow"></span>
         <button class="btn sm" data-act="enviei">Enviei</button>
         <button class="btn sm ghost" data-act="pular">Pular</button>
@@ -172,7 +216,7 @@
   document.addEventListener("input", (e) => {
     const ta = e.target.closest("textarea[data-msg]"); if (!ta) return;
     const card = ta.closest("[data-id]"), p = PAC.find((x) => x.id === card.dataset.id); if (!p) return;
-    const dia = Number(ta.dataset.msg);
+    const dia = /^\d+$/.test(ta.dataset.msg) ? Number(ta.dataset.msg) : ta.dataset.msg;
     p.mensagens = Object.assign(p.mensagens || {}, { [dia]: ta.value });
     const a = card.querySelector('[data-act="whats"]'); if (a) a.href = linkWhats(p, ta.value);
     clearTimeout(ta._t); ta._t = setTimeout(() => Store.salvar(p), 600);
@@ -190,6 +234,8 @@
       catch (err) { ta.focus(); ta.select(); toast("Selecionado: use Ctrl+C para copiar"); }
     } else if (act === "whats") {
       // o link abre o WhatsApp; nada a fazer aqui
+    } else if (act === "modelos" && x && !x.fim) {
+      abrirModelos(p, async (txt) => { p.mensagens = Object.assign(p.mensagens || {}, { [x.dia]: txt }); await Store.salvar(p); render(); });
     } else if (act === "outra" && x) {
       b.disabled = true; b.textContent = "Gerando…";
       try { await outraVersao(p, x.dia); } catch (err) { toast(err.message); }
@@ -290,6 +336,7 @@
     $("#filtroResp").innerHTML = resp.map((r) => `<button class="${r === filtro ? "on" : ""}" data-f="${esc(r)}">${esc(r)}</button>`).join("");
     const lista = PAC.filter((p) => filtro === "Todos" || p.responsavel === filtro);
     const colunas = CAD.map((d) => ({ d, titulo: `D${d}`, sub: CAD_NOME[d], itens: lista.filter((p) => { const x = proximo(p); return x && !x.fim && x.dia === d; }) }));
+    colunas.push({ d: "reat", titulo: "Reativação", sub: "30, 60 e 90 dias", itens: lista.filter((p) => { const x = proximo(p); return x && x.reativ; }) });
     colunas.push({ d: "fim", titulo: "Fim da cadência", sub: "decidir: fechou ou encerrar", itens: lista.filter((p) => { const x = proximo(p); return x && x.fim; }) });
     colunas.push({ d: "ok", titulo: "Fecharam", sub: "no mês", itens: lista.filter((p) => p.status === "fechado" && doMes(p.fechadoEm)) });
     $("#kanban").innerHTML = colunas.map((c) => `<div class="col"><h3>${c.titulo}<span class="pill">${c.itens.length}</span></h3><div class="sub">${c.sub}</div>
@@ -324,7 +371,7 @@
       p.recuperado = inicioDia(p.fechadoEm).getTime() > inicioDia(p.consultaEm).getTime();
       await Store.salvar(p); toast("Fechamento registrado 🎉"); fecharGaveta(); render();
     };
-    $("#gPerdeu").onclick = async () => { p.status = "perdido"; await Store.salvar(p); toast("Paciente encerrado"); fecharGaveta(); render(); };
+    $("#gPerdeu").onclick = async () => { p.status = "perdido"; p.encerradoEm = new Date().toISOString(); await Store.salvar(p); toast("Paciente encerrado"); fecharGaveta(); render(); };
     if ($("#gReabrir")) $("#gReabrir").onclick = async () => { p.status = "aberto"; delete p.fechadoEm; await Store.salvar(p); fecharGaveta(); render(); };
     if ($("#gBriefing")) $("#gBriefing").onclick = () => { fecharGaveta(); briefSel = p.id; mostrar("briefings"); };
     $("#gApagar").onclick = async (e) => {
@@ -513,7 +560,9 @@
         <h4>Sandler</h4>${L([MET.sandler.contrato, MET.sandler.principio, "Funil da dor: " + MET.sandler.funil.join(" · ")])}
         <h4>Venda desafiadora</h4><p class="small" style="margin:0 0 4px">${esc(MET.challenger.ideia)}</p>${L(MET.challenger.insights)}
         <h4>SNAP (WhatsApp)</h4>${L(MET.snap.regras)}
-        <h4>Venda centrada no cliente</h4>${L(MET.centrada.regras)}`;
+        <h4>Venda centrada no cliente</h4>${L(MET.centrada.regras)}
+        <h4>Princípios de atendimento</h4>${L(BIB.principios || [])}
+        <h4>Os 7 funis aplicados</h4>${L((BIB.funis || []).map((f) => f.nome + ": " + f.noAlinha))}`;
     }
   }
   $("#metodo").addEventListener("click", (e) => {
@@ -950,7 +999,7 @@
       ${sg ? `<div class="resp"><div class="row"><span class="pill acc">${esc(sg.rotulo || "Sugestão")}</span><span class="small" style="color:var(--tip-dim)">${sg.fonte === "ia" ? "IA" : "roteiro"} · o que responder</span></div>
         <div class="ori">${esc(sg.orientacao || "")}</div>
         <textarea id="waTexto" aria-label="Resposta sugerida">${esc(sg.mensagem || "")}</textarea>
-        <div class="row">${doCelular ? `<button class="btn pri" data-waact="enviar">➤ Enviar pelo celular</button><button class="btn" data-waact="copiar">Copiar</button>` : `<button class="btn pri" data-waact="copiar">${kommoLink ? "Copiar e abrir no Kommo" : "Copiar"}</button>`}${wa ? `<a class="btn" id="waLink" href="${esc(wa)}" target="_blank" rel="noopener">Abrir no WhatsApp</a>` : ""}<button class="btn" data-waact="outra">↻ Outra versão</button></div></div>` : ""}`;
+        <div class="row">${doCelular ? `<button class="btn pri" data-waact="enviar">➤ Enviar pelo celular</button><button class="btn" data-waact="copiar">Copiar</button>` : `<button class="btn pri" data-waact="copiar">${kommoLink ? "Copiar e abrir no Kommo" : "Copiar"}</button>`}${wa ? `<a class="btn" id="waLink" href="${esc(wa)}" target="_blank" rel="noopener">Abrir no WhatsApp</a>` : ""}<button class="btn" data-waact="outra">↻ Outra versão</button><button class="btn" data-waact="modelos">📋 Modelos</button></div></div>` : ""}`;
     msgs.forEach((m) => delete m._nova);
     const th = $("#waThread"); th.scrollTop = th.scrollHeight;
   }
@@ -1006,6 +1055,8 @@
       const txt = $("#waTexto").value;
       try { await navigator.clipboard.writeText(txt); toast("Resposta copiada"); } catch (err) { $("#waTexto").select(); toast("Selecionado: use Ctrl+C para copiar"); }
       if (PLAT && PLAT.kommoUrl && !lead.startsWith("tel-")) window.open(`${PLAT.kommoUrl}/leads/detail/${encodeURIComponent(lead)}`, "_blank", "noopener");
+    } else if (act === "modelos") {
+      abrirModelos(Object.assign({}, i, { nome: i.nome }), (txt) => { WA.sug[lead] = Object.assign({}, WA.sug[lead] || {}, { mensagem: txt, rotulo: "Modelo", orientacao: "Modelo da biblioteca: revise e envie.", fonte: "roteiro" }); renderChat(); });
     } else if (act === "enviar") {
       const txt = $("#waTexto").value.trim(); if (!txt) return;
       b.disabled = true; b.textContent = "Enviando…";

@@ -18,6 +18,14 @@ O Alinha aplica, adaptadas à Ortodontia, as técnicas **SPIN Selling** (Situaç
 - **No briefing:** avaliação por técnica e a pergunta que faltou, pronta para usar no retorno.
 - As perguntas e frases ficam em `biblioteca.js` (`metodos`) e podem ser ajustadas ao jeito da clínica.
 
+## Funis, modelos e reativação
+Baseado nos materiais "7 Funis de Vendas Comprovados para Clínicas" e "Atraia Clientes de Alto Valor", adaptados à Ortodontia:
+- **Princípios** (acolher antes de vender, avaliação como diagnóstico que mostra valor, convite suave, escassez só real, próximo agendamento antes da saída, reativação) orientam a IA.
+- **Modelos de mensagem** (📋 Modelos) na conversa de WhatsApp e nos cartões de follow-up: primeiro contato, quem não agendou, lembretes, pós-consulta, reativação, campanha da semana (só com condição real) e indicação.
+- **Reativação:** quem não fechou entra sozinho na lista "Quem alinhar hoje?" com 30, 60 e 90 dias.
+- Os **7 funis** aparecem no guia rápido da consulta. Atenção: promoções, descontos e "consulta gratuita" em anúncios têm restrições do CFO; use condições reais e só na conversa individual.
+- Textos em `biblioteca.js` (`principios`, `funis`, `modelos`).
+
 ## WhatsApp ao vivo
 As conversas dos WhatsApps de **Caruaru e Recife**, que já estão ligados ao Kommo, chegam ao Alinha em segundos. A cada mensagem do paciente, a tela **WhatsApp** mostra a objeção detectada, a orientação e a **resposta pronta** (IA + roteiro), além do **termômetro** da conversa.
 - **Responder:** "Copiar e abrir no Kommo" (a resposta sai pelo número oficial da clínica e fica registrada no CRM).
