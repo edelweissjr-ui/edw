@@ -854,13 +854,15 @@
 
   async function carregarConversas() {
     if (waModoReal()) {
-      try { WA.conversas = (await api("GET", "api/whatsapp/conversas")).conversas || []; } catch (e) { return; }
+      let d; try { d = await api("GET", "api/whatsapp/conversas" + (WA.ver != null ? "?ver=" + WA.ver : "")); } catch (e) { return false; }
+      if (d.mudou === false) return false; // nada novo desde a última busca
+      WA.ver = d.ver; WA.conversas = d.conversas || [];
       WA.conversas.forEach((c) => { WA.info[c.lead] = Object.assign({ nome: c.nome, unidade: c.unidade }, WA.info[c.lead] || {}); });
     } else {
       if (!WA.demo) { WA.demo = DEMO.whatsapp(); WA.demo.forEach((c) => { WA.msgs[c.lead] = c.lista.slice(); WA.info[c.lead] = { nome: c.nome, telefone: c.telefone, unidade: c.unidade, origem: c.origem }; recalcularTemp(c.lead); }); }
       WA.conversas = WA.demo.map((c) => { const l = WA.msgs[c.lead], u = l[l.length - 1]; return { lead: c.lead, nome: c.nome, unidade: c.unidade, ultima: u.texto, autor: u.autor, ts: u.ts }; }).sort((a, b) => (a.ts < b.ts ? 1 : -1));
     }
-    badgeWA();
+    badgeWA(); return true;
   }
   function naoLida(c) { return c.autor === "cliente" && (!WA.lido[c.lead] || c.ts > WA.lido[c.lead]); }
   function badgeWA() { const n = WA.conversas.filter(naoLida).length; const b = $("#badgeWA"); b.textContent = n; b.classList.toggle("hide", !n); }
@@ -921,9 +923,9 @@
     if (novas.some((m) => m.autor === "cliente") && lead === WA.sel) gerarSugestao(lead);
   }
   async function pollWA() {
-    if (!waModoReal()) return;
+    if (!waModoReal() || document.hidden) return; // aba escondida: não consulta (economiza o banco)
     const antes = Object.fromEntries(WA.conversas.map((c) => [c.lead, c.ts]));
-    await carregarConversas();
+    if (!(await carregarConversas())) return; // sem novidade em nenhuma conversa
     if (WA.sel && WA.msgs[WA.sel]) {
       const l = WA.msgs[WA.sel], desde = l.length ? l[l.length - 1].ts : "";
       try { const d = await api("GET", "api/whatsapp/mensagens?lead=" + encodeURIComponent(WA.sel) + "&desde=" + encodeURIComponent(desde)); receber(WA.sel, d.mensagens || []); } catch (e) { /* tenta de novo */ }
@@ -973,7 +975,7 @@
   }
   $("#nav").addEventListener("click", (e) => { const b = e.target.closest("button"); if (b) mostrar(b.dataset.v); });
   function render() {
-    $("#bannerDemo").classList.toggle("hide", !PAC.some((p) => p.exemplo));
+    if (!$("#bannerDemo").dataset.fixo) $("#bannerDemo").classList.toggle("hide", !PAC.some((p) => p.exemplo));
     renderHoje();
     if (vista === "followup") renderFollowup();
     if (vista === "briefings") renderBriefings();
@@ -1033,7 +1035,10 @@
     renderAtualizacoes();
     if (PLAT) { verificarAtualizacao(false); setInterval(() => verificarAtualizacao(false), 5 * 60 * 1000); }
     carregarConversas().then(() => { if (vista === "whatsapp") renderWA(); });
-    if (waModoReal()) setInterval(pollWA, 5000);
+    if (waModoReal()) setInterval(pollWA, 6000);
+    if (PLAT && PLAT.dadosPersistentes === false && PLAT.papel === "admin") {
+      const bn = $("#bannerDemo"); bn.innerHTML = "⚠️ O banco de dados não está conectado: os dados são temporários e podem se perder. Na Vercel, conecte o Upstash Redis (Storage) e publique de novo."; bn.classList.remove("hide"); bn.dataset.fixo = "1";
+    }
     $("#pillIA").textContent = PLAT && PLAT.ia ? "IA ouvindo + roteiro" : "Dicas do roteiro";
     try { await Store.carregar(); } catch (e) { toast("Não foi possível carregar os dados: " + e.message); }
     renderAjustes(); render();

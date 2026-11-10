@@ -29,6 +29,17 @@ As conversas dos WhatsApps de **Caruaru e Recife**, que já estão ligados ao Ko
 ## Ver funcionando agora (sem instalar nada)
 Abra `alinha/index.html` no navegador. O sistema abre em **modo demonstração**, com pacientes fictícios e uma **consulta simulada** (tela Consulta › "Ver uma consulta de demonstração").
 
+## Publicar na Vercel
+O Alinha roda na Vercel como uma função (`api/index.js`) e guarda os dados no **Upstash Redis** (instalado pela própria Vercel).
+1. **vercel.com** › entre com o GitHub › **Add New › Project** › importe o repositório `edw`.
+2. Em **Root Directory**, escolha **`alinha`**. Framework: **Other**.
+3. Em **Environment Variables**, adicione: `SENHA_ADMIN`, `SENHA_ACESSO`, `ANTHROPIC_API_KEY`, `MODELO_DICAS` (`claude-haiku-5-5`, opcional), `KOMMO_SUBDOMINIO` (`edelweissjrhotmailcom`), `KOMMO_TOKEN` e `KOMMO_CHAVE_WEBHOOK` (invente um texto longo, sem espaços).
+4. **Deploy**.
+5. No projeto: **Storage › Create Database › Upstash (Redis)** › conecte ao projeto (as variáveis `KV_REST_API_URL` e `KV_REST_API_TOKEN` entram sozinhas) › **Deployments › Redeploy**.
+6. Abra `https://SEU-PROJETO.vercel.app/login`. Se aparecer o aviso "banco de dados não está conectado", refaça o passo 5.
+
+Observações: o plano Hobby (gratuito) da Vercel é só para uso não comercial; para a clínica, use o plano **Pro**. O Upstash tem plano gratuito (500 mil comandos/mês), suficiente para o uso normal. Cópias de segurança: na Vercel, baixe periodicamente em Ajustes › Atualizações › "Baixar cópia dos dados"; a cada atualização de versão, o Alinha também guarda uma cópia no próprio banco por 90 dias.
+
 ## Colocar no ar para a equipe
 1. Chave da IA: **console.anthropic.com** › Billing (crédito) › API Keys › Create Key.
 2. **render.com** › New › **Blueprint** › repositório `edw` (o arquivo `render.yaml` já está pronto).
