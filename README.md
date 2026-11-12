@@ -11,8 +11,8 @@ Site de página única, animado, da Weiss Odontologia (Caruaru e Recife).
 - Logotipo: o `<svg class="brand-mark">` no cabeçalho pode ser trocado por `<img src="logo.svg">`.
 - Telefones/WhatsApp: busque por `wa.me/55` no arquivo.
 
-## App "Meu Boletim" (pasta `boletim/`)
-App offline para o aluno acompanhar notas, médias, recuperação e faltas.
-- Abra `boletim/index.html` (ou publique a pasta e acesse `/boletim/`). Pelo navegador do celular: "Adicionar à tela inicial" para instalar.
-- Funciona sem internet (service worker) e salva tudo apenas no aparelho (localStorage). Backup/restauração em JSON pela aba Ajustes.
-- Configurável: bimestres/trimestres/semestres, média de aprovação, pesos, regra de recuperação e frequência mínima.
+## App "Boletim Cognitivo" (pasta `boletim/`)
+App offline para o estudante acompanhar as notas no formato do Colégio Cognitivo (Manual do Estudante – Ensino Médio 2026).
+- Abra `boletim/index.html` (ou publique a pasta e acesse `/boletim/`). No celular: "Adicionar à Tela de Início" para instalar.
+- Regras: média da unidade = (PP + PU + PS) ÷ 3; abaixo de 7,0 → PR (nova média = (média + PR) ÷ 2, vale a maior); aprovação com 21 pontos nas 3 unidades; senão Recuperação Final (precisa de 10 − soma ÷ 3); bônus SimulaCOG e Laboratório de Redação até 0,5; frequência mínima de 75%.
+- Funciona sem internet (service worker) e salva tudo só no aparelho (localStorage). Backup/restauração em JSON na aba Ajustes.
