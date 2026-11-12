@@ -1,0 +1,685 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Meu Boletim</title>
+<meta name="description" content="Acompanhe suas notas, médias e faltas de forma rápida e clara — funciona sem internet.">
+<meta name="theme-color" content="#185878">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon.svg">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Boletim">
+<style>
+:root{
+  --bg:#F4F6F8; --surface:#FFFFFF; --surface-2:#EEF2F5; --line:rgba(15,58,79,.12);
+  --fg:#0C2B3A; --fg-dim:#5A707B; --accent:#185878; --accent-2:#1F9A8B; --on-accent:#fff;
+  --ok:#1E9E6A; --ok-bg:#E3F5EC; --warn:#C98A0B; --warn-bg:#FCF2DC; --bad:#D2453B; --bad-bg:#FBE6E4; --idle:#8A9AA3; --idle-bg:#EDF1F3;
+  --radius:18px; --shadow:0 1px 2px rgba(12,43,58,.06),0 6px 20px rgba(12,43,58,.06);
+  --font:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0B1A22; --surface:#122631; --surface-2:#1A3341; --line:rgba(220,239,236,.12);
+  --fg:#E8F1F4; --fg-dim:#97AEB8; --accent:#5FB6DA; --accent-2:#5FD0C0; --on-accent:#06202B;
+  --ok:#4CCB92; --ok-bg:#163A2C; --warn:#F0B53D; --warn-bg:#3A3018; --bad:#FF7A6E; --bad-bg:#3E1E1C; --idle:#7F949E; --idle-bg:#1C2F3A;
+  --shadow:0 1px 2px rgba(0,0,0,.3); color-scheme:dark;
+}}
+:root[data-theme="dark"]{
+  --bg:#0B1A22; --surface:#122631; --surface-2:#1A3341; --line:rgba(220,239,236,.12);
+  --fg:#E8F1F4; --fg-dim:#97AEB8; --accent:#5FB6DA; --accent-2:#5FD0C0; --on-accent:#06202B;
+  --ok:#4CCB92; --ok-bg:#163A2C; --warn:#F0B53D; --warn-bg:#3A3018; --bad:#FF7A6E; --bad-bg:#3E1E1C; --idle:#7F949E; --idle-bg:#1C2F3A;
+  --shadow:0 1px 2px rgba(0,0,0,.3); color-scheme:dark;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+[hidden]{display:none!important}
+html,body{margin:0}
+body{background:var(--bg);color:var(--fg);font-family:var(--font);font-size:16px;line-height:1.45;-webkit-font-smoothing:antialiased;padding-bottom:calc(84px + env(safe-area-inset-bottom));min-height:100vh;font-variant-numeric:tabular-nums}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:8px}
+.wrap{max-width:760px;margin:0 auto;padding:0 max(16px,env(safe-area-inset-left)) 0 max(16px,env(safe-area-inset-right))}
+h1,h2,h3{margin:0;line-height:1.15;letter-spacing:-.01em}
+
+/* Header */
+header.top{padding-top:calc(18px + env(safe-area-inset-top));padding-bottom:8px}
+.top .row{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.hello{font-size:14px;color:var(--fg-dim)}
+.top h1{font-size:26px;font-weight:700}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:999px;background:var(--surface);border:1px solid var(--line);font-size:13px;color:var(--fg-dim);white-space:nowrap}
+.offline-dot{width:8px;height:8px;border-radius:50%;background:var(--ok)}
+
+/* Cards */
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}
+section.view{padding-top:8px}
+.section-title{font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--fg-dim);margin:22px 4px 10px}
+
+/* Hero */
+.hero{display:grid;grid-template-columns:auto 1fr;gap:18px;align-items:center;padding:18px}
+.ring{position:relative;width:118px;height:118px}
+.ring svg{width:100%;height:100%;transform:rotate(-90deg)}
+.ring .val{position:absolute;inset:0;display:grid;place-content:center;text-align:center}
+.ring .val b{font-size:30px;font-weight:700;line-height:1}
+.ring .val span{font-size:11px;color:var(--fg-dim);text-transform:uppercase;letter-spacing:.06em;margin-top:4px}
+.hero-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.stat{background:var(--surface-2);border-radius:12px;padding:10px 8px;text-align:center}
+.stat b{display:block;font-size:22px;line-height:1.1}
+.stat span{font-size:11.5px;color:var(--fg-dim)}
+.stat.ok b{color:var(--ok)} .stat.warn b{color:var(--warn)} .stat.bad b{color:var(--bad)}
+.hero-msg{grid-column:1/-1;font-size:14px;color:var(--fg-dim);border-top:1px solid var(--line);padding-top:12px}
+.hero-msg strong{color:var(--fg)}
+@media (max-width:420px){.hero{grid-template-columns:1fr;justify-items:center}.hero-stats{width:100%}}
+
+/* Alerts */
+.alerts{display:grid;gap:8px;margin-top:12px}
+.alert{display:flex;gap:10px;align-items:flex-start;padding:12px 14px;border-radius:14px;font-size:14px}
+.alert.bad{background:var(--bad-bg)} .alert.warn{background:var(--warn-bg)} .alert.ok{background:var(--ok-bg)}
+.alert i{font-style:normal;font-size:16px;line-height:1.3}
+
+/* Subject list */
+.subjects{display:grid;gap:10px}
+.subj{display:grid;grid-template-columns:6px 1fr auto;gap:14px;align-items:center;padding:14px 16px 14px 0;text-align:left;width:100%;border:1px solid var(--line);background:var(--surface);border-radius:16px;box-shadow:var(--shadow);transition:transform .15s}
+.subj:active{transform:scale(.985)}
+.subj .bar{height:100%;min-height:44px;border-radius:0 6px 6px 0}
+.subj .name{font-weight:600;font-size:16px}
+.subj .meta{font-size:13px;color:var(--fg-dim);margin-top:2px}
+.subj .pills{display:flex;gap:4px;margin-top:8px}
+.pill{min-width:34px;padding:3px 6px;border-radius:8px;font-size:12.5px;font-weight:600;text-align:center;background:var(--idle-bg);color:var(--idle)}
+.pill.ok{background:var(--ok-bg);color:var(--ok)} .pill.warn{background:var(--warn-bg);color:var(--warn)} .pill.bad{background:var(--bad-bg);color:var(--bad)}
+.subj .avg{text-align:right}
+.subj .avg b{font-size:24px;display:block;line-height:1}
+.subj .avg small{font-size:11.5px;font-weight:600}
+.tag{display:inline-block;padding:2px 8px;border-radius:999px;font-size:11.5px;font-weight:600}
+.tag.ok{background:var(--ok-bg);color:var(--ok)} .tag.warn{background:var(--warn-bg);color:var(--warn)} .tag.bad{background:var(--bad-bg);color:var(--bad)} .tag.idle{background:var(--idle-bg);color:var(--idle)}
+.c-ok{color:var(--ok)} .c-warn{color:var(--warn)} .c-bad{color:var(--bad)} .c-idle{color:var(--idle)}
+
+/* Boletim table */
+.table-wrap{overflow-x:auto;border-radius:var(--radius)}
+table.bol{border-collapse:separate;border-spacing:0;width:100%;min-width:520px;font-size:14px}
+.bol th,.bol td{padding:0;border-bottom:1px solid var(--line);text-align:center}
+.bol thead th{font-size:11.5px;text-transform:uppercase;letter-spacing:.04em;color:var(--fg-dim);font-weight:600;padding:12px 4px;background:var(--surface-2)}
+.bol th.subjcol,.bol td.subjcol{text-align:left;padding:10px 12px;position:sticky;left:0;background:var(--surface);z-index:1;font-weight:600;max-width:150px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bol thead th.subjcol{background:var(--surface-2)}
+.bol tr:last-child td{border-bottom:0}
+.bol input{width:100%;min-width:48px;height:44px;border:0;background:transparent;text-align:center;font-weight:600;font-size:15px}
+.bol input:focus{background:var(--surface-2);outline:none}
+.bol input.ok{color:var(--ok)} .bol input.warn{color:var(--warn)} .bol input.bad{color:var(--bad)}
+.bol td.res{font-weight:700;padding:0 8px}
+.legend{display:flex;flex-wrap:wrap;gap:12px;font-size:12.5px;color:var(--fg-dim);margin:10px 4px 0}
+.legend span::before{content:"";display:inline-block;width:9px;height:9px;border-radius:3px;margin-right:6px;vertical-align:0;background:currentColor}
+
+/* Forms */
+.form{display:grid;gap:0}
+.field{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 16px;border-bottom:1px solid var(--line);min-height:52px}
+.field:last-child{border-bottom:0}
+.field label{font-size:15px}
+.field small{display:block;font-size:12.5px;color:var(--fg-dim)}
+.field input[type=text],.field input[type=number],.field select{border:1px solid var(--line);background:var(--surface-2);border-radius:10px;padding:8px 10px;max-width:55%;width:200px;text-align:right}
+.field input[type=number]{width:90px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:12px 18px;border-radius:12px;border:1px solid var(--line);background:var(--surface);font-weight:600;font-size:15px}
+.btn.primary{background:var(--accent);color:var(--on-accent);border-color:transparent}
+.btn.danger{color:var(--bad)}
+.btn.block{width:100%}
+.btn-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.add-btn{width:100%;margin-top:10px;border-style:dashed;color:var(--accent);background:transparent}
+
+/* Bottom nav */
+nav.tabs{position:fixed;left:0;right:0;bottom:0;z-index:20;background:color-mix(in srgb,var(--surface) 88%,transparent);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-top:1px solid var(--line);padding:6px 8px calc(6px + env(safe-area-inset-bottom))}
+nav.tabs .in{max-width:520px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr)}
+nav.tabs button{background:none;border:0;display:grid;justify-items:center;gap:2px;padding:6px 0;font-size:11.5px;color:var(--fg-dim);border-radius:12px}
+nav.tabs button svg{width:24px;height:24px}
+nav.tabs button[aria-current="page"]{color:var(--accent)}
+
+/* Sheet (subject detail) */
+.scrim{position:fixed;inset:0;background:rgba(5,20,28,.45);z-index:40;opacity:0;transition:opacity .2s}
+.scrim.on{opacity:1}
+.sheet{position:fixed;left:0;right:0;bottom:0;z-index:41;max-height:92vh;overflow:auto;background:var(--bg);border-radius:22px 22px 0 0;transform:translateY(100%);transition:transform .28s cubic-bezier(.2,.8,.2,1);padding-bottom:calc(20px + env(safe-area-inset-bottom))}
+.sheet.on{transform:none}
+@media (min-width:760px){.sheet{left:50%;right:auto;width:600px;margin-left:-300px}}
+.sheet .grab{width:40px;height:5px;border-radius:3px;background:var(--line);margin:8px auto 4px}
+.sheet-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 0 4px}
+.sheet-head h2{font-size:22px}
+.icon-btn{width:38px;height:38px;border-radius:50%;border:1px solid var(--line);background:var(--surface);display:grid;place-items:center;font-size:18px;flex:none}
+.grades{display:grid;grid-template-columns:repeat(var(--n),1fr);gap:8px}
+.gbox{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:10px 6px 8px;text-align:center}
+.gbox label{font-size:11.5px;color:var(--fg-dim);display:block}
+.gbox input{width:100%;border:0;background:transparent;text-align:center;font-size:24px;font-weight:700;padding:4px 0}
+.gbox input:focus{outline:none}
+.gbox.ok{border-color:var(--ok)} .gbox.warn{border-color:var(--warn)} .gbox.bad{border-color:var(--bad)}
+.gbox.ok input{color:var(--ok)} .gbox.warn input{color:var(--warn)} .gbox.bad input{color:var(--bad)}
+.chart{padding:16px 14px 10px}
+.chart svg{width:100%;height:auto;display:block}
+.need{padding:14px 16px;font-size:15px}
+.need b{font-size:20px}
+.swatches{display:flex;gap:8px;flex-wrap:wrap}
+.sw{width:30px;height:30px;border-radius:50%;border:3px solid transparent}
+.sw[aria-pressed="true"]{border-color:var(--fg)}
+
+/* Empty / toast */
+.empty{text-align:center;padding:36px 20px;color:var(--fg-dim)}
+.empty h2{color:var(--fg);font-size:20px;margin-bottom:6px}
+.toast{position:fixed;left:50%;bottom:calc(92px + env(safe-area-inset-bottom));transform:translate(-50%,20px);background:var(--fg);color:var(--bg);padding:10px 16px;border-radius:12px;font-size:14px;opacity:0;transition:.25s;z-index:60;pointer-events:none;max-width:90vw}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+.hint{font-size:13px;color:var(--fg-dim);margin:8px 4px 0}
+
+/* Calculator */
+.calc-out{padding:18px;text-align:center}
+.calc-out b{display:block;font-size:44px;line-height:1.1}
+@media print{nav.tabs,.no-print{display:none!important}body{padding:0;background:#fff}}
+</style>
+</head>
+<body>
+<header class="top wrap">
+  <div class="row">
+    <div>
+      <div class="hello" id="hello">Olá!</div>
+      <h1 id="title">Meu Boletim</h1>
+    </div>
+    <span class="chip" title="Seus dados ficam salvos só neste aparelho"><span class="offline-dot"></span><span id="netState">Offline OK</span></span>
+  </div>
+</header>
+
+<main class="wrap">
+  <!-- RESUMO -->
+  <section class="view" id="v-home"></section>
+  <!-- BOLETIM (tabela) -->
+  <section class="view" id="v-table" hidden></section>
+  <!-- CALCULADORA -->
+  <section class="view" id="v-calc" hidden></section>
+  <!-- AJUSTES -->
+  <section class="view" id="v-settings" hidden></section>
+</main>
+
+<nav class="tabs no-print" aria-label="Navegação">
+  <div class="in">
+    <button data-tab="home" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>Resumo</button>
+    <button data-tab="table"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18M9 4v16"/></svg>Boletim</button>
+    <button data-tab="calc"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2"/><path d="M8 6h8M8 11h.01M12 11h.01M16 11h.01M8 15h.01M12 15h.01M16 15h.01M8 19h.01M12 19h4"/></svg>Quanto tirar</button>
+    <button data-tab="settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>Ajustes</button>
+  </div>
+</nav>
+
+<div class="scrim" id="scrim" hidden></div>
+<div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle" hidden></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<input type="file" id="importFile" accept="application/json,.json" hidden>
+
+<script>
+(() => {
+'use strict';
+const KEY = 'meu-boletim-v1';
+const COLORS = ['#185878','#1F9A8B','#D2453B','#C98A0B','#7A4FD0','#2E7DD7','#D04F8E','#3B8F3B','#8A5A2B','#5A6B78'];
+const DEFAULT_SUBJECTS = ['Português','Matemática','História','Geografia','Ciências','Inglês','Artes','Educação Física'];
+
+const uid = () => Math.random().toString(36).slice(2, 9);
+const $ = (s, el = document) => el.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+function defaults() {
+  return {
+    aluno: { nome: '', escola: '', serie: '', ano: String(new Date().getFullYear()) },
+    config: { periodos: 4, nomePeriodo: 'Bimestre', media: 7, notaMax: 10, pesos: [1,1,1,1], regraRec: 'media', mediaFinal: 5, freqMin: 75, tema: 'auto' },
+    materias: DEFAULT_SUBJECTS.map((nome, i) => newSubject(nome, i, 4))
+  };
+}
+function newSubject(nome, i, n) {
+  return { id: uid(), nome, cor: COLORS[i % COLORS.length], notas: Array(n).fill(null), rec: null, faltas: Array(n).fill(0), aulas: null };
+}
+
+let S;
+try { S = JSON.parse(localStorage.getItem(KEY)); } catch (e) { S = null; }
+if (!S || !Array.isArray(S.materias)) S = defaults();
+normalize();
+
+function normalize() {
+  const d = defaults();
+  S.aluno = Object.assign(d.aluno, S.aluno);
+  S.config = Object.assign(d.config, S.config);
+  const n = S.config.periodos;
+  const p = S.config.pesos || [];
+  S.config.pesos = Array.from({ length: n }, (_, i) => Number(p[i]) > 0 ? Number(p[i]) : 1);
+  S.materias.forEach((m, i) => {
+    m.id ||= uid(); m.cor ||= COLORS[i % COLORS.length];
+    m.notas = Array.from({ length: n }, (_, k) => (m.notas || [])[k] ?? null);
+    m.faltas = Array.from({ length: n }, (_, k) => Number((m.faltas || [])[k]) || 0);
+    if (m.rec === undefined) m.rec = null;
+    if (m.aulas === undefined) m.aulas = null;
+  });
+}
+function save() {
+  try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { toast('Não foi possível salvar neste aparelho'); }
+}
+
+/* ---------- Cálculos ---------- */
+const C = () => S.config;
+const fmt = v => v == null || isNaN(v) ? '–' : v.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+function parseGrade(str) {
+  if (str == null) return null;
+  str = String(str).trim().replace(',', '.');
+  if (str === '') return null;
+  const v = Number(str);
+  if (isNaN(v)) return undefined;
+  return Math.max(0, Math.min(C().notaMax, Math.round(v * 100) / 100));
+}
+// grade level relative to the passing average
+function level(v) {
+  if (v == null) return 'idle';
+  if (v >= C().media) return 'ok';
+  if (v >= C().media * 0.75) return 'warn';
+  return 'bad';
+}
+function stats(m) {
+  const c = C(), w = c.pesos;
+  let sw = 0, sum = 0, swLeft = 0, filled = 0;
+  m.notas.forEach((v, i) => { if (v == null) swLeft += w[i]; else { sum += v * w[i]; sw += w[i]; filled++; } });
+  const total = sw + swLeft;
+  const parcial = sw ? sum / sw : null;
+  const complete = filled === c.periodos;
+  const anual = complete ? sum / total : null;
+  // nota necessária (igual em todos os períodos restantes) para atingir a média
+  let precisa = null;
+  if (!complete) precisa = (c.media * total - sum) / swLeft;
+  const faltas = m.faltas.reduce((a, b) => a + b, 0);
+  const freq = m.aulas ? Math.max(0, 100 * (1 - faltas / m.aulas)) : null;
+  const freqBaixa = freq != null && freq < c.freqMin;
+  const faltasRestantes = m.aulas ? Math.floor(m.aulas * (1 - c.freqMin / 100)) - faltas : null;
+
+  let situacao, nivel, final = anual, precisaRec = null;
+  if (complete) {
+    if (anual >= c.media) { situacao = 'Aprovado'; nivel = 'ok'; }
+    else {
+      precisaRec = c.regraRec === 'media' ? Math.max(0, 2 * c.mediaFinal - anual) : c.media;
+      if (m.rec == null) { situacao = 'Recuperação'; nivel = 'warn'; }
+      else {
+        final = c.regraRec === 'media' ? (anual + m.rec) / 2 : Math.max(anual, m.rec);
+        const alvo = c.regraRec === 'media' ? c.mediaFinal : c.media;
+        if (final >= alvo) { situacao = 'Aprovado na rec.'; nivel = 'ok'; } else { situacao = 'Reprovado'; nivel = 'bad'; }
+      }
+    }
+  } else if (filled === 0) { situacao = 'Sem notas'; nivel = 'idle'; }
+  else if (precisa <= 0) { situacao = 'Média garantida'; nivel = 'ok'; }
+  else if (precisa > c.notaMax) { situacao = 'Risco de rec.'; nivel = 'bad'; }
+  else if (parcial >= c.media) { situacao = 'No caminho'; nivel = 'ok'; }
+  else { situacao = 'Atenção'; nivel = 'warn'; }
+  if (freqBaixa && nivel !== 'bad') { nivel = 'bad'; situacao = complete ? 'Reprovado (faltas)' : situacao + ' · faltas'; }
+  return { parcial, anual, final, precisa, complete, filled, faltas, freq, freqBaixa, faltasRestantes, situacao, nivel, precisaRec };
+}
+
+/* ---------- Navegação ---------- */
+let tab = 'home';
+document.querySelectorAll('nav.tabs button').forEach(b => b.addEventListener('click', () => go(b.dataset.tab)));
+function go(t) {
+  tab = t;
+  document.querySelectorAll('nav.tabs button').forEach(b => b.dataset.tab === t ? b.setAttribute('aria-current', 'page') : b.removeAttribute('aria-current'));
+  ['home','table','calc','settings'].forEach(v => $('#v-' + v).hidden = v !== t);
+  render();
+  window.scrollTo({ top: 0 });
+}
+
+function render() {
+  applyTheme();
+  const nome = S.aluno.nome.trim();
+  $('#hello').textContent = nome ? `Olá, ${nome.split(' ')[0]}!` : 'Olá!';
+  $('#title').textContent = { home: 'Meu Boletim', table: 'Boletim ' + (S.aluno.ano || ''), calc: 'Quanto preciso tirar?', settings: 'Ajustes' }[tab];
+  if (tab === 'home') renderHome();
+  if (tab === 'table') renderTable();
+  if (tab === 'calc') renderCalc();
+  if (tab === 'settings') renderSettings();
+}
+
+/* ---------- Resumo ---------- */
+function renderHome() {
+  const el = $('#v-home');
+  if (!S.materias.length) {
+    el.innerHTML = `<div class="card empty"><h2>Nenhuma matéria ainda</h2><p>Adicione suas matérias para começar a acompanhar as notas.</p><br><button class="btn primary" id="addFirst">+ Adicionar matéria</button></div>`;
+    $('#addFirst').onclick = addSubject; return;
+  }
+  const all = S.materias.map(m => ({ m, s: stats(m) }));
+  const withAvg = all.filter(x => x.s.parcial != null);
+  const geral = withAvg.length ? withAvg.reduce((a, x) => a + (x.s.final ?? x.s.parcial), 0) / withAvg.length : null;
+  const cOk = all.filter(x => x.s.nivel === 'ok').length, cWarn = all.filter(x => x.s.nivel === 'warn').length, cBad = all.filter(x => x.s.nivel === 'bad').length;
+  const pct = geral == null ? 0 : geral / C().notaMax;
+  const lv = level(geral);
+  const R = 50, CIRC = 2 * Math.PI * R;
+
+  const best = withAvg.slice().sort((a, b) => b.s.parcial - a.s.parcial)[0];
+  const worst = withAvg.slice().sort((a, b) => a.s.parcial - b.s.parcial)[0];
+  let msg = 'Toque numa matéria para lançar as notas.';
+  if (withAvg.length) {
+    msg = `Melhor desempenho: <strong>${esc(best.m.nome)}</strong> (${fmt(best.s.parcial)}).`;
+    if (worst !== best && worst.s.parcial < C().media) msg += ` Foque em <strong>${esc(worst.m.nome)}</strong> (${fmt(worst.s.parcial)}).`;
+  }
+
+  const alerts = [];
+  all.forEach(({ m, s }) => {
+    if (s.freqBaixa) alerts.push(['bad', '⚠️', `<b>${esc(m.nome)}</b>: frequência de ${fmt(s.freq)}% — abaixo do mínimo de ${C().freqMin}%.`]);
+    else if (s.faltasRestantes != null && s.faltasRestantes <= 3 && s.faltasRestantes >= 0) alerts.push(['warn', '📅', `<b>${esc(m.nome)}</b>: você só pode faltar mais ${s.faltasRestantes} aula${s.faltasRestantes === 1 ? '' : 's'}.`]);
+    if (!s.complete && s.precisa > C().notaMax) alerts.push(['bad', '📉', `<b>${esc(m.nome)}</b>: mesmo tirando ${fmt(C().notaMax)} não dá para fechar a média ${fmt(C().media)} — prepare-se para a recuperação.`]);
+    else if (!s.complete && s.filled && s.precisa > C().media) alerts.push(['warn', '🎯', `<b>${esc(m.nome)}</b>: precisa de <b>${fmt(s.precisa)}</b> ${s.filled === C().periodos - 1 ? 'no último ' + C().nomePeriodo.toLowerCase() : 'em cada ' + C().nomePeriodo.toLowerCase() + ' restante'}.`]);
+    if (s.complete && s.situacao === 'Recuperação') alerts.push(['warn', '📝', `<b>${esc(m.nome)}</b>: em recuperação — precisa de <b>${fmt(s.precisaRec)}</b> na prova.`]);
+  });
+
+  el.innerHTML = `
+    <div class="card hero">
+      <div class="ring" aria-label="Média geral ${fmt(geral)}">
+        <svg viewBox="0 0 120 120"><circle cx="60" cy="60" r="${R}" fill="none" stroke="var(--surface-2)" stroke-width="12"/>
+        <circle cx="60" cy="60" r="${R}" fill="none" stroke="var(--${lv === 'idle' ? 'idle' : lv})" stroke-width="12" stroke-linecap="round" stroke-dasharray="${CIRC}" stroke-dashoffset="${CIRC * (1 - pct)}" style="transition:stroke-dashoffset .6s"/></svg>
+        <div class="val"><b class="c-${lv}">${fmt(geral)}</b><span>Média geral</span></div>
+      </div>
+      <div class="hero-stats">
+        <div class="stat ok"><b>${cOk}</b><span>Tranquilas</span></div>
+        <div class="stat warn"><b>${cWarn}</b><span>Atenção</span></div>
+        <div class="stat bad"><b>${cBad}</b><span>Em risco</span></div>
+      </div>
+      <p class="hero-msg">${msg}</p>
+    </div>
+    ${alerts.length ? `<div class="alerts">${alerts.slice(0, 5).map(a => `<div class="alert ${a[0]}"><i aria-hidden="true">${a[1]}</i><div>${a[2]}</div></div>`).join('')}</div>` : ''}
+    <h2 class="section-title">Matérias · média ${fmt(C().media)}</h2>
+    <div class="subjects">${all.map(({ m, s }) => subjCard(m, s)).join('')}</div>
+    <button class="btn add-btn" id="addSubj">+ Adicionar matéria</button>`;
+  el.querySelectorAll('.subj').forEach(b => b.onclick = () => openSubject(b.dataset.id));
+  $('#addSubj').onclick = addSubject;
+}
+function subjCard(m, s) {
+  const per = C().nomePeriodo[0];
+  const main = s.final ?? s.parcial;
+  let meta = s.situacao;
+  if (!s.complete && s.filled && s.precisa > 0 && s.precisa <= C().notaMax) meta += ` · precisa ${fmt(s.precisa)}`;
+  if (s.freq != null) meta += ` · ${Math.round(s.freq)}% freq.`;
+  return `<button class="subj" data-id="${m.id}">
+    <span class="bar" style="background:${esc(m.cor)}"></span>
+    <span><span class="name">${esc(m.nome)}</span><span class="meta" style="display:block">${esc(meta)}</span>
+      <span class="pills">${m.notas.map((v, i) => `<span class="pill ${level(v)}" title="${i + 1}º ${esc(C().nomePeriodo)}">${v == null ? (i + 1) + per : fmt(v)}</span>`).join('')}${m.rec != null ? `<span class="pill ${m.rec >= C().mediaFinal ? 'ok' : 'bad'}" title="Recuperação">R ${fmt(m.rec)}</span>` : ''}</span></span>
+    <span class="avg"><b class="c-${main == null ? 'idle' : s.nivel}">${fmt(main)}</b><small class="tag ${s.nivel}">${s.complete ? 'final' : 'parcial'}</small></span>
+  </button>`;
+}
+
+/* ---------- Boletim (tabela editável) ---------- */
+function renderTable() {
+  const c = C(), n = c.periodos;
+  const el = $('#v-table');
+  el.innerHTML = `
+    <div class="card table-wrap"><table class="bol">
+      <thead><tr><th class="subjcol">Matéria</th>${Array.from({ length: n }, (_, i) => `<th>${i + 1}º ${c.nomePeriodo.slice(0, 3)}.</th>`).join('')}<th>Média</th><th>Rec.</th><th>Final</th><th>Faltas</th></tr></thead>
+      <tbody>${S.materias.map(m => {
+        const s = stats(m);
+        return `<tr data-id="${m.id}">
+          <td class="subjcol"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${esc(m.cor)};margin-right:8px"></span>${esc(m.nome)}</td>
+          ${m.notas.map((v, i) => `<td><input inputmode="decimal" data-k="${i}" value="${v == null ? '' : fmt(v)}" class="${level(v)}" aria-label="${esc(m.nome)} ${i + 1}º ${esc(c.nomePeriodo)}"></td>`).join('')}
+          <td class="res c-${s.anual != null ? level(s.anual) : 'idle'}">${fmt(s.anual ?? s.parcial)}</td>
+          <td><input inputmode="decimal" data-k="rec" value="${m.rec == null ? '' : fmt(m.rec)}" ${s.complete && s.anual < c.media ? '' : 'disabled placeholder="–"'} aria-label="${esc(m.nome)} recuperação"></td>
+          <td class="res"><span class="tag ${s.nivel}">${s.complete ? fmt(s.final) : '–'}</span></td>
+          <td class="res ${s.freqBaixa ? 'c-bad' : ''}">${s.faltas}</td>
+        </tr>`;
+      }).join('')}</tbody>
+    </table></div>
+    <div class="legend"><span class="c-ok">≥ ${fmt(c.media)}</span><span class="c-warn">perto da média</span><span class="c-bad">abaixo</span></div>
+    <p class="hint">Toque numa nota para editar. Use vírgula ou ponto (ex.: 7,5). Faltas e detalhes: toque na matéria no Resumo.</p>
+    <div class="btn-row no-print" style="margin-top:16px"><button class="btn" id="printBtn">🖨️ Imprimir / PDF</button><button class="btn" id="shareBtn">📤 Compartilhar</button></div>`;
+  el.querySelectorAll('tbody input').forEach(inp => {
+    inp.addEventListener('change', () => {
+      const m = S.materias.find(x => x.id === inp.closest('tr').dataset.id);
+      const v = parseGrade(inp.value);
+      if (v === undefined) { toast('Nota inválida'); inp.value = ''; return; }
+      if (inp.dataset.k === 'rec') m.rec = v; else m.notas[+inp.dataset.k] = v;
+      save(); const y = scrollY; renderTable(); scrollTo(0, y);
+    });
+    inp.addEventListener('keydown', e => { if (e.key === 'Enter') inp.blur(); });
+  });
+  el.querySelectorAll('td.subjcol').forEach(td => td.onclick = () => openSubject(td.closest('tr').dataset.id));
+  $('#printBtn').onclick = () => print();
+  $('#shareBtn').onclick = shareText;
+}
+function shareText() {
+  const c = C();
+  let t = `📘 Boletim ${S.aluno.nome ? '— ' + S.aluno.nome : ''} ${S.aluno.serie ? '(' + S.aluno.serie + ')' : ''}\n`;
+  S.materias.forEach(m => {
+    const s = stats(m);
+    t += `\n${m.nome}: ${m.notas.map(v => fmt(v)).join(' | ')} → ${fmt(s.final ?? s.parcial)} (${s.situacao})`;
+  });
+  if (navigator.share) navigator.share({ title: 'Meu Boletim', text: t }).catch(() => {});
+  else navigator.clipboard?.writeText(t).then(() => toast('Boletim copiado!'), () => toast('Não foi possível copiar'));
+}
+
+/* ---------- Detalhe da matéria ---------- */
+let openId = null;
+function openSubject(id) {
+  openId = id; renderSheet();
+  const sh = $('#sheet'), sc = $('#scrim');
+  sh.hidden = sc.hidden = false;
+  requestAnimationFrame(() => { sh.classList.add('on'); sc.classList.add('on'); });
+}
+function closeSheet() {
+  const sh = $('#sheet'), sc = $('#scrim');
+  sh.classList.remove('on'); sc.classList.remove('on');
+  setTimeout(() => { sh.hidden = sc.hidden = true; openId = null; render(); }, 250);
+}
+$('#scrim').onclick = closeSheet;
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && openId) closeSheet(); });
+
+function renderSheet() {
+  const m = S.materias.find(x => x.id === openId); if (!m) return closeSheet();
+  const c = C(), s = stats(m), n = c.periodos;
+  let need = '';
+  if (s.complete) {
+    if (s.situacao === 'Recuperação') need = `Média anual <b class="c-warn">${fmt(s.anual)}</b>. Na recuperação você precisa de <b>${fmt(s.precisaRec)}</b>.`;
+    else need = `Situação: <span class="tag ${s.nivel}">${esc(s.situacao)}</span> — nota final <b class="c-${s.nivel}">${fmt(s.final)}</b>.`;
+  } else if (!s.filled) need = `Para fechar com ${fmt(c.media)}, mire em <b>${fmt(c.media)}</b> ou mais em cada ${c.nomePeriodo.toLowerCase()}.`;
+  else if (s.precisa <= 0) need = `🎉 Média já garantida! Mesmo tirando 0 nos próximos você fecha com ${fmt(c.media)}.`;
+  else if (s.precisa > c.notaMax) need = `Precisaria de <b class="c-bad">${fmt(s.precisa)}</b> — acima de ${fmt(c.notaMax)}. Prepare-se para a recuperação.`;
+  else need = `Você precisa de <b class="c-${s.precisa > c.media ? 'warn' : 'ok'}">${fmt(s.precisa)}</b> ${n - s.filled === 1 ? 'no último ' + c.nomePeriodo.toLowerCase() : 'em cada ' + c.nomePeriodo.toLowerCase() + ' restante'} para fechar com ${fmt(c.media)}.`;
+
+  const sh = $('#sheet');
+  sh.innerHTML = `<div class="grab"></div><div class="wrap">
+    <div class="sheet-head"><h2 id="sheetTitle" style="color:${esc(m.cor)}">${esc(m.nome)}</h2><button class="icon-btn" id="closeSheet" aria-label="Fechar">✕</button></div>
+    <h3 class="section-title">Notas</h3>
+    <div class="grades" style="--n:${n}">${m.notas.map((v, i) => `<div class="gbox ${level(v)}"><label for="g${i}">${i + 1}º ${esc(c.nomePeriodo.slice(0, 3))}.${c.pesos[i] !== 1 ? ' ×' + c.pesos[i] : ''}</label><input id="g${i}" inputmode="decimal" data-k="${i}" value="${v == null ? '' : fmt(v)}" placeholder="–"></div>`).join('')}</div>
+    <div class="card need" style="margin-top:10px">${need}</div>
+    ${s.complete && s.anual < c.media ? `<div class="grades" style="--n:1;margin-top:10px"><div class="gbox ${m.rec == null ? 'idle' : (s.nivel)}"><label for="grec">Nota da recuperação</label><input id="grec" inputmode="decimal" data-k="rec" value="${m.rec == null ? '' : fmt(m.rec)}" placeholder="–"></div></div>` : ''}
+    <h3 class="section-title">Evolução</h3>
+    <div class="card chart">${chartSVG(m)}</div>
+    <h3 class="section-title">Frequência</h3>
+    <div class="card form">
+      <div class="field"><label for="aulas">Aulas no ano<small>Opcional — para calcular a frequência</small></label><input type="number" id="aulas" min="0" value="${m.aulas ?? ''}" placeholder="ex.: 80"></div>
+      ${m.faltas.map((f, i) => `<div class="field"><label>Faltas no ${i + 1}º ${esc(c.nomePeriodo.toLowerCase())}</label><span style="display:flex;align-items:center;gap:8px"><button class="icon-btn" data-f="${i}" data-d="-1" aria-label="Menos uma falta">−</button><b style="min-width:24px;text-align:center">${f}</b><button class="icon-btn" data-f="${i}" data-d="1" aria-label="Mais uma falta">+</button></span></div>`).join('')}
+      <div class="field"><label>Total</label><span><b class="${s.freqBaixa ? 'c-bad' : ''}">${s.faltas} falta${s.faltas === 1 ? '' : 's'}</b>${s.freq != null ? ` · ${fmt(s.freq)}%` : ''}${s.faltasRestantes != null ? `<small style="text-align:right">${s.faltasRestantes >= 0 ? 'pode faltar mais ' + s.faltasRestantes : 'limite ultrapassado'}</small>` : ''}</span></div>
+    </div>
+    <h3 class="section-title">Matéria</h3>
+    <div class="card form">
+      <div class="field"><label for="sname">Nome</label><input type="text" id="sname" value="${esc(m.nome)}"></div>
+      <div class="field"><label>Cor</label><div class="swatches">${COLORS.map(cl => `<button class="sw" style="background:${cl}" data-c="${cl}" aria-label="Cor ${cl}" aria-pressed="${cl === m.cor}"></button>`).join('')}</div></div>
+    </div>
+    <div class="btn-row" style="margin-top:14px"><button class="btn danger" id="delSubj">Excluir matéria</button><button class="btn primary" id="doneSubj">Pronto</button></div>
+  </div>`;
+  $('#closeSheet').onclick = $('#doneSubj').onclick = closeSheet;
+  sh.querySelectorAll('.gbox input').forEach(inp => {
+    inp.addEventListener('change', () => {
+      const v = parseGrade(inp.value);
+      if (v === undefined) { toast('Nota inválida'); inp.value = ''; return; }
+      if (inp.dataset.k === 'rec') m.rec = v; else m.notas[+inp.dataset.k] = v;
+      save(); keepScroll(renderSheet);
+    });
+    inp.addEventListener('keydown', e => { if (e.key === 'Enter') { const nx = sh.querySelector(`#g${+inp.dataset.k + 1}`); nx ? nx.focus() : inp.blur(); } });
+  });
+  sh.querySelectorAll('[data-f]').forEach(b => b.onclick = () => { const i = +b.dataset.f; m.faltas[i] = Math.max(0, m.faltas[i] + +b.dataset.d); save(); keepScroll(renderSheet); });
+  $('#aulas').onchange = e => { const v = parseInt(e.target.value, 10); m.aulas = v > 0 ? v : null; save(); keepScroll(renderSheet); };
+  $('#sname').onchange = e => { m.nome = e.target.value.trim() || m.nome; save(); keepScroll(renderSheet); };
+  sh.querySelectorAll('.sw').forEach(b => b.onclick = () => { m.cor = b.dataset.c; save(); keepScroll(renderSheet); });
+  $('#delSubj').onclick = () => { if (confirm(`Excluir "${m.nome}" e todas as notas?`)) { S.materias = S.materias.filter(x => x !== m); save(); closeSheet(); toast('Matéria excluída'); } };
+}
+function keepScroll(fn) { const sh = $('#sheet'), y = sh.scrollTop; fn(); sh.scrollTop = y; }
+
+function chartSVG(m) {
+  const c = C(), n = c.periodos, W = 320, H = 150, pl = 26, pr = 26, pt = 12, pb = 24;
+  const x = i => pl + (n === 1 ? (W - pl - pr) / 2 : i * (W - pl - pr) / (n - 1));
+  const y = v => pt + (1 - v / c.notaMax) * (H - pt - pb);
+  let g = '';
+  [0, c.notaMax / 2, c.notaMax].forEach(v => g += `<line x1="${pl}" x2="${W - pr}" y1="${y(v)}" y2="${y(v)}" stroke="var(--line)"/><text x="${pl - 6}" y="${y(v) + 4}" font-size="10" text-anchor="end" fill="var(--fg-dim)">${v}</text>`);
+  g += `<line x1="${pl}" x2="${W - pr}" y1="${y(c.media)}" y2="${y(c.media)}" stroke="var(--accent-2)" stroke-dasharray="4 4"/><text x="${W - pr}" y="${y(c.media) - 4}" font-size="10" text-anchor="end" fill="var(--accent-2)">média ${fmt(c.media)}</text>`;
+  const pts = m.notas.map((v, i) => v == null ? null : [x(i), y(v), v]);
+  let path = '', started = false;
+  pts.forEach(p => { if (p) { path += (started ? 'L' : 'M') + p[0] + ' ' + p[1]; started = true; } });
+  if (path) g += `<path d="${path}" fill="none" stroke="${esc(m.cor)}" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>`;
+  pts.forEach((p, i) => {
+    if (p) g += `<circle cx="${p[0]}" cy="${p[1]}" r="5" fill="var(--surface)" stroke="${esc(m.cor)}" stroke-width="3"/><text x="${p[0]}" y="${p[1] - 10}" font-size="11" font-weight="700" text-anchor="middle" fill="var(--fg)">${fmt(p[2])}</text>`;
+    g += `<text x="${x(i)}" y="${H - 6}" font-size="10.5" text-anchor="middle" fill="var(--fg-dim)">${i + 1}º ${esc(c.nomePeriodo.slice(0, 3))}.</text>`;
+  });
+  return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Gráfico das notas de ${esc(m.nome)}">${g}</svg>`;
+}
+
+function addSubject() {
+  const nome = prompt('Nome da matéria:');
+  if (!nome || !nome.trim()) return;
+  const m = newSubject(nome.trim(), S.materias.length, C().periodos);
+  S.materias.push(m); save(); render(); openSubject(m.id);
+}
+
+/* ---------- Calculadora ---------- */
+let calc = { id: null };
+function renderCalc() {
+  const c = C(), el = $('#v-calc');
+  if (!calc.id || !S.materias.find(m => m.id === calc.id)) calc.id = S.materias[0]?.id || null;
+  const m = S.materias.find(x => x.id === calc.id);
+  let out = '<p class="empty">Adicione matérias para usar a calculadora.</p>';
+  if (m) {
+    const s = stats(m);
+    const left = m.notas.map((v, i) => v == null ? i : -1).filter(i => i >= 0);
+    let big, txt, lv;
+    if (s.complete) {
+      if (s.anual >= c.media) { big = '✓'; lv = 'ok'; txt = `Média anual ${fmt(s.anual)}: já está aprovado(a) em ${esc(m.nome)}!`; }
+      else { big = fmt(s.precisaRec); lv = s.precisaRec > c.notaMax ? 'bad' : 'warn'; txt = `na <b>recuperação</b> (média anual ${fmt(s.anual)}).`; }
+    } else if (s.precisa <= 0) { big = '0,0'; lv = 'ok'; txt = 'Média garantida! 🎉'; }
+    else { big = fmt(s.precisa); lv = s.precisa > c.notaMax ? 'bad' : s.precisa > c.media ? 'warn' : 'ok'; txt = left.length === 1 ? `no ${left[0] + 1}º ${c.nomePeriodo.toLowerCase()} para fechar com ${fmt(c.media)}.` : `em cada um dos ${left.length} ${c.nomePeriodo.toLowerCase()}s restantes para fechar com ${fmt(c.media)}.`; if (s.precisa > c.notaMax) txt += ' Impossível sem recuperação.'; }
+    out = `<div class="card calc-out"><span class="hint">Você precisa de</span><b class="c-${lv}">${big}</b><div>${txt}</div></div>`;
+    if (!s.complete && left.length > 1 && s.precisa > 0) {
+      // simulação: se tirar X no próximo, quanto precisa nos demais
+      const next = left[0];
+      out += `<h3 class="section-title">Simular o ${next + 1}º ${esc(c.nomePeriodo.toLowerCase())}</h3>
+      <div class="card" style="padding:16px">
+        <input type="range" id="simR" min="0" max="${c.notaMax}" step="0.5" value="${Math.min(c.notaMax, Math.max(0, Math.round(s.precisa * 2) / 2))}" style="width:100%" aria-label="Nota simulada">
+        <div id="simOut" style="margin-top:8px;font-size:15px"></div>
+      </div>`;
+    }
+  }
+  el.innerHTML = `
+    <div class="card form">
+      <div class="field"><label for="calcSel">Matéria</label><select id="calcSel">${S.materias.map(x => `<option value="${x.id}" ${x.id === calc.id ? 'selected' : ''}>${esc(x.nome)}</option>`).join('')}</select></div>
+    </div>
+    <div style="margin-top:12px">${out}</div>
+    <p class="hint">Cálculo com média ${fmt(c.media)}${c.pesos.some(p => p !== 1) ? ' e pesos ' + c.pesos.join(' / ') : ''}. Altere em Ajustes.</p>`;
+  const sel = $('#calcSel'); if (sel) sel.onchange = () => { calc.id = sel.value; renderCalc(); };
+  const r = $('#simR');
+  if (r && m) {
+    const upd = () => {
+      const left = m.notas.map((v, i) => v == null ? i : -1).filter(i => i >= 0);
+      const nx = left[0], X = +r.value, w = c.pesos;
+      let sum = 0, tot = 0, wl = 0;
+      m.notas.forEach((v, i) => { tot += w[i]; if (v != null) sum += v * w[i]; else if (i !== nx) wl += w[i]; });
+      sum += X * w[nx];
+      const need = (c.media * tot - sum) / wl;
+      const lv = need <= 0 ? 'ok' : need > c.notaMax ? 'bad' : need > c.media ? 'warn' : 'ok';
+      $('#simOut').innerHTML = `Se tirar <b>${fmt(X)}</b>, vai precisar de <b class="c-${lv}">${need <= 0 ? '0,0 (garantido)' : fmt(need)}</b> no${left.length > 2 ? 's' : ''} ${left.length > 2 ? 'demais' : 'último'}.`;
+    };
+    r.oninput = upd; upd();
+  }
+}
+
+/* ---------- Ajustes ---------- */
+function renderSettings() {
+  const c = C(), a = S.aluno, el = $('#v-settings');
+  el.innerHTML = `
+    <h3 class="section-title">Aluno</h3>
+    <div class="card form">
+      <div class="field"><label for="a-nome">Nome</label><input type="text" id="a-nome" data-a="nome" value="${esc(a.nome)}" placeholder="Seu nome"></div>
+      <div class="field"><label for="a-escola">Escola</label><input type="text" id="a-escola" data-a="escola" value="${esc(a.escola)}" placeholder="Nome da escola"></div>
+      <div class="field"><label for="a-serie">Série / turma</label><input type="text" id="a-serie" data-a="serie" value="${esc(a.serie)}" placeholder="ex.: 8º ano B"></div>
+      <div class="field"><label for="a-ano">Ano letivo</label><input type="text" id="a-ano" data-a="ano" value="${esc(a.ano)}" inputmode="numeric"></div>
+    </div>
+    <h3 class="section-title">Regras da escola</h3>
+    <div class="card form">
+      <div class="field"><label for="c-per">Divisão do ano</label><select id="c-per">
+        ${[[4, 'Bimestre'], [3, 'Trimestre'], [2, 'Semestre']].map(([v, nm]) => `<option value="${v}" ${c.periodos === v ? 'selected' : ''}>${v} ${nm}s</option>`).join('')}</select></div>
+      <div class="field"><label for="c-media">Média para aprovação</label><input type="number" id="c-media" step="0.5" min="0" value="${c.media}"></div>
+      <div class="field"><label for="c-max">Nota máxima</label><input type="number" id="c-max" step="1" min="1" value="${c.notaMax}"></div>
+      <div class="field"><label>Pesos dos períodos<small>Deixe tudo 1 se a média for simples</small></label><span style="display:flex;gap:6px">${c.pesos.map((p, i) => `<input type="number" data-peso="${i}" min="0.5" step="0.5" value="${p}" style="width:52px;text-align:center;border:1px solid var(--line);background:var(--surface-2);border-radius:10px;padding:8px 4px" aria-label="Peso ${i + 1}">`).join('')}</span></div>
+      <div class="field"><label for="c-rec">Recuperação</label><select id="c-rec">
+        <option value="media" ${c.regraRec === 'media' ? 'selected' : ''}>(Média + Rec) ÷ 2</option>
+        <option value="substitui" ${c.regraRec === 'substitui' ? 'selected' : ''}>Rec substitui a média</option></select></div>
+      ${c.regraRec === 'media' ? `<div class="field"><label for="c-mf">Média final mínima<small>Após a recuperação</small></label><input type="number" id="c-mf" step="0.5" min="0" value="${c.mediaFinal}"></div>` : ''}
+      <div class="field"><label for="c-freq">Frequência mínima (%)</label><input type="number" id="c-freq" step="1" min="0" max="100" value="${c.freqMin}"></div>
+    </div>
+    <h3 class="section-title">Aparência</h3>
+    <div class="card form">
+      <div class="field"><label for="c-tema">Tema</label><select id="c-tema">
+        <option value="auto" ${c.tema === 'auto' ? 'selected' : ''}>Automático</option>
+        <option value="light" ${c.tema === 'light' ? 'selected' : ''}>Claro</option>
+        <option value="dark" ${c.tema === 'dark' ? 'selected' : ''}>Escuro</option></select></div>
+    </div>
+    <h3 class="section-title">Seus dados</h3>
+    <div class="card" style="padding:14px;display:grid;gap:10px">
+      <p class="hint" style="margin:0">Tudo fica salvo <b>só neste aparelho</b>, sem internet e sem cadastro. Faça um backup para trocar de celular.</p>
+      <div class="btn-row"><button class="btn" id="exp">⬇️ Fazer backup</button><button class="btn" id="imp">⬆️ Restaurar</button></div>
+      <button class="btn" id="newYear">🗓️ Começar novo ano (zera notas)</button>
+      <button class="btn danger" id="reset">Apagar tudo</button>
+    </div>
+    <p class="hint" style="text-align:center;margin:20px 0">Meu Boletim · funciona offline · instale pelo menu do navegador “Adicionar à tela inicial”.</p>`;
+
+  el.querySelectorAll('[data-a]').forEach(i => i.onchange = () => { S.aluno[i.dataset.a] = i.value.trim(); save(); render(); });
+  $('#c-per').onchange = e => {
+    const n = +e.target.value;
+    c.periodos = n; c.nomePeriodo = { 4: 'Bimestre', 3: 'Trimestre', 2: 'Semestre' }[n];
+    normalize(); save(); render(); toast(`Agora são ${n} ${c.nomePeriodo.toLowerCase()}s`);
+  };
+  const num = (id, key, min, max) => { const i = $('#' + id); if (i) i.onchange = () => { let v = parseFloat(String(i.value).replace(',', '.')); if (isNaN(v)) return render(); c[key] = Math.max(min, Math.min(max, v)); save(); render(); }; };
+  num('c-media', 'media', 0, 1000); num('c-max', 'notaMax', 1, 1000); num('c-mf', 'mediaFinal', 0, 1000); num('c-freq', 'freqMin', 0, 100);
+  el.querySelectorAll('[data-peso]').forEach(i => i.onchange = () => { const v = parseFloat(i.value); c.pesos[+i.dataset.peso] = v > 0 ? v : 1; save(); render(); });
+  $('#c-rec').onchange = e => { c.regraRec = e.target.value; save(); render(); };
+  $('#c-tema').onchange = e => { c.tema = e.target.value; save(); render(); };
+  $('#exp').onclick = exportData;
+  $('#imp').onclick = () => $('#importFile').click();
+  $('#newYear').onclick = () => {
+    if (!confirm('Zerar todas as notas, recuperações e faltas para começar um novo ano? (As matérias e ajustes ficam.) Dica: faça um backup antes.')) return;
+    S.materias.forEach(m => { m.notas = m.notas.map(() => null); m.faltas = m.faltas.map(() => 0); m.rec = null; });
+    S.aluno.ano = String(new Date().getFullYear() + (new Date().getMonth() >= 10 ? 1 : 0));
+    save(); render(); toast('Novo ano iniciado!');
+  };
+  $('#reset').onclick = () => { if (confirm('Apagar TODOS os dados do boletim deste aparelho?')) { S = defaults(); save(); go('home'); toast('Dados apagados'); } };
+}
+function exportData() {
+  const blob = new Blob([JSON.stringify(S, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `boletim-${(S.aluno.nome || 'aluno').toLowerCase().replace(/\s+/g, '-')}-${S.aluno.ano}.json`;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  toast('Backup salvo');
+}
+$('#importFile').onchange = e => {
+  const f = e.target.files[0]; if (!f) return;
+  const r = new FileReader();
+  r.onload = () => {
+    try { const d = JSON.parse(r.result); if (!Array.isArray(d.materias)) throw 0; S = d; normalize(); save(); go('home'); toast('Backup restaurado!'); }
+    catch (err) { toast('Arquivo de backup inválido'); }
+    e.target.value = '';
+  };
+  r.readAsText(f);
+};
+
+/* ---------- Utilidades ---------- */
+function applyTheme() {
+  const t = C().tema;
+  if (t === 'auto') document.documentElement.removeAttribute('data-theme'); else document.documentElement.setAttribute('data-theme', t);
+}
+let tt;
+function toast(msg) { const t = $('#toast'); t.textContent = msg; t.classList.add('on'); clearTimeout(tt); tt = setTimeout(() => t.classList.remove('on'), 2200); }
+function net() { $('#netState').textContent = navigator.onLine ? 'Salvo no aparelho' : 'Offline · tudo OK'; }
+addEventListener('online', net); addEventListener('offline', net); net();
+
+if ('serviceWorker' in navigator && location.protocol.startsWith('http')) navigator.serviceWorker.register('sw.js').catch(() => {});
+
+render();
+})();
+</script>
+</body>
+</html>

@@ -10,3 +10,9 @@ Site de página única, animado, da Weiss Odontologia (Caruaru e Recife).
 - Cores: bloco `:root` no topo do `<style>` (`--gold`, `--ink`, `--aqua`).
 - Logotipo: o `<svg class="brand-mark">` no cabeçalho pode ser trocado por `<img src="logo.svg">`.
 - Telefones/WhatsApp: busque por `wa.me/55` no arquivo.
+
+## App "Meu Boletim" (pasta `boletim/`)
+App offline para o aluno acompanhar notas, médias, recuperação e faltas.
+- Abra `boletim/index.html` (ou publique a pasta e acesse `/boletim/`). Pelo navegador do celular: "Adicionar à tela inicial" para instalar.
+- Funciona sem internet (service worker) e salva tudo apenas no aparelho (localStorage). Backup/restauração em JSON pela aba Ajustes.
+- Configurável: bimestres/trimestres/semestres, média de aprovação, pesos, regra de recuperação e frequência mínima.
