@@ -1,0 +1,19 @@
+{
+  "name": "Boletim Cognitivo",
+  "short_name": "Boletim",
+  "description": "Notas do Ensino Médio no formato do Colégio Cognitivo — funciona sem internet.",
+  "lang": "pt-BR",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#F3F6FA",
+  "theme_color": "#021632",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
