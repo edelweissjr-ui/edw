@@ -10,11 +10,11 @@
 | Endereço | R. dos Expedicionários, 104, 1º andar, Nossa Sra. das Dores, Caruaru - PE, 55002-440 | Av. República do Líbano, 251, Torre 1, Sala 1614, Pina, Recife - PE, 51110-160 |
 | Telefone principal | (81) 3721-2866 | (81) 3091-1895 |
 | Telefone adicional / WhatsApp | (81) 99836-8491 | (81) 97318-5005 |
-| Site (campo "Site") | https://www.odontoweiss.com.br/dentista-caruaru.html?utm_source=google&utm_medium=gbp | https://www.odontoweiss.com.br/dentista-recife.html?utm_source=google&utm_medium=gbp |
+| Site (campo "Site") | https://www.weissodontologia.com.br/dentista-caruaru.html?utm_source=google&utm_medium=gbp | https://www.weissodontologia.com.br/dentista-recife.html?utm_source=google&utm_medium=gbp |
 | Agendamento (campo "Link de agendamento") | https://wa.me/5581998368491 | https://wa.me/5581973185005 |
 
 ⚠️ Não coloque "melhor dentista", "Invisalign" ou a cidade no **nome**: o Google suspende perfis por isso.
-⚠️ Hoje o perfil de Recife aparece no Maps como "WE Clínica Odontológica". Escolha um nome só (o da fachada) e use o mesmo no site.
+⚠️ Hoje o perfil de Recife aparece no Maps como "WE Clínica Odontológica". Troque para **WE Odontologia** (seção B, passo 3).
 
 ## 2. Categorias
 - **Principal:** Ortodontista
@@ -42,8 +42,25 @@
 | Clareamento e restaurações | Dentística e estética do sorriso. |
 
 ## 5. Atributos e horário
-- Marque: acessibilidade (elevador / cadeira de rodas, se houver), Wi-Fi, "Agendamento obrigatório", formas de pagamento.
-- Preencha horário normal **e** horários de feriados (Natal, Ano Novo, Carnaval, São João). Perfis com horário errado perdem posição.
+
+**Horário (igual nas duas unidades)** — no Google, adicione dois períodos no mesmo dia:
+| Dia | 1º período | 2º período |
+|---|---|---|
+| Segunda, terça e quarta | 08:00–13:00 | 14:00–18:00 |
+| Quinta | 08:00–12:00 | 14:00–18:00 |
+| Sexta | 08:00–12:00 | 14:00–17:00 |
+| Sábado e domingo | Fechado | |
+
+Preencha também os **horários de feriados** (Natal, Ano Novo, Carnaval, São João). Perfis com horário errado perdem posição.
+
+**Atributos**
+| | Caruaru | Recife |
+|---|---|---|
+| Entrada acessível para cadeirantes | **Não** (1º andar, só escada) | **Sim** |
+| Estacionamento | Estacionamento pago na rua (Zona Azul) e estacionamentos pagos próximos | Estacionamento pago no local (Shopping RioMar) |
+| Outros | Agendamento obrigatório · formas de pagamento | Agendamento obrigatório · formas de pagamento · Wi-Fi (se houver) |
+
+Informar "sem acesso para cadeirantes" em Caruaru é importante: evita avaliações negativas de quem chega e não consegue subir.
 
 ## 6. Fotos (meta: 30 na primeira semana, depois 2 a 3 por semana)
 Fachada de dia (como o paciente vê da rua) · placa/entrada · recepção · consultórios · scanner iTero em uso · Dr. Edelweiss e equipe · antes/depois (com autorização por escrito do paciente) · vídeo curto de 30 s mostrando o escaneamento.
@@ -85,8 +102,70 @@ Evite promessas de resultado, preços promocionais chamativos e antes/depois sem
 - Vocês fazem Invisalign? → Sim, somos pioneiros no Invisalign em Caruaru, com escaneamento iTero.
 - Precisa de moldagem? → Não, usamos o scanner digital iTero Element.
 - Atendem crianças? → Sim: odontopediatria, ortopedia funcional e Invisalign First.
+- Tem acessibilidade? → Recife: sim, acesso para cadeirantes. Caruaru: a clínica fica no 1º andar, com acesso só por escada.
 - Como agendar? → WhatsApp (81) 99836-8491 (Caruaru) / (81) 97318-5005 (Recife).
-- Tem estacionamento? → [preencher]
+- Tem estacionamento? → Caruaru: Zona Azul na rua e estacionamentos próximos. Recife: estacionamento do Shopping RioMar.
 
 ## 10. Fora do Google (citações) — mesmo nome, endereço e telefone
 Doctoralia · Bing Places · Apple Business Connect (Mapas do iPhone) · Facebook · Instagram (bio com endereço) · Localizador de médicos Invisalign (invisalign.com.br — confirmar com a Align) · Guias locais de Caruaru/Recife.
+
+---
+
+# PASSO A PASSO — como editar o Perfil da Empresa
+
+## A. Entrar no perfil
+1. No computador, abra **business.google.com** e entre com a conta Google que administra a clínica.
+   - Pelo celular: abra o app **Google Maps**, toque na sua foto (canto superior direito) → **Seus perfis da empresa**.
+2. Escolha a unidade (Weiss Odontologia ou WE Odontologia). Abre um painel com botões: **Editar perfil**, **Fotos**, **Avaliações**, **Adicionar atualização**, **Perguntas e respostas**.
+   - Atalho: pesquisar no Google "**meu perfil da empresa**" (logado na conta) já mostra o painel.
+3. Não aparece a clínica? Pesquise o nome dela no Google Maps → **Reivindicar esta empresa** (ou "Você é o proprietário?") e siga a verificação (vídeo, ligação ou SMS).
+4. Para outra pessoa da equipe ajudar sem passar sua senha: **⋮ (três pontos) → Configurações do perfil → Pessoas e acesso → Adicionar** → e-mail da pessoa → função **Administrador**.
+
+## B. Editar perfil (fazer nas duas unidades)
+Clique em **Editar perfil**. Use as tabelas das seções 1 a 5 deste kit.
+1. **Sobre a empresa → Categoria da empresa**: principal *Ortodontista*; em "Adicionar outra categoria" coloque as secundárias.
+2. **Descrição**: cole o texto da seção 3.
+3. **Nome da empresa**: Caruaru = *Weiss Odontologia* · Recife = *WE Odontologia*. Mudar o nome pode gerar nova verificação — normal.
+4. **Contato**: telefone principal (fixo) e, em "Adicionar telefone", o WhatsApp. **Site**: o link da seção 1 (só depois que o site novo estiver no ar).
+5. **Local**: confira o endereço e o alfinete no mapa (precisa cair exatamente na porta do prédio).
+6. **Horário**: em cada dia, ative "Aberto", preencha o 1º período e clique **Adicionar horário** para o 2º período. Depois **Horário especial** para feriados.
+7. **Mais → Atributos**: acessibilidade, estacionamento, agendamento (seção 5).
+8. **Links de agendamento**: o link do WhatsApp da seção 1.
+9. Clique em **Salvar**. Algumas mudanças passam por revisão do Google (minutos a alguns dias).
+
+## C. Serviços
+Painel → **Editar serviços** (ou Editar perfil → Serviços) → **Adicionar serviço personalizado** → nome e descrição da seção 4. Repita para cada serviço.
+
+## D. Fotos
+Painel → **Adicionar foto e vídeo** → separe por tipo: **Logotipo** (escudo Weiss), **Capa** (fachada ou consultório bem iluminado), **Exterior**, **Interior**, **Equipe**. Envie fotos tiradas no local, de dia, na horizontal.
+
+## E. Avaliações
+- Para pegar/compartilhar o link: painel → **Pedir avaliações** (o link já está na seção 7).
+- Para responder: painel → **Ler avaliações** → **Responder** em cada uma (use os modelos da seção 7).
+- Avaliação falsa ou ofensiva: ⋮ ao lado dela → **Denunciar avaliação**.
+
+## F. Postagens semanais
+Painel → **Adicionar atualização** → foto + texto (seção 8) → botão **Agendar** ou **Ligar** → **Publicar**. Faça um dia fixo da semana (ex.: toda segunda).
+
+## G. Perguntas e respostas
+Pesquise a clínica no Google Maps (logado) → role até **Perguntas e respostas** → **Fazer uma pergunta** → depois responda como proprietário. Use a seção 9.
+
+## H. Rotina semanal (15 minutos)
+- [ ] Responder todas as avaliações novas
+- [ ] Publicar 1 postagem com foto
+- [ ] Enviar o link de avaliação aos pacientes que terminaram tratamento/consulta
+- [ ] Subir 2 ou 3 fotos novas
+- [ ] Olhar **Desempenho** (painel) para ver ligações, rotas e cliques no WhatsApp
+
+---
+
+# MUDANÇA DE DOMÍNIO (odontoweiss.com.br → weissodontologia.com.br)
+
+Mudar de endereço sem cuidado faz o Google "esquecer" o site antigo e perder posição. Faça assim:
+1. **Não cancele o domínio odontoweiss.com.br.** Mantenha-o renovado no Registro.br.
+2. Na hospedagem do site antigo (ou no Registro.br, em redirecionamento), configure **redirecionamento 301** de odontoweiss.com.br (e www) para **https://www.weissodontologia.com.br/**.
+   - Ideal: cada página antiga apontar para a equivalente nova (ex.: a página de Invisalign antiga → /invisalign.html).
+3. Garanta **HTTPS (cadeado)** no domínio novo e que o endereço sem "www" leve para o com "www".
+4. **Google Search Console** (search.google.com/search-console): adicione os dois domínios, envie `https://www.weissodontologia.com.br/sitemap.xml` no novo e use **Configurações → Mudança de endereço** no antigo.
+5. Atualize o link do **site** no Perfil da Empresa das duas unidades, Instagram, Doctoralia, Facebook e WhatsApp Business.
+6. **E-mails**: o site continua mostrando caruaru@ e recife@**odontoweiss.com.br**. Se forem trocar os e-mails para o domínio novo, me avise que eu atualizo o site — e mantenha os antigos funcionando por alguns meses.

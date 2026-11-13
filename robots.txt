@@ -2,4 +2,4 @@ User-agent: *
 Allow: /
 Disallow: /fontes.html
 
-Sitemap: https://www.odontoweiss.com.br/sitemap.xml
+Sitemap: https://www.weissodontologia.com.br/sitemap.xml
