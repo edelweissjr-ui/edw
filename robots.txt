@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+Disallow: /fontes.html
+
+Sitemap: https://www.odontoweiss.com.br/sitemap.xml
