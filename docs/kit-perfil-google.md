@@ -159,13 +159,13 @@ Pesquise a clínica no Google Maps (logado) → role até **Perguntas e resposta
 
 ---
 
-# MUDANÇA DE DOMÍNIO (odontoweiss.com.br → weissodontologia.com.br)
+# DOIS SITES NO AR (odontoweiss.com.br e weissodontologia.com.br)
 
-Mudar de endereço sem cuidado faz o Google "esquecer" o site antigo e perder posição. Faça assim:
-1. **Não cancele o domínio odontoweiss.com.br.** Mantenha-o renovado no Registro.br.
-2. Na hospedagem do site antigo (ou no Registro.br, em redirecionamento), configure **redirecionamento 301** de odontoweiss.com.br (e www) para **https://www.weissodontologia.com.br/**.
-   - Ideal: cada página antiga apontar para a equivalente nova (ex.: a página de Invisalign antiga → /invisalign.html).
-3. Garanta **HTTPS (cadeado)** no domínio novo e que o endereço sem "www" leve para o com "www".
-4. **Google Search Console** (search.google.com/search-console): adicione os dois domínios, envie `https://www.weissodontologia.com.br/sitemap.xml` no novo e use **Configurações → Mudança de endereço** no antigo.
-5. Atualize o link do **site** no Perfil da Empresa das duas unidades, Instagram, Doctoralia, Facebook e WhatsApp Business.
-6. **E-mails**: o site continua mostrando caruaru@ e recife@**odontoweiss.com.br**. Se forem trocar os e-mails para o domínio novo, me avise que eu atualizo o site — e mantenha os antigos funcionando por alguns meses.
+Os dois sites continuam funcionando. Para o Google não "dividir" a força entre eles:
+1. **Perfil da Empresa aponta só para o site novo** (www.weissodontologia.com.br/dentista-caruaru.html e /dentista-recife.html). Instagram, Doctoralia e WhatsApp Business também.
+2. **Nada de texto copiado entre os dois sites.** Se o mesmo texto aparecer nos dois, o Google escolhe um só para mostrar — e pode não ser o novo.
+3. **Mesmos dados nos dois sites:** nome (Weiss Odontologia / WE Odontologia), endereço, telefones e horários idênticos. No site antigo, corrigir o link de telefone de Recife (hoje disca "55811895") e o ano do rodapé (2018-2020).
+4. **No site antigo, colocar um link visível para o novo** ("Conheça nosso novo site: weissodontologia.com.br"). Isso transfere relevância.
+5. **Google Search Console** (search.google.com/search-console): cadastrar o domínio novo e enviar `https://www.weissodontologia.com.br/sitemap.xml`.
+6. Garantir **HTTPS (cadeado)** no domínio novo e que o endereço sem "www" leve para o com "www".
+7. **E-mails**: o site novo mostra caruaru@ e recife@**odontoweiss.com.br**. Se forem criar e-mails no domínio novo, avise para atualizar o site.
