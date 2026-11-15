@@ -6,10 +6,10 @@
 
 | | Caruaru | Recife |
 |---|---|---|
-| Nome (exatamente como na fachada) | Weiss Odontologia | WE Odontologia |
+| Nome (como já está verificado) | Clínica Weiss Odontologia Integrada | WE Odontologia |
 | Endereço | R. dos Expedicionários, 104, 1º andar, Nossa Sra. das Dores, Caruaru - PE, 55002-440 | Av. República do Líbano, 251, Torre 1, Sala 1614, Pina, Recife - PE, 51110-160 |
-| Telefone principal | (81) 3721-2866 | (81) 3091-1895 |
-| Telefone adicional / WhatsApp | (81) 99836-8491 | (81) 97318-5005 |
+| Telefone principal (ligações) | (81) 98156-9596 (adicional: (81) 3721-2866) | (81) 3091-1895 |
+| WhatsApp (campo Chat) | (81) 99836-8491 | (81) 97318-5005 |
 | Site (campo "Site") | https://www.weissodontologia.com.br/dentista-caruaru.html?utm_source=google&utm_medium=gbp | https://www.weissodontologia.com.br/dentista-recife.html?utm_source=google&utm_medium=gbp |
 | Agendamento (campo "Link de agendamento") | https://wa.me/5581998368491 | https://wa.me/5581973185005 |
 
