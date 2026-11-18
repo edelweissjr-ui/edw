@@ -10,3 +10,9 @@ Site de página única, animado, da Weiss Odontologia (Caruaru e Recife).
 - Cores: bloco `:root` no topo do `<style>` (`--gold`, `--ink`, `--aqua`).
 - Logotipo: o `<svg class="brand-mark">` no cabeçalho pode ser trocado por `<img src="logo.svg">`.
 - Telefones/WhatsApp: busque por `wa.me/55` no arquivo.
+
+## Sistema de contas a pagar (Weiss Financeiro)
+- Endereço: https://www.weissodontologia.com.br/contas/ — a página `contas/index.html` abre o app hospedado no Claude (https://claude.ai/artifact/TDSgSEYY3CResmE3sj5i5N).
+- Os dados (contas, comprovantes, área fiscal) ficam no Claude, com acesso só para quem foi convidado. Nada fica neste repositório público.
+- `docs/apps/contas-a-pagar.html` é uma cópia do código do app, para histórico de versões (a pasta `docs` não é publicada no site).
+- Cada atualização pedida ao Claude é publicada no mesmo link, então o endereço do domínio sempre abre a versão mais nova, sem precisar mexer aqui.

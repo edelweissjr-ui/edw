@@ -1,5 +1,6 @@
 User-agent: *
 Allow: /
 Disallow: /fontes.html
+Disallow: /contas/
 
 Sitemap: https://www.weissodontologia.com.br/sitemap.xml
