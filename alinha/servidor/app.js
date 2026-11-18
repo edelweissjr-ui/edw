@@ -22,10 +22,11 @@ const ASSETS_DIR = path.resolve(APP_DIR, "../assets");   // logotipo do site
 const env = process.env;
 const CFG = {
   porta: Number(env.PORT || 3000),
-  senha: env.SENHA_ACESSO || "",          // senha da equipe (usuário: equipe)
+  senha: env.SENHA_OPERACIONAL || env.SENHA_ACESSO || "", // senha do perfil Operacional (usuário: operacional; "equipe" também vale)
+  senhaCrc: env.SENHA_CRC || "",          // senha do perfil CRC (usuário: crc)
   senhaAdmin: env.SENHA_ADMIN || "",      // senha do administrador (usuário: admin)
   // chave que assina o login: estável entre reinícios e entre as cópias da função na Vercel
-  segredo: env.SEGREDO_SESSAO || crypto.createHash("sha256").update("alinha|" + (env.SENHA_ADMIN || "") + "|" + (env.SENHA_ACESSO || "") + "|" + (env.ANTHROPIC_API_KEY || "")).digest("hex"),
+  segredo: env.SEGREDO_SESSAO || crypto.createHash("sha256").update("alinha|" + (env.SENHA_ADMIN || "") + "|" + (env.SENHA_OPERACIONAL || env.SENHA_ACESSO || "") + "|" + (env.SENHA_CRC || "") + "|" + (env.ANTHROPIC_API_KEY || "")).digest("hex"),
   kommoSub: env.KOMMO_SUBDOMINIO || "",
   kommoBase: env.KOMMO_URL_BASE || "",
   kommoChaveWebhook: env.KOMMO_CHAVE_WEBHOOK || "",   // chave no endereço do webhook de mensagens
@@ -130,11 +131,21 @@ function lerMensagemEvo(corpo) {
   }
   return out;
 }
+// conversa nova no WhatsApp → lead novo no CRM (Ajustes › Permissões: pode desligar)
+async function leadAutomatico(lead, C) {
+  if (AJ.leadsAutomaticos === false) return;
+  const primeira = C.lista.find((m) => m.autor === "cliente"); if (!primeira) return;
+  const todos = await STORE.pacientes();
+  if (todos.some((x) => String(x.leadId) === String(lead))) return;
+  await STORE.salvarPaciente({ id: "l" + Date.now().toString(36) + crypto.randomBytes(3).toString("hex"), leadId: lead, nome: C.nome || (C.telefone ? "WhatsApp " + C.telefone : "Lead " + lead),
+    telefone: C.telefone || "", unidade: C.unidade || "", origem: C.origem === "celular" ? "WhatsApp (celular)" : "WhatsApp (Kommo)", status: "lead", etapa: "novo", entradaEm: primeira.ts, auto: true, toques: {} });
+}
 async function guardarMensagensEvo(lista) {
   const porLead = {};
   lista.forEach((m) => (porLead[m.lead] = porLead[m.lead] || []).push(m));
   for (const [lead, msgs] of Object.entries(porLead)) {
-    const C = (await STORE.conversa(lead)) || { lista: [], nome: "", atualizado: 0, origem: "celular" };
+    const existia = await STORE.conversa(lead);
+    const C = existia || { lista: [], nome: "", atualizado: 0, origem: "celular" };
     let mudou = false;
     for (const m of msgs) {
       if (!m.deMim && m.nome && !C.nome) C.nome = m.nome.slice(0, 60);
@@ -145,6 +156,7 @@ async function guardarMensagensEvo(lista) {
     if (!mudou) continue;
     C.lista.sort((a, b) => (a.ts > b.ts ? 1 : a.ts < b.ts ? -1 : 0)); C.lista = C.lista.slice(-200); C.atualizado = Date.now();
     await STORE.salvarConversa(lead, C);
+    if (!existia) await leadAutomatico(lead, C).catch(() => {});
   }
 }
 const hostDaRequisicao = (req) => String(req.headers["x-forwarded-host"] || req.headers.host || "").split(",")[0].trim().toLowerCase();
@@ -177,7 +189,8 @@ async function guardarWhatsApp(lista) {
   const porLead = {};
   for (const msg of lista) { const lead = String(msg.entity_id || msg.element_id || ""); if (lead) (porLead[lead] = porLead[lead] || []).push(msg); }
   for (const [lead, msgs] of Object.entries(porLead)) {
-    const C = (await STORE.conversa(lead)) || { lista: [], nome: "", atualizado: 0 };
+    const existia = await STORE.conversa(lead);
+    const C = existia || { lista: [], nome: "", atualizado: 0 };
     let mudou = false;
     for (const msg of msgs) {
       const anexo = msg.attachment && msg.attachment.link ? String(msg.attachment.link) : "";
@@ -196,6 +209,7 @@ async function guardarWhatsApp(lista) {
     C.lista.sort((a, b) => (a.ts > b.ts ? 1 : a.ts < b.ts ? -1 : 0)); // estável: mesma hora mantém a ordem de chegada
     C.lista = C.lista.slice(-200); C.atualizado = Date.now();
     await STORE.salvarConversa(lead, C);
+    if (!existia) await leadAutomatico(lead, C).catch(() => {});
   }
 }
 
@@ -231,24 +245,38 @@ function cookieSessao(papel) {
   const exp = Date.now() + 12 * 3600 * 1000; // 12 horas
   return `${exp}.${papel}.${assinar(exp + "." + papel)}`;
 }
-// devolve o papel da sessão ("admin" ou "equipe") ou null
+// devolve o papel da sessão ("admin", "operacional" ou "crc") ou null
 function sessaoValida(req) {
   const m = (req.headers.cookie || "").match(/(?:^|;\s*)alinha=([^;]+)/);
   if (!m) return null;
   const [exp, papel, sig] = decodeURIComponent(m[1]).split(".");
-  if (!exp || !papel || !sig || Number(exp) < Date.now() || !["admin", "equipe"].includes(papel)) return null;
+  if (!exp || !papel || !sig || Number(exp) < Date.now() || !["admin", "operacional", "crc", "equipe"].includes(papel)) return null;
   const esperado = assinar(exp + "." + papel);
-  return sig.length === esperado.length && crypto.timingSafeEqual(Buffer.from(sig), Buffer.from(esperado)) ? papel : null;
+  return sig.length === esperado.length && crypto.timingSafeEqual(Buffer.from(sig), Buffer.from(esperado)) ? (papel === "equipe" ? "operacional" : papel) : null;
 }
 const igual = (a, b) => !!b && a.length === b.length && crypto.timingSafeEqual(Buffer.from(a), Buffer.from(b));
 function autenticar(usuario, senha) {
   const u = String(usuario || "").trim().toLowerCase();
   if (u === "admin") return igual(senha, CFG.senhaAdmin) ? "admin" : null;
-  if (u === "equipe" || u === "") {
-    if (igual(senha, CFG.senha)) return CFG.senhaAdmin ? "equipe" : "admin"; // sem senha de admin, a senha única dá acesso total
+  if (u === "crc") return igual(senha, CFG.senhaCrc) ? "crc" : null;
+  if (u === "operacional" || u === "equipe" || u === "") {
+    if (igual(senha, CFG.senha)) return CFG.senhaAdmin ? "operacional" : "admin"; // sem senha de admin, a senha única dá acesso total
   }
   return null;
 }
+/* permissões por perfil (o administrador ajusta em Ajustes › Permissões) */
+const TELAS = ["hoje", "whatsapp", "consulta", "briefings", "followup", "comercial", "resultados", "campanhas"];
+const ACOES_CONFIG = ["enviar_whatsapp", "exportar"];
+const PERM_PADRAO = {
+  operacional: { telas: ["hoje", "consulta", "briefings", "followup", "comercial"], acoes: [] },
+  crc: { telas: ["hoje", "whatsapp", "briefings", "followup", "comercial"], acoes: ["enviar_whatsapp"] }
+};
+function permissoes(papel) {
+  if (papel === "admin") return { telas: [...TELAS, "ajustes"], acoes: [...ACOES_CONFIG, "apagar", "configurar"] };
+  const c = (AJC.permissoes && AJC.permissoes[papel]) || PERM_PADRAO[papel] || { telas: [], acoes: [] };
+  return { telas: [...(c.telas || []).filter((t) => TELAS.includes(t)), "ajustes"], acoes: (c.acoes || []).filter((a) => ACOES_CONFIG.includes(a)) };
+}
+const pode = (papel, k) => { const P = permissoes(papel); return P.telas.includes(k) || P.acoes.includes(k); };
 const ehHttps = (req) => (req.headers["x-forwarded-proto"] || "").includes("https");
 
 const tentativas = new Map(); // proteção simples contra força bruta
@@ -269,7 +297,7 @@ button{font:inherit;font-weight:700;padding:12px;border:0;border-radius:10px;bac
 <div class="logo"><svg aria-hidden="true" viewBox="0 0 32 32"><defs><linearGradient id="gA" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#6A5AF0"/><stop offset="1" stop-color="#A193FF"/></linearGradient></defs><rect width="32" height="32" rx="9" fill="url(#gA)"/><path d="M10 24 16 8l6 16" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M11.9 18.6q4.1 3 8.2 0" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/></svg>Alinha</div><p class="lema">Alinha a conversa, o orçamento, o fechamento e o tratamento.<br><b>Do primeiro contato ao sorriso alinhado.</b></p><p class="small">Weiss Odontologia</p>
 ${erro ? `<p class="err">${erro}</p>` : ""}
 <label for="usuario" style="font-size:13px;font-weight:600">Usuário</label>
-<input id="usuario" name="usuario" autocomplete="username" placeholder="equipe ou admin" value="equipe" autocapitalize="none" spellcheck="false">
+<input id="usuario" name="usuario" autocomplete="username" placeholder="admin, operacional ou crc" value="" autocapitalize="none" spellcheck="false">
 <label for="senha" style="font-size:13px;font-weight:600">Senha</label>
 <input id="senha" name="senha" type="password" autocomplete="current-password" required autofocus>
 <button type="submit">Entrar</button></form></body></html>`;
@@ -638,6 +666,7 @@ async function rotas(req, res) {
 
   const papel = sessaoValida(req);
   const soAdmin = () => { if (papel === "admin") return false; json(res, 403, { erro: "Somente o administrador pode fazer isso." }); return true; };
+  const exige = (...ks) => { if (ks.some((k) => pode(papel, k))) return false; json(res, 403, { erro: "Seu perfil não tem permissão para isso." }); return true; };
   if (!papel) {
     if (p.startsWith("/api/")) return json(res, 401, { erro: "Sessão expirada. Entre novamente." });
     res.writeHead(303, { Location: "login" }); return res.end();
@@ -653,9 +682,10 @@ async function rotas(req, res) {
     return json(res, 200, { ok: true, endereco: base, host, configurado: !!CFG.appUrl, redirecionando, acessoAtual: hostDaRequisicao(req), dns: { a, cname },
       webhooks: { kommo: CFG.kommoChaveWebhook ? `${base}/webhooks/kommo/${CFG.kommoChaveWebhook}` : "", evolution: evoOk() ? `${base}/webhooks/evolution/${chaveWebhookEvo()}` : "" } });
   }
-  if (p === "/api/config" && req.method === "GET") return json(res, 200, { plataforma: true, endereco: baseDaRequisicao(req), versao: VERSAO, papel, ia: !!anthropic, kommo: kommoOk(), whatsapp: !!CFG.kommoChaveWebhook || evoOk(), celular: evoOk(), armazenamento: STORE.tipo, dadosPersistentes: STORE.persistente, kommoUrl: CFG.kommoSub ? `https://${CFG.kommoSub}.kommo.com` : "" });
+  if (p === "/api/config" && req.method === "GET") { try { AJC = await STORE.ajustes(); } catch { /* usa o que já tem */ } }
+  if (p === "/api/config" && req.method === "GET") return json(res, 200, { plataforma: true, endereco: baseDaRequisicao(req), versao: VERSAO, papel, permissoes: permissoes(papel), ia: !!anthropic, kommo: kommoOk(), whatsapp: !!CFG.kommoChaveWebhook || evoOk(), celular: evoOk(), armazenamento: STORE.tipo, dadosPersistentes: STORE.persistente, kommoUrl: CFG.kommoSub ? `https://${CFG.kommoSub}.kommo.com` : "" });
   if (p === "/api/backup" && req.method === "GET") {
-    if (soAdmin()) return;
+    if (exige("exportar")) return;
     res.writeHead(200, { "Content-Type": "application/json; charset=utf-8", "Content-Disposition": `attachment; filename="alinha-dados-${new Date().toISOString().slice(0, 10)}.json"`, "Cache-Control": "no-store" });
     return res.end(JSON.stringify(await STORE.exportar(), null, 2));
   }
@@ -688,12 +718,15 @@ async function rotas(req, res) {
     if (!anthropic) return json(res, 503, { erro: "IA não configurada (ANTHROPIC_API_KEY)" });
     const b = await lerJSON(req);
     const tipo = p.split("/").pop();
+    if (exige(...({ dica: ["consulta"], briefing: ["consulta"], whatsapp: ["whatsapp"], mensagem: ["hoje", "followup", "comercial"] }[tipo] || ["configurar"]))) return;
     const montar = { dica: promptDica, briefing: promptBriefing, mensagem: promptMensagem, whatsapp: promptWhatsApp }[tipo];
     if (!montar) return json(res, 404, { erro: "Não encontrado" });
     return json(res, 200, { ok: true, ...(await chamarIA(montar(b))) });
   }
 
   // WhatsApp
+  if ((p.startsWith("/api/whatsapp/") || p === "/api/kommo/registrar") && exige(p === "/api/kommo/registrar" ? "consulta" : "whatsapp", ...(p === "/api/kommo/registrar" ? ["briefings"] : []))) return;
+  if (p === "/api/whatsapp/enviar" && exige("enviar_whatsapp")) return;
   if (p === "/api/whatsapp/conversas" && req.method === "GET") {
     const r = await STORE.resumoWA();
     if (url.searchParams.get("ver") === String(r.ver)) return json(res, 200, { ok: true, mudou: false, ver: r.ver }); // nada novo: resposta leve

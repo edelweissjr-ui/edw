@@ -4,7 +4,7 @@ window.ALINHA_DEMO = (function () {
   const diasAtras = (n, h = 10) => { const d = new Date(); d.setDate(d.getDate() - n); d.setHours(h, 0, 0, 0); return d.toISOString(); };
   const toques = (...feitos) => Object.fromEntries(feitos.map(([d, st, n]) => [d, { status: st, em: diasAtras(n) }]));
 
-  const pacientes = () => [
+  const clientes = () => [
     { id: "ex1", exemplo: true, prontidao: 48, nome: "Larissa Menezes", telefone: "(81) 90000-1001", unidade: "Recife", tratamento: "Aparelho ortodôntico", valorApresentado: 6200, status: "aberto", responsavel: "Renata", profissional: "Dra. Paula", consultaEm: diasAtras(8),
       dor: "dente torto na frente que aparece quando sorri", evento: "", decisor: "o pai", objecoes: ["decisor"], oQueTravou: "Decide com o pai", palavras: ["meu pai que vai ver isso comigo", "eu evito sorrir em foto"],
       toques: toques([0, "enviado", 8], [1, "enviado", 7], [3, "enviado", 5]) },
@@ -32,6 +32,19 @@ window.ALINHA_DEMO = (function () {
     { id: "ex9", exemplo: true, prontidao: 95, nome: "Caio Bezerra", telefone: "(81) 90000-1009", unidade: "Caruaru", tratamento: "Invisalign", valorApresentado: 13200, valorFechado: 13200, status: "fechado", responsavel: "Dr. Edelweiss", profissional: "Dr. Edelweiss", consultaEm: diasAtras(5), fechadoEm: diasAtras(5),
       dor: "", evento: "", decisor: "", objecoes: [], oQueTravou: "", palavras: [], toques: {} }
   ];
+  // leads que ainda não vieram à clínica (funil de leads do CRM)
+  const leads = () => [
+    { id: "ex11", exemplo: true, status: "lead", etapa: "novo", nome: "Mariana Costa", telefone: "(81) 90000-1011", unidade: "Caruaru", interesse: "Invisalign", tratamento: "Invisalign", origem: "Anúncio Meta", entradaEm: diasAtras(0, 9), toques: {} },
+    { id: "ex12", exemplo: true, status: "lead", etapa: "novo", nome: "Aline Souza", telefone: "(81) 90000-1012", unidade: "Recife", interesse: "Lentes e facetas", tratamento: "Lentes e facetas", origem: "Instagram orgânico", entradaEm: diasAtras(1), toques: {} },
+    { id: "ex13", exemplo: true, status: "lead", etapa: "contato", nome: "Rafael Duarte", telefone: "(81) 90000-1013", unidade: "Recife", interesse: "Aparelho estético", tratamento: "Aparelho estético", origem: "Anúncio Meta", entradaEm: diasAtras(3), toques: {} },
+    { id: "ex14", exemplo: true, status: "lead", etapa: "contato", nome: "Gustavo Pires", telefone: "(81) 90000-1014", unidade: "Caruaru", interesse: "Invisalign", tratamento: "Invisalign", origem: "Anúncio Meta", entradaEm: diasAtras(4), toques: {} },
+    { id: "ex15", exemplo: true, status: "lead", etapa: "agendado", nome: "Camila Freitas", telefone: "(81) 90000-1015", unidade: "Caruaru", interesse: "Invisalign", tratamento: "Invisalign", origem: "Anúncio Meta", entradaEm: diasAtras(6), agendadoEm: diasAtras(5), agendaPara: diasAtras(-2), toques: {} },
+    { id: "ex16", exemplo: true, status: "lead", etapa: "agendado", nome: "Thiago Ramos", telefone: "(81) 90000-1016", unidade: "Recife", interesse: "Clareamento", tratamento: "Clareamento", origem: "Indicação", entradaEm: diasAtras(5), agendadoEm: diasAtras(4), agendaPara: diasAtras(-1), toques: {} },
+    { id: "ex17", exemplo: true, status: "lead", etapa: "faltou", nome: "Paula Vieira", telefone: "(81) 90000-1017", unidade: "Caruaru", interesse: "Invisalign", tratamento: "Invisalign", origem: "Anúncio Meta", entradaEm: diasAtras(10), agendadoEm: diasAtras(9), faltouEm: diasAtras(3), faltas: 1, toques: {} },
+    { id: "ex18", exemplo: true, status: "lead", etapa: "faltou", nome: "Bruno Melo", telefone: "(81) 90000-1018", unidade: "Recife", interesse: "Aparelho fixo", tratamento: "Aparelho fixo", origem: "Anúncio Meta", entradaEm: diasAtras(12), agendadoEm: diasAtras(11), faltouEm: diasAtras(6), faltas: 1, toques: {} }
+  ];
+  // clientes vieram de um lead alguns dias antes da consulta
+  const pacientes = () => clientes().map((p) => Object.assign({ entradaEm: new Date(new Date(p.consultaEm).getTime() - 4 * 864e5).toISOString(), agendadoEm: new Date(new Date(p.consultaEm).getTime() - 3 * 864e5).toISOString(), compareceuEm: p.consultaEm }, p)).concat(leads());
 
   // Consulta simulada (≈ 2 minutos, acelerada)
   const consulta = {

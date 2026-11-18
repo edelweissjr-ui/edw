@@ -17,7 +17,9 @@ services:
       sizeGB: 1
     envVars:
       - key: SENHA_ACESSO
-        sync: false          # senha da equipe (usuário: equipe)
+        sync: false          # senha do perfil Operacional (usuário: operacional)
+      - key: SENHA_CRC
+        sync: false          # senha do perfil CRC (usuário: crc)
       - key: SENHA_ADMIN
         sync: false          # senha do administrador (usuário: admin)
       - key: APP_URL

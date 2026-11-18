@@ -8,8 +8,9 @@
   const BIB = window.ROTEIRO, DEMO = window.ALINHA_DEMO;
   /* Versão: na plataforma, vem do servidor (package.json) no momento em que a tela abriu.
      Ao publicar uma atualização, aumente a versão em package.json e registre em NOVIDADES. */
-  let VERSAO = "1.7.0";
+  let VERSAO = "1.8.0";
   const NOVIDADES = [
+    { v: "1.8.0", data: "nov/2026", itens: ["Comercial: funil do mês com leads que entraram, agendaram, compareceram, faltaram, fecharam e não fecharam, e o follow-up de orçamento", "CRM-Pipeline com funil de leads e de clientes (quem comparece vira cliente), arrastar e soltar", "Campanhas: calculadora da pirâmide (topo, meio e fundo), cadência e projeção de resultados", "Permissões por perfil: Administrador, Operacional e CRC"] },
     { v: "1.7.0", data: "nov/2026", itens: ["Resultados por tratamento: quantos pacientes têm interesse e quantos fecharam em cada tratamento, com conversão, valor e ticket médio", "WhatsApp em três colunas: conversas, o chat normal para escrever e enviar, e o chat sugerido ao lado", "Assuntos de cada conversa (preço, agendamento, medo, prazo…) com filtro e tratamento de interesse detectado", "Perfil DISC do paciente durante a consulta e no WhatsApp, com como falar com cada perfil", "Social Selling no WhatsApp: SPIN e N.E.A.T. acompanhados em cada conversa, com a próxima pergunta pronta"] },
     { v: "1.6.0", data: "nov/2026", itens: ["Pronto para domínio próprio (Registro.br): endereço oficial em APP_URL, redirecionamento do endereço antigo e cabeçalhos de segurança", "Ajustes › Domínio e endereços: login e webhook do Kommo prontos para copiar e verificação do apontamento", "Ícone de app ao adicionar o Alinha à tela de início do celular"] },
     { v: "1.5.0", data: "nov/2026", itens: ["Reativação automática de quem não fechou: 30, 60 e 90 dias, na lista Quem alinhar hoje e na coluna Reativação", "Modelos de mensagem (primeiro contato, quem não agendou, lembretes, pós-consulta, reativação, campanha, indicação) na conversa de WhatsApp e nos cartões", "Princípios de atendimento e os 7 funis no guia; a IA passa a usá-los"] },
@@ -85,7 +86,7 @@
   const REAT = ["R30", "R60", "R90"], REAT_DIAS = { R30: 30, R60: 60, R90: 90 };
   const ultimoToque = (p) => Object.values(p.toques || {}).map((t) => t && t.em).filter(Boolean).sort().pop();
   function proximo(p) {
-    if (p.status === "fechado") return null;
+    if (p.status === "fechado" || p.status === "lead") return null; // lead ainda não veio à clínica: fica no CRM
     const toques = p.toques || {};
     if (p.status === "aberto") {
       const dia = CAD.find((d) => !toques[d]);
@@ -790,7 +791,9 @@
     $("#cProf").innerHTML = profs.map((n) => `<option${n === atual ? " selected" : ""}>${esc(n)}</option>`).join("");
     renderVozes(); atualizarAuto();
     estadoCelular(); renderAbrirCelular(); renderDominio(false);
+    if (ehAdminFront()) renderPermissoes();
   }
+  function ehAdminFront() { return !PLAT || PLAT.papel === "admin"; }
   /* ------------------------------------------------------------ */
   /* Conectar celular (WhatsApp) por QR code · Abrir no celular    */
   /* ------------------------------------------------------------ */
@@ -1153,12 +1156,12 @@
     const nivel = t >= 70 ? "🔥 Quente · pronto para fechar" : t >= 40 ? "🌤️ Morno" : "❄️ Frio";
     const rasc = WA.rascunho[lead] || "";
     const wa = linkWA(i, rasc);
-    const podeEnviar = doCelular || !PLAT; // celular conectado envia direto; na demonstração simula
+    const podeEnviar = (doCelular && pode("enviar_whatsapp")) || !PLAT; // celular conectado envia direto; na demonstração simula
     el.innerHTML = `<div class="card wahead"><button class="btn sm ghost voltar" id="waVoltar">← Conversas</button><div class="ava">${esc(iniciais(i.nome || "?"))}</div>
         <div class="grow"><b style="font-size:17px">${esc(i.nome || "Lead " + lead)}</b><div class="small dim">${esc([i.unidade, i.telefone, i.origem].filter(Boolean).join(" · ") || "lead " + lead)}</div></div>
         <span class="minitermo" title="Prontidão para o fechamento">🌡 <i><b style="width:${t}%"></b></i>${t}%</span><span class="pill ${t >= 70 ? "bad" : t >= 40 ? "warn" : ""}">${nivel}</span>
         <div class="row" style="width:100%">${doCelular ? `<span class="pill acc">📱 Celular conectado</span>` : hum ? `<span class="pill acc">✋ Atendimento humano · IA pausada</span><button class="btn sm" data-waact="devolver">🤖 Devolver para a IA</button>` : `<button class="btn sm" data-waact="assumir">✋ Assumir atendimento</button>`}
-          <button class="btn sm" data-waact="followup">+ Adicionar ao follow-up</button>${kommoLink ? `<a class="btn sm" href="${esc(kommoLink)}" target="_blank" rel="noopener">Abrir no Kommo</a>` : ""}</div></div>
+          ${(() => { const px = PAC.find((x) => x.leadId && String(x.leadId) === String(lead)); return px ? `<button class="btn sm" data-waact="followup">📇 Ver no CRM · ${esc(ETAPA[etapaDe(px)].nome)}</button>` : `<button class="btn sm" data-waact="followup">+ Adicionar ao CRM</button>`; })()}${kommoLink ? `<a class="btn sm" href="${esc(kommoLink)}" target="_blank" rel="noopener">Abrir no Kommo</a>` : ""}</div></div>
       <div class="thread" id="waThread">${msgs.map((m) => `<div class="bolha ${m.autor === "cliente" ? "cli" : "cl"}${m._nova ? " chegou" : ""}">${esc(m.texto)}<span class="m">${m.autor === "cliente" ? "Paciente" : m.ia ? "🤖 IA de atendimento" : "Clínica"} · ${hora(m.ts)}</span></div>`).join("") || '<p class="dim">Sem mensagens.</p>'}</div>
       <div class="composer"><textarea id="waTexto" rows="2" aria-label="Escreva a mensagem" placeholder="Escreva uma mensagem…">${esc(rasc)}</textarea>
         ${podeEnviar ? `<button class="btn pri" data-waact="enviar" title="${doCelular ? "Enviar pelo celular conectado" : "Enviar"}">➤ Enviar</button>` : `<button class="btn pri" data-waact="copiar">${kommoLink ? "Copiar e abrir no Kommo" : "Copiar"}</button>`}
@@ -1268,14 +1271,14 @@
       catch (err) { toast("Kommo: " + err.message); }
     } else if (act === "followup") {
       let p = PAC.find((x) => x.leadId && String(x.leadId) === String(lead));
-      if (p) { abrirGaveta(p); return; }
+      if (p) { abrirCard(p); return; }
       const cli = (WA.msgs[lead] || []).filter((m) => m.autor === "cliente");
       const objs = [...new Set(cli.flatMap((m) => BIB.objecoes.filter((o) => casa(m.texto, o.gatilhos)).map((o) => o.id)))];
       const A = analiseWA(lead);
-      p = { id: novoId(), leadId: lead, nome: i.nome || "Lead " + lead, telefone: i.telefone || "", unidade: i.unidade || "", origem: i.origem || "WhatsApp", status: "aberto", consultaEm: new Date().toISOString(),
+      p = { id: novoId(), leadId: lead, nome: i.nome || "Lead " + lead, telefone: i.telefone || "", unidade: i.unidade || "", origem: i.origem === "celular" || lead.startsWith("tel-") ? "WhatsApp (celular)" : i.origem || "WhatsApp (Kommo)", status: "lead", etapa: "contato", entradaEm: (cli[0] || {}).ts || new Date().toISOString(),
         tratamento: A.tratamento || "", interesse: A.tratamento || "", disc: A.disc.n ? A.disc : undefined, assuntos: A.assuntos,
         responsavel: (AJ.equipe || [])[0] || "", profissional: (AJ.equipe || [])[0] || "", objecoes: objs, palavras: cli.slice(-3).map((m) => m.texto.slice(0, 90)), oQueTravou: objs[0] ? OBJ_NOME[objs[0]] : "", prontidao: WA.temp[lead], toques: {} };
-      await Store.salvar(p); toast("Adicionado ao follow-up (D0 hoje)"); render();
+      await Store.salvar(p); toast("Adicionado ao CRM · Em contato"); render();
     }
   });
 
@@ -1328,10 +1331,289 @@
   document.addEventListener("pointermove", (e) => { if (dicaG.classList.contains("hide")) return; const w = dicaG.offsetWidth; dicaG.style.left = Math.min(window.innerWidth - w - 8, e.clientX + 14) + "px"; dicaG.style.top = (e.clientY + 16) + "px"; });
 
   /* ------------------------------------------------------------ */
+  /* Permissões: Administrador · Operacional · CRC                  */
+  /* ------------------------------------------------------------ */
+  const TELAS = [["hoje", "Hoje"], ["whatsapp", "WhatsApp"], ["consulta", "Consulta"], ["briefings", "Briefings"], ["followup", "Follow-up"], ["comercial", "Comercial (funil e CRM)"], ["resultados", "Resultados"], ["campanhas", "Campanhas"]];
+  const ACOES = [["enviar_whatsapp", "Enviar mensagens pelo celular conectado"], ["exportar", "Baixar cópia dos dados"]];
+  const PAPEL_NOME = { admin: "Administrador", operacional: "Operacional", crc: "CRC" };
+  const PERM_PADRAO = {
+    operacional: { telas: ["hoje", "consulta", "briefings", "followup", "comercial"], acoes: [] },
+    crc: { telas: ["hoje", "whatsapp", "briefings", "followup", "comercial"], acoes: ["enviar_whatsapp"] }
+  };
+  const papel = () => (PLAT ? PLAT.papel : "admin");
+  function perm() {
+    if (PLAT && PLAT.permissoes) return PLAT.permissoes;
+    return { telas: TELAS.map((t) => t[0]).concat("ajustes"), acoes: ACOES.map((a) => a[0]).concat("apagar", "configurar") };
+  }
+  const pode = (k) => perm().telas.includes(k) || perm().acoes.includes(k);
+  function aplicarPermissoes() {
+    $$("#nav button").forEach((b) => b.classList.toggle("hide", !pode(b.dataset.v)));
+    document.body.dataset.papel = papel();
+  }
+  function renderPermissoes() {
+    const el = $("#permTabela"); if (!el) return;
+    const P = Object.assign({}, PERM_PADRAO, AJ.permissoes || {});
+    const linha = (chave, nome, tipo) => `<tr><td>${esc(nome)}</td><td class="c">✓</td>${["operacional", "crc"].map((r) => `<td class="c"><input type="checkbox" aria-label="${esc(nome)} · ${PAPEL_NOME[r]}" data-perm="${r}|${tipo}|${chave}"${(P[r] && P[r][tipo] || []).includes(chave) ? " checked" : ""}></td>`).join("")}</tr>`;
+    el.innerHTML = `<thead><tr><th>Tela ou ação</th><th class="c">Administrador</th><th class="c">Operacional</th><th class="c">CRC</th></tr></thead><tbody>
+      ${TELAS.map(([k, n]) => linha(k, n, "telas")).join("")}${ACOES.map(([k, n]) => linha(k, n, "acoes")).join("")}
+      <tr><td>Ajustes da clínica, equipe, domínio, conectar celular, apagar dados</td><td class="c">✓</td><td class="c dim">—</td><td class="c dim">—</td></tr></tbody>`;
+    $("#aLeadsAuto").checked = AJ.leadsAutomaticos !== false;
+  }
+  $("#btnSalvarPerm").addEventListener("click", async () => {
+    const P = { operacional: { telas: [], acoes: [] }, crc: { telas: [], acoes: [] } };
+    $$("#permTabela [data-perm]").forEach((c) => { if (c.checked) { const [r, t, k] = c.dataset.perm.split("|"); P[r][t].push(k); } });
+    try { await Store.ajustes({ permissoes: P, leadsAutomaticos: $("#aLeadsAuto").checked }); $("#permStatus").textContent = "Salvo ✓ (vale no próximo acesso de cada pessoa)"; }
+    catch (e) { $("#permStatus").textContent = "Erro: " + e.message; }
+  });
+  $("#btnPermPadrao").addEventListener("click", () => { AJ.permissoes = JSON.parse(JSON.stringify(PERM_PADRAO)); renderPermissoes(); $("#permStatus").textContent = "Padrão restaurado: toque em Salvar para confirmar."; });
+
+  /* ------------------------------------------------------------ */
+  /* Comercial: funil do mês e CRM-Pipeline                         */
+  /* ------------------------------------------------------------ */
+  // Funil de leads (antes de vir à clínica) → funil de clientes (quem compareceu)
+  const ETAPAS = [
+    { id: "novo", nome: "Lead novo", grupo: "lead", sub: "entrou agora" },
+    { id: "contato", nome: "Em contato", grupo: "lead", sub: "conversando" },
+    { id: "agendado", nome: "Agendou", grupo: "lead", sub: "check-up / avaliação marcada" },
+    { id: "faltou", nome: "Faltou", grupo: "lead", sub: "remarcar" },
+    { id: "orcamento", nome: "Compareceu · orçamento", grupo: "cliente", sub: "follow-up do orçamento" },
+    { id: "fechado", nome: "Fechou", grupo: "cliente", sub: "tratamento fechado" },
+    { id: "nao_fechou", nome: "Não fechou", grupo: "cliente", sub: "reativação 30/60/90" }
+  ];
+  const ETAPA = Object.fromEntries(ETAPAS.map((e) => [e.id, e]));
+  const ehCliente = (p) => ["aberto", "fechado", "perdido"].includes(p.status);
+  function etapaDe(p) {
+    if (p.status === "lead") return ETAPA[p.etapa] ? p.etapa : "novo";
+    return p.status === "fechado" ? "fechado" : p.status === "perdido" ? "nao_fechou" : "orcamento";
+  }
+  const entrouEm = (p) => p.entradaEm || p.consultaEm;
+  async function mover(p, etapa) {
+    const agora = new Date().toISOString(), antes = etapaDe(p);
+    if (antes === etapa) return;
+    if (ETAPA[etapa].grupo === "lead") {
+      p.status = "lead"; p.etapa = etapa;
+      if (etapa === "agendado") p.agendadoEm = p.agendadoEm || agora;
+      if (etapa === "faltou") { p.faltouEm = agora; p.faltas = (p.faltas || 0) + 1; p.agendadoEm = p.agendadoEm || agora; }
+    } else {
+      if (!ehCliente(p)) { p.compareceuEm = agora; p.consultaEm = agora; p.agendadoEm = p.agendadoEm || agora; p.toques = p.toques || {}; } // compareceu: vira cliente
+      p.compareceuEm = p.compareceuEm || p.consultaEm || agora;
+      if (etapa === "orcamento") { p.status = "aberto"; delete p.fechadoEm; }
+      if (etapa === "fechado") { p.status = "fechado"; p.fechadoEm = agora; p.valorFechado = p.valorFechado || p.valorApresentado || 0; p.recuperado = inicioDia(agora).getTime() > inicioDia(p.consultaEm).getTime(); }
+      if (etapa === "nao_fechou") { p.status = "perdido"; p.encerradoEm = agora; }
+    }
+    await Store.salvar(p);
+    toast(etapa === "orcamento" && !["fechado", "nao_fechou"].includes(antes) ? `${primeiro(p.nome)} compareceu: agora é cliente (follow-up D0)` : `${primeiro(p.nome)} → ${ETAPA[etapa].nome}`);
+    render();
+  }
+  const COM = { mes: new Date().toISOString().slice(0, 7), unidade: "", busca: "" };
+  const noMes = (iso, mes) => !!iso && String(new Date(iso).toISOString()).slice(0, 7) === mes;
+  const pct = (a, b) => (b ? Math.round((a / b) * 100) : 0);
+  function numerosComercial(mes, unidade) {
+    const base = PAC.filter((p) => !unidade || p.unidade === unidade);
+    const coorte = base.filter((p) => noMes(entrouEm(p), mes)); // leads que entraram no mês
+    const c = { entraram: coorte.length, agendaram: 0, compareceram: 0, faltaram: 0, fecharam: 0, naoFecharam: 0, emFollowup: 0, aguardando: 0 };
+    coorte.forEach((p) => {
+      const e = etapaDe(p);
+      if (ehCliente(p) || ["agendado", "faltou"].includes(e) || p.agendadoEm) c.agendaram++;
+      if (ehCliente(p)) c.compareceram++;
+      if (e === "faltou") c.faltaram++;
+      if (e === "fechado") c.fecharam++;
+      if (e === "nao_fechou") c.naoFecharam++;
+      if (e === "orcamento") c.emFollowup++;
+      if (["novo", "contato", "agendado"].includes(e)) c.aguardando++;
+    });
+    // orçamentos (clientes que compareceram no mês) e o follow-up deles
+    const orc = base.filter((p) => ehCliente(p) && noMes(p.compareceuEm || p.consultaEm, mes));
+    const o = { total: orc.length, fecharam: orc.filter((p) => p.status === "fechado").length, naoFecharam: orc.filter((p) => p.status === "perdido").length, emFollowup: orc.filter((p) => p.status === "aberto").length,
+      apresentado: orc.reduce((t, p) => t + Number(p.valorApresentado || 0), 0), fechado: orc.filter((p) => p.status === "fechado").reduce((t, p) => t + Number(p.valorFechado || 0), 0),
+      recuperados: orc.filter((p) => p.status === "fechado" && p.recuperado).length };
+    return { c, o };
+  }
+  function renderComercial() {
+    if (!$("#comMes").value) $("#comMes").value = COM.mes;
+    $$("#comUnidade button").forEach((b) => b.classList.toggle("on", b.dataset.u === COM.unidade));
+    const { c, o } = numerosComercial(COM.mes, COM.unidade);
+    const nomeMes = new Date(COM.mes + "-15").toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
+    $("#comTitulo").textContent = `Leads que entraram em ${nomeMes}`;
+    const passos = [["Entraram", c.entraram, "leads no mês", ""], ["Agendaram", c.agendaram, `${pct(c.agendaram, c.entraram)}% dos leads`, "agendamento"], ["Compareceram", c.compareceram, `${pct(c.compareceram, c.agendaram)}% dos agendados · viraram clientes`, "comparecimento"], ["Fecharam", c.fecharam, `${pct(c.fecharam, c.compareceram)}% dos que compareceram`, "fechamento"]];
+    const mx = Math.max(1, c.entraram);
+    $("#comFunil").innerHTML = passos.map(([n, v, s]) => `<div class="fl"><div class="nome">${n}</div><div class="trilho"><b style="width:${Math.max(v ? 2 : 0, (v / mx) * 100)}%" data-dica="${esc(`${n}: ${v} · ${s}`)}"></b></div><div class="val"><strong class="num">${v}</strong><span>${esc(s)}</span></div></div>`).join("");
+    kpis("#comKpis", [
+      ["Faltaram", c.faltaram, c.agendaram ? `${pct(c.faltaram, c.agendaram)}% dos agendados` : "—"],
+      ["Não fecharam", c.naoFecharam, c.compareceram ? `${pct(c.naoFecharam, c.compareceram)}% dos clientes` : "—"],
+      ["Em follow-up de orçamento", c.emFollowup, "clientes decidindo"],
+      ["Ainda no funil de leads", c.aguardando, "novos, em contato ou agendados"]
+    ]);
+    kpis("#comOrc", [
+      ["Orçamentos no mês", o.total, brl(o.apresentado) + " apresentados"],
+      ["Fecharam", o.fecharam, `${pct(o.fecharam, o.total)}% · ${brl(o.fechado)}`, true],
+      ["Não fecharam", o.naoFecharam, `${pct(o.naoFecharam, o.total)}% dos orçamentos`],
+      ["Em follow-up", o.emFollowup, `${o.recuperados} recuperado${o.recuperados === 1 ? "" : "s"} pelo follow-up`]
+    ]);
+    renderPipeline();
+  }
+  function renderPipeline() {
+    const q = norm(COM.busca);
+    const lista = PAC.filter((p) => (!COM.unidade || p.unidade === COM.unidade) && (!q || norm(p.nome + " " + (p.telefone || "")).includes(q)));
+    const recente = (p) => { const e = etapaDe(p); if (["fechado"].includes(e)) return Date.now() - new Date(p.fechadoEm || 0) < 60 * 864e5; if (e === "nao_fechou") return Date.now() - new Date(p.encerradoEm || p.consultaEm || 0) < 60 * 864e5; return true; };
+    const grupoHTML = (g, titulo) => `<div class="pgrupo"><div class="pghead ${g}">${titulo}</div><div class="pipe">${ETAPAS.filter((e) => e.grupo === g).map((e) => {
+      const itens = lista.filter((p) => etapaDe(p) === e.id && recente(p)).sort((a, b) => ((b.fechadoEm || b.compareceuEm || entrouEm(b) || "") > (a.fechadoEm || a.compareceuEm || entrouEm(a) || "") ? 1 : -1));
+      const soma = itens.reduce((t, p) => t + Number((e.id === "fechado" ? p.valorFechado : p.valorApresentado) || 0), 0);
+      return `<div class="col" data-etapa="${e.id}"><h3>${e.nome}<span class="pill">${itens.length}</span></h3><div class="sub">${e.sub}${soma ? " · " + brl(soma) : ""}</div>
+        ${itens.map((p) => `<button class="pc" draggable="true" data-pid="${p.id}"><b>${esc(p.nome)}</b><span class="m">${esc([tratDoPaciente(p) !== "Não informado" ? tratDoPaciente(p) : "", p.unidade].filter(Boolean).join(" · "))}</span><span class="m">${e.grupo === "lead" ? `entrou ${fmtData(entrouEm(p))}${p.origem ? " · " + esc(p.origem) : ""}${p.agendaPara && e.id === "agendado" ? ` · <b>${fmtData(p.agendaPara)}</b>` : ""}` : brl(e.id === "fechado" ? p.valorFechado : p.valorApresentado)}</span></button>`).join("") || `<span class="tiny dim">vazio</span>`}</div>`; }).join("")}</div></div>`;
+    $("#pipeline").innerHTML = grupoHTML("lead", "Funil de leads") + grupoHTML("cliente", "Funil de clientes · compareceram");
+  }
+  // arrastar e soltar entre as colunas
+  let arrastando = null;
+  $("#pipeline").addEventListener("dragstart", (e) => { const c = e.target.closest("[data-pid]"); if (!c) return; arrastando = c.dataset.pid; e.dataTransfer.effectAllowed = "move"; try { e.dataTransfer.setData("text/plain", arrastando); } catch (er) { /* */ } });
+  $("#pipeline").addEventListener("dragover", (e) => { const col = e.target.closest("[data-etapa]"); if (!col || !arrastando) return; e.preventDefault(); $$("#pipeline .col.alvo").forEach((x) => x !== col && x.classList.remove("alvo")); col.classList.add("alvo"); });
+  $("#pipeline").addEventListener("dragleave", (e) => { const col = e.target.closest("[data-etapa]"); if (col && !col.contains(e.relatedTarget)) col.classList.remove("alvo"); });
+  $("#pipeline").addEventListener("drop", async (e) => {
+    const col = e.target.closest("[data-etapa]"); $$("#pipeline .col.alvo").forEach((x) => x.classList.remove("alvo"));
+    if (!col || !arrastando) return; e.preventDefault();
+    const p = PAC.find((x) => x.id === arrastando); arrastando = null; if (p) await mover(p, col.dataset.etapa);
+  });
+  $("#pipeline").addEventListener("dragend", () => { arrastando = null; $$("#pipeline .col.alvo").forEach((x) => x.classList.remove("alvo")); });
+  $("#pipeline").addEventListener("click", (e) => { const c = e.target.closest("[data-pid]"); if (!c) return; const p = PAC.find((x) => x.id === c.dataset.pid); if (p) abrirCard(p); });
+  $("#comMes").addEventListener("change", (e) => { COM.mes = e.target.value || new Date().toISOString().slice(0, 7); renderComercial(); });
+  $("#comUnidade").addEventListener("click", (e) => { const b = e.target.closest("[data-u]"); if (b) { COM.unidade = b.dataset.u; renderComercial(); } });
+  $("#comBusca").addEventListener("input", (e) => { COM.busca = e.target.value; renderPipeline(); });
+  $("#btnNovoLead").addEventListener("click", () => abrirCard(null));
+
+  // ficha do card: lead (funil de leads) ou cliente
+  function abrirCard(p) {
+    const novo = !p;
+    if (p && ehCliente(p)) { abrirGavetaCRM(p); return; }
+    p = p || { id: novoId(), status: "lead", etapa: "novo", entradaEm: new Date().toISOString(), origem: "Anúncio Meta", unidade: COM.unidade || "", toques: {} };
+    const sel = (id, ops, atual) => `<select class="in" id="${id}">${ops.map((o) => `<option${o === atual ? " selected" : ""}>${esc(o)}</option>`).join("")}</select>`;
+    const trat = tratDoPaciente(p) === "Não informado" ? "" : tratDoPaciente(p);
+    $("#drawerHost").innerHTML = `<div class="veil" id="veil"><div class="drawer" role="dialog" aria-label="${novo ? "Novo lead" : esc(p.nome)}">
+      <div class="row"><div class="ava">${esc(iniciais(p.nome || "+"))}</div><div class="grow"><h2 style="font-size:22px">${novo ? "Novo lead" : esc(p.nome)}</h2><div class="small dim">${novo ? "Funil de leads" : `${ETAPA[etapaDe(p)].nome} · entrou ${fmtData(entrouEm(p))}${p.faltas ? ` · faltou ${p.faltas}x` : ""}`}</div></div><button class="btn sm ghost" id="btnFechar" aria-label="Fechar">✕</button></div>
+      <div class="card stack">
+        <div><label class="f" for="lNome">Nome</label><input class="in" id="lNome" value="${esc(p.nome || "")}"></div>
+        <div class="duo"><div><label class="f" for="lTel">WhatsApp</label><input class="in" id="lTel" inputmode="tel" value="${esc(p.telefone || "")}"></div>
+          <div><label class="f" for="lUni">Unidade</label>${sel("lUni", ["", "Caruaru", "Recife"], p.unidade || "")}</div></div>
+        <div class="duo"><div><label class="f" for="lTrat">Tratamento de interesse</label>${sel("lTrat", [""].concat(TRAT.map((t) => t.nome)), trat)}</div>
+          <div><label class="f" for="lOrig">Origem</label>${sel("lOrig", ["Anúncio Meta", "Instagram orgânico", "Indicação", "Google", "WhatsApp (Kommo)", "WhatsApp (celular)", "Passou na frente", "Outro"].concat(p.origem && !["Anúncio Meta", "Instagram orgânico", "Indicação", "Google", "WhatsApp (Kommo)", "WhatsApp (celular)", "Passou na frente", "Outro"].includes(p.origem) ? [p.origem] : []), p.origem || "")}</div></div>
+        <div class="duo"><div><label class="f" for="lEtapa">Etapa</label>${sel("lEtapa", ETAPAS.filter((e) => e.grupo === "lead").map((e) => e.nome), ETAPA[etapaDe(p)].nome)}</div>
+          <div><label class="f" for="lAgenda">Data agendada</label><input class="in" type="date" id="lAgenda" value="${p.agendaPara ? String(p.agendaPara).slice(0, 10) : ""}"></div></div>
+        <div><label class="f" for="lObs">Observações</label><input class="in" id="lObs" value="${esc(p.obs || "")}"></div>
+        <div class="row"><button class="btn pri" id="lSalvar">${novo ? "Adicionar lead" : "Salvar"}</button><span class="small dim" id="lSt"></span></div>
+      </div>
+      ${novo ? "" : `<div class="card stack"><span class="label">Avançar no funil</span>
+        <div class="row"><button class="btn pri" data-mv="orcamento">✓ Compareceu (vira cliente)</button><button class="btn" data-mv="agendado">Agendou</button><button class="btn" data-mv="faltou">Faltou</button></div>
+        <p class="small dim" style="margin:0">Quando o lead comparece na clínica ele passa para o funil de clientes e entra no follow-up do orçamento (D0).</p></div>
+        <div class="row">${p.leadId && pode("whatsapp") ? `<button class="btn" id="lConversa">Ver conversa no WhatsApp</button>` : ""}<span class="grow"></span>${pode("apagar") ? `<button class="btn ghost" id="lApagar">Apagar lead</button>` : ""}</div>`}
+    </div></div>`;
+    $("#veil").addEventListener("click", (e) => { if (e.target.id === "veil") fecharGaveta(); });
+    $("#btnFechar").onclick = fecharGaveta;
+    const ler = () => {
+      p.nome = $("#lNome").value.trim(); p.telefone = $("#lTel").value.trim(); p.unidade = $("#lUni").value; p.origem = $("#lOrig").value; p.obs = $("#lObs").value.trim();
+      const t = $("#lTrat").value; p.interesse = t; p.tratamento = t;
+      const ag = $("#lAgenda").value; p.agendaPara = ag ? new Date(ag + "T12:00:00").toISOString() : undefined;
+      const et = ETAPAS.find((e) => e.nome === $("#lEtapa").value);
+      return et ? et.id : "novo";
+    };
+    $("#lSalvar").onclick = async () => {
+      const et = ler(); if (!p.nome) { $("#lSt").textContent = "Informe o nome."; return; }
+      if (et !== etapaDe(p) || novo) { if (novo) { p.etapa = et; if (et === "agendado") p.agendadoEm = new Date().toISOString(); await Store.salvar(p); } else await mover(p, et); }
+      else await Store.salvar(p);
+      if (p.agendaPara && !p.agendadoEm) { p.agendadoEm = new Date().toISOString(); if (p.etapa === "novo" || p.etapa === "contato") p.etapa = "agendado"; await Store.salvar(p); }
+      toast(novo ? "Lead adicionado ao CRM" : "Lead salvo"); fecharGaveta(); render();
+    };
+    $$("#drawerHost [data-mv]").forEach((b) => (b.onclick = async () => { ler(); if (!p.nome) return; fecharGaveta(); await mover(p, b.dataset.mv); }));
+    if ($("#lApagar")) $("#lApagar").onclick = async (e) => { if (e.currentTarget.dataset.c !== "1") { e.currentTarget.dataset.c = "1"; e.currentTarget.textContent = "Toque de novo para apagar"; return; } await Store.remover(p.id); fecharGaveta(); render(); toast("Lead apagado"); };
+    if ($("#lConversa")) $("#lConversa").onclick = () => { fecharGaveta(); mostrar("whatsapp"); abrirConversa(String(p.leadId)); };
+    if (novo) setTimeout(() => $("#lNome").focus(), 50);
+  }
+  // cliente: a ficha de follow-up + troca de etapa no funil de clientes
+  function abrirGavetaCRM(p) {
+    abrirGaveta(p);
+    const d = $("#drawerHost .drawer"); if (!d) return;
+    d.insertAdjacentHTML("beforeend", `<div class="card stack"><span class="label">Etapa no CRM</span><div class="row">${ETAPAS.filter((e) => e.grupo === "cliente").map((e) => `<button class="btn${etapaDe(p) === e.id ? " pri" : ""}" data-mvc="${e.id}">${e.nome}</button>`).join("")}<button class="btn ghost" data-mvc="agendado" title="Desfazer o comparecimento">Voltar para lead</button></div></div>`);
+    $$("#drawerHost [data-mvc]").forEach((b) => (b.onclick = async () => { fecharGaveta(); await mover(p, b.dataset.mvc); }));
+  }
+
+  /* ------------------------------------------------------------ */
+  /* Campanhas: calculadora da pirâmide e cadência                  */
+  /* ------------------------------------------------------------ */
+  const PRESETS = { equilibrado: [50, 30, 20], captacao: [60, 25, 15], conversao: [40, 30, 30], lancamento: [70, 20, 10] };
+  const PRESET_NOME = { equilibrado: "Equilibrado 50/30/20", captacao: "Mais captação 60/25/15", conversao: "Mais conversão 40/30/30", lancamento: "Novo público 70/20/10" };
+  const FASES = [
+    { k: "topo", nome: "Topo · Atração", obj: "Alcance e visualização de vídeo", pub: "Público frio da região (Caruaru / Recife), por idade e interesses",
+      cad: "4 a 5 conteúdos por semana: Reels curtos e educativos (como funciona o Invisalign, o check-up digital com iTero, mitos do aparelho)." },
+    { k: "meio", nome: "Meio · Consideração", obj: "Engajamento, visitas ao perfil e mensagens", pub: "Quem assistiu 50% dos vídeos, engajou ou visitou o perfil nos últimos 30 dias",
+      cad: "3 conteúdos por semana: bastidores do escaneamento, depoimentos autorizados, perguntas frequentes, apresentação da equipe." },
+    { k: "fundo", nome: "Fundo · Conversão", obj: "Conversas no WhatsApp e agendamento", pub: "Quem engajou ou mandou mensagem nos últimos 7 a 30 dias e ainda não agendou",
+      cad: "Sempre ativo: convite para o check-up digital, condição vigente (só se for real) e lembrete de agenda. O CRC responde em até 5 minutos." }
+  ];
+  const CALC0 = { invest: 3000, dias: 30, preset: "equilibrado", dist: [50, 30, 20], cpl: 25, agend: 35, comp: 70, fech: 35, ticket: 8000, meta: 10 };
+  let CALC = Object.assign({}, CALC0, ls.get("alinha.calc", {}));
+  const num = (v) => { const s = String(v).replace(/[^\d,.-]/g, ""); return Number(s.includes(",") ? s.replace(/\./g, "").replace(",", ".") : s) || 0; };
+  function taxasReais() {
+    // últimos 3 meses, para ter volume
+    const meses = [0, 1, 2].map((k) => { const d = new Date(); d.setDate(1); d.setMonth(d.getMonth() - k); return d.toISOString().slice(0, 7); });
+    const s = { entraram: 0, agendaram: 0, compareceram: 0, fecharam: 0 };
+    meses.forEach((m) => { const { c } = numerosComercial(m, COM.unidade); Object.keys(s).forEach((k) => (s[k] += c[k])); });
+    const fech = PAC.filter((p) => p.status === "fechado" && Number(p.valorFechado) > 0);
+    return { n: s.entraram, agend: pct(s.agendaram, s.entraram), comp: pct(s.compareceram, s.agendaram), fech: pct(s.fecharam, s.compareceram), ticket: fech.length ? Math.round(fech.reduce((t, p) => t + Number(p.valorFechado), 0) / fech.length) : 0 };
+  }
+  function renderCampanhas() {
+    const C = CALC;
+    ["invest", "dias", "cpl", "agend", "comp", "fech", "ticket", "meta"].forEach((k) => { const el = $("#k_" + k); if (el && document.activeElement !== el) el.value = C[k]; });
+    $$("#kPreset button").forEach((b) => b.classList.toggle("on", b.dataset.pr === C.preset));
+    ["topo", "meio", "fundo"].forEach((k, i) => { const el = $("#k_" + k); if (el && document.activeElement !== el) el.value = C.dist[i]; });
+    const soma = C.dist.reduce((a, b) => a + b, 0) || 1;
+    const dist = C.dist.map((v) => v / soma);
+    const dias = Math.max(1, C.dias), semanas = Math.max(1, Math.ceil(dias / 7));
+    $("#kSoma").textContent = soma === 100 ? "" : `As fases somam ${soma}%: o cálculo usa a proporção entre elas.`;
+    const val = dist.map((d) => C.invest * d);
+    // pirâmide (invertida: topo largo → fundo estreito)
+    $("#kPiramide").innerHTML = FASES.map((f, i) => `<div class="camada c${i}" style="--w:${100 - i * 22}%"><div class="forma" data-dica="${esc(`${f.nome}: ${Math.round(dist[i] * 100)}% · ${brl(val[i])} no período · ${brl(val[i] / dias)} por dia`)}"><b>${Math.round(dist[i] * 100)}%</b></div><div class="info"><strong>${esc(f.nome)}</strong><span class="num">${brl(val[i])} · ${brl(val[i] / dias)}/dia · ${brl(val[i] / semanas)}/semana</span></div></div>`).join("");
+    // cadência por fase
+    $("#kCadencia").innerHTML = `<thead><tr><th>Fase</th><th>Objetivo</th><th>Público</th><th>Cadência de conteúdo</th><th class="n">Por dia</th><th class="n">Conjuntos</th></tr></thead><tbody>${FASES.map((f, i) => {
+      const dia = val[i] / dias, conj = Math.max(1, Math.min(3, Math.floor(dia / 20)));
+      return `<tr><td><b>${esc(f.nome)}</b></td><td>${esc(f.obj)}</td><td>${esc(f.pub)}</td><td>${esc(f.cad)}</td><td class="n">${brl(dia)}${dia < 10 ? `<br><span class="small" style="color:var(--warn)">baixo</span>` : ""}</td><td class="n">${conj}</td></tr>`; }).join("")}</tbody>`;
+    // cadência semanal do investimento
+    let resto = dias;
+    $("#kSemanas").innerHTML = `<thead><tr><th>Semana</th><th class="n">Dias</th>${FASES.map((f) => `<th class="n">${esc(f.nome.split(" · ")[0])}</th>`).join("")}<th class="n">Total</th><th>O que fazer</th></tr></thead><tbody>${Array.from({ length: semanas }, (_, s) => {
+      const d = Math.min(7, resto); resto -= d; const v = val.map((x) => (x / dias) * d);
+      const acao = s === 0 ? "Fase de aprendizado: suba os anúncios e não altere por 7 dias." : s === 1 ? "Pause os anúncios com custo por conversa muito acima da média; duplique os melhores." : s === semanas - 1 ? "Feche o mês: compare leads, comparecimentos e fechamentos no Comercial e ajuste a divisão." : "Renove os criativos do topo; reforce o remarketing no fundo.";
+      return `<tr><td>${s + 1}</td><td class="n">${d}</td>${v.map((x) => `<td class="n">${brl(x)}</td>`).join("")}<td class="n"><b>${brl(v.reduce((a, b) => a + b, 0))}</b></td><td class="small">${acao}</td></tr>`; }).join("")}</tbody>`;
+    // projeção
+    const leads = C.cpl ? C.invest / C.cpl : 0, ag = leads * C.agend / 100, cp = ag * C.comp / 100, fe = cp * C.fech / 100, fat = fe * C.ticket;
+    kpis("#kProj", [
+      ["Leads previstos", Math.round(leads), `custo por lead ${brl(C.cpl)}`],
+      ["Agendamentos", Math.round(ag), `${C.agend}% dos leads`],
+      ["Comparecimentos", Math.round(cp), `${C.comp}% dos agendados · custo ${cp ? brl(C.invest / cp) : "—"} cada`],
+      ["Fechamentos", fe.toFixed(1).replace(".", ","), `${C.fech}% de quem comparece · custo ${fe ? brl(C.invest / fe) : "—"}`]
+    ]);
+    kpis("#kRet", [
+      ["Faturamento previsto", brl(fat), `ticket médio ${brl(C.ticket)}`, true],
+      ["Retorno sobre o investimento", C.invest ? (fat / C.invest).toFixed(1).replace(".", ",") + "x" : "—", "faturamento ÷ investimento"],
+      ["Para a meta de " + C.meta + " fechamentos", brl(C.agend && C.comp && C.fech ? (C.meta / (C.agend / 100 * C.comp / 100 * C.fech / 100)) * C.cpl : 0), "investimento estimado no período"],
+      ["Leads necessários para a meta", Math.ceil(C.agend && C.comp && C.fech ? C.meta / (C.agend / 100 * C.comp / 100 * C.fech / 100) : 0), "com as taxas acima"]
+    ]);
+    const r = taxasReais();
+    $("#kReais").innerHTML = r.n >= 5 ? `Números reais (últimos 3 meses, ${r.n} leads): agendamento ${r.agend}%, comparecimento ${r.comp}%, fechamento ${r.fech}%${r.ticket ? `, ticket ${brl(r.ticket)}` : ""}. <button class="btn sm" id="kUsarReais">Usar estes números</button>` : "Ainda há poucos leads registrados no Comercial: use estimativas. Com mais dados, o Alinha sugere as taxas reais da clínica.";
+    const b = $("#kUsarReais"); if (b) b.onclick = () => { Object.assign(CALC, { agend: r.agend || CALC.agend, comp: r.comp || CALC.comp, fech: r.fech || CALC.fech, ticket: r.ticket || CALC.ticket }); ls.set("alinha.calc", CALC); renderCampanhas(); toast("Taxas reais aplicadas"); };
+  }
+  $("#v-campanhas").addEventListener("input", (e) => {
+    const id = e.target.id || ""; if (!id.startsWith("k_")) return;
+    const k = id.slice(2), v = num(e.target.value);
+    if (["topo", "meio", "fundo"].includes(k)) { CALC.dist[["topo", "meio", "fundo"].indexOf(k)] = Math.max(0, Math.min(100, v)); CALC.preset = ""; }
+    else CALC[k] = Math.max(0, v);
+    ls.set("alinha.calc", CALC); renderCampanhas();
+  });
+  $("#kPreset").addEventListener("click", (e) => { const b = e.target.closest("[data-pr]"); if (!b) return; CALC.preset = b.dataset.pr; CALC.dist = PRESETS[b.dataset.pr].slice(); ls.set("alinha.calc", CALC); renderCampanhas(); });
+  $("#kReset").addEventListener("click", () => { CALC = JSON.parse(JSON.stringify(CALC0)); ls.set("alinha.calc", CALC); renderCampanhas(); });
+
+  /* ------------------------------------------------------------ */
   /* Navegação e início                                            */
   /* ------------------------------------------------------------ */
   let vista = "hoje";
   function mostrar(v) {
+    if (!pode(v)) v = ["hoje", "whatsapp", "comercial", "consulta", "followup", "ajustes"].find((x) => pode(x)) || "ajustes";
     vista = v;
     $$("#nav button").forEach((b) => b.classList.toggle("on", b.dataset.v === v));
     $$(".view").forEach((s) => s.classList.toggle("on", s.id === "v-" + v));
@@ -1346,6 +1628,8 @@
     if (vista === "ajustes") renderAjustes();
     if (vista === "whatsapp") renderWA();
     if (vista === "resultados") renderResultados();
+    if (vista === "comercial") renderComercial();
+    if (vista === "campanhas") renderCampanhas();
   }
 
   /* lema da marca: Alinha a conversa → o orçamento → o fechamento → o tratamento → o sorriso */
@@ -1385,7 +1669,7 @@
     const el = $("#atVersao"); if (!el) return;
     el.textContent = VERSAO;
     $("#atNovidades").innerHTML = NOVIDADES.map((n) => `<div class="nov"><b>Versão ${n.v}</b> <span class="dim small">· ${n.data}</span><ul>${n.itens.map((i) => `<li>${esc(i)}</li>`).join("")}</ul></div>`).join("");
-    $("#btnBackup").classList.toggle("hide", !PLAT);
+    $("#btnBackup").classList.toggle("hide", !PLAT || !pode("exportar"));
   }
 
   async function iniciar() {
@@ -1396,7 +1680,8 @@
     }
     const ehAdmin = !PLAT || PLAT.papel === "admin";
     document.body.classList.toggle("perfil-equipe", !ehAdmin);
-    $("#modoInfo").innerHTML = (PLAT ? `${ehAdmin ? "Administrador" : "Equipe"} · IA ${PLAT.ia ? "ativa" : "desligada"}<br><a href="sair" style="color:inherit">Sair</a>` : "Modo demonstração") + `<br><span style="opacity:.7">Weiss Odontologia · v${VERSAO}</span>`;
+    aplicarPermissoes();
+    $("#modoInfo").innerHTML = (PLAT ? `${PAPEL_NOME[papel()] || "Equipe"} · IA ${PLAT.ia ? "ativa" : "desligada"}<br><a href="sair" style="color:inherit">Sair</a>` : "Modo demonstração") + `<br><span style="opacity:.7">Weiss Odontologia · v${VERSAO}</span>`;
     renderAtualizacoes();
     if (PLAT) { verificarAtualizacao(false); setInterval(() => verificarAtualizacao(false), 5 * 60 * 1000); }
     carregarConversas().then(() => { if (vista === "whatsapp") renderWA(); });
@@ -1406,7 +1691,7 @@
     }
     $("#pillIA").textContent = PLAT && PLAT.ia ? "IA ouvindo + roteiro" : "Dicas do roteiro";
     try { await Store.carregar(); } catch (e) { toast("Não foi possível carregar os dados: " + e.message); }
-    renderAjustes(); render();
+    renderAjustes(); mostrar(vista);
   }
   iniciar();
 })();

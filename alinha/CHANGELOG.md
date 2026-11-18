@@ -1,5 +1,12 @@
 # Novidades do Alinha
 
+## 1.8.0 — nov/2026
+- Nova tela **Comercial**: funil do mês (leads que entraram › agendaram › compareceram › fecharam), faltas, não fechados, follow-up de orçamento e recuperados, por unidade e mês.
+- **CRM-Pipeline** com funil de leads e funil de clientes; arrastar e soltar; ficha do lead; quem comparece vira cliente e entra no follow-up D0.
+- Conversa nova no WhatsApp cria o lead no CRM automaticamente (opcional); na conversa, botão "Adicionar ao CRM" / "Ver no CRM".
+- Nova tela **Campanhas**: calculadora da pirâmide (topo, meio, fundo), cadência por fase e semanal, projeção de resultados e investimento para a meta.
+- **Permissões** por perfil: Administrador, Operacional e CRC (usuário `crc`, senha `SENHA_CRC`), ajustáveis em Ajustes e aplicadas também no servidor.
+
 ## 1.7.0 — nov/2026
 - Nova tela **Resultados**: pacientes por tratamento de interesse e por tratamento fechado (barras, tabela, conversão, valor fechado e ticket médio), com filtro de período e unidade.
 - Interesse nas conversas de WhatsApp: tratamentos e assuntos mais falados.

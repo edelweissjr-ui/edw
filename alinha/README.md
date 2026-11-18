@@ -34,6 +34,14 @@ As conversas dos WhatsApps de **Caruaru e Recife**, que já estão ligados ao Ko
 
 **Ligar (uma vez):** no Kommo, **Configurações › Integrações › Webhooks**, cadastre `https://SEU-ENDERECO/webhooks/kommo/VALOR_DE_KOMMO_CHAVE_WEBHOOK` (o valor aparece no Render, em Environment) e marque os eventos de **mensagem recebida** e **mensagem enviada**. O webhook da IA atual continua funcionando.
 
+## Comercial: funil do mês e CRM-Pipeline
+- **Funil do mês**: dos leads que entraram no mês, quantos agendaram, compareceram, fecharam, faltaram e não fecharam (com as taxas de agendamento, comparecimento e fechamento), por unidade.
+- **Follow-up de orçamento no mês**: orçamentos apresentados, fechados, não fechados, em follow-up e recuperados pelo follow-up.
+- **CRM-Pipeline**: funil de leads (Lead novo › Em contato › Agendou › Faltou) e funil de clientes (Compareceu · orçamento › Fechou › Não fechou). Arraste os cards entre as etapas. **Quem comparece na clínica vira cliente** e entra no follow-up do orçamento (D0). Conversas novas no WhatsApp criam o lead sozinhas (pode desligar em Ajustes).
+
+## Campanhas: calculadora da pirâmide
+Informe o valor investido e os dias de campanha. O Alinha divide o investimento entre **topo (atração), meio (consideração) e fundo (conversão)** — com divisões prontas (50/30/20, 60/25/15, 40/30/30, 70/20/10) ou a sua —, mostra o valor por fase por dia e por semana, a **cadência** de conteúdo e de investimento semana a semana e a **projeção**: leads, agendamentos, comparecimentos, fechamentos, faturamento, retorno e o investimento necessário para a meta. As taxas podem vir dos números reais do Comercial.
+
 ## Resultados, perfil DISC e Social Selling
 - **Resultados**: quantos pacientes têm interesse em cada tratamento e quantos fecharam (conversão, valor fechado e ticket médio), por período e unidade. Também mostra os tratamentos e assuntos mais falados no WhatsApp. O tratamento vem da consulta, da conversa de WhatsApp ou do campo Tratamento na ficha do paciente.
 - **Perfil DISC**: durante a consulta (painel Método) e em cada conversa de WhatsApp, o Alinha lê o jeito de falar do paciente e indica o perfil predominante (Dominante, Influente, Estável ou Analítico) e como falar com ele. É uma leitura indicativa, para adaptar a comunicação; não é diagnóstico nem rótulo do paciente.
@@ -55,7 +63,7 @@ Abra `alinha/index.html` no navegador. O sistema abre em **modo demonstração**
 O Alinha roda na Vercel como uma função (`api/index.js`) e guarda os dados no **Upstash Redis** (instalado pela própria Vercel).
 1. **vercel.com** › entre com o GitHub › **Add New › Project** › importe o repositório `edw`.
 2. Em **Root Directory**, escolha **`alinha`**. Framework: **Other**.
-3. Em **Environment Variables**, adicione: `SENHA_ADMIN`, `SENHA_ACESSO`, `ANTHROPIC_API_KEY`, `MODELO_DICAS` (`claude-haiku-5-5`, opcional), `KOMMO_SUBDOMINIO` (`edelweissjrhotmailcom`), `KOMMO_TOKEN` e `KOMMO_CHAVE_WEBHOOK` (invente um texto longo, sem espaços).
+3. Em **Environment Variables**, adicione: `SENHA_ADMIN`, `SENHA_ACESSO`, `SENHA_CRC`, `ANTHROPIC_API_KEY`, `MODELO_DICAS` (`claude-haiku-5-5`, opcional), `KOMMO_SUBDOMINIO` (`edelweissjrhotmailcom`), `KOMMO_TOKEN` e `KOMMO_CHAVE_WEBHOOK` (invente um texto longo, sem espaços).
 4. **Deploy**.
 5. No projeto: **Storage › Create Database › Upstash (Redis)** › conecte ao projeto (as variáveis `KV_REST_API_URL` e `KV_REST_API_TOKEN` entram sozinhas) › **Deployments › Redeploy**.
 6. Abra `https://SEU-PROJETO.vercel.app/login`. Se aparecer o aviso "banco de dados não está conectado", refaça o passo 5.
@@ -105,7 +113,7 @@ Na hospedagem, adicione a variável **`APP_URL`** com o endereço completo, por 
 ## Colocar no ar para a equipe
 1. Chave da IA: **console.anthropic.com** › Billing (crédito) › API Keys › Create Key.
 2. **render.com** › New › **Blueprint** › repositório `edw` (o arquivo `render.yaml` já está pronto).
-3. Preencha `SENHA_ADMIN`, `SENHA_ACESSO` e `ANTHROPIC_API_KEY` (e `KOMMO_TOKEN`, se quiser enviar o briefing ao Kommo).
+3. Preencha `SENHA_ADMIN`, `SENHA_ACESSO`, `SENHA_CRC` e `ANTHROPIC_API_KEY` (e `KOMMO_TOKEN`, se quiser enviar o briefing ao Kommo).
 4. Abra o endereço gerado, digite a senha e cadastre a equipe em **Ajustes**.
 
 Custo: hospedagem ≈ US$ 7/mês + uso da IA (centavos por consulta). Sem limite de consultas.
@@ -116,13 +124,14 @@ Na consulta, o botão **🎙 Automático** fica ativo: a sua voz é marcada como
 - Não grava áudio: guarda só uma "impressão" numérica do timbre e do tom.
 - Funciona melhor com o microfone perto do profissional e em sala silenciosa. Vozes muito parecidas podem confundir; por isso a correção com um toque continua disponível, e a IA também corrige pelo conteúdo ao gerar o briefing.
 
-## Acessos
-| Usuário | Senha (variável no Render) | Pode |
+## Acessos e permissões
+| Usuário | Senha (variável na hospedagem) | Pode (padrão) |
 |---|---|---|
-| `admin` | `SENHA_ADMIN` | Tudo: equipe, condição especial, apagar dados, baixar cópias, funis |
-| `equipe` | `SENHA_ACESSO` | Uso diário: consultas, briefings, follow-up, mensagens e cadastro da própria voz |
+| `admin` | `SENHA_ADMIN` | Tudo: todas as telas, ajustes, equipe, permissões, domínio, conectar celular, apagar dados, baixar cópias |
+| `operacional` | `SENHA_ACESSO` (ou `SENHA_OPERACIONAL`) | Hoje, Consulta, Briefings, Follow-up e Comercial (CRM: marcar comparecimento e falta) |
+| `crc` | `SENHA_CRC` | Hoje, WhatsApp (com envio pelo celular), Briefings, Follow-up e Comercial (CRM) |
 
-Se `SENHA_ADMIN` não for definida, a senha da equipe tem acesso total. Após 8 senhas erradas, o acesso fica bloqueado por 15 minutos.
+O administrador muda o que cada perfil vê em **Ajustes › Permissões** (telas e ações). As regras valem também no servidor: um perfil sem permissão recebe "acesso negado" mesmo que tente abrir o endereço direto. O usuário antigo `equipe` continua entrando como Operacional. Se `SENHA_ADMIN` não for definida, a senha do Operacional tem acesso total. Após 8 senhas erradas, o acesso fica bloqueado por 15 minutos.
 
 ## Uso no dia a dia
 - **Na consulta:** tela Consulta › nome e WhatsApp do paciente › marque a autorização › **Iniciar**. Deixe o computador ou tablet ao lado. No fim, **Parar e gerar briefing**.

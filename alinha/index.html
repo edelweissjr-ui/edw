@@ -76,8 +76,8 @@ main{min-width:0;padding:26px max(16px,env(safe-area-inset-right,0px)) 90px max(
   .app{grid-template-columns:1fr}
   .side{position:fixed;inset:auto 0 0 0;height:auto;flex-direction:row;padding:6px max(8px,env(safe-area-inset-left,0px)) calc(6px + env(safe-area-inset-bottom,0px));border-right:0;border-top:1px solid var(--line);z-index:30}
   .side .logo,.side .foot{display:none}
-  .nav{flex-direction:row;width:100%;justify-content:space-around}
-  .nav button{flex-direction:column;gap:3px;font-size:12.5px;padding:6px 4px;flex:1;align-items:center;text-align:center}
+  .nav{flex-direction:row;width:100%;justify-content:space-around;overflow-x:auto;scrollbar-width:none}
+  .nav button{flex-direction:column;gap:3px;font-size:12.5px;padding:6px 4px;flex:1 0 64px;align-items:center;text-align:center}
   .nav .badge{position:absolute;margin-left:16px;margin-top:-4px}
   main{padding-top:18px}
 }
@@ -309,6 +309,33 @@ body.perfil-equipe #gApagar{display:none!important}
 .qrbox img,.qrbox canvas{display:block}
 .qrmini{background:#fff;border-radius:12px;padding:10px;line-height:0}
 .qrmini:empty{display:none}
+/* comercial */
+.funil{display:flex;flex-direction:column;gap:12px}
+.funil .fl{display:grid;grid-template-columns:130px minmax(0,1fr) 230px;gap:12px;align-items:center}
+@media (max-width:760px){.funil .fl{grid-template-columns:96px minmax(0,1fr)}.funil .val{grid-column:2}}
+.funil .nome{font-weight:700}
+.funil .trilho{height:22px;background:var(--surface-2);border-radius:6px;overflow:hidden}
+.funil .trilho b{display:block;height:100%;background:var(--s-interesse);border-radius:0 4px 4px 0}
+.funil .val strong{font-size:20px;margin-right:8px}
+.funil .val span{font-size:13.5px;color:var(--dim)}
+.pipeline{display:flex;flex-direction:column;gap:16px}
+.pghead{font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--dim);margin-bottom:8px}
+.pghead.cliente{color:var(--good)}
+.pipe{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(220px,1fr);gap:12px;overflow-x:auto;padding-bottom:6px}
+.pipe .col.alvo{outline:2px dashed var(--accent);outline-offset:2px}
+.pipe .pc[draggable=true]{cursor:grab}
+.calc{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:14px;align-items:start}
+@media (max-width:1000px){.calc{grid-template-columns:1fr}}
+.trio{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.piramide{display:flex;flex-direction:column;gap:6px}
+.piramide .camada{display:flex;flex-direction:column;align-items:center;gap:4px}
+.piramide .forma{width:var(--w);height:64px;display:flex;align-items:center;justify-content:center;clip-path:polygon(0 0,100% 0,89% 100%,11% 100%);color:#fff}
+.piramide .forma b{font-size:22px}
+.piramide .c0 .forma{background:#4B3CC9}.piramide .c1 .forma{background:#5F50E0}.piramide .c2 .forma{background:#7464EE}
+.piramide .info{text-align:center;font-size:14px}.piramide .info strong{display:block}.piramide .info span{color:var(--dim);font-size:13.5px}
+.tabela.quebra td{white-space:normal;vertical-align:top;min-width:120px}
+.tabela.perm td.c,.tabela.perm th.c{text-align:center}
+.tabela.perm input{width:18px;height:18px}
 /* DISC */
 .disc{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
 .disc>div{display:flex;flex-direction:column;gap:4px;align-items:center}
@@ -351,10 +378,12 @@ body.perfil-equipe #gApagar{display:none!important}
     <nav class="nav" id="nav">
       <button data-v="hoje" class="on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 12h4l3-8 4 16 3-8h4"/></svg>Hoje<span class="badge hide" id="badgeHoje"></span></button>
       <button data-v="whatsapp"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.5 11.6a8.4 8.4 0 0 1-12.4 7.4L3.5 20.5l1.6-4.4A8.4 8.4 0 1 1 20.5 11.6z"/><path d="M9 9.5c.4 2 2.3 4 4.5 4.6"/></svg>WhatsApp<span class="badge hide" id="badgeWA"></span></button>
+      <button data-v="comercial"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 4h18l-7 8v6l-4 2v-8z"/></svg>Comercial</button>
       <button data-v="consulta"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0M12 17v5"/></svg>Consulta</button>
       <button data-v="briefings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 2h9l5 5v15H6z"/><path d="M14 2v6h6M9 13h7M9 17h5"/></svg>Briefings</button>
       <button data-v="followup"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="5" height="16" rx="1.5"/><rect x="10" y="4" width="5" height="11" rx="1.5"/><rect x="17" y="4" width="4" height="7" rx="1.5"/></svg>Follow-up</button>
       <button data-v="resultados"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Resultados</button>
+      <button data-v="campanhas"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 3 2 21h20z"/><path d="M6.5 13h11M9.5 8h5"/></svg>Campanhas</button>
       <button data-v="ajustes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1.2l2-1.5-2-3.4-2.4 1a7 7 0 0 0-2-1.2L14 3h-4l-.5 2.6a7 7 0 0 0-2 1.2l-2.4-1-2 3.4 2 1.5A7 7 0 0 0 5 12c0 .4 0 .8.1 1.2l-2 1.5 2 3.4 2.4-1a7 7 0 0 0 2 1.2L10 21h4l.5-2.6a7 7 0 0 0 2-1.2l2.4 1 2-3.4-2-1.5c.1-.4.1-.8.1-1.2z"/></svg>Ajustes</button>
     </nav>
     <div class="foot" id="modoInfo">Modo demonstração</div>
@@ -485,6 +514,52 @@ body.perfil-equipe #gApagar{display:none!important}
       </div>
     </section>
 
+    <!-- COMERCIAL -->
+    <section class="view" id="v-comercial">
+      <div class="head"><div><h1>Comercial</h1><p>Do lead que entrou ao tratamento fechado. Quem comparece na clínica passa a ser cliente.</p></div>
+        <div class="row"><input class="in" type="month" id="comMes" aria-label="Mês" style="width:auto">
+        <div class="chips" id="comUnidade"><button data-u="" class="on">Todas</button><button data-u="Caruaru">Caruaru</button><button data-u="Recife">Recife</button></div></div></div>
+      <div class="card stack">
+        <div class="row"><h3 class="grow" id="comTitulo">Leads do mês</h3><span class="small dim">de quem entrou no mês, até onde cada um chegou</span></div>
+        <div class="funil" id="comFunil"></div>
+      </div>
+      <div class="kpis" id="comKpis" style="margin-top:14px"></div>
+      <div class="row" style="margin:6px 0 10px"><h3 class="grow">Follow-up de orçamento no mês</h3><span class="small dim">clientes que compareceram no mês</span></div>
+      <div class="kpis" id="comOrc"></div>
+      <div class="row" style="margin:10px 0"><h2 class="grow" style="font-size:20px">CRM · Pipeline</h2><input class="in" id="comBusca" placeholder="Buscar nome ou telefone" style="width:220px"><button class="btn pri" id="btnNovoLead">+ Novo lead</button></div>
+      <p class="small dim" style="margin:-4px 0 10px">Arraste o card para mudar de etapa ou toque nele para abrir a ficha.</p>
+      <div id="pipeline" class="pipeline"></div>
+    </section>
+
+    <!-- CAMPANHAS -->
+    <section class="view" id="v-campanhas">
+      <div class="head"><div><h1>Calculadora de campanhas</h1><p>Divida o investimento pela pirâmide (topo, meio e fundo), veja a cadência e o retorno previsto.</p></div><button class="btn ghost" id="kReset">Restaurar padrão</button></div>
+      <div class="calc">
+        <div class="card stack">
+          <h3>Investimento</h3>
+          <div class="duo"><div><label class="f" for="k_invest">Valor investido no período (R$)</label><input class="in num" id="k_invest" inputmode="decimal"></div>
+            <div><label class="f" for="k_dias">Dias de campanha</label><input class="in num" id="k_dias" inputmode="numeric"></div></div>
+          <div><span class="label">Divisão pela pirâmide</span><div class="chips" id="kPreset" style="margin-top:6px"><button data-pr="equilibrado">Equilibrado 50/30/20</button><button data-pr="captacao">Mais captação 60/25/15</button><button data-pr="conversao">Mais conversão 40/30/30</button><button data-pr="lancamento">Novo público 70/20/10</button></div></div>
+          <div class="trio"><div><label class="f" for="k_topo">Topo (%)</label><input class="in num" id="k_topo" inputmode="numeric"></div><div><label class="f" for="k_meio">Meio (%)</label><input class="in num" id="k_meio" inputmode="numeric"></div><div><label class="f" for="k_fundo">Fundo (%)</label><input class="in num" id="k_fundo" inputmode="numeric"></div></div>
+          <p class="small" id="kSoma" style="margin:0;color:var(--warn)"></p>
+          <h3 style="margin-top:6px">Taxas do funil</h3>
+          <div class="duo"><div><label class="f" for="k_cpl">Custo por lead (R$)</label><input class="in num" id="k_cpl" inputmode="decimal"></div><div><label class="f" for="k_ticket">Ticket médio (R$)</label><input class="in num" id="k_ticket" inputmode="decimal"></div></div>
+          <div class="trio"><div><label class="f" for="k_agend">Agendamento (%)</label><input class="in num" id="k_agend" inputmode="numeric"></div><div><label class="f" for="k_comp">Comparecimento (%)</label><input class="in num" id="k_comp" inputmode="numeric"></div><div><label class="f" for="k_fech">Fechamento (%)</label><input class="in num" id="k_fech" inputmode="numeric"></div></div>
+          <div><label class="f" for="k_meta">Meta de fechamentos no período</label><input class="in num" id="k_meta" inputmode="numeric" style="max-width:160px"></div>
+          <p class="small dim" id="kReais" style="margin:0"></p>
+        </div>
+        <div class="card stack">
+          <h3>Pirâmide do investimento</h3>
+          <div class="piramide" id="kPiramide"></div>
+        </div>
+      </div>
+      <div class="kpis" id="kProj" style="margin-top:14px"></div>
+      <div class="kpis" id="kRet"></div>
+      <div class="card stack"><h3>Cadência por fase</h3><div style="overflow-x:auto"><table class="tabela quebra" id="kCadencia"></table></div></div>
+      <div class="card stack" style="margin-top:14px"><h3>Cadência semanal do investimento</h3><div style="overflow-x:auto"><table class="tabela" id="kSemanas"></table></div></div>
+      <p class="small dim" style="margin-top:12px">Projeção estimada a partir das taxas informadas; não é garantia de resultado. Anúncios de saúde seguem as normas do CFO: sem preço promocional ou desconto em anúncio, sem promessa de resultado e sem antes e depois sensacionalista.</p>
+    </section>
+
     <!-- AJUSTES -->
     <section class="view" id="v-ajustes">
       <div class="head"><div><h1>Ajustes</h1></div></div>
@@ -494,6 +569,13 @@ body.perfil-equipe #gApagar{display:none!important}
           <div><label class="f" for="aEquipe">Nomes (separados por vírgula)</label><input class="in" id="aEquipe"></div>
           <div><label class="f" for="aCondicao">Condição especial vigente (só se for real)</label><input class="in" id="aCondicao" placeholder="ex.: check-up digital abatido no tratamento até 30/11"></div>
           <div class="row"><button class="btn pri" id="btnSalvarAjustes">Salvar</button><span class="small dim" id="ajStatus"></span></div>
+        </div>
+        <div class="card stack so-admin" id="cardPermissoes">
+          <h3>Permissões</h3>
+          <p class="small dim" style="margin:0">Cada perfil entra com o seu usuário: <b>admin</b>, <b>operacional</b> ou <b>crc</b> (as senhas ficam na hospedagem). Marque o que cada perfil pode ver e fazer.</p>
+          <div style="overflow-x:auto"><table class="tabela perm" id="permTabela"></table></div>
+          <label class="row" style="gap:8px;font-weight:600"><input type="checkbox" id="aLeadsAuto"> Criar lead no CRM automaticamente quando chega conversa nova no WhatsApp</label>
+          <div class="row"><button class="btn pri" id="btnSalvarPerm">Salvar permissões</button><button class="btn ghost" id="btnPermPadrao">Restaurar padrão</button><span class="small dim" id="permStatus"></span></div>
         </div>
         <div class="card stack so-admin" id="cardDominio">
           <div class="row"><h3 class="grow">Domínio e endereços</h3><span class="pill" id="domEstado">…</span></div>
@@ -519,7 +601,7 @@ body.perfil-equipe #gApagar{display:none!important}
           <h3>Atualizações</h3>
           <div class="row"><span class="grow">Versão instalada: <b id="atVersao"></b></span><button class="btn" id="btnVerificarAt">Verificar atualizações</button></div>
           <p class="small dim" id="atStatus" style="margin:0">Quando uma nova versão for publicada, aparece um aviso no topo com o botão “Atualizar agora”. Seus pacientes e ajustes são mantidos, e uma cópia de segurança é feita antes de cada atualização.</p>
-          <div class="row"><a class="btn sm hide so-admin" id="btnBackup" href="api/backup">Baixar cópia dos dados</a></div>
+          <div class="row"><a class="btn sm hide" id="btnBackup" href="api/backup">Baixar cópia dos dados</a></div>
           <div><span class="label">Novidades</span><div id="atNovidades" style="margin-top:6px"></div></div>
         </div>
         <div class="card stack" id="cardVoz">
