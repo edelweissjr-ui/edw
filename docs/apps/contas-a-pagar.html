@@ -60,6 +60,15 @@ button,select,input,textarea{font:inherit;color:inherit}
 .gfilters{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px;align-items:end}
 .rolepill{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:2px 8px;border-radius:99px;background:var(--nav-2);color:var(--nav-hi);margin-top:4px}
 .team{display:flex;flex-direction:column;gap:8px}
+.pending{border:2px solid var(--accent)!important;background:var(--accent-soft)!important;color:var(--fg)!important}
+.thumbbtn{padding:0;border:0;background:none;cursor:zoom-in;border-radius:6px}
+.viewer{position:fixed;inset:0;z-index:80;background:rgba(5,12,24,.85);display:flex;flex-direction:column;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+.viewer header{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:12px max(16px,env(safe-area-inset-right,0px)) 12px max(16px,env(safe-area-inset-left,0px));background:var(--nav);color:var(--nav-fg)}
+.viewer header b{flex:1;min-width:0;overflow-wrap:anywhere}
+.viewer header .btn{color:var(--fg)}
+.viewer .vbody{flex:1;overflow:auto;display:flex;flex-direction:column;align-items:center;gap:14px;padding:16px}
+.viewer .vbody img,.viewer .vbody canvas{max-width:100%;height:auto;background:#fff;border-radius:6px;box-shadow:0 6px 24px rgba(0,0,0,.4)}
+.viewer .vmsg{color:#e8eef8;text-align:center;max-width:420px;margin-top:40px}
 .team .mem{display:flex;align-items:center;gap:12px;flex-wrap:wrap;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 14px}
 .team .mem b{flex:1;min-width:160px}
 .sidefoot{margin-top:auto;font-size:12px;color:var(--nav-muted);padding:0 8px;line-height:1.5}
@@ -515,6 +524,10 @@ details.card summary{cursor:pointer;font-weight:700}
     <button class="btn primary" id="wNext" type="button">Próximo</button>
   </footer>
 </aside>
+<div id="viewer" class="viewer" hidden role="dialog" aria-label="Comprovante">
+  <header><b id="vTitle">Comprovante</b><button class="btn small" type="button" id="vPrint">Imprimir comprovante</button><button class="btn small" type="button" id="vSave">Baixar arquivo</button><button class="btn small" type="button" id="vClose">Fechar ✕</button></header>
+  <div class="vbody" id="vBody"></div>
+</div>
 <div id="bubble" class="bubble" hidden role="tooltip"></div>
 <div id="toast" class="toast" hidden role="status"></div>
 
@@ -629,7 +642,7 @@ const state = {
   bills: [], loaded:false, canWrite:true, db:null, col:null, uid:null, assets:null, downloads:null, isOwner:false,
   view: "contas", mode:"week", weekStart: mondayOf(new Date()), from:null, to:null,
   unit: store("cp_unit")||"", status:"", open:new Set(), confirmDel:null, editing:null, uploading:null,
-  fiscal:null, fiscalRef:null, fMes:new Date().getMonth(), pfDesp:[], pfCol:null, admins:[], team:[], gType:"both", editSrc:"contas", step:0, maxStep:0
+  fiscal:null, fiscalRef:null, fMes:new Date().getMonth(), pfDesp:[], pfCol:null, pending:{}, admins:[], team:[], gType:"both", editSrc:"contas", step:0, maxStep:0
 };
 if(!["","Caruaru","Recife"].includes(state.unit)) state.unit="";
 const ANO = new Date().getFullYear();
@@ -667,23 +680,29 @@ function filtered(){
 }
 
 function receiptHTML(b){
-  const c=b.comprovante;
+  const c=b.comprovante, pend=state.pending[b.id], can=canManage()&&state.assets;
+  if(pend){
+    const isImg=/^image\//.test(pend.file.type||"");
+    return '<div class="receipt"><span class="lbl">Comprovante selecionado · ainda não salvo</span><div class="box pending">'+
+      (isImg?'<img src="'+pend.url+'" alt="Prévia do comprovante">':'<span style="font-size:28px" aria-hidden="true">📄</span>')+
+      '<div style="display:flex;flex-direction:column;gap:6px;min-width:0"><span style="overflow-wrap:anywhere;font-weight:600">'+esc(pend.file.name||"comprovante")+'</span>'+
+      '<span class="note">'+(Math.round(pend.file.size/1024))+' KB · confira e toque em Salvar'+(b.status!=="pago"?'. A conta será marcada como paga.':'.')+'</span>'+
+      (state.uploading===b.id?'<span class="note"><b>Salvando…</b></span>':'<div class="copyrow"><button class="btn small primary" type="button" data-act="savecomp" data-id="'+b.id+'">Salvar comprovante</button><button class="btn small" type="button" data-act="cancelcomp" data-id="'+b.id+'">Cancelar</button></div>')+
+      '</div></div></div>';
+  }
   if(c){
     const isImg=/^image\//.test(c.tipo||"");
     return '<div class="receipt"><span class="lbl">Comprovante de pagamento</span><div class="box">'+
-      (isImg?'<a href="'+esc(c.url)+'" target="_blank" rel="noopener"><img src="'+esc(c.url)+'" alt="Comprovante"></a>':'')+
+      (isImg?'<button class="thumbbtn" type="button" data-act="viewcomp" data-id="'+b.id+'" aria-label="Abrir comprovante"><img src="'+esc(c.url)+'" alt="Comprovante"></button>':'')+
       '<div style="display:flex;flex-direction:column;gap:6px;min-width:0"><span style="overflow-wrap:anywhere;font-weight:600">'+esc(c.nome||"comprovante")+'</span>'+
       '<span class="note">Anexado em '+fmtFull((c.enviadoEm||"").slice(0,10))+'</span>'+
-      '<div class="copyrow"><a class="btn small" href="'+esc(c.url)+'" target="_blank" rel="noopener">Abrir comprovante</a>'+
-      (canManage()&&state.assets?'<span class="btn small filebtn">Trocar<input type="file" accept="image/*,application/pdf" data-upload="'+b.id+'" aria-label="Trocar comprovante"></span>'+
+      '<div class="copyrow"><button class="btn small primary" type="button" data-act="viewcomp" data-id="'+b.id+'">Abrir comprovante</button><button class="btn small" type="button" data-act="printcomp" data-id="'+b.id+'">Imprimir comprovante</button>'+
+      (can?'<span class="btn small filebtn">Trocar<input type="file" accept="image/*,application/pdf" data-upload="'+b.id+'" aria-label="Trocar comprovante"></span>'+
         (state.confirmDel==="c:"+b.id?'<span class="confirm">Remover? <button class="btn small danger" type="button" data-act="rmcomp-yes" data-id="'+b.id+'">Sim</button><button class="btn small" type="button" data-act="del-no">Não</button></span>':'<button class="btn small danger" type="button" data-act="rmcomp" data-id="'+b.id+'">Remover</button>'):'')+
       '</div></div></div></div>';
   }
-  const can = canManage() && state.assets;
-  const busy = state.uploading===b.id;
   return '<div class="receipt"><span class="lbl">Comprovante de pagamento</span><div class="box missing">'+
-    (busy?'<span>Enviando arquivo…</span>':
-     can?'<span class="btn small primary filebtn">Anexar comprovante (foto ou PDF)<input type="file" accept="image/*,application/pdf" data-upload="'+b.id+'" aria-label="Anexar comprovante"></span><span class="note">Ao anexar, a conta é marcada como paga.</span>'
+    (can?'<span class="btn small primary filebtn">Escolher comprovante (foto ou PDF)<input type="file" accept="image/*,application/pdf" data-upload="'+b.id+'" aria-label="Escolher comprovante"></span><span class="note">Depois de escolher, confira e toque em Salvar.</span>'
         :'<span>Nenhum comprovante anexado.'+(canManage()?' Envio de arquivos indisponível neste acesso.':'')+'</span>')+
     '</div></div>';
 }
@@ -854,9 +873,17 @@ async function togglePay(id){
     toast(paid?(b.comprovante?"Marcada como paga":"Marcada como paga. Anexe o comprovante quando puder."):"Marcada como não paga"); }
   catch(e){ toast(writeErr(e)); }
 }
-async function uploadReceipt(id,file){
+function pickReceipt(id,file){
+  if(!file) return;
+  if(!/^image\//.test(file.type||"") && file.type!=="application/pdf" && !/\.pdf$/i.test(file.name||"")){ toast("Formato não aceito. Escolha uma foto (JPG/PNG) ou um PDF."); return; }
+  if(file.size>20*1024*1024){ toast("Arquivo maior que 20 MB. Escolha uma foto ou PDF menor."); return; }
+  cancelPending(id);
+  state.pending[id]={file,url:URL.createObjectURL(file)}; state.open.add(id); render();
+}
+function cancelPending(id){ const p=state.pending[id]; if(p){ try{URL.revokeObjectURL(p.url);}catch(_){} delete state.pending[id]; } }
+async function uploadReceipt(id){
+  const pend=state.pending[id]; const file=pend&&pend.file;
   if(!file||!state.assets) return;
-  if(file.size>20*1024*1024){ toast("Arquivo maior que 20 MB. Envie uma foto ou PDF menor."); return; }
   const b=findBill(id); if(!b||!colOf(b)) return; const old=b.comprovante;
   state.uploading=id; state.open.add(id); render();
   try{
@@ -865,7 +892,8 @@ async function uploadReceipt(id,file){
     if(b&&b.status!=="pago"){ patch.status="pago"; patch.pagoEm=todayISO(); patch.pagoPor=state.uid||null; }
     await colOf(b).doc(id).update(patch);
     if(old&&old.id){ try{ await state.assets.delete(old.id); }catch(_){} }
-    toast(patch.status?"Comprovante anexado e conta marcada como paga":"Comprovante anexado");
+    cancelPending(id);
+    toast(patch.status?"Comprovante salvo e conta marcada como paga":"Comprovante salvo");
   }catch(e){
     const c=e&&e.code;
     toast(c==="too_large"?"Arquivo grande demais (máx. 20 MB).":c==="unsupported_type"?"Formato não aceito. Envie foto (JPG/PNG) ou PDF.":c==="quota_or_state"?"Espaço de arquivos esgotado. Remova comprovantes antigos.":c==="not_uploader"||c==="not_granted"?"Seu acesso não permite enviar arquivos. Peça para ser convidada como Editor.":"Não foi possível enviar o arquivo. Tente de novo.");
@@ -1188,6 +1216,65 @@ async function chartsPDF(print){
   await savePDF(doc,"graficos-contas_"+d.f+"_a_"+d.t+(print?"_imprimir":"")+".pdf",print);
 }
 
+// ---------- comprovante: abrir / imprimir ----------
+let viewerBill=null, viewerBlob=null;
+function loadScript(src){ return new Promise((ok,ko)=>{ if(document.querySelector('script[src="'+src+'"]')) return ok(); const sc=document.createElement("script"); sc.src=src; sc.onload=ok; sc.onerror=ko; document.head.appendChild(sc); }); }
+async function getPdfjs(){
+  if(!window.pdfjsWorker) await loadScript("https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js");
+  if(!window.pdfjsLib) await loadScript("https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js");
+  return window.pdfjsLib;
+}
+async function fetchReceipt(c){ const r=await fetch(c.url); if(!r.ok) throw new Error("http "+r.status); return await r.blob(); }
+const isPdfRec = c => /pdf/i.test(c.tipo||"") || /\.pdf$/i.test(c.nome||"");
+async function renderPdfPages(blob,scale){
+  const lib=await getPdfjs(); const pdf=await lib.getDocument({data:new Uint8Array(await blob.arrayBuffer())}).promise; const out=[];
+  for(let i=1;i<=Math.min(pdf.numPages,20);i++){ const pg=await pdf.getPage(i); const vp=pg.getViewport({scale}); const cv=document.createElement("canvas"); cv.width=vp.width; cv.height=vp.height; await pg.render({canvasContext:cv.getContext("2d"),viewport:vp}).promise; out.push(cv); }
+  return out;
+}
+async function openViewer(id){
+  const b=findBill(id); if(!b||!b.comprovante) return; const c=b.comprovante;
+  viewerBill=b; viewerBlob=null; $("#vTitle").textContent=(c.nome||"Comprovante")+" · "+b.descricao;
+  const body=$("#vBody"); body.innerHTML='<p class="vmsg">Abrindo comprovante…</p>'; $("#viewer").hidden=false; $("#vClose").focus();
+  try{
+    viewerBlob=await fetchReceipt(c);
+    if(isPdfRec(c)){ const pages=await renderPdfPages(viewerBlob,1.6); body.innerHTML=""; pages.forEach(cv=>body.appendChild(cv)); }
+    else { const im=new Image(); im.alt="Comprovante"; im.src=URL.createObjectURL(viewerBlob); body.innerHTML=""; body.appendChild(im); }
+  }catch(e){
+    if(!isPdfRec(c)){ body.innerHTML='<img src="'+esc(c.url)+'" alt="Comprovante">'; return; }
+    body.innerHTML='<p class="vmsg">Não foi possível mostrar o PDF aqui. Toque em “Baixar arquivo” para abrir no seu computador ou celular.</p>';
+  }
+}
+function closeViewer(){ $("#viewer").hidden=true; $("#vBody").innerHTML=""; viewerBill=null; viewerBlob=null; }
+async function printReceipt(id){
+  const b=findBill(id); if(!b||!b.comprovante) return; const c=b.comprovante;
+  if(!window.jspdf){ toast("O gerador de PDF não carregou. Recarregue a página."); return; }
+  if(!state.downloads){ toast("Download indisponível nesta visualização. Abra o sistema pelo navegador."); return; }
+  toast("Preparando o comprovante para impressão…");
+  try{
+    const blob = (viewerBill&&viewerBill.id===id&&viewerBlob) || await fetchReceipt(c).catch(()=>null);
+    if(!blob && isPdfRec(c)) throw new Error("fetch");
+    let imgs=[];
+    if(isPdfRec(c)){ imgs=(await renderPdfPages(blob,2)).map(cv=>({u:cv.toDataURL("image/jpeg",.92),w:cv.width,h:cv.height})); }
+    else { const url=blob?URL.createObjectURL(blob):c.url; const im=await new Promise((ok,ko)=>{ const i=new Image(); i.onload=()=>ok(i); i.onerror=ko; i.src=url; });
+      const cv=document.createElement("canvas"); cv.width=im.naturalWidth; cv.height=im.naturalHeight; const x=cv.getContext("2d"); x.fillStyle="#fff"; x.fillRect(0,0,cv.width,cv.height); x.drawImage(im,0,0);
+      imgs=[{u:cv.toDataURL("image/jpeg",.92),w:cv.width,h:cv.height}]; }
+    const { jsPDF } = window.jspdf; const doc=new jsPDF({unit:"mm",format:"a4"});
+    imgs.forEach((im,i)=>{ if(i) doc.addPage(); const top=i?10:24, maxW=190, maxH=287-top-10; let w=maxW, h=w*im.h/im.w; if(h>maxH){ h=maxH; w=h*im.w/im.h; }
+      if(!i){ doc.setFontSize(10); doc.setTextColor(15,29,51); doc.text("Comprovante · "+b.descricao+" · "+money(b.valor)+" · venc. "+fmtFull(b.vencimento)+(b.pagoEm?" · pago em "+fmtFull(b.pagoEm):""),10,14); }
+      doc.addImage(im.u,"JPEG",(210-w)/2,top,w,h); });
+    doc.autoPrint();
+    await state.downloads.save({filename:"comprovante_"+(b.descricao||"conta").replace(/[^a-z0-9]+/gi,"-").toLowerCase().slice(0,40)+"_imprimir.pdf",data:doc.output("arraybuffer")});
+    toast("PDF de impressão salvo. Abra o arquivo: a janela da impressora aparece sozinha.");
+  }catch(e){ if(e&&e.code==="declined") return; toast("Não foi possível preparar a impressão. Use “Baixar arquivo” e imprima pelo seu computador."); }
+}
+async function downloadReceipt(){
+  const b=viewerBill; if(!b||!b.comprovante) return;
+  if(!state.downloads){ toast("Download indisponível nesta visualização."); return; }
+  try{ const blob=viewerBlob||await fetchReceipt(b.comprovante); let nm=b.comprovante.nome||"comprovante"; if(!/\.(pdf|png|jpe?g|webp|gif)$/i.test(nm)) nm+= isPdfRec(b.comprovante)?".pdf":".jpg"; nm=nm.replace(/\.jpeg$/i,".jpg").replace(/\.heic$/i,".jpg");
+    await state.downloads.save({filename:nm,data:blob}); toast("Arquivo salvo"); }
+  catch(e){ if(e&&e.code==="declined") return; toast(e&&e.code==="rejected_extension"?"Este formato não pode ser baixado aqui.":"Não foi possível baixar o arquivo."); }
+}
+
 // ---------- equipe ----------
 async function renderEquipe(){
   const el=$("#teamList");
@@ -1204,6 +1291,24 @@ async function setRole(uid,role){
   try{ await state.db.doc("config/acesso").set({admins:next,atualizadoEm:new Date().toISOString()}); toast(role==="admin"?"Agora é administrador":"Agora é funcionário"); }
   catch(e){ toast("Não foi possível alterar o acesso."); }
 }
+
+// ---------- avanço automático entre campos ----------
+function stepFields(){ const fs=document.querySelector('#form fieldset[data-step="'+state.step+'"]'); if(!fs) return [];
+  const out=[]; fs.querySelectorAll("textarea,input,select").forEach(el=>{ if(el.closest("[hidden]")) return; if(el.type==="radio"){ if(!out.some(o=>o.name&&o.name===el.name)) out.push(el); } else out.push(el); }); return out; }
+function advanceFrom(el){
+  if($("#panel").hidden) return;
+  const list=stepFields(), key=el.type==="radio"?el.name:el.id;
+  const ix=list.findIndex(o=>(o.type==="radio"?o.name:o.id)===key);
+  for(let k=ix+1;k<list.length;k++){ const n=list[k];
+    const filled = n.type==="radio" ? !!document.querySelector('input[name="'+n.name+'"]:checked') : n.type==="checkbox" ? false : !!n.value;
+    if(!filled || n.type==="checkbox"){ setTimeout(()=>{ (n.type==="radio"?document.querySelector('input[name="'+n.name+'"]'):n).focus(); },60); return; } }
+  if(validateStep(state.step,true)) setTimeout(()=>wNext(),250); else validateStep(state.step);
+}
+let codeTimer=null;
+document.addEventListener("change",ev=>{ const el=ev.target; if($("#panel").hidden || !el.closest("#form")) return;
+  if(el.id==="f_codigo") return;
+  if(el.type==="date" && (!/^\d{4}-\d{2}-\d{2}$/.test(el.value) || +el.value.slice(0,4)<2000)) return;
+  if(el.tagName==="SELECT" || el.type==="radio" || el.type==="date") advanceFrom(el); });
 
 // ---------- wizard ----------
 const STEPS=["Código","Dados","Classificação","Pagamento","Revisar"];
@@ -1389,10 +1494,14 @@ document.addEventListener("click",async ev=>{
   else if(act==="rmcomp"){ state.confirmDel="c:"+id; render(); }
   else if(act==="del-no"){ state.confirmDel=null; render(); }
   else if(act==="rmcomp-yes") removeReceipt(id);
+  else if(act==="savecomp") uploadReceipt(id);
+  else if(act==="cancelcomp"){ cancelPending(id); render(); }
+  else if(act==="viewcomp") openViewer(id);
+  else if(act==="printcomp") printReceipt(id);
   else if(act==="del-yes"){ try{ const b=findBill(id); await colOf(b).doc(id).delete(); if(b&&b.comprovante&&b.comprovante.id&&state.assets){ try{await state.assets.delete(b.comprovante.id);}catch(_){} } state.open.delete(id); state.confirmDel=null; toast(b&&b._src==="pf"?"Despesa excluída":"Conta excluída"); }catch(e){ toast("Não foi possível excluir."); } }
 });
 document.addEventListener("change",ev=>{
-  const up=ev.target.closest("[data-upload]"); if(up){ uploadReceipt(up.dataset.upload, up.files&&up.files[0]); up.value=""; return; }
+  const up=ev.target.closest("[data-upload]"); if(up){ pickReceipt(up.dataset.upload, up.files&&up.files[0]); up.value=""; return; }
   const fi=ev.target.closest("[data-f]");
   if(fi){ const k=fi.dataset.f; if(fi.dataset.null){ const arr=farrN(k), v=parseMoney(fi.value); arr[+fi.dataset.i]=isNaN(v)?null:v; saveFiscal({[k]:arr}); } else { const arr=farr(k); arr[+fi.dataset.i]=num0(fi.value); saveFiscal({[k]:arr}); } return; }
   const pmap={p_inss:"inss",p_outros:"outros"};
@@ -1408,8 +1517,9 @@ document.addEventListener("change",ev=>{
 });
 document.addEventListener("input",ev=>{ const id=ev.target.id; if(id&&id.startsWith("f_")&&id!=="f_codigo") setErr(id,""); });
 document.addEventListener("keydown",ev=>{
-  if(ev.key==="Escape"){ if(!$("#bubble").hidden){ hideHelp(); return; } if(!$("#panel").hidden) closeForm(); else closeSide(); }
-  if(ev.key==="Enter" && !$("#panel").hidden && ev.target.tagName==="INPUT" && ev.target.type!=="checkbox" && ev.target.type!=="radio"){ ev.preventDefault(); wNext(); }
+  if(ev.key==="Escape"){ if(!$("#bubble").hidden){ hideHelp(); return; } if(!$("#viewer").hidden){ closeViewer(); return; } if(!$("#panel").hidden) closeForm(); else closeSide(); }
+  if(ev.key==="Enter" && !$("#panel").hidden && ev.target.tagName==="INPUT" && ev.target.type!=="checkbox" && ev.target.type!=="radio"){ ev.preventDefault(); advanceFrom(ev.target); }
+  if(ev.key==="Enter" && ev.target.matches && ev.target.matches("input[data-f]")){ ev.preventDefault(); ev.target.blur(); const nx=document.querySelector('input[data-f="'+ev.target.dataset.f+'"][data-i="'+(+ev.target.dataset.i+1)+'"]'); if(nx){ nx.focus(); nx.select(); } }
 });
 window.addEventListener("resize",hideHelp);
 function setRange(f,t){ state.mode="range"; state.from=f||todayISO(); state.to=t||todayISO(); $("#fromD").value=state.from; $("#toD").value=state.to; }
@@ -1424,12 +1534,15 @@ $("#menuBtn").onclick=openSide; $("#sideScrim").onclick=closeSide;
 $("#closePanel").onclick=closeForm; $("#scrim").onclick=closeForm;
 $("#wNext").onclick=wNext; $("#wBack").onclick=wBack;
 $("#form").addEventListener("submit",e=>{e.preventDefault();wNext();});
-$("#f_codigo").addEventListener("input",()=>updateCodeHint(true));
+$("#f_codigo").addEventListener("input",()=>{ updateCodeHint(true); clearTimeout(codeTimer);
+  const a=analyzeCode($("#f_codigo").value);
+  if(state.step===0 && ((a.kind==="boleto"&&!a.partial&&a.valid)||(a.kind==="pix"&&a.valid))) codeTimer=setTimeout(()=>{ if(state.step===0 && !$("#panel").hidden){ wNext(); setTimeout(()=>{ const f=["f_desc","f_valor","f_venc"].find(id=>!$("#"+id).value); if(f) $("#"+f).focus(); },120); } },700); });
 $("#rExcel").onclick=()=>{ const f=$("#rFrom").value,t=$("#rTo").value; if(!f||!t||t<f){ renderRelatorio(); toast("Corrija as datas do relatório."); return; } exportExcel({from:f,to:t,unit:$("#rUnit").value}); };
 const rOpts=()=>{ const f=$("#rFrom").value,t=$("#rTo").value; if(!f||!t||t<f){ renderRelatorio(); toast("Corrija as datas do relatório."); return null; } return {from:f,to:t,unit:$("#rUnit").value}; };
 $("#rPdf").onclick=()=>{ const o=rOpts(); if(o) reportPDF(o,false); };
 $("#rPrint").onclick=()=>{ const o=rOpts(); if(o) reportPDF(o,true); };
 $("#gPdf").onclick=()=>chartsPDF(false);
+$("#vClose").onclick=closeViewer; $("#vPrint").onclick=()=>{ if(viewerBill) printReceipt(viewerBill.id); }; $("#vSave").onclick=downloadReceipt;
 $("#gPrint").onclick=()=>chartsPDF(true);
 $("#rVer").onclick=()=>{ const f=$("#rFrom").value,t=$("#rTo").value; if(!f||!t||t<f){ renderRelatorio(); return; } setRange(f,t); state.unit=$("#rUnit").value; state.status=""; go("contas"); };
 
