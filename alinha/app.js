@@ -8,8 +8,9 @@
   const BIB = window.ROTEIRO, DEMO = window.ALINHA_DEMO;
   /* Versão: na plataforma, vem do servidor (package.json) no momento em que a tela abriu.
      Ao publicar uma atualização, aumente a versão em package.json e registre em NOVIDADES. */
-  let VERSAO = "1.8.0";
+  let VERSAO = "1.8.1";
   const NOVIDADES = [
+    { v: "1.8.1", data: "nov/2026", itens: ["Campanhas: percentual de cada fase editável direto na pirâmide (digitando ou arrastando), com ajuste automático para somar 100% e a opção de salvar a sua divisão"] },
     { v: "1.8.0", data: "nov/2026", itens: ["Comercial: funil do mês com leads que entraram, agendaram, compareceram, faltaram, fecharam e não fecharam, e o follow-up de orçamento", "CRM-Pipeline com funil de leads e de clientes (quem comparece vira cliente), arrastar e soltar", "Campanhas: calculadora da pirâmide (topo, meio e fundo), cadência e projeção de resultados", "Permissões por perfil: Administrador, Operacional e CRC"] },
     { v: "1.7.0", data: "nov/2026", itens: ["Resultados por tratamento: quantos pacientes têm interesse e quantos fecharam em cada tratamento, com conversão, valor e ticket médio", "WhatsApp em três colunas: conversas, o chat normal para escrever e enviar, e o chat sugerido ao lado", "Assuntos de cada conversa (preço, agendamento, medo, prazo…) com filtro e tratamento de interesse detectado", "Perfil DISC do paciente durante a consulta e no WhatsApp, com como falar com cada perfil", "Social Selling no WhatsApp: SPIN e N.E.A.T. acompanhados em cada conversa, com a próxima pergunta pronta"] },
     { v: "1.6.0", data: "nov/2026", itens: ["Pronto para domínio próprio (Registro.br): endereço oficial em APP_URL, redirecionamento do endereço antigo e cabeçalhos de segurança", "Ajustes › Domínio e endereços: login e webhook do Kommo prontos para copiar e verificação do apontamento", "Ícone de app ao adicionar o Alinha à tela de início do celular"] },
@@ -1524,7 +1525,7 @@
     $$("#drawerHost [data-mv]").forEach((b) => (b.onclick = async () => { ler(); if (!p.nome) return; fecharGaveta(); await mover(p, b.dataset.mv); }));
     if ($("#lApagar")) $("#lApagar").onclick = async (e) => { if (e.currentTarget.dataset.c !== "1") { e.currentTarget.dataset.c = "1"; e.currentTarget.textContent = "Toque de novo para apagar"; return; } await Store.remover(p.id); fecharGaveta(); render(); toast("Lead apagado"); };
     if ($("#lConversa")) $("#lConversa").onclick = () => { fecharGaveta(); mostrar("whatsapp"); abrirConversa(String(p.leadId)); };
-    if (novo) setTimeout(() => $("#lNome").focus(), 50);
+    if (novo) setTimeout(() => { const n = $("#lNome"); if (n) n.focus(); }, 50);
   }
   // cliente: a ficha de follow-up + troca de etapa no funil de clientes
   function abrirGavetaCRM(p) {
@@ -1568,8 +1569,20 @@
     const dias = Math.max(1, C.dias), semanas = Math.max(1, Math.ceil(dias / 7));
     $("#kSoma").textContent = soma === 100 ? "" : `As fases somam ${soma}%: o cálculo usa a proporção entre elas.`;
     const val = dist.map((d) => C.invest * d);
-    // pirâmide (invertida: topo largo → fundo estreito)
-    $("#kPiramide").innerHTML = FASES.map((f, i) => `<div class="camada c${i}" style="--w:${100 - i * 22}%"><div class="forma" data-dica="${esc(`${f.nome}: ${Math.round(dist[i] * 100)}% · ${brl(val[i])} no período · ${brl(val[i] / dias)} por dia`)}"><b>${Math.round(dist[i] * 100)}%</b></div><div class="info"><strong>${esc(f.nome)}</strong><span class="num">${brl(val[i])} · ${brl(val[i] / dias)}/dia · ${brl(val[i] / semanas)}/semana</span></div></div>`).join("");
+    // pirâmide (invertida: topo largo → fundo estreito), com o percentual editável em cada camada
+    if (!$("#kPiramide .camada")) $("#kPiramide").innerHTML = FASES.map((f, i) => `<div class="camada c${i}" style="--w:${100 - i * 22}%"><div class="forma"><label class="pyval"><input class="pyin num" data-fase="${i}" inputmode="numeric" aria-label="Percentual da fase ${esc(f.nome)}"><span>%</span></label></div>
+      <input type="range" class="pyrange" min="0" max="100" step="1" data-fase="${i}" aria-label="Ajustar ${esc(f.nome)}">
+      <div class="info"><strong>${esc(f.nome)}</strong><span class="num" data-pyinfo="${i}"></span></div></div>`).join("");
+    FASES.forEach((f, i) => {
+      const inp = $(`#kPiramide .pyin[data-fase="${i}"]`), rg = $(`#kPiramide .pyrange[data-fase="${i}"]`);
+      if (document.activeElement !== inp) inp.value = C.dist[i];
+      if (document.activeElement !== rg) rg.value = C.dist[i];
+      $(`#kPiramide [data-pyinfo="${i}"]`).textContent = `${brl(val[i])} · ${brl(val[i] / dias)}/dia · ${brl(val[i] / semanas)}/semana`;
+      inp.closest(".forma").dataset.dica = `${f.nome}: ${Math.round(dist[i] * 100)}% · ${brl(val[i])} no período · ${brl(val[i] / dias)} por dia`;
+    });
+    $("#kAuto").checked = C.auto !== false;
+    const mb = $('#kPreset [data-pr="minha"]');
+    if (C.minha) { const txt = `Minha divisão ${C.minha.join("/")}`; if (!mb) $("#kPreset").insertAdjacentHTML("beforeend", `<button data-pr="minha">${txt}</button>`); else mb.textContent = txt; $$("#kPreset button").forEach((b) => b.classList.toggle("on", b.dataset.pr === C.preset)); }
     // cadência por fase
     $("#kCadencia").innerHTML = `<thead><tr><th>Fase</th><th>Objetivo</th><th>Público</th><th>Cadência de conteúdo</th><th class="n">Por dia</th><th class="n">Conjuntos</th></tr></thead><tbody>${FASES.map((f, i) => {
       const dia = val[i] / dias, conj = Math.max(1, Math.min(3, Math.floor(dia / 20)));
@@ -1598,15 +1611,33 @@
     $("#kReais").innerHTML = r.n >= 5 ? `Números reais (últimos 3 meses, ${r.n} leads): agendamento ${r.agend}%, comparecimento ${r.comp}%, fechamento ${r.fech}%${r.ticket ? `, ticket ${brl(r.ticket)}` : ""}. <button class="btn sm" id="kUsarReais">Usar estes números</button>` : "Ainda há poucos leads registrados no Comercial: use estimativas. Com mais dados, o Alinha sugere as taxas reais da clínica.";
     const b = $("#kUsarReais"); if (b) b.onclick = () => { Object.assign(CALC, { agend: r.agend || CALC.agend, comp: r.comp || CALC.comp, fech: r.fech || CALC.fech, ticket: r.ticket || CALC.ticket }); ls.set("alinha.calc", CALC); renderCampanhas(); toast("Taxas reais aplicadas"); };
   }
+  // muda uma fase; com "somar 100%" ligado, as outras se ajustam mantendo a proporção entre elas
+  function definirFase(i, v) {
+    v = Math.round(Math.max(0, Math.min(100, v)));
+    const d = CALC.dist.slice(); d[i] = v;
+    if (CALC.auto !== false) {
+      const outras = [0, 1, 2].filter((j) => j !== i), resto = 100 - v, base = outras.reduce((t, j) => t + CALC.dist[j], 0);
+      // arredonda pelos maiores restos (ex.: 30 dividido 3:2 → 18 e 12)
+      const exato = Object.fromEntries(outras.map((j) => [j, base ? (CALC.dist[j] / base) * resto : resto / 2]));
+      outras.forEach((j) => { d[j] = Math.floor(exato[j]); });
+      let falta = 100 - d.reduce((a, b) => a + b, 0);
+      outras.slice().sort((a, b) => (exato[b] - d[b]) - (exato[a] - d[a])).forEach((j) => { if (falta > 0) { d[j]++; falta--; } });
+    }
+    CALC.dist = d;
+    CALC.preset = (Object.entries(PRESETS).find(([, pr]) => pr.join() === d.join()) || [""])[0] || (CALC.minha && CALC.minha.join() === d.join() ? "minha" : "");
+  }
   $("#v-campanhas").addEventListener("input", (e) => {
+    if (e.target.dataset.fase != null) { definirFase(Number(e.target.dataset.fase), num(e.target.value)); ls.set("alinha.calc", CALC); renderCampanhas(); return; }
     const id = e.target.id || ""; if (!id.startsWith("k_")) return;
     const k = id.slice(2), v = num(e.target.value);
-    if (["topo", "meio", "fundo"].includes(k)) { CALC.dist[["topo", "meio", "fundo"].indexOf(k)] = Math.max(0, Math.min(100, v)); CALC.preset = ""; }
+    if (["topo", "meio", "fundo"].includes(k)) definirFase(["topo", "meio", "fundo"].indexOf(k), v);
     else CALC[k] = Math.max(0, v);
     ls.set("alinha.calc", CALC); renderCampanhas();
   });
-  $("#kPreset").addEventListener("click", (e) => { const b = e.target.closest("[data-pr]"); if (!b) return; CALC.preset = b.dataset.pr; CALC.dist = PRESETS[b.dataset.pr].slice(); ls.set("alinha.calc", CALC); renderCampanhas(); });
-  $("#kReset").addEventListener("click", () => { CALC = JSON.parse(JSON.stringify(CALC0)); ls.set("alinha.calc", CALC); renderCampanhas(); });
+  $("#kPreset").addEventListener("click", (e) => { const b = e.target.closest("[data-pr]"); if (!b) return; CALC.preset = b.dataset.pr; CALC.dist = (b.dataset.pr === "minha" ? CALC.minha : PRESETS[b.dataset.pr]).slice(); ls.set("alinha.calc", CALC); renderCampanhas(); });
+  $("#kAuto").addEventListener("change", (e) => { CALC.auto = e.target.checked; if (CALC.auto) definirFase(0, CALC.dist[0]); ls.set("alinha.calc", CALC); renderCampanhas(); });
+  $("#kSalvarDiv").addEventListener("click", () => { CALC.minha = CALC.dist.slice(); CALC.preset = "minha"; ls.set("alinha.calc", CALC); renderCampanhas(); toast(`Divisão ${CALC.minha.join("/")} salva`); });
+  $("#kReset").addEventListener("click", () => { const minha = CALC.minha; CALC = JSON.parse(JSON.stringify(CALC0)); if (minha) CALC.minha = minha; ls.set("alinha.calc", CALC); renderCampanhas(); });
 
   /* ------------------------------------------------------------ */
   /* Navegação e início                                            */

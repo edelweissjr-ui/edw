@@ -331,6 +331,10 @@ body.perfil-equipe #gApagar{display:none!important}
 .piramide .camada{display:flex;flex-direction:column;align-items:center;gap:4px}
 .piramide .forma{width:var(--w);height:64px;display:flex;align-items:center;justify-content:center;clip-path:polygon(0 0,100% 0,89% 100%,11% 100%);color:#fff}
 .piramide .forma b{font-size:22px}
+.pyval{display:flex;align-items:center;gap:2px;font-size:22px;font-weight:800;color:#fff}
+.pyin{width:64px;text-align:center;font:inherit;color:#fff;background:rgba(255,255,255,.14);border:1.5px solid rgba(255,255,255,.45);border-radius:8px;padding:2px 4px}
+.pyin:focus{outline:2px solid #fff;outline-offset:1px;background:rgba(255,255,255,.22)}
+.pyrange{width:min(100%,320px);accent-color:var(--accent)}
 .piramide .c0 .forma{background:#4B3CC9}.piramide .c1 .forma{background:#5F50E0}.piramide .c2 .forma{background:#7464EE}
 .piramide .info{text-align:center;font-size:14px}.piramide .info strong{display:block}.piramide .info span{color:var(--dim);font-size:13.5px}
 .tabela.quebra td{white-space:normal;vertical-align:top;min-width:120px}
@@ -549,8 +553,10 @@ body.perfil-equipe #gApagar{display:none!important}
           <p class="small dim" id="kReais" style="margin:0"></p>
         </div>
         <div class="card stack">
-          <h3>Pirâmide do investimento</h3>
+          <div class="row"><h3 class="grow">Pirâmide do investimento</h3><span class="small dim">toque no % para editar</span></div>
           <div class="piramide" id="kPiramide"></div>
+          <label class="row" style="gap:8px;font-weight:600;font-size:14.5px"><input type="checkbox" id="kAuto" checked> Ajustar as outras fases para somar 100%</label>
+          <div class="row"><button class="btn sm" id="kSalvarDiv">Salvar como minha divisão</button></div>
         </div>
       </div>
       <div class="kpis" id="kProj" style="margin-top:14px"></div>

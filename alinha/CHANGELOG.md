@@ -1,5 +1,10 @@
 # Novidades do Alinha
 
+## 1.8.1 — nov/2026
+- Campanhas: o percentual de cada fase (topo, meio e fundo) é editável direto na pirâmide, digitando no próprio percentual ou arrastando o controle.
+- Opção "Ajustar as outras fases para somar 100%": ao mudar uma fase, as outras se ajustam mantendo a proporção entre elas (pode desligar para editar livremente).
+- Botão "Salvar como minha divisão", que vira um atalho ao lado das divisões prontas.
+
 ## 1.8.0 — nov/2026
 - Nova tela **Comercial**: funil do mês (leads que entraram › agendaram › compareceram › fecharam), faltas, não fechados, follow-up de orçamento e recuperados, por unidade e mês.
 - **CRM-Pipeline** com funil de leads e funil de clientes; arrastar e soltar; ficha do lead; quem comparece vira cliente e entra no follow-up D0.
