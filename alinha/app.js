@@ -839,7 +839,7 @@
       const d = await api("GET", "api/dominio");
       $("#domEndereco").textContent = d.endereco;
       $("#domEstado").className = "pill " + (d.configurado ? "good" : "warn");
-      $("#domEstado").textContent = d.configurado ? "domínio próprio configurado" : "usando o endereço da hospedagem";
+      $("#domEstado").textContent = !d.configurado ? "usando o endereço da hospedagem" : d.redirecionando ? "domínio próprio ativo" : "domínio configurado · aguardando o DNS";
       const linha = (rot, v) => v ? `<div class="sug"><div class="label">${rot}</div><div class="row" style="margin-top:4px"><code class="grow num" style="word-break:break-all;font-size:13.5px">${esc(v)}</code><button class="btn sm" data-copiar="${esc(v)}">Copiar</button></div></div>` : "";
       $("#domWebhooks").innerHTML = linha("Página de login (para a equipe)", d.endereco + "/login") + linha("Webhook do Kommo (Configurações › Integrações › Webhooks)", d.webhooks.kommo) + (d.webhooks.evolution ? linha("Webhook do celular conectado (configurado sozinho)", d.webhooks.evolution) : "");
       if (verificar) {

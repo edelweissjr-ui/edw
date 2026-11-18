@@ -150,6 +150,16 @@ async function guardarMensagensEvo(lista) {
 const hostDaRequisicao = (req) => String(req.headers["x-forwarded-host"] || req.headers.host || "").split(",")[0].trim().toLowerCase();
 const baseDaRequisicao = (req) => CFG.appUrl || `${(req.headers["x-forwarded-proto"] || "http").split(",")[0]}://${hostDaRequisicao(req)}`;
 const hostOficial = () => { try { return CFG.appUrl ? new URL(CFG.appUrl).host.toLowerCase() : ""; } catch { return ""; } };
+// só redireciona para o domínio oficial depois que ele já aponta para algum lugar (evita ficar sem acesso antes do DNS)
+let dominioPronto = { valor: false, em: 0 };
+async function dominioJaAponta() {
+  const host = hostOficial(); if (!host) return false;
+  if (Date.now() - dominioPronto.em < (dominioPronto.valor ? 3600000 : 300000)) return dominioPronto.valor;
+  let ok = false;
+  try { const dnsP = await import("node:dns/promises"); const r = await dnsP.lookup(host.split(":")[0]); ok = !!(r && r.address); } catch { ok = false; }
+  dominioPronto = { valor: ok, em: Date.now() };
+  return ok;
+}
 
 /* WhatsApp: mensagens recebidas e enviadas, entregues pelo webhook do Kommo */
 function lerMensagensKommo(corpo) {
@@ -574,7 +584,7 @@ async function rotas(req, res) {
   if (p === "/saude") return json(res, 200, { ok: true });
   const oficial = hostOficial(), hostAtual = hostDaRequisicao(req);
   if (oficial && hostAtual && hostAtual !== oficial && !/^(localhost|127\.|0\.0\.0\.0|\[::1\])/.test(hostAtual)
-      && (req.method === "GET" || req.method === "HEAD") && !p.startsWith("/webhooks/") && p !== "/versao") {
+      && (req.method === "GET" || req.method === "HEAD") && !p.startsWith("/webhooks/") && p !== "/versao" && (env.APP_URL_FORCAR === "1" || await dominioJaAponta())) {
     res.writeHead(301, { Location: CFG.appUrl + req.url }); return res.end(); // ex.: projeto.vercel.app → domínio próprio
   }
   if (p === "/versao") return json(res, 200, { versao: VERSAO }); // público: só o número da versão
@@ -620,7 +630,8 @@ async function rotas(req, res) {
     const dnsP = await import("node:dns/promises");
     const tentar = async (fn) => { try { return await fn(); } catch { return []; } };
     const [a, cname] = await Promise.all([tentar(() => dnsP.resolve4(host.split(":")[0])), tentar(() => dnsP.resolveCname(host.split(":")[0]))]);
-    return json(res, 200, { ok: true, endereco: base, host, configurado: !!CFG.appUrl, acessoAtual: hostDaRequisicao(req), dns: { a, cname },
+    dominioPronto.em = 0; const redirecionando = CFG.appUrl ? await dominioJaAponta() : false;
+    return json(res, 200, { ok: true, endereco: base, host, configurado: !!CFG.appUrl, redirecionando, acessoAtual: hostDaRequisicao(req), dns: { a, cname },
       webhooks: { kommo: CFG.kommoChaveWebhook ? `${base}/webhooks/kommo/${CFG.kommoChaveWebhook}` : "", evolution: evoOk() ? `${base}/webhooks/evolution/${chaveWebhookEvo()}` : "" } });
   }
   if (p === "/api/config" && req.method === "GET") return json(res, 200, { plataforma: true, endereco: baseDaRequisicao(req), versao: VERSAO, papel, ia: !!anthropic, kommo: kommoOk(), whatsapp: !!CFG.kommoChaveWebhook || evoOk(), celular: evoOk(), armazenamento: STORE.tipo, dadosPersistentes: STORE.persistente, kommoUrl: CFG.kommoSub ? `https://${CFG.kommoSub}.kommo.com` : "" });

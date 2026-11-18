@@ -58,6 +58,19 @@ O Alinha roda na Vercel como uma função (`api/index.js`) e guarda os dados no 
 Observações: o plano Hobby (gratuito) da Vercel é só para uso não comercial; para a clínica, use o plano **Pro**. O Upstash tem plano gratuito (500 mil comandos/mês), suficiente para o uso normal. Cópias de segurança: na Vercel, baixe periodicamente em Ajustes › Atualizações › "Baixar cópia dos dados"; a cada atualização de versão, o Alinha também guarda uma cópia no próprio banco por 90 dias.
 
 ## Domínio próprio (Registro.br)
+
+### Configuração da Weiss: `alinha.weissinfinity.com.br`
+O domínio **weissinfinity.com.br** reúne os sistemas da Weiss, cada um no seu subdomínio (`alinha.`, e os próximos sistemas com outros nomes). `www.weissinfinity.com.br` fica livre para a página principal ou um portal.
+
+1. **Hospedagem:** adicione o domínio `alinha.weissinfinity.com.br` (Vercel: Settings › Domains; Render: já está no `render.yaml`).
+2. **Registro.br** › Domínios › **weissinfinity.com.br** › DNS › Editar zona › Nova entrada:
+   - Tipo **CNAME** · Nome **`alinha`** · Valor **`cname.vercel-dns.com`** (Vercel) ou **`alinha-weiss.onrender.com`** (Render).
+3. **Alinha:** variável `APP_URL` = `https://alinha.weissinfinity.com.br` (no Render já vem preenchida; na Vercel, adicione em Environment Variables).
+4. Aguarde a propagação e, em **Ajustes › Domínio e endereços**, toque em **Verificar apontamento**. Quando o DNS apontar, o estado muda para "domínio próprio ativo" e o endereço antigo passa a redirecionar sozinho.
+
+Pode preencher o `APP_URL` antes do DNS: o redirecionamento **só liga depois que o domínio aponta**, então ninguém fica sem acesso. (Para forçar, use `APP_URL_FORCAR=1`.)
+
+### Outros domínios
 O Alinha funciona em qualquer domínio. Recomendado: um **subdomínio do site da clínica**, como `alinha.odontoweiss.com.br`, que não mexe no site. Também serve um domínio próprio, como `alinhaodonto.com.br`.
 
 **1. Cadastre o domínio na hospedagem**
