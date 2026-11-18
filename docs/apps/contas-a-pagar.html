@@ -4,6 +4,9 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
 <style>
 /* Layout: navy sidebar on the left (drawer on phones) + working area; forms open as a step-by-step side panel */
 :root{
@@ -13,18 +16,19 @@
   --ok:#1f7a4d; --ok-soft:#dcefe4; --warn:#9a5b00; --warn-soft:#fbefd9; --bad:#b3261e; --bad-soft:#f9e1df;
   --font-body:"Instrument Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
   --font-mono:"JetBrains Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
+  --s1:#2a78d6; --s2:#eb6834; --s3:#1baf7a; --s4:#eda100; --s5:#e87ba4; --s6:#008300; --s7:#6250d6; --s8:#e34948; --s-other:#8b93a1;
   --r:12px; --side:252px;
 }
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
   --bg:#09121f; --surface:#101c2f; --surface-2:#16263e; --line:#233756;
   --fg:#e6edf7; --muted:#9aabc5; --accent:#6ea8ff; --accent-ink:#071429; --accent-soft:#18304f;
   --nav:#060e1a; --nav-2:#0e1d34; --nav-fg:#e6edf7; --nav-muted:#8ea2c0; --nav-hi:#6ea8ff;
-  --ok:#6fcf97; --ok-soft:#14321f; --warn:#f0b35a; --warn-soft:#382811; --bad:#f2867e; --bad-soft:#3b1b1a; color-scheme:dark}}
+  --ok:#6fcf97; --ok-soft:#14321f; --warn:#f0b35a; --warn-soft:#382811; --bad:#f2867e; --bad-soft:#3b1b1a; --s1:#3987e5; --s2:#d95926; --s3:#199e70; --s4:#c98500; --s5:#d55181; --s6:#0ca30c; --s7:#9085e9; --s8:#e66767; --s-other:#6f7888; color-scheme:dark}}
 :root[data-theme="dark"]{
   --bg:#09121f; --surface:#101c2f; --surface-2:#16263e; --line:#233756;
   --fg:#e6edf7; --muted:#9aabc5; --accent:#6ea8ff; --accent-ink:#071429; --accent-soft:#18304f;
   --nav:#060e1a; --nav-2:#0e1d34; --nav-fg:#e6edf7; --nav-muted:#8ea2c0; --nav-hi:#6ea8ff;
-  --ok:#6fcf97; --ok-soft:#14321f; --warn:#f0b35a; --warn-soft:#382811; --bad:#f2867e; --bad-soft:#3b1b1a; color-scheme:dark}
+  --ok:#6fcf97; --ok-soft:#14321f; --warn:#f0b35a; --warn-soft:#382811; --bad:#f2867e; --bad-soft:#3b1b1a; --s1:#3987e5; --s2:#d95926; --s3:#199e70; --s4:#c98500; --s5:#d55181; --s6:#0ca30c; --s7:#9085e9; --s8:#e66767; --s-other:#6f7888; color-scheme:dark}
 *{box-sizing:border-box}
 [hidden]{display:none!important}
 html,body{min-height:100%}
@@ -48,6 +52,16 @@ button,select,input,textarea{font:inherit;color:inherit}
 .nav button[aria-current="page"]{background:var(--nav-2);box-shadow:inset 3px 0 0 var(--nav-hi)}
 .nav .badge{margin-left:auto;background:#d9443a;color:#fff;font-size:11px;font-weight:700;border-radius:99px;padding:1px 7px}
 .nav .badge.warn{background:#e0a030;color:#1b1203}
+.charts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.charts.one{grid-template-columns:minmax(0,1fr)}
+@media (max-width:980px){.charts{grid-template-columns:minmax(0,1fr)}}
+.chbox{position:relative;height:340px;max-width:100%}
+#gType{flex-wrap:nowrap}
+.gfilters{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px;align-items:end}
+.rolepill{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:2px 8px;border-radius:99px;background:var(--nav-2);color:var(--nav-hi);margin-top:4px}
+.team{display:flex;flex-direction:column;gap:8px}
+.team .mem{display:flex;align-items:center;gap:12px;flex-wrap:wrap;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 14px}
+.team .mem b{flex:1;min-width:160px}
 .sidefoot{margin-top:auto;font-size:12px;color:var(--nav-muted);padding:0 8px;line-height:1.5}
 /* ---- main ---- */
 .main{min-width:0;display:flex;flex-direction:column}
@@ -245,14 +259,16 @@ details.card summary{cursor:pointer;font-weight:700}
     <nav class="nav">
       <span class="grp">Clínica</span>
       <button type="button" data-view="contas"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><rect x="3" y="4" width="14" height="13" rx="2"/><path d="M3 8h14M7 2v4M13 2v4"/></svg>Contas a pagar<span class="badge" id="bContas" hidden></span></button>
-      <button type="button" data-view="relatorios"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M5 3h7l3 3v11H5z"/><path d="M8 10h5M8 13h5M8 7h2"/></svg>Relatórios e Excel</button>
+      <button type="button" data-view="graficos" class="adminOnly" hidden><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M10 3a7 7 0 1 0 7 7h-7z"/><path d="M12.5 2.5a5 5 0 0 1 5 5h-5z"/></svg>Gráficos</button>
+      <button type="button" data-view="relatorios" class="adminOnly" hidden><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M5 3h7l3 3v11H5z"/><path d="M8 10h5M8 13h5M8 7h2"/></svg>Relatórios e Excel</button>
       <span class="grp ownerOnly" hidden>Dr. Edelweiss · privado</span>
       <button type="button" data-view="despesas" class="ownerOnly" hidden><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M4 5h12v11H4z"/><path d="M7 9h6M7 12h4M10 2v3"/></svg>Despesas PF<span class="badge warn" id="bDesp" hidden></span></button>
       <button type="button" data-view="fiscal" class="ownerOnly" hidden><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M3 16h14M5 13V9M9 13V5M13 13v-3M17 13V7"/></svg>Receita Saúde × PJ</button>
+      <button type="button" data-view="equipe" class="ownerOnly" hidden><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="7.5" cy="7" r="3"/><path d="M2 17c.6-3 2.8-4.5 5.5-4.5S12.4 14 13 17"/><circle cx="14" cy="6.5" r="2.3"/><path d="M14 11c2.2 0 3.6 1.3 4 4"/></svg>Equipe e acessos</button>
       <span class="grp">Suporte</span>
       <button type="button" data-view="ajuda"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="10" cy="10" r="7.5"/><path d="M7.8 7.8a2.3 2.3 0 1 1 3.2 2.1c-.6.3-1 .8-1 1.5v.4M10 14.6v.1"/></svg>Como usar</button>
     </nav>
-    <div class="sidefoot" id="sideFoot">Conectando…</div>
+    <div class="sidefoot"><span id="sideFoot">Conectando…</span><br><span class="rolepill" id="rolePill" hidden></span></div>
   </aside>
   <div class="sidescrim" id="sideScrim" hidden></div>
 
@@ -330,8 +346,40 @@ details.card summary{cursor:pointer;font-weight:700}
           <button class="btn small" type="button" data-rq="ano">Este ano</button>
         </div>
         <div id="rPreview" class="note"></div>
-        <div class="copyrow"><button class="btn primary" type="button" id="rExcel">Baixar planilha Excel</button><button class="btn" type="button" id="rVer">Ver na lista de contas</button></div>
+        <div class="copyrow"><button class="btn primary" type="button" id="rExcel">Baixar planilha Excel</button><button class="btn primary" type="button" id="rPdf">Salvar em PDF</button><button class="btn" type="button" id="rPrint">Imprimir</button><button class="btn" type="button" id="rVer">Ver na lista de contas</button></div>
+        <p class="note">“Imprimir” gera um PDF pronto para impressão: ao abrir o arquivo, a janela da impressora aparece sozinha.</p>
       </div>
+    </section>
+
+    <!-- GRÁFICOS -->
+    <section class="view" id="v-graficos" hidden>
+      <div class="card">
+        <div class="gfilters">
+          <div class="field"><label for="gPer">Período</label><div class="frow"><select id="gPer"><option value="semana">Esta semana</option><option value="mes" selected>Este mês</option><option value="mesant">Mês passado</option><option value="ano">Este ano</option><option value="custom">Escolher datas…</option></select><button type="button" class="help" data-help="gPer" aria-label="Ajuda">?</button></div></div>
+          <div class="field" id="gCustom" hidden><label for="gFrom">De / até</label><div class="frow"><input type="date" id="gFrom"><input type="date" id="gTo"></div></div>
+          <div class="field"><label for="gUnit">Unidade</label><div class="frow"><select id="gUnit"><option value="">Todas</option><option>Caruaru</option><option>Recife</option></select><button type="button" class="help" data-help="gUnit" aria-label="Ajuda">?</button></div></div>
+          <div class="field"><label for="gSit">Situação</label><div class="frow"><select id="gSit"><option value="">Todas</option><option value="pago">Pagas</option><option value="pendente">Não pagas</option></select><button type="button" class="help" data-help="gSit" aria-label="Ajuda">?</button></div></div>
+          <div class="field"><label for="gBy">Agrupar por</label><div class="frow"><select id="gBy"><option value="categoria">Categoria</option><option value="unidade">Unidade</option><option value="situacao">Situação</option><option value="mes">Mês de vencimento</option><option value="fornecedor">Fornecedor</option><option value="tipo">Forma de pagamento</option></select><button type="button" class="help" data-help="gBy" aria-label="Ajuda">?</button></div></div>
+          <div class="field"><span class="flab">Tipo de gráfico</span><div class="frow"><div class="seg" id="gType"><button type="button" data-gt="pie" aria-pressed="false">Pizza</button><button type="button" data-gt="bar" aria-pressed="false">Torre</button><button type="button" data-gt="both" aria-pressed="true">Ambos</button></div><button type="button" class="help" data-help="gType" aria-label="Ajuda">?</button></div></div>
+        </div>
+      </div>
+      <div class="status-line" id="gInfo"></div>
+      <div class="charts" id="chWrap">
+        <div class="card" id="cardPie"><h3 id="pieTitle">Pizza</h3><div class="chbox"><canvas id="chPie" role="img" aria-label="Gráfico de pizza"></canvas></div><p class="note" id="pieNote" hidden></p></div>
+        <div class="card" id="cardBar"><h3 id="barTitle">Torre</h3><div class="chbox"><canvas id="chBar" role="img" aria-label="Gráfico de torre"></canvas></div></div>
+      </div>
+      <div class="card"><h3>Tabela dos valores</h3><div class="tablewrap"><table class="months" id="chTable" style="min-width:480px"></table></div></div>
+      <div class="copyrow"><button class="btn primary" type="button" id="gPdf">Salvar gráficos em PDF</button><button class="btn" type="button" id="gPrint">Imprimir gráficos</button></div>
+    </section>
+
+    <!-- EQUIPE -->
+    <section class="view" id="v-equipe" hidden>
+      <div class="card">
+        <h3>Quem acessa o sistema</h3>
+        <p><b>Administrador</b> vê o painel de gestão: totais, marcar como pago, comprovantes, relatórios, gráficos e edição de qualquer conta. <b>Funcionário</b> só lança contas e acompanha se estão pagas ou não (pode corrigir as que ele mesmo lançou enquanto não forem pagas).</p>
+        <p class="note">A pessoa aparece aqui depois de abrir o sistema pela primeira vez. Para dar acesso, use o botão Compartilhar do Claude e convide o e-mail como Editor. A área fiscal (Receita Saúde × PJ e Despesas PF) continua só sua.</p>
+      </div>
+      <div class="team" id="teamList"></div>
     </section>
 
     <!-- DESPESAS PF -->
@@ -581,7 +629,7 @@ const state = {
   bills: [], loaded:false, canWrite:true, db:null, col:null, uid:null, assets:null, downloads:null, isOwner:false,
   view: "contas", mode:"week", weekStart: mondayOf(new Date()), from:null, to:null,
   unit: store("cp_unit")||"", status:"", open:new Set(), confirmDel:null, editing:null, uploading:null,
-  fiscal:null, fiscalRef:null, fMes:new Date().getMonth(), pfDesp:[], pfCol:null, editSrc:"contas", step:0, maxStep:0
+  fiscal:null, fiscalRef:null, fMes:new Date().getMonth(), pfDesp:[], pfCol:null, admins:[], team:[], gType:"both", editSrc:"contas", step:0, maxStep:0
 };
 if(!["","Caruaru","Recife"].includes(state.unit)) state.unit="";
 const ANO = new Date().getFullYear();
@@ -596,10 +644,13 @@ const semComp = b => b.status==="pago" && !b.comprovante;
 const sum = arr => arr.reduce((s,b)=>s+(Number(b.valor)||0),0);
 const findBill = id => state.bills.find(x=>x.id===id) || state.pfDesp.find(x=>x.id===id);
 const colOf = b => (b && b._src==="pf") ? state.pfCol : state.col;
+const isAdmin = () => state.isOwner || (!!state.uid && (state.admins||[]).includes(state.uid));
+const canManage = () => state.canWrite && isAdmin();
+const canEditBill = b => state.canWrite && (isAdmin() || (b._src!=="pf" && !!state.uid && b.criadoPor===state.uid && b.status!=="pago"));
 function mapDoc(d,src){ const x=d.data()||{}; return {id:d.id,_src:src,_raw:x,descricao:String(x.descricao||"(sem descrição)"),fornecedor:x.fornecedor||"",valor:Number(x.valor)||0,
   vencimento:/^\d{4}-\d{2}-\d{2}$/.test(x.vencimento||"")?x.vencimento:todayISO(),unidade:x.unidade||"",tipo:x.tipo||"outro",categoria:x.categoria||"",
   codigo:String(x.codigo||""),observacao:x.observacao||"",status:x.status==="pago"?"pago":"pendente",pagoEm:x.pagoEm||null,
-  comprovante:(x.comprovante&&x.comprovante.url)?x.comprovante:null,livroCaixa:src==="pf"?true:!!x.livroCaixa}; }
+  criadoPor:x.criadoPor||null,comprovante:(x.comprovante&&x.comprovante.url)?x.comprovante:null,livroCaixa:src==="pf"?true:!!x.livroCaixa}; }
 function renderQR(root){
   root.querySelectorAll("[data-qr]").forEach(el=>{
     const b=findBill(el.dataset.qr);
@@ -624,16 +675,16 @@ function receiptHTML(b){
       '<div style="display:flex;flex-direction:column;gap:6px;min-width:0"><span style="overflow-wrap:anywhere;font-weight:600">'+esc(c.nome||"comprovante")+'</span>'+
       '<span class="note">Anexado em '+fmtFull((c.enviadoEm||"").slice(0,10))+'</span>'+
       '<div class="copyrow"><a class="btn small" href="'+esc(c.url)+'" target="_blank" rel="noopener">Abrir comprovante</a>'+
-      (state.canWrite&&state.assets?'<span class="btn small filebtn">Trocar<input type="file" accept="image/*,application/pdf" data-upload="'+b.id+'" aria-label="Trocar comprovante"></span>'+
+      (canManage()&&state.assets?'<span class="btn small filebtn">Trocar<input type="file" accept="image/*,application/pdf" data-upload="'+b.id+'" aria-label="Trocar comprovante"></span>'+
         (state.confirmDel==="c:"+b.id?'<span class="confirm">Remover? <button class="btn small danger" type="button" data-act="rmcomp-yes" data-id="'+b.id+'">Sim</button><button class="btn small" type="button" data-act="del-no">Não</button></span>':'<button class="btn small danger" type="button" data-act="rmcomp" data-id="'+b.id+'">Remover</button>'):'')+
       '</div></div></div></div>';
   }
-  const can = state.canWrite && state.assets;
+  const can = canManage() && state.assets;
   const busy = state.uploading===b.id;
   return '<div class="receipt"><span class="lbl">Comprovante de pagamento</span><div class="box missing">'+
     (busy?'<span>Enviando arquivo…</span>':
      can?'<span class="btn small primary filebtn">Anexar comprovante (foto ou PDF)<input type="file" accept="image/*,application/pdf" data-upload="'+b.id+'" aria-label="Anexar comprovante"></span><span class="note">Ao anexar, a conta é marcada como paga.</span>'
-        :'<span>Nenhum comprovante anexado.'+(state.canWrite?' Envio de arquivos indisponível neste acesso.':'')+'</span>')+
+        :'<span>Nenhum comprovante anexado.'+(canManage()?' Envio de arquivos indisponível neste acesso.':'')+'</span>')+
     '</div></div>';
 }
 function billHTML(b){
@@ -660,10 +711,10 @@ function billHTML(b){
       (b.observacao?'<div class="note">Obs.: '+esc(b.observacao)+'</div>':'')+
       '<div class="note">Categoria: '+esc(b.categoria||"—")+' · Vencimento '+fmtFull(b.vencimento)+(b.status==="pago"&&b.pagoEm?' · Paga em '+fmtFull(b.pagoEm):'')+'</div></div>'+
       (visual?'<div>'+visual+'</div>':'')+ receiptHTML(b)+
-      (state.canWrite?'<div class="actions"><button class="btn small" type="button" data-act="edit" data-id="'+b.id+'">Editar</button>'+delConfirm+'</div>':'')+'</div>';
+      (canEditBill(b)?'<div class="actions"><button class="btn small" type="button" data-act="edit" data-id="'+b.id+'">Editar</button>'+delConfirm+'</div>':'')+'</div>';
   }
   return '<article class="bill"><div class="row">'+
-    '<button class="paytog '+tCls+'" type="button" data-act="togglepay" data-id="'+b.id+'" '+(state.canWrite?'':'disabled')+' title="'+(state.canWrite?'Tocar para alternar pago / não pago':'')+'">'+tTxt+'</button>'+
+    '<button class="paytog '+tCls+'" type="button" data-act="togglepay" data-id="'+b.id+'" '+(canManage()?'':'disabled')+' title="'+(canManage()?'Tocar para alternar pago / não pago':'Somente o administrador marca como pago')+'">'+tTxt+'</button>'+
     '<button class="expand" type="button" aria-expanded="'+open+'" data-act="toggle" data-id="'+b.id+'"><span class="mid"><span class="t">'+esc(b.descricao)+'</span><span class="meta">'+(b.fornecedor?esc(b.fornecedor)+' · ':'')+'<span class="chip unit">'+esc(b.unidade||"—")+'</span><span class="chip kind">'+kind+'</span>'+(b.livroCaixa?'<span class="chip lc">Livro-caixa PF</span>':'')+
     (late?'<span class="chip late">Venceu '+fmtShort(parseISO(b.vencimento))+' · há '+Math.round((parseISO(todayISO())-parseISO(b.vencimento))/864e5)+(Math.round((parseISO(todayISO())-parseISO(b.vencimento))/864e5)===1?' dia':' dias')+'</span>':'')+
     (b.comprovante?'<span class="chip file">Comprovante ✓</span>':b.status==="pago"?'<span class="chip nofile">Sem comprovante</span>':'')+'</span></span>'+
@@ -797,7 +848,7 @@ function saveFiscal(patch){
 
 // ---------- actions ----------
 async function togglePay(id){
-  const b=findBill(id); if(!b||!colOf(b)||!state.canWrite) return;
+  const b=findBill(id); if(!b||!colOf(b)||!canManage()) return;
   const paid=b.status!=="pago";
   try{ await colOf(b).doc(id).update({status:paid?"pago":"pendente",pagoEm:paid?todayISO():null,pagoPor:paid?(state.uid||null):null});
     toast(paid?(b.comprovante?"Marcada como paga":"Marcada como paga. Anexe o comprovante quando puder."):"Marcada como não paga"); }
@@ -881,6 +932,11 @@ const HELP = {
   f_status:["Situação","“Já paga” se a conta foi quitada; “Não paga” se ainda vai ser paga. Contas não pagas passam sozinhas para a semana seguinte até serem pagas."],
   f_pagoEm:["Data do pagamento","Dia em que o pagamento foi feito. Obrigatório para contas pagas e não pode ser uma data futura."],
   f_obs:["Observação","Informação extra: número da parcela, nota fiscal, combinado com o fornecedor. Opcional."],
+  gPer:["Período","Intervalo de vencimentos usado nos gráficos. Escolha “Escolher datas…” para um período livre."],
+  gUnit:["Unidade","Mostre uma unidade ou as duas juntas."],
+  gSit:["Situação","Todas as contas, só as pagas ou só as não pagas."],
+  gBy:["Agrupar por","Como as contas são somadas: por categoria de despesa, unidade, situação, mês, fornecedor ou forma de pagamento."],
+  gType:["Tipo de gráfico","Pizza mostra a participação de cada parte no total. Torre (barras) compara valores lado a lado. “Ambos” mostra os dois."],
   rFrom:["Data inicial","Primeiro dia do relatório. Entram as contas com vencimento a partir desta data."],
   rTo:["Data final","Último dia do relatório. Entram as contas com vencimento até esta data."],
   rUnit:["Unidade","Gere o relatório de uma unidade ou das duas juntas."],
@@ -918,9 +974,11 @@ function hideHelp(){ $("#bubble").hidden=true; if(bubbleFor) bubbleFor.setAttrib
 const VIEWS = {
   contas:{t:"Contas a pagar",s:"Semana a semana"}, relatorios:{t:"Relatórios e Excel",s:"Qualquer período"},
   despesas:{t:"Despesas da pessoa física",s:"Livro-caixa · privado"}, fiscal:{t:"Receita Saúde × PJ",s:"Planejamento fiscal · privado"},
+  graficos:{t:"Gráficos",s:"Painel de gestão"}, equipe:{t:"Equipe e acessos",s:"Administração"},
   ajuda:{t:"Como usar",s:"Passo a passo"}
 };
-function go(v){ if((v==="despesas"||v==="fiscal") && !state.isOwner) v="contas"; state.view=v; store("cp_view",v); closeSide(); render(); window.scrollTo(0,0); }
+function allowedView(v){ if(v==="despesas"||v==="fiscal"||v==="equipe") return state.isOwner; if(v==="relatorios"||v==="graficos") return isAdmin(); return !!VIEWS[v]; }
+function go(v){ if(!allowedView(v)) v="contas"; state.view=v; store("cp_view",v); closeSide(); render(); window.scrollTo(0,0); }
 function openSide(){ $("#side").classList.add("open"); $("#sideScrim").hidden=false; }
 function closeSide(){ $("#side").classList.remove("open"); $("#sideScrim").hidden=true; }
 function renderFilters(){
@@ -936,11 +994,14 @@ function renderChrome(){
   const v=state.view;
   Object.keys(VIEWS).forEach(k=>{ $("#v-"+k).hidden = k!==v; });
   document.querySelectorAll(".nav button[data-view]").forEach(b=>{ if(b.dataset.view===v) b.setAttribute("aria-current","page"); else b.removeAttribute("aria-current"); });
+  if(!allowedView(state.view)){ state.view="contas"; }
   document.querySelectorAll(".ownerOnly").forEach(el=>el.hidden=!state.isOwner);
+  document.querySelectorAll(".adminOnly").forEach(el=>el.hidden=!isAdmin());
+  const rp=$("#rolePill"); rp.hidden=!state.uid; rp.textContent = state.isOwner?"Titular · administrador":isAdmin()?"Administrador":"Funcionário";
   $("#ttl").textContent=VIEWS[v].t; $("#ttlSmall").textContent="OdontoWeiss · "+VIEWS[v].s;
   $("#sideNew").hidden=!state.canWrite;
   const ta=$("#tActions");
-  ta.innerHTML = v==="contas" ? '<button class="btn" type="button" data-act="summary">Copiar resumo</button>'+(state.canWrite?'<button class="btn primary" type="button" data-act="new">+ Nova conta</button>':'')
+  ta.innerHTML = v==="contas" ? (isAdmin()?'<button class="btn" type="button" data-act="summary">Copiar resumo</button>':'')+(state.canWrite?'<button class="btn primary" type="button" data-act="new">+ Nova conta</button>':'')
     : v==="despesas" ? '<button class="btn primary" type="button" data-act="newpf">+ Nova despesa PF</button>' : '';
   const late=state.bills.filter(isLate).length, nc=state.pfDesp.filter(semComp).length;
   const bc=$("#bContas"); bc.hidden=!late; bc.textContent=late; bc.title=late+" vencidas";
@@ -951,8 +1012,12 @@ function render(){
   if(state.view==="fiscal"){ renderFiscal(); return; }
   if(state.view==="despesas"){ renderDespesas(); return; }
   if(state.view==="relatorios"){ renderRelatorio(); return; }
+  if(state.view==="graficos"){ renderGraficos(); return; }
+  if(state.view==="equipe"){ renderEquipe(); return; }
   if(state.view!=="contas") return;
   $("#guide").hidden = store("cp_guide")==="off";
+  document.querySelector("#guide .st:nth-child(3) p").innerHTML = isAdmin() ? "<b>Pague e anexe</b>Copie o código, pague no banco, toque em “Não pago” para virar “Pago” e anexe o comprovante." : "<b>Acompanhe</b>Veja na lista quais contas já foram pagas. O administrador marca o pagamento e anexa o comprovante.";
+  document.querySelector("#v-contas .totals").hidden = !isAdmin();
   renderFilters();
   const list=$("#list"), all=inPeriod(), rows=filtered();
   $("#tTotal").textContent=money(sum(all));
@@ -970,6 +1035,7 @@ function render(){
   const ca=$("#compAlert"), allNoComp=state.bills.filter(b=>semComp(b)&&(!state.unit||b.unidade===state.unit));
   if(allNoComp.length && state.status!=="semcomp"){ ca.hidden=false; ca.innerHTML='<span>'+allNoComp.length+(allNoComp.length>1?" contas pagas estão":" conta paga está")+' sem comprovante anexado.</span><button class="btn small" type="button" data-act="seeNoComp">Ver lista</button>'; }
   else ca.hidden=true;
+  if(!isAdmin()){ $("#lateAlert").hidden=true; $("#compAlert").hidden=true; }
   if(!state.loaded) return;
   if(!rows.length){
     const msg = state.status==="semcomp" ? "Nenhuma conta paga sem comprovante neste período." : "Nenhuma conta neste período";
@@ -1013,6 +1079,132 @@ function renderRelatorio(){
   $("#rPreview").innerHTML='<b>'+rows.length+' contas</b> de '+fmtFull(f)+' a '+fmtFull(t)+(u?' · '+u:'')+': '+money(sum(rows))+' no total · '+money(sum(pagas))+' pagas · '+money(sum(abertas))+' não pagas · '+semc.length+' pagas sem comprovante.';
 }
 
+// ---------- gráficos ----------
+const CATS=["Aluguel e condomínio","Laboratório","Material odontológico","Alinhadores / Invisalign","Equipamentos e manutenção","Folha e pró-labore","Impostos e taxas","Água, luz, internet e telefone","Marketing","Contabilidade e serviços","Outros"];
+const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const SERIES = () => [1,2,3,4,5,6,7,8].map(i=>css("--s"+i));
+let chPie=null, chBar=null;
+function gRange(){
+  const n=new Date(), y=n.getFullYear(), mo=n.getMonth(), per=$("#gPer").value;
+  $("#gCustom").hidden = per!=="custom";
+  if(per==="semana"){ const w=mondayOf(n); return [iso(w),iso(addDays(w,6)),"Esta semana"]; }
+  if(per==="mesant") return [iso(new Date(y,mo-1,1)),iso(new Date(y,mo,0)),MESES[(mo+11)%12]+" "+(mo?y:y-1)];
+  if(per==="ano") return [y+"-01-01",y+"-12-31","Ano "+y];
+  if(per==="custom"){ if(!$("#gFrom").value){ $("#gFrom").value=iso(new Date(y,mo,1)); $("#gTo").value=iso(new Date(y,mo+1,0)); } const f=$("#gFrom").value,t=$("#gTo").value; return f<=t?[f,t,fmtFull(f)+" a "+fmtFull(t)]:[t,f,fmtFull(t)+" a "+fmtFull(f)]; }
+  return [iso(new Date(y,mo,1)),iso(new Date(y,mo+1,0)),MESES[mo]+" "+y];
+}
+function gData(){
+  const [f,t,label]=gRange(), u=$("#gUnit").value, sit=$("#gSit").value, by=$("#gBy").value;
+  const rows=state.bills.filter(b=>b.vencimento>=f&&b.vencimento<=t&&(!u||b.unidade===u)&&(!sit||b.status===sit));
+  const keyOf={categoria:b=>b.categoria||"Outros",unidade:b=>b.unidade||"Sem unidade",situacao:b=>b.status==="pago"?"Paga":isLate(b)?"Vencida":"Não paga",
+    mes:b=>b.vencimento.slice(0,7),fornecedor:b=>b.fornecedor||"Sem fornecedor",tipo:b=>({boleto:"Boleto",pix:"PIX",outro:"Outro"}[b.tipo]||"Outro")}[by];
+  const agg={}; rows.forEach(b=>{ const k=keyOf(b); agg[k]=agg[k]||{v:0,n:0}; agg[k].v+=Number(b.valor)||0; agg[k].n++; });
+  let groups=Object.keys(agg).map(k=>({k,label:k,v:Math.round(agg[k].v*100)/100,n:agg[k].n}));
+  const S=SERIES(), other=css("--s-other");
+  if(by==="mes"){ groups.sort((a,b)=>a.k.localeCompare(b.k)); groups.forEach(g=>{ const [yy,mm]=g.k.split("-"); g.label=MESES[+mm-1].slice(0,3)+"/"+yy.slice(2); g.c=S[0]; }); }
+  else if(by==="situacao"){ const ord={"Paga":0,"Não paga":1,"Vencida":2}, col={"Paga":css("--ok"),"Não paga":css("--warn"),"Vencida":css("--bad")}; groups.sort((a,b)=>ord[a.k]-ord[b.k]); groups.forEach(g=>g.c=col[g.k]); }
+  else {
+    groups.sort((a,b)=>b.v-a.v);
+    if(groups.length>8){ const keep=groups.slice(0,7), rest=groups.slice(7); keep.push({k:"__o",label:"Outros ("+rest.length+")",v:rest.reduce((a,g)=>a+g.v,0),n:rest.reduce((a,g)=>a+g.n,0),c:other}); groups=keep; }
+    const fixed = by==="categoria" ? CATS : by==="unidade" ? ["Caruaru","Recife"] : by==="tipo" ? ["Boleto","PIX","Outro"] : null;
+    groups.forEach((g,i)=>{ if(g.c) return; if(fixed){ const ix=fixed.indexOf(g.k); g.c = ix>=0&&ix<8 ? S[ix] : other; } else g.c=S[i%8]; });
+  }
+  const total=groups.reduce((a,g)=>a+g.v,0);
+  return {f,t,label,u,sit,by,rows,groups,total};
+}
+const BY_LABEL={categoria:"categoria",unidade:"unidade",situacao:"situação",mes:"mês",fornecedor:"fornecedor",tipo:"forma de pagamento"};
+function renderGraficos(){
+  document.querySelectorAll("#gType button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.gt===state.gType));
+  const d=gData(), ty=state.gType;
+  const showPie = ty!=="bar", showBar = ty!=="pie";
+  $("#cardPie").hidden=!showPie; $("#cardBar").hidden=!showBar; $("#chWrap").classList.toggle("one",!(showPie&&showBar));
+  $("#gInfo").textContent = d.rows.length ? d.rows.length+" contas · "+money(d.total)+" · "+d.label+(d.u?" · "+d.u:"")+(d.sit?(d.sit==="pago"?" · pagas":" · não pagas"):"") : "Nenhuma conta neste filtro. Mude o período ou a situação.";
+  $("#pieTitle").textContent="Participação por "+BY_LABEL[d.by]; $("#barTitle").textContent="Valor por "+BY_LABEL[d.by];
+  const fg=css("--fg"), muted=css("--muted"), line=css("--line"), surf=css("--surface");
+  if(!window.Chart){ $("#gInfo").textContent="Não foi possível carregar os gráficos. Recarregue a página."; return; }
+  Chart.defaults.font.family=css("--font-body")||"system-ui"; Chart.defaults.color=muted;
+  const tip={backgroundColor:css("--nav"),titleColor:css("--nav-fg"),bodyColor:css("--nav-fg"),padding:10,callbacks:{label:c=>{ const v=c.parsed.y??c.parsed; return " "+money(v)+" · "+(d.total?(v/d.total*100).toFixed(1).replace(".",","):"0")+"%"; }}};
+  if(chPie){ chPie.destroy(); chPie=null; } if(chBar){ chBar.destroy(); chBar=null; }
+  const labels=d.groups.map(g=>g.label), vals=d.groups.map(g=>g.v), cols=d.groups.map(g=>g.c);
+  if(showPie && d.groups.length){
+    chPie=new Chart($("#chPie"),{type:"pie",data:{labels,datasets:[{data:vals,backgroundColor:cols,borderColor:surf,borderWidth:2,hoverOffset:6}]},
+      options:{responsive:true,maintainAspectRatio:false,animation:{duration:window.matchMedia("(prefers-reduced-motion:reduce)").matches?0:400},
+        plugins:{legend:{position:"bottom",labels:{color:fg,boxWidth:12,boxHeight:12,padding:12,generateLabels:ch=>ch.data.labels.map((l,i)=>({text:l+" · "+(d.total?(vals[i]/d.total*100).toFixed(0):0)+"%",fillStyle:cols[i],strokeStyle:cols[i],fontColor:fg,index:i,hidden:!ch.getDataVisibility(i)}))}},tooltip:tip}}});
+  }
+  $("#pieNote").hidden=true;
+  if(showBar && d.groups.length){
+    chBar=new Chart($("#chBar"),{type:"bar",data:{labels,datasets:[{data:vals,backgroundColor:cols,borderRadius:{topLeft:4,topRight:4},borderSkipped:"bottom",maxBarThickness:56,categoryPercentage:.8,barPercentage:.9}]},
+      options:{responsive:true,maintainAspectRatio:false,animation:{duration:window.matchMedia("(prefers-reduced-motion:reduce)").matches?0:400},
+        plugins:{legend:{display:false},tooltip:tip},
+        scales:{x:{grid:{display:false},ticks:{color:fg,maxRotation:40,autoSkip:false}},y:{beginAtZero:true,grid:{color:line},border:{display:false},ticks:{color:muted,callback:v=>"R$ "+Number(v).toLocaleString("pt-BR",{maximumFractionDigits:0})}}}}});
+  }
+  $("#chTable").innerHTML='<thead><tr><th>'+BY_LABEL[d.by][0].toUpperCase()+BY_LABEL[d.by].slice(1)+'</th><th>Contas</th><th>Valor</th><th>% do total</th></tr></thead><tbody>'+
+    (d.groups.length?d.groups.map(g=>'<tr><td><span style="display:inline-block;width:10px;height:10px;border-radius:3px;background:'+g.c+';margin-right:8px"></span>'+esc(g.label)+'</td><td>'+g.n+'</td><td>'+money(g.v)+'</td><td>'+(d.total?(g.v/d.total*100).toFixed(1).replace(".",","):"0")+'%</td></tr>').join(""):'<tr><td colspan="4">Sem dados</td></tr>')+
+    '</tbody><tfoot><tr><td>Total</td><td>'+d.rows.length+'</td><td>'+money(d.total)+'</td><td>100%</td></tr></tfoot>';
+}
+
+// ---------- PDF / impressão ----------
+function newPDF(title,sub){
+  const { jsPDF } = window.jspdf; const doc=new jsPDF({orientation:"landscape",unit:"mm",format:"a4"});
+  doc.setFillColor(11,31,58); doc.rect(0,0,297,22,"F");
+  doc.setTextColor(255,255,255); doc.setFont("helvetica","bold"); doc.setFontSize(15); doc.text(title,12,13);
+  doc.setFont("helvetica","normal"); doc.setFontSize(9); doc.text("Weiss Odontologia · Caruaru e Recife · gerado em "+new Date().toLocaleString("pt-BR"),12,18.5);
+  doc.setTextColor(15,29,51); doc.setFontSize(11); doc.text(sub,12,31);
+  return doc;
+}
+async function savePDF(doc,name,print){
+  if(!state.downloads){ toast("Download indisponível nesta visualização. Abra o sistema pelo navegador."); return; }
+  if(print) doc.autoPrint();
+  try{ await state.downloads.save({filename:name,data:doc.output("arraybuffer")}); toast(print?"PDF para impressão salvo. Abra o arquivo: a janela da impressora aparece sozinha.":"PDF salvo"); }
+  catch(e){ if(e&&e.code==="declined") return; toast(e&&e.code==="rate_limited"?"Já há um download aguardando confirmação.":"Não foi possível gerar o PDF."); }
+}
+async function reportPDF(opts,print){
+  if(!window.jspdf){ toast("O gerador de PDF não carregou. Recarregue a página."); return; }
+  const f=opts.from,t=opts.to,U=opts.unit||"";
+  const rows=state.bills.filter(b=>b.vencimento>=f&&b.vencimento<=t&&(!U||b.unidade===U)).sort((a,b)=>a.vencimento.localeCompare(b.vencimento));
+  const pagas=rows.filter(b=>b.status==="pago"), abertas=rows.filter(b=>b.status!=="pago"), semc=rows.filter(semComp);
+  const doc=newPDF("Relatório de contas a pagar","Período: "+fmtFull(f)+" a "+fmtFull(t)+" · Unidade: "+(U||"Todas"));
+  doc.autoTable({startY:36,theme:"grid",styles:{fontSize:9},headStyles:{fillColor:[29,79,145]},
+    head:[["","Contas","Valor"]],body:[["Todas",rows.length,money(sum(rows))],["Pagas",pagas.length,money(sum(pagas))],["Não pagas",abertas.length,money(sum(abertas))],["  das quais vencidas",abertas.filter(isLate).length,money(sum(abertas.filter(isLate)))],["Pagas sem comprovante",semc.length,money(sum(semc))]],
+    tableWidth:120,columnStyles:{1:{halign:"right"},2:{halign:"right"}}});
+  doc.autoTable({startY:doc.lastAutoTable.finalY+8,theme:"striped",styles:{fontSize:8.5,cellPadding:1.8},headStyles:{fillColor:[11,31,58]},
+    head:[["Vencimento","Descrição","Fornecedor","Unidade","Categoria","Forma","Valor","Situação","Pago em","Comprov."]],
+    body:rows.map(b=>[fmtFull(b.vencimento),b.descricao,b.fornecedor||"",b.unidade||"",b.categoria||"",{boleto:"Boleto",pix:"PIX",outro:"Outro"}[b.tipo]||"Outro",money(b.valor),b.status==="pago"?"Paga":isLate(b)?"Vencida":"Não paga",b.pagoEm?fmtFull(b.pagoEm):"",b.comprovante?"Sim":(b.status==="pago"?"Não":"—")]),
+    foot:[["","Total","","","","",money(sum(rows)),"","",""]],footStyles:{fillColor:[233,238,246],textColor:[15,29,51]},
+    columnStyles:{6:{halign:"right"}},
+    didDrawPage:()=>{ doc.setFontSize(8); doc.setTextColor(120); doc.text("Página "+doc.internal.getNumberOfPages(),285,205,{align:"right"}); }});
+  await savePDF(doc,"relatorio-contas_"+f+"_a_"+t+(U?"_"+U.toLowerCase():"")+(print?"_imprimir":"")+".pdf",print);
+}
+async function chartsPDF(print){
+  if(!window.jspdf){ toast("O gerador de PDF não carregou. Recarregue a página."); return; }
+  const d=gData();
+  const doc=newPDF("Gráficos de contas a pagar",d.label+(d.u?" · "+d.u:" · Todas as unidades")+(d.sit?(d.sit==="pago"?" · pagas":" · não pagas"):"")+" · por "+BY_LABEL[d.by]+" · total "+money(d.total));
+  const imgs=[]; [[chPie,"Participação"],[chBar,"Valor"]].forEach(([c,t])=>{ if(c){ const cv=c.canvas, tmp=document.createElement("canvas"); tmp.width=cv.width; tmp.height=cv.height; const x=tmp.getContext("2d"); x.fillStyle="#ffffff"; x.fillRect(0,0,tmp.width,tmp.height); x.drawImage(cv,0,0); imgs.push({u:tmp.toDataURL("image/png"),r:cv.height/cv.width}); } });
+  const w = imgs.length===2 ? 132 : 200; let x=12;
+  imgs.forEach(im=>{ const h=Math.min(110,w*im.r); doc.addImage(im.u,"PNG",x,36,w,h); x+=w+9; });
+  doc.autoTable({startY:150,theme:"grid",styles:{fontSize:9},headStyles:{fillColor:[29,79,145]},
+    head:[[BY_LABEL[d.by],"Contas","Valor","% do total"]],body:d.groups.map(g=>[g.label,g.n,money(g.v),(d.total?(g.v/d.total*100).toFixed(1).replace(".",","):"0")+"%"]),
+    foot:[["Total",d.rows.length,money(d.total),"100%"]],footStyles:{fillColor:[233,238,246],textColor:[15,29,51]},columnStyles:{1:{halign:"right"},2:{halign:"right"},3:{halign:"right"}}});
+  await savePDF(doc,"graficos-contas_"+d.f+"_a_"+d.t+(print?"_imprimir":"")+".pdf",print);
+}
+
+// ---------- equipe ----------
+async function renderEquipe(){
+  const el=$("#teamList");
+  const ids=state.team.map(m=>m.id).filter(id=>id!==state.uid);
+  if(!ids.length){ el.innerHTML='<div class="empty-state"><b>Ninguém da equipe acessou ainda</b><span>Convide pelo botão Compartilhar do Claude (como Editor). Quando a pessoa abrir o sistema, ela aparece aqui e você escolhe se é administrador ou funcionário.</span></div>'; return; }
+  let profs={}; try{ if(state.user && state.user.profiles) profs=await state.user.profiles(ids)||{}; }catch(e){}
+  el.innerHTML=ids.map(id=>{ const m=state.team.find(x=>x.id===id)||{}, adm=state.admins.includes(id), nm=(profs[id]&&profs[id].name)||"Pessoa da equipe";
+    return '<div class="mem"><b>'+esc(nm)+'</b><span class="note">Último acesso: '+(m.visto?fmtFull(m.visto):"—")+'</span>'+
+      '<div class="seg"><button type="button" data-role="staff" data-uid="'+esc(id)+'" aria-pressed="'+(!adm)+'">Funcionário</button><button type="button" data-role="admin" data-uid="'+esc(id)+'" aria-pressed="'+adm+'">Administrador</button></div></div>'; }).join("");
+}
+async function setRole(uid,role){
+  if(!state.isOwner||!state.db) return;
+  const next=state.admins.filter(x=>x!==uid); if(role==="admin") next.push(uid);
+  try{ await state.db.doc("config/acesso").set({admins:next,atualizadoEm:new Date().toISOString()}); toast(role==="admin"?"Agora é administrador":"Agora é funcionário"); }
+  catch(e){ toast("Não foi possível alterar o acesso."); }
+}
+
 // ---------- wizard ----------
 const STEPS=["Código","Dados","Classificação","Pagamento","Revisar"];
 const radio = n => { const el=document.querySelector('input[name="'+n+'"]:checked'); return el?el.value:""; };
@@ -1039,6 +1231,8 @@ function openForm(bill,src){
   $("#f_obs").value = bill?.observacao||"";
   $("#f_lc").checked = isPF || !!bill?.livroCaixa;
   if(isPF && !bill && state.fMes!==new Date().getMonth()) $("#f_venc").value=ANO+"-"+pad(state.fMes+1)+"-01";
+  if(!isAdmin()){ setRadio("f_status","pendente"); $("#f_pagoEm").value=""; }
+  $("#w_f_status").hidden=!isAdmin(); $("#compNote").hidden=!isAdmin(); if(!state.isOwner && !isPF) $("#lcBox").hidden=true;
   $("#formErr").hidden=true; clearErrs(); updateCodeHint(false); syncPago();
   state.step = bill ? 4 : 0; state.maxStep = bill ? 4 : 0;
   $("#scrim").hidden=false; $("#panel").hidden=false;
@@ -1167,6 +1361,8 @@ document.addEventListener("click",async ev=>{
   const hb=ev.target.closest(".help"); if(hb){ ev.preventDefault(); ev.stopPropagation(); showHelp(hb); return; }
   if(!ev.target.closest("#bubble")) hideHelp();
   const st=ev.target.closest("[data-step]"); if(st && st.closest("#panel")){ gotoStep(+st.dataset.step); return; }
+  const gt=ev.target.closest("[data-gt]"); if(gt){ state.gType=gt.dataset.gt; renderGraficos(); return; }
+  const ro=ev.target.closest("[data-role]"); if(ro){ setRole(ro.dataset.uid,ro.dataset.role); return; }
   const rq=ev.target.closest("[data-rq]"); if(rq){ const n=new Date(), y=n.getFullYear(), mo=n.getMonth(); let f,t;
     if(rq.dataset.rq==="semana"){ const w=mondayOf(n); f=iso(w); t=iso(addDays(w,6)); }
     else if(rq.dataset.rq==="mes"){ f=iso(new Date(y,mo,1)); t=iso(new Date(y,mo+1,0)); }
@@ -1208,6 +1404,7 @@ document.addEventListener("change",ev=>{
   if(ev.target.name==="f_status"){ syncPago(); setErr("f_status",""); return; }
   if(ev.target.name==="f_unid"){ setErr("f_unid",""); return; }
   if(["rFrom","rTo","rUnit"].includes(ev.target.id)){ renderRelatorio(); return; }
+  if(["gPer","gFrom","gTo","gUnit","gSit","gBy"].includes(ev.target.id)){ renderGraficos(); return; }
 });
 document.addEventListener("input",ev=>{ const id=ev.target.id; if(id&&id.startsWith("f_")&&id!=="f_codigo") setErr(id,""); });
 document.addEventListener("keydown",ev=>{
@@ -1229,6 +1426,11 @@ $("#wNext").onclick=wNext; $("#wBack").onclick=wBack;
 $("#form").addEventListener("submit",e=>{e.preventDefault();wNext();});
 $("#f_codigo").addEventListener("input",()=>updateCodeHint(true));
 $("#rExcel").onclick=()=>{ const f=$("#rFrom").value,t=$("#rTo").value; if(!f||!t||t<f){ renderRelatorio(); toast("Corrija as datas do relatório."); return; } exportExcel({from:f,to:t,unit:$("#rUnit").value}); };
+const rOpts=()=>{ const f=$("#rFrom").value,t=$("#rTo").value; if(!f||!t||t<f){ renderRelatorio(); toast("Corrija as datas do relatório."); return null; } return {from:f,to:t,unit:$("#rUnit").value}; };
+$("#rPdf").onclick=()=>{ const o=rOpts(); if(o) reportPDF(o,false); };
+$("#rPrint").onclick=()=>{ const o=rOpts(); if(o) reportPDF(o,true); };
+$("#gPdf").onclick=()=>chartsPDF(false);
+$("#gPrint").onclick=()=>chartsPDF(true);
 $("#rVer").onclick=()=>{ const f=$("#rFrom").value,t=$("#rTo").value; if(!f||!t||t<f){ renderRelatorio(); return; } setRange(f,t); state.unit=$("#rUnit").value; state.status=""; go("contas"); };
 
 render();
@@ -1241,10 +1443,13 @@ render();
   const [db,user,assets,downloads]=await Promise.all([use("db"),use("user"),use("assets"),use("downloads")]);
   state.assets=assets; state.downloads=downloads;
   if(user){ try{ state.uid=await user.id(); }catch(e){} try{ if((await user.can("data.write"))===false) state.canWrite=false; }catch(e){} try{ state.isOwner=!!(await user.isOwner()); }catch(e){} }
-  const sv=store("cp_view"); if(sv && VIEWS[sv] && (state.isOwner || (sv!=="fiscal"&&sv!=="despesas"))) state.view=sv;
-  $("#sideFoot").textContent = !db ? "Entre com sua conta Claude para usar." : state.isOwner ? "Você é o titular: vê tudo, inclusive a área fiscal." : state.canWrite ? "Acesso de equipe: lançar e pagar contas." : "Acesso somente leitura.";
+  state.user=user;
+  const sv=store("cp_view"); if(sv && VIEWS[sv]) state.view=sv;
+  const foot=()=>{ $("#sideFoot").textContent = !db ? "Entre com sua conta Claude para usar." : state.isOwner ? "Você vê tudo, inclusive a área fiscal." : isAdmin() ? "Painel de gestão das contas." : state.canWrite ? "Lançar contas e acompanhar pagamentos." : "Acesso somente leitura."; }; foot(); state.foot=foot;
   if(!db){ clearTimeout(timer); state.canWrite=false; sl.textContent="Entre com sua conta Claude para ver e lançar as contas."; render(); return; }
   state.db=db; state.col=db.collection("contas");
+  db.doc("config/acesso").onSnapshot(sn=>{ const d=sn.exists?sn.data():{}; state.admins=Array.isArray(d.admins)?d.admins.slice():[]; state.foot&&state.foot(); render(); }, ()=>{});
+  if(state.uid && state.canWrite){ (async()=>{ try{ const me=db.doc("equipe/"+state.uid); const cur=await me.get(); const hoje=todayISO(); if(!cur.exists || (cur.data()||{}).visto!==hoje) await me.set({visto:hoje, primeiro:(cur.exists&&(cur.data()||{}).primeiro)||hoje}); }catch(e){} })(); }
   state.col.onSnapshot(snap=>{
     state.bills=snap.docs.map(d=>mapDoc(d,"contas"));
     state.loaded=true;
@@ -1252,6 +1457,7 @@ render();
     render();
   }, e=>{ clearTimeout(timer); state.loaded=true; sl.textContent = e.code==="revoked"?"Seu acesso a esta página mudou.":"A conexão com o banco de dados caiu. Recarregue a página."; render(); });
   if(state.isOwner){
+    db.collection("equipe").onSnapshot(sn=>{ state.team=sn.docs.map(d=>Object.assign({id:d.id},d.data()||{})); if(state.view==="equipe") renderEquipe(); }, ()=>{});
     state.fiscalRef=db.doc("fiscal/ano-"+ANO);
     state.pfCol=db.collection("fiscal/pf/despesas");
     state.pfCol.onSnapshot(snap=>{ state.pfDesp=snap.docs.map(d=>mapDoc(d,"pf")); render(); }, ()=>{});

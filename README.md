@@ -11,16 +11,19 @@ Site de página única, animado, da Weiss Odontologia (Caruaru e Recife).
 - Logotipo: o `<svg class="brand-mark">` no cabeçalho pode ser trocado por `<img src="logo.svg">`.
 - Telefones/WhatsApp: busque por `wa.me/55` no arquivo.
 
-## Apps internos (Weiss Apps) — hospedados na Vercel
-- A pasta `apps/` é um projeto separado do site, publicado na Vercel em domínio próprio (o site continua no seu domínio).
-- `apps/index.html` é o portal com a lista de sistemas; `apps/vercel.json` define os atalhos: `/financeiro` (e `/contas`) abre o Weiss Financeiro.
-- O Weiss Financeiro roda no Claude (https://claude.ai/artifact/TDSgSEYY3CResmE3sj5i5N): dados, comprovantes e login ficam lá, só para quem foi convidado. Nada sensível fica neste repositório.
+## Weiss Infinity — portal dos apps internos (Vercel)
+- Endereço: **https://www.weissinfinity.com.br** (domínio próprio, separado do site da clínica).
+- A pasta `apps/` é o projeto publicado na Vercel. `apps/index.html` é o portal com a lista de sistemas; `apps/vercel.json` define os atalhos: `/financeiro` (e `/contas`) abre o Weiss Financeiro.
+- O Weiss Financeiro roda no Claude (https://claude.ai/artifact/TDSgSEYY3CResmE3sj5i5N): dados, comprovantes e login ficam lá, só para quem foi convidado. Perfis: titular/administrador (painel de gestão) e funcionário (lança contas e vê se estão pagas). Nada sensível fica neste repositório.
 - `docs/apps/contas-a-pagar.html` é uma cópia do código do Financeiro, para histórico de versões.
 - A pasta `apps` não é publicada pelo GitHub Pages do site (`_config.yml`).
 
 ### Configurar na Vercel (uma vez)
 1. Vercel → Add New → Project → importar o repositório `edelweissjr-ui/edw`.
-2. Root Directory: `apps` · Framework Preset: Other · sem comando de build.
-3. Deploy. Depois, Settings → Domains → adicionar o subdomínio escolhido (ex.: `apps.seudominio.com.br`).
-4. No registro.br, na zona DNS do domínio, criar um registro CNAME com o nome do subdomínio apontando para o valor que a Vercel mostrar (normalmente `cname.vercel-dns.com`).
-5. A partir daí, cada alteração aprovada no branch principal publica sozinha.
+2. Root Directory: `apps` · Framework Preset: Other · sem comando de build → Deploy.
+3. Settings → Domains → adicionar `weissinfinity.com.br` e `www.weissinfinity.com.br` (deixar o `www` como principal).
+4. registro.br → domínio weissinfinity.com.br → DNS → Editar zona (modo avançado) e criar:
+   - tipo **A**, nome em branco (raiz), valor **76.76.21.21**
+   - tipo **CNAME**, nome **www**, valor **cname.vercel-dns.com**
+   (Se a Vercel mostrar outros valores na tela de Domains, use os dela.)
+5. Em até algumas horas o domínio fica ativo, com cadeado (HTTPS) automático. Cada alteração aprovada no branch principal publica sozinha.
