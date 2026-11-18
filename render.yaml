@@ -7,7 +7,10 @@ services:
     buildCommand: npm install --omit=dev
     startCommand: npm start
     healthCheckPath: /saude
-    autoDeploy: true         # cada nova versão enviada ao repositório é instalada sozinha (os dados ficam no disco)
+    autoDeploy: true
+    # domínio próprio: depois de criar o CNAME no Registro.br, descomente e ajuste
+    # domains:
+    #   - alinha.odontoweiss.com.br         # cada nova versão enviada ao repositório é instalada sozinha (os dados ficam no disco)
     plan: starter            # plano pago: sempre ligado e com disco para guardar os pacientes
     disk:
       name: dados
@@ -18,6 +21,8 @@ services:
         sync: false          # senha da equipe (usuário: equipe)
       - key: SENHA_ADMIN
         sync: false          # senha do administrador (usuário: admin)
+      - key: APP_URL
+        sync: false          # domínio próprio, ex.: https://alinha.odontoweiss.com.br (deixe vazio até apontar)
       - key: SEGREDO_SESSAO
         generateValue: true
       - key: PASTA_DADOS

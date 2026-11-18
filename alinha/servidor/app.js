@@ -33,6 +33,8 @@ const CFG = {
   evoUrl: (env.EVOLUTION_URL || "").replace(/\/$/, ""),
   evoKey: env.EVOLUTION_API_KEY || "",
   evoInst: env.EVOLUTION_INSTANCIA || "alinha",
+  // endereço público oficial (domínio próprio), ex.: https://alinha.odontoweiss.com.br
+  appUrl: (env.APP_URL || "").trim().replace(/\/$/, "").replace(/^(?!https?:\/\/)(.+)$/, "https://$1"),
   kommoToken: env.KOMMO_TOKEN || "",
   kommoStatus: { negociacao: null, fechado: 142, perdido: 143 },
   kommoResponsavel: env.KOMMO_RESPONSAVEL_ID ? Number(env.KOMMO_RESPONSAVEL_ID) : null,
@@ -145,7 +147,9 @@ async function guardarMensagensEvo(lista) {
     await STORE.salvarConversa(lead, C);
   }
 }
-const baseDaRequisicao = (req) => `${(req.headers["x-forwarded-proto"] || "http").split(",")[0]}://${req.headers["x-forwarded-host"] || req.headers.host}`;
+const hostDaRequisicao = (req) => String(req.headers["x-forwarded-host"] || req.headers.host || "").split(",")[0].trim().toLowerCase();
+const baseDaRequisicao = (req) => CFG.appUrl || `${(req.headers["x-forwarded-proto"] || "http").split(",")[0]}://${hostDaRequisicao(req)}`;
+const hostOficial = () => { try { return CFG.appUrl ? new URL(CFG.appUrl).host.toLowerCase() : ""; } catch { return ""; } };
 
 /* WhatsApp: mensagens recebidas e enviadas, entregues pelo webhook do Kommo */
 function lerMensagensKommo(corpo) {
@@ -188,7 +192,7 @@ async function guardarWhatsApp(lista) {
 /* ------------------------------------------------------------------ */
 /* utilidades HTTP e sessão                                            */
 /* ------------------------------------------------------------------ */
-const TIPOS = { ".svg": "image/svg+xml", ".html": "text/html; charset=utf-8", ".js": "text/javascript; charset=utf-8", ".png": "image/png", ".jpg": "image/jpeg", ".json": "application/json", ".css": "text/css" };
+const TIPOS = { ".webmanifest": "application/manifest+json", ".svg": "image/svg+xml", ".html": "text/html; charset=utf-8", ".js": "text/javascript; charset=utf-8", ".png": "image/png", ".jpg": "image/jpeg", ".json": "application/json", ".css": "text/css" };
 
 function json(res, status, obj) {
   res.writeHead(status, { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" });
@@ -568,6 +572,11 @@ async function rotas(req, res) {
   const ip = (req.headers["x-forwarded-for"] || req.socket.remoteAddress || "").split(",")[0].trim();
 
   if (p === "/saude") return json(res, 200, { ok: true });
+  const oficial = hostOficial(), hostAtual = hostDaRequisicao(req);
+  if (oficial && hostAtual && hostAtual !== oficial && !/^(localhost|127\.|0\.0\.0\.0|\[::1\])/.test(hostAtual)
+      && (req.method === "GET" || req.method === "HEAD") && !p.startsWith("/webhooks/") && p !== "/versao") {
+    res.writeHead(301, { Location: CFG.appUrl + req.url }); return res.end(); // ex.: projeto.vercel.app → domínio próprio
+  }
   if (p === "/versao") return json(res, 200, { versao: VERSAO }); // público: só o número da versão
 
   // webhook do Kommo (sem login; protegido pela chave no endereço)
@@ -584,6 +593,7 @@ async function rotas(req, res) {
   }
   if (p.startsWith("/assets/")) return servirArquivo(res, ASSETS_DIR, p.slice("/assets/".length));
   if (p === "/logo.svg") return servirArquivo(res, APP_DIR, "logo.svg");
+  if (p === "/manifest.webmanifest") return servirArquivo(res, APP_DIR, "manifest.webmanifest");
 
   if (p === "/login" && req.method === "POST") {
     if (bloqueado(ip)) { res.writeHead(429, { "Content-Type": "text/html; charset=utf-8" }); return res.end(paginaLogin("Muitas tentativas. Aguarde 15 minutos.")); }
@@ -604,7 +614,16 @@ async function rotas(req, res) {
     res.writeHead(303, { Location: "login" }); return res.end();
   }
 
-  if (p === "/api/config" && req.method === "GET") return json(res, 200, { plataforma: true, versao: VERSAO, papel, ia: !!anthropic, kommo: kommoOk(), whatsapp: !!CFG.kommoChaveWebhook || evoOk(), celular: evoOk(), armazenamento: STORE.tipo, dadosPersistentes: STORE.persistente, kommoUrl: CFG.kommoSub ? `https://${CFG.kommoSub}.kommo.com` : "" });
+  if (p === "/api/dominio" && req.method === "GET") {
+    if (soAdmin()) return;
+    const base = baseDaRequisicao(req), host = (() => { try { return new URL(base).host; } catch { return hostDaRequisicao(req); } })();
+    const dnsP = await import("node:dns/promises");
+    const tentar = async (fn) => { try { return await fn(); } catch { return []; } };
+    const [a, cname] = await Promise.all([tentar(() => dnsP.resolve4(host.split(":")[0])), tentar(() => dnsP.resolveCname(host.split(":")[0]))]);
+    return json(res, 200, { ok: true, endereco: base, host, configurado: !!CFG.appUrl, acessoAtual: hostDaRequisicao(req), dns: { a, cname },
+      webhooks: { kommo: CFG.kommoChaveWebhook ? `${base}/webhooks/kommo/${CFG.kommoChaveWebhook}` : "", evolution: evoOk() ? `${base}/webhooks/evolution/${chaveWebhookEvo()}` : "" } });
+  }
+  if (p === "/api/config" && req.method === "GET") return json(res, 200, { plataforma: true, endereco: baseDaRequisicao(req), versao: VERSAO, papel, ia: !!anthropic, kommo: kommoOk(), whatsapp: !!CFG.kommoChaveWebhook || evoOk(), celular: evoOk(), armazenamento: STORE.tipo, dadosPersistentes: STORE.persistente, kommoUrl: CFG.kommoSub ? `https://${CFG.kommoSub}.kommo.com` : "" });
   if (p === "/api/backup" && req.method === "GET") {
     if (soAdmin()) return;
     res.writeHead(200, { "Content-Type": "application/json; charset=utf-8", "Content-Disposition": `attachment; filename="alinha-dados-${new Date().toISOString().slice(0, 10)}.json"`, "Cache-Control": "no-store" });
@@ -727,6 +746,10 @@ function servirArquivo(res, base, rel) {
 
 // tratador único: usado pelo servidor (Render/computador) e pela função da Vercel
 export async function handler(req, res) {
+  res.setHeader("X-Content-Type-Options", "nosniff");
+  res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
+  res.setHeader("X-Frame-Options", "SAMEORIGIN");
+  if (String(req.headers["x-forwarded-proto"] || "").startsWith("https")) res.setHeader("Strict-Transport-Security", "max-age=31536000");
   try {
     await iniciar();
     await rotas(req, res);

@@ -1,0 +1,12 @@
+{
+  "name": "Alinha",
+  "short_name": "Alinha",
+  "description": "Alinha a conversa, o orçamento, o fechamento e o tratamento — Weiss Odontologia",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#0A0A1C",
+  "theme_color": "#0A0A1C",
+  "lang": "pt-BR",
+  "icons": [{ "src": "/logo.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }]
+}

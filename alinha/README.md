@@ -57,6 +57,33 @@ O Alinha roda na Vercel como uma função (`api/index.js`) e guarda os dados no 
 
 Observações: o plano Hobby (gratuito) da Vercel é só para uso não comercial; para a clínica, use o plano **Pro**. O Upstash tem plano gratuito (500 mil comandos/mês), suficiente para o uso normal. Cópias de segurança: na Vercel, baixe periodicamente em Ajustes › Atualizações › "Baixar cópia dos dados"; a cada atualização de versão, o Alinha também guarda uma cópia no próprio banco por 90 dias.
 
+## Domínio próprio (Registro.br)
+O Alinha funciona em qualquer domínio. Recomendado: um **subdomínio do site da clínica**, como `alinha.odontoweiss.com.br`, que não mexe no site. Também serve um domínio próprio, como `alinhaodonto.com.br`.
+
+**1. Cadastre o domínio na hospedagem**
+- **Vercel:** projeto › **Settings › Domains › Add** › digite o domínio. A Vercel mostra o registro que você deve criar.
+- **Render:** serviço › **Settings › Custom Domains › Add** › digite o domínio. O Render mostra o registro.
+
+**2. Crie o registro no DNS** (registro.br › entre › **Domínios** › escolha o domínio › **DNS** › **Configurar zona DNS / Editar zona** › **Nova entrada**)
+
+| Situação | Tipo | Nome | Valor (Vercel) | Valor (Render) |
+|---|---|---|---|---|
+| Subdomínio (ex.: `alinha.odontoweiss.com.br`) | CNAME | `alinha` | `cname.vercel-dns.com` | `alinha-weiss.onrender.com` |
+| Domínio raiz (ex.: `alinhaodonto.com.br`) | A | (vazio / @) | `76.76.21.21` | `216.24.57.1` |
+| `www` do domínio raiz | CNAME | `www` | `cname.vercel-dns.com` | `alinha-weiss.onrender.com` |
+
+- Se a Vercel ou o Render mostrarem **valores diferentes** na tela de domínios, use os que eles mostrarem.
+- **Não altere** o registro principal (`@`) de `odontoweiss.com.br`: ele é do site da clínica. Para o Alinha, crie só o subdomínio.
+- Se o domínio **não usa o DNS do Registro.br** (por exemplo, se o site está na Hostinger, Cloudflare ou outra hospedagem), crie o registro no painel de DNS de lá.
+- A propagação leva de alguns minutos a 24 horas. O certificado HTTPS (cadeado) é emitido sozinho pela hospedagem.
+
+**3. Informe o domínio ao Alinha**
+Na hospedagem, adicione a variável **`APP_URL`** com o endereço completo, por exemplo `https://alinha.odontoweiss.com.br`, e publique de novo. A partir daí:
+- quem acessar pelo endereço antigo (`.vercel.app` ou `.onrender.com`) é levado ao domínio oficial;
+- os webhooks antigos continuam funcionando;
+- em **Ajustes › Domínio e endereços** aparecem os endereços prontos para copiar (login e webhook do Kommo) e o botão **Verificar apontamento**;
+- o QR code de "Abrir no celular" e o webhook do celular conectado passam a usar o domínio.
+
 ## Colocar no ar para a equipe
 1. Chave da IA: **console.anthropic.com** › Billing (crédito) › API Keys › Create Key.
 2. **render.com** › New › **Blueprint** › repositório `edw` (o arquivo `render.yaml` já está pronto).

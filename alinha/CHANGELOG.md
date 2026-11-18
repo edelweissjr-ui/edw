@@ -1,5 +1,11 @@
 # Novidades do Alinha
 
+## 1.6.0 — nov/2026
+- Domínio próprio (Registro.br): variável APP_URL com o endereço oficial; quem acessa pelo endereço da hospedagem é redirecionado (webhooks continuam funcionando).
+- Ajustes › Domínio e endereços: página de login e webhook do Kommo prontos para copiar; botão "Verificar apontamento" (consulta o DNS).
+- Cabeçalhos de segurança (HTTPS estrito, proteção contra incorporação em outros sites).
+- Ícone de app (manifest) ao adicionar à tela de início do celular.
+
 ## 1.5.0 — nov/2026
 - Base de conhecimento ampliada com os materiais "7 Funis de Vendas Comprovados para Clínicas" e "Atraia Clientes de Alto Valor", adaptados à Ortodontia e às regras do CFO.
 - Reativação automática: quem não fechou (ou terminou a cadência) recebe contato com 30, 60 e 90 dias.

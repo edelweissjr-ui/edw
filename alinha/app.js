@@ -8,8 +8,9 @@
   const BIB = window.ROTEIRO, DEMO = window.ALINHA_DEMO;
   /* Versão: na plataforma, vem do servidor (package.json) no momento em que a tela abriu.
      Ao publicar uma atualização, aumente a versão em package.json e registre em NOVIDADES. */
-  let VERSAO = "1.5.0";
+  let VERSAO = "1.6.0";
   const NOVIDADES = [
+    { v: "1.6.0", data: "nov/2026", itens: ["Pronto para domínio próprio (Registro.br): endereço oficial em APP_URL, redirecionamento do endereço antigo e cabeçalhos de segurança", "Ajustes › Domínio e endereços: login e webhook do Kommo prontos para copiar e verificação do apontamento", "Ícone de app ao adicionar o Alinha à tela de início do celular"] },
     { v: "1.5.0", data: "nov/2026", itens: ["Reativação automática de quem não fechou: 30, 60 e 90 dias, na lista Quem alinhar hoje e na coluna Reativação", "Modelos de mensagem (primeiro contato, quem não agendou, lembretes, pós-consulta, reativação, campanha, indicação) na conversa de WhatsApp e nos cartões", "Princípios de atendimento e os 7 funis no guia; a IA passa a usá-los"] },
     { v: "1.4.0", data: "nov/2026", itens: ["Conectar celular (WhatsApp) por QR code em Ajustes, com envio da resposta direto do Alinha", "Abrir o Alinha no celular por QR code", "Pronto para hospedar na Vercel (banco Upstash Redis)"] },
     { v: "1.3.0", data: "nov/2026", itens: ["Método de vendas: SPIN, N.E.A.T., Venda conceitual, SNAP, Venda desafiadora, Sandler e Venda centrada no cliente", "Painel Método na consulta: perguntas SPIN, qualificação N.E.A.T., contrato inicial e próxima pergunta sugerida", "Briefing avalia a consulta por técnica e mostra a pergunta que faltou", "IA usa as técnicas nas dicas, no WhatsApp e no follow-up"] },
@@ -777,7 +778,7 @@
     const atual = $("#cProf").value;
     $("#cProf").innerHTML = profs.map((n) => `<option${n === atual ? " selected" : ""}>${esc(n)}</option>`).join("");
     renderVozes(); atualizarAuto();
-    estadoCelular(); renderAbrirCelular();
+    estadoCelular(); renderAbrirCelular(); renderDominio(false);
   }
   /* ------------------------------------------------------------ */
   /* Conectar celular (WhatsApp) por QR code · Abrir no celular    */
@@ -830,8 +831,33 @@
     }
     el.innerHTML = `<p class="small">${esc(texto)}</p>`;
   }
+  /* domínio próprio: endereço oficial, endereços dos webhooks e verificação do DNS */
+  async function renderDominio(verificar) {
+    if (!$("#domEstado")) return;
+    if (!PLAT) { $("#domEstado").textContent = "demonstração"; $("#domEndereco").textContent = "Disponível depois de publicar o Alinha"; return; }
+    try {
+      const d = await api("GET", "api/dominio");
+      $("#domEndereco").textContent = d.endereco;
+      $("#domEstado").className = "pill " + (d.configurado ? "good" : "warn");
+      $("#domEstado").textContent = d.configurado ? "domínio próprio configurado" : "usando o endereço da hospedagem";
+      const linha = (rot, v) => v ? `<div class="sug"><div class="label">${rot}</div><div class="row" style="margin-top:4px"><code class="grow num" style="word-break:break-all;font-size:13.5px">${esc(v)}</code><button class="btn sm" data-copiar="${esc(v)}">Copiar</button></div></div>` : "";
+      $("#domWebhooks").innerHTML = linha("Página de login (para a equipe)", d.endereco + "/login") + linha("Webhook do Kommo (Configurações › Integrações › Webhooks)", d.webhooks.kommo) + (d.webhooks.evolution ? linha("Webhook do celular conectado (configurado sozinho)", d.webhooks.evolution) : "");
+      if (verificar) {
+        const ok = d.dns.a.length || d.dns.cname.length;
+        $("#domResultado").innerHTML = ok
+          ? `✓ <b>${esc(d.host)}</b> já aponta para: ${esc([...d.dns.cname.map((c) => "CNAME " + c), ...d.dns.a.map((x) => "A " + x)].join(" · "))}${d.acessoAtual !== d.host ? `<br><span class="dim">Você está acessando por ${esc(d.acessoAtual)}. Quando o domínio estiver ativo na hospedagem, o Alinha passa a abrir pelo domínio oficial.</span>` : ""}`
+          : `⏳ <b>${esc(d.host)}</b> ainda não aponta para lugar nenhum. Crie o registro no Registro.br; a propagação leva de alguns minutos a 24 horas.`;
+      }
+    } catch (e) { $("#domResultado").textContent = "Não foi possível verificar: " + e.message; }
+  }
+  $("#btnDomVerificar").addEventListener("click", () => renderDominio(true));
+  document.addEventListener("click", async (e) => {
+    const b = e.target.closest("[data-copiar]"); if (!b) return;
+    try { await navigator.clipboard.writeText(b.dataset.copiar); toast("Copiado"); } catch (err) { toast("Selecione e copie: " + b.dataset.copiar); }
+  });
+
   function renderAbrirCelular() {
-    const url = location.protocol === "file:" ? "Publique o Alinha para gerar o QR code do endereço" : location.origin + location.pathname.replace(/[^/]*$/, "");
+    const url = location.protocol === "file:" ? "Publique o Alinha para gerar o QR code do endereço" : (PLAT && PLAT.endereco ? PLAT.endereco + "/" : location.origin + location.pathname.replace(/[^/]*$/, ""));
     $("#abrirUrl").textContent = url;
     if (location.protocol !== "file:") desenharQR("abrirQr", url, 180);
   }
