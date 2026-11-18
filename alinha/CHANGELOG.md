@@ -1,5 +1,14 @@
 # Novidades do Alinha
 
+## 1.7.0 — nov/2026
+- Nova tela **Resultados**: pacientes por tratamento de interesse e por tratamento fechado (barras, tabela, conversão, valor fechado e ticket médio), com filtro de período e unidade.
+- Interesse nas conversas de WhatsApp: tratamentos e assuntos mais falados.
+- WhatsApp em três colunas: lista de conversas, chat normal (escrever e enviar; Enter envia) e chat sugerido ao lado ("Usar no chat", outra versão, modelos).
+- Assuntos detectados em cada conversa (preço, agendamento, tratamento, medo, prazo, sorriso, decisor, endereço, convênio), com filtro.
+- Perfil DISC do paciente (Dominante, Influente, Estável, Analítico) na consulta ao vivo, no WhatsApp, no briefing e na ficha, com orientação de como falar. A IA refina a leitura.
+- Social Selling no WhatsApp: etapas SPIN e N.E.A.T. acompanhadas em cada conversa e a próxima pergunta pronta para usar.
+- Ficha do paciente: campo Tratamento editável (alimenta os Resultados).
+
 ## 1.6.0 — nov/2026
 - Domínio próprio (Registro.br): variável APP_URL com o endereço oficial; quem acessa pelo endereço da hospedagem é redirecionado (webhooks continuam funcionando).
 - Ajustes › Domínio e endereços: página de login e webhook do Kommo prontos para copiar; botão "Verificar apontamento" (consulta o DNS).

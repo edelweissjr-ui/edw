@@ -464,6 +464,15 @@ PRINCÍPIOS DE ATENDIMENTO (funis de clínica):
 - Escassez só se for real. Faça o próximo agendamento antes de o paciente sair. Use prova social (casos parecidos, depoimentos) com autorização e dentro das normas do CFO.
 - Quem não fechou é reativado com 30, 60 e 90 dias, sempre com algo de valor e sem pressão.`;
 
+const DISC_TXT = `PERFIL DISC (leitura indicativa do jeito de se comunicar, nunca um rótulo para o paciente; não mencione "DISC" na mensagem):
+- D (Dominante): direto, quer resultado, prazo e valor; mensagens curtas. Fale objetivo, dê opções e deixe decidir.
+- I (Influente): caloroso, emocional, fala de fotos, eventos, pessoas; usa emojis. Fale do sorriso e da experiência, com entusiasmo.
+- S (Estável): cauteloso, busca segurança, medo de dor, decide com a família. Passe segurança, explique passo a passo, sem pressa.
+- C (Analítico): pergunta como funciona, etapas, garantia, diferenças. Seja preciso, mostre o que está incluído e a tecnologia.
+Os números D, I, S e C somam 100.`;
+const JSON_DISC = `"disc": {"D": número, "I": número, "S": número, "C": número, "perfil": "D|I|S|C", "como_falar": "1 frase de como falar com este paciente"}`;
+const ASSUNTOS_IDS = "preco, agenda, tratamento, medo, tempo, estetica, decisor, local, convenio";
+
 const MOMENTOS = ["Acolhimento", "Investigação", "Diagnóstico", "Apresentação", "Negociação", "Fechamento"];
 
 function promptDica(b) {
@@ -471,11 +480,13 @@ function promptDica(b) {
     sistema: `Você é o Alinha, copiloto que acompanha AO VIVO uma consulta de Ortodontia da ${CLINICA}
 Você lê o trecho mais recente da conversa e decide se o profissional precisa de uma dica AGORA.
 ${METODO}
+${DISC_TXT}
+Leia também o perfil DISC do PACIENTE pelas falas dele e adapte a dica ao perfil.
 Quando fizer sentido, a dica pode ser a próxima pergunta SPIN que falta, o próximo item N.E.A.T. a descobrir (ex.: quem decide, prazo) ou um insight da venda desafiadora. Indique a técnica no rótulo quando for o caso (ex.: "SPIN · Implicação", "N.E.A.T. · Prazo", "Sandler · Contrato"). A dica aparece na tela por poucos segundos, então ela tem de ser lida num relance.
 - Dica: 1 ou 2 frases curtas, no imperativo, específicas para o que o paciente acabou de dizer (ex.: "Segure o desconto. Descubra com o que ela está comparando e traduza o valor em parcela mensal.").
 - Se não houver nada importante a dizer, responda com "dica": "".
 - Momentos possíveis: ${MOMENTOS.join(", ")}.
-Responda SOMENTE com JSON: {"momento": "...", "tipo": "objecao|sinal_compra|oportunidade|alerta", "rotulo": "2 a 4 palavras, ex.: Objeção de preço", "dica": "...", "citacao": "a frase do paciente que motivou a dica, literal e curta", "prontidao": número de 0 a 100 indicando o quanto o paciente está pronto para fechar agora (desejo, sinais de compra, objeções pendentes, decisor presente)}`,
+Responda SOMENTE com JSON: {"momento": "...", "tipo": "objecao|sinal_compra|oportunidade|alerta", "rotulo": "2 a 4 palavras, ex.: Objeção de preço", "dica": "...", "citacao": "a frase do paciente que motivou a dica, literal e curta", "prontidao": número de 0 a 100 indicando o quanto o paciente está pronto para fechar agora (desejo, sinais de compra, objeções pendentes, decisor presente), ${JSON_DISC}}`,
     prompt: `Momento atual na tela: ${b.momento || "Acolhimento"}
 Dicas já mostradas (não repita): ${(b.ja_mostradas || []).join(" | ") || "nenhuma"}
 
@@ -490,6 +501,7 @@ function promptBriefing(b) {
     sistema: `Você é o Alinha, copiloto comercial da ${CLINICA}
 Você recebe a transcrição de uma consulta que acabou de terminar e produz o BRIEFING para o profissional e a equipe comercial. Os rótulos PROFISSIONAL/PACIENTE vêm de reconhecimento automático de voz e podem ter erros: use o conteúdo das falas para corrigir quem disse o quê.
 ${METODO}
+${DISC_TXT}
 Avalie também a consulta por essas técnicas e se o próximo passo ficou agendado antes de o paciente sair. Seja concreto, use as palavras do paciente, e não invente números: use somente valores ditos na conversa.
 Responda SOMENTE com JSON neste formato:
 {
@@ -517,6 +529,7 @@ Responda SOMENTE com JSON neste formato:
  "decisor": "quem decide junto, ou ''",
  "temperatura": "quente|morno|frio",
  "nota": número de 0 a 10,
+ ${JSON_DISC},
  "metodos": {
    "spin": {"S": true|false, "P": true|false, "I": true|false, "N": true|false},
    "neat": {"N": true|false, "E": true|false, "A": true|false, "T": true|false},
@@ -540,10 +553,13 @@ function promptWhatsApp(b) {
     sistema: `Você é o Alinha, copiloto comercial da ${CLINICA}
 Você acompanha uma conversa de WhatsApp em andamento com um paciente (lead que pode ter vindo de anúncio no Meta e sido atendido antes pela IA de atendimento). Sugira a PRÓXIMA mensagem da clínica para conduzir, com empatia, ao agendamento do check-up digital (iTero) ou ao fechamento.
 ${METODO}
+${DISC_TXT}
+Social Selling no WhatsApp: conduza com perguntas SPIN (situação → problema → implicação → necessidade) e descubra o N.E.A.T. (necessidade, impacto econômico, quem decide, prazo), uma pergunta por vez. Adapte o tom ao perfil DISC do paciente.
 Regras: mensagem curta (até 3 frases), no máximo 1 emoji, termine com uma pergunta fácil (de preferência com duas opções). Se faltar algo do N.E.A.T. (ex.: quem decide, prazo), use a pergunta para descobrir. Não passe preço antes do diagnóstico: convide para o check-up digital. Diante de objeção: valide, descubra a objeção real e responda. Nunca prometa resultado; não invente valores, prazos ou condições. Não dê diagnóstico pelo WhatsApp. Só use condição especial se estiver no contexto.
-Responda SOMENTE com JSON: {"orientacao": "1 frase para o atendente: o que está acontecendo e o que fazer", "mensagem": "texto pronto para enviar", "rotulo": "2 a 4 palavras, ex.: Objeção de preço", "prontidao": número de 0 a 100 (quão pronto para agendar/fechar)}`,
+Responda SOMENTE com JSON: {"orientacao": "1 frase para o atendente: o que está acontecendo e o que fazer", "mensagem": "texto pronto para enviar", "rotulo": "2 a 4 palavras, ex.: Objeção de preço", "prontidao": número de 0 a 100 (quão pronto para agendar/fechar), ${JSON_DISC}, "assuntos": ["ids entre: ${ASSUNTOS_IDS}"], "tratamento_interesse": "tratamento que o paciente quer, ex.: Invisalign, Aparelho fixo, Aparelho estético, Clareamento, ou ''"}`,
     prompt: `Unidade: ${b.unidade || "-"} · Paciente: ${b.nome || "-"}
 Condição especial vigente: ${b.condicao || "nenhuma"}
+Leitura DISC prévia (pelas palavras-chave): ${b.disc && b.disc.perfil ? `D ${b.disc.D} · I ${b.disc.I} · S ${b.disc.S} · C ${b.disc.C}` : "-"}
 ${b.versao_anterior ? "Escreva uma versão DIFERENTE desta: " + b.versao_anterior + "\n" : ""}
 CONVERSA (a mais recente por último):
 ${(b.conversa || []).slice(-30).map((m) => `${m.autor === "cliente" ? "PACIENTE" : m.ia ? "IA DE ATENDIMENTO" : "CLÍNICA"}: ${m.texto}`).join("\n")}`,
@@ -561,6 +577,8 @@ Escreva UMA mensagem de WhatsApp de follow-up para um paciente que fez consulta 
 - ser curta (até 4 linhas), calorosa, no máximo 1 emoji, terminar com uma pergunta fácil de responder;
 - respeitar o momento da cadência: D0 = resumo do plano no mesmo dia; D1 = tirar dúvidas; D3 = reforçar valor (simulação, vídeo do dentista, caso parecido); D7 = pergunta direta sobre o que impede; D15 = porta aberta / condição real se houver; D30 = encerramento gentil; R30/R60/R90 = REATIVAÇÃO de quem não fechou, 30/60/90 dias depois (saber como está, oferecer algo de valor como a simulação, convidar sem pressão).
 ${METODO}
+${DISC_TXT}
+Se o perfil DISC do paciente for informado, adapte o tom a ele.
 Não invente desconto, prazo ou condição. Responda SOMENTE com JSON: {"mensagem": "..."}`,
     prompt: `Toque: ${b.toque} (${String(b.dia).startsWith("R") ? b.dia + " — reativação" : "D" + b.dia})
 Paciente: ${p.nome || "-"} · Unidade: ${p.unidade || "-"} · Tratamento: ${p.tratamento || "-"} · Valor apresentado: ${p.valorApresentado || "-"}
@@ -568,6 +586,7 @@ Dor: ${p.dor || "-"} · Evento: ${p.evento || "-"} · Decisor: ${p.decisor || "-
 Objeções: ${(p.objecoes || []).join(", ") || "-"} · O que travou: ${p.oQueTravou || "-"}
 Palavras do paciente: ${(p.palavras || []).join(" | ") || "-"}
 Profissional que atendeu: ${p.profissional || "-"}
+Perfil DISC: ${p.disc && p.disc.perfil ? `${p.disc.perfil} (D ${p.disc.D} · I ${p.disc.I} · S ${p.disc.S} · C ${p.disc.C})` : "-"}
 Condição especial vigente informada pela clínica: ${b.condicao || "nenhuma"}
 ${b.versao_anterior ? "Escreva uma versão DIFERENTE desta: " + b.versao_anterior : ""}`
   };

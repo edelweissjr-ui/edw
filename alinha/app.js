@@ -8,8 +8,9 @@
   const BIB = window.ROTEIRO, DEMO = window.ALINHA_DEMO;
   /* Versão: na plataforma, vem do servidor (package.json) no momento em que a tela abriu.
      Ao publicar uma atualização, aumente a versão em package.json e registre em NOVIDADES. */
-  let VERSAO = "1.6.0";
+  let VERSAO = "1.7.0";
   const NOVIDADES = [
+    { v: "1.7.0", data: "nov/2026", itens: ["Resultados por tratamento: quantos pacientes têm interesse e quantos fecharam em cada tratamento, com conversão, valor e ticket médio", "WhatsApp em três colunas: conversas, o chat normal para escrever e enviar, e o chat sugerido ao lado", "Assuntos de cada conversa (preço, agendamento, medo, prazo…) com filtro e tratamento de interesse detectado", "Perfil DISC do paciente durante a consulta e no WhatsApp, com como falar com cada perfil", "Social Selling no WhatsApp: SPIN e N.E.A.T. acompanhados em cada conversa, com a próxima pergunta pronta"] },
     { v: "1.6.0", data: "nov/2026", itens: ["Pronto para domínio próprio (Registro.br): endereço oficial em APP_URL, redirecionamento do endereço antigo e cabeçalhos de segurança", "Ajustes › Domínio e endereços: login e webhook do Kommo prontos para copiar e verificação do apontamento", "Ícone de app ao adicionar o Alinha à tela de início do celular"] },
     { v: "1.5.0", data: "nov/2026", itens: ["Reativação automática de quem não fechou: 30, 60 e 90 dias, na lista Quem alinhar hoje e na coluna Reativação", "Modelos de mensagem (primeiro contato, quem não agendou, lembretes, pós-consulta, reativação, campanha, indicação) na conversa de WhatsApp e nos cartões", "Princípios de atendimento e os 7 funis no guia; a IA passa a usá-los"] },
     { v: "1.4.0", data: "nov/2026", itens: ["Conectar celular (WhatsApp) por QR code em Ajustes, com envio da resposta direto do Alinha", "Abrir o Alinha no celular por QR code", "Pronto para hospedar na Vercel (banco Upstash Redis)"] },
@@ -355,9 +356,11 @@
       <div class="row"><div class="ava">${esc(iniciais(p.nome))}</div><div class="grow"><h2 style="font-size:22px">${esc(p.nome)}</h2><div class="small dim">${esc(p.tratamento || "")} · ${esc(p.unidade || "")} · consulta em ${fmtData(p.consultaEm)} com ${esc(p.profissional || "—")}</div></div><button class="btn sm ghost" id="btnFechar" aria-label="Fechar">✕</button></div>
       <div class="row">${p.status === "fechado" ? `<span class="pill good">Fechou ${brl(p.valorFechado)}</span>` : p.status === "perdido" ? `<span class="pill bad">Não fechou</span>` : `<span class="pill acc">Em follow-up · ${brl(p.valorApresentado)}</span>`}${(p.objecoes || []).map((o) => `<span class="pill warn">${esc(OBJ_NOME[o] || o)}</span>`).join("")}</div>
       ${p.oQueTravou || p.dor ? `<div class="card small stack" style="gap:6px">${p.dor ? `<div><span class="label">Dor</span><br>${esc(p.dor)}</div>` : ""}${p.oQueTravou ? `<div><span class="label">O que travou</span><br>${esc(p.oQueTravou)}</div>` : ""}${(p.palavras || []).length ? `<div><span class="label">Palavras do paciente</span><br>${p.palavras.map((w) => "“" + esc(w) + "”").join(" · ")}</div>` : ""}</div>` : ""}
+      ${p.disc && p.disc.n ? `<div class="card stack"><span class="label">Perfil DISC</span>${discHTML(p.disc)}</div>` : ""}
       ${x && !x.fim ? cardMensagem(p, x) : ""}
       <div class="card stack"><span class="label">Resultado</span>
-        <div class="row"><div class="grow"><label class="f" for="gValor">Valor fechado (R$)</label><input class="in num" id="gValor" inputmode="decimal" value="${p.valorFechado || p.valorApresentado || ""}"></div></div>
+        <div class="row"><div class="grow"><label class="f" for="gTrat">Tratamento</label><select class="in" id="gTrat">${(() => { const atual = tratDoPaciente(p); const ops = TRAT.map((t) => t.nome); if (!ops.includes(atual)) ops.unshift(atual); return ops.map((o) => `<option${o === atual ? " selected" : ""}>${esc(o)}</option>`).join(""); })()}</select></div>
+          <div class="grow"><label class="f" for="gValor">Valor fechado (R$)</label><input class="in num" id="gValor" inputmode="decimal" value="${p.valorFechado || p.valorApresentado || ""}"></div></div>
         <div class="row"><button class="btn pri" id="gFechou">Fechou</button><button class="btn" id="gPerdeu">Não fechou</button>${p.status !== "aberto" ? `<button class="btn ghost" id="gReabrir">Voltar ao follow-up</button>` : ""}</div>
         <div class="tiny dim">Histórico: ${CAD.filter((d) => (p.toques || {})[d]).map((d) => `D${d} ${p.toques[d].status}`).join(" · ") || "nenhum toque ainda"}</div>
       </div>
@@ -366,6 +369,7 @@
     if (x && !x.fim) garantirMensagemIA(p, x.dia);
     $("#veil").addEventListener("click", (e) => { if (e.target.id === "veil") fecharGaveta(); });
     $("#btnFechar").onclick = fecharGaveta;
+    $("#gTrat").onchange = async (e) => { p.tratamento = e.target.value; p.interesse = e.target.value; await Store.salvar(p); toast("Tratamento atualizado"); };
     const valor = () => { const v = String($("#gValor").value).replace(/[^\d,.]/g, ""); return Number(v.includes(",") ? v.replace(/\./g, "").replace(",", ".") : v) || 0; };
     $("#gFechou").onclick = async () => {
       p.status = "fechado"; p.valorFechado = valor(); p.fechadoEm = new Date().toISOString();
@@ -425,6 +429,7 @@
           ${M.conceito ? `<div><span class="label">Conceito do paciente</span><p style="margin:4px 0 0">${esc(M.conceito)}</p></div>` : ""}
           ${M.pergunta_que_faltou ? `<div style="grid-column:1/-1;background:var(--accent-soft)"><span class="label">Pergunta que faltou (use no retorno)</span><p style="margin:4px 0 0;font-weight:700">“${esc(M.pergunta_que_faltou)}”</p></div>` : ""}
         </div>`; })() : ""}
+      ${p.disc && p.disc.n ? `<h3 style="margin-top:6px">Perfil DISC do paciente</h3><div class="card stack" style="max-width:520px">${discHTML(p.disc)}</div>` : ""}
       ${(B.palavras_do_paciente || []).length ? `<div class="small"><span class="label">Palavras do paciente (usadas nas mensagens)</span><br>${B.palavras_do_paciente.map((w) => "“" + esc(w) + "”").join(" · ")}</div>` : ""}
       <div class="row"><button class="btn pri" data-id="${p.id}" data-act="abrir">Mensagem e follow-up</button>${PLAT && PLAT.kommo ? `<button class="btn" id="btnKommo" data-k="${p.id}">Enviar ao Kommo</button>` : ""}<span class="small dim" id="kommoSt"></span></div>
     </div>`;
@@ -479,7 +484,7 @@
 
   let C = null; // sessão de consulta
   function novaSessao() {
-    return { inicio: null, seg: 0, gravando: false, pausado: false, momento: 0, falas: [], dicas: [], objecoes: new Set(), demo: false, ultimaIA: 0, temp: 25, avisouFechar: false, spin: {}, neat: {}, contrato: false };
+    return { inicio: null, seg: 0, gravando: false, pausado: false, momento: 0, falas: [], dicas: [], objecoes: new Set(), demo: false, ultimaIA: 0, temp: 25, avisouFechar: false, spin: {}, neat: {}, contrato: false, disc: null, discIA: null };
   }
   C = novaSessao();
   let quem = "paciente", tick = null, sr = null, stream = null, tipTimer = null, demoTimer = null, MED = null, quemManual = false;
@@ -541,10 +546,13 @@
     } else {
       Object.entries(PISTA_NEAT).forEach(([k, ps]) => { if (ps.some((x) => t.includes(x))) C.neat[k] = true; });
     }
+    atualizarDiscConsulta();
     renderMetodo();
   }
+  function atualizarDiscConsulta() { C.disc = discMesclar(discDe(C.falas.filter((f) => f.quem === "paciente").map((f) => f.texto)), C.discIA); }
   function renderMetodo() {
     if (!$("#mSpin")) return;
+    $("#mDisc").innerHTML = discHTML(C.disc);
     $("#mSpin").innerHTML = ["S", "P", "I", "N"].map((k) => `<button class="${C.spin[k] ? "ok" : ""}" data-mspin="${k}" title="${esc(MET.spin[k].objetivo)}">${k} · ${MET.spin[k].nome}</button>`).join("");
     $("#mNeat").innerHTML = ["N", "E", "A", "T"].map((k) => `<button class="${C.neat[k] ? "ok" : ""}" data-mneat="${k}" title="${esc(MET.neat[k].dica)}">${MET.neat[k].nome}</button>`).join("");
     $("#mSandler").innerHTML = `<button class="${C.contrato ? "ok" : ""}" data-mcontrato="1" title="Combinar no início que o paciente dirá sim ou não no final">Contrato inicial</button>`;
@@ -614,6 +622,7 @@
       const d = await api("POST", "api/ia/dica", { momento: MOMENTOS[C.momento], transcricao: C.falas.slice(-40), ja_mostradas: C.dicas.slice(0, 8).map((x) => x.dica) });
       const i = MOMENTOS.indexOf(d.momento); if (i > C.momento) { C.momento = i; renderMomento(); }
       if (typeof d.prontidao === "number") { const alvo = Math.max(0, Math.min(100, d.prontidao)); ajustarTemp(Math.round((alvo - C.temp) / 2), "leitura da IA"); }
+      if (d.disc) { C.discIA = d.disc; atualizarDiscConsulta(); renderMetodo(); }
       if (d.dica) mostrarDica({ ...d, fonte: "ia" });
     } catch (e) { /* segue com as dicas do roteiro */ }
   }
@@ -640,6 +649,7 @@
     el.classList.toggle("pac", f.quem === "paciente"); el.classList.remove("inc");
     el.querySelector("b").textContent = f.quem === "paciente" ? "Paciente" : "Profissional";
     if (f.quem === "paciente") { analisarLocal(f); termometro(f); }
+    atualizarDiscConsulta(); renderMetodo();
   });
   const mmss = (s) => String(Math.floor(s / 60)).padStart(2, "0") + ":" + String(s % 60).padStart(2, "0");
   function estadoBotoes() {
@@ -743,6 +753,7 @@
           const faltaS = ["S", "P", "I", "N"].find((k) => !spin[k]), faltaN = ["N", "E", "A", "T"].find((k) => !neat[k]);
           return { spin, neat, conceito: m.conceito || "", contrato_inicial: !!(m.contrato_inicial || C.contrato), insight: !!m.insight,
             pergunta_que_faltou: m.pergunta_que_faltou || (faltaS ? MET.spin[faltaS].perguntas[0] : faltaN ? MET.neat[faltaN].pergunta : "") }; })() }),
+      disc: (() => { atualizarDiscConsulta(); const d = discMesclar(C.disc, B.disc); return d && d.n ? d : undefined; })(),
       prontidao: Math.round(C.temp), transcricao: C.falas, toques: {}
     };
     await Store.salvar(p);
@@ -975,12 +986,13 @@
   async function gerarSugestao(lead, versaoAnterior) {
     WA.sug[lead] = WA.sug[lead] && !versaoAnterior ? WA.sug[lead] : sugestaoLocal(lead);
     if (!versaoAnterior) WA.sug[lead] = sugestaoLocal(lead);
-    if (lead === WA.sel) renderChat();
-    if (!(PLAT && PLAT.ia)) { if (versaoAnterior) { const alt = sugestaoLocal(lead); alt.mensagem = preencherBib("Entendo você, {nome}. O que pesa mais nessa decisão agora? Se fizer sentido, eu te mostro a simulação do seu sorriso e vemos juntos o melhor caminho 🙂", lead); WA.sug[lead] = alt; renderChat(); } return; }
+    if (lead === WA.sel) renderSide();
+    if (!(PLAT && PLAT.ia)) { if (versaoAnterior) { const alt = sugestaoLocal(lead); alt.mensagem = preencherBib("Entendo você, {nome}. O que pesa mais nessa decisão agora? Se fizer sentido, eu te mostro a simulação do seu sorriso e vemos juntos o melhor caminho 🙂", lead); WA.sug[lead] = alt; renderSide(); } return; }
     try {
       const i = WA.info[lead] || {};
-      const d = await api("POST", "api/ia/whatsapp", { conversa: WA.msgs[lead] || [], nome: i.nome, unidade: i.unidade, condicao: AJ.condicao, versao_anterior: versaoAnterior || "" });
+      const d = await api("POST", "api/ia/whatsapp", { conversa: WA.msgs[lead] || [], nome: i.nome, unidade: i.unidade, condicao: AJ.condicao, versao_anterior: versaoAnterior || "", disc: discDe((WA.msgs[lead] || []).filter((m) => m.autor === "cliente").map((m) => m.texto)) });
       WA.sug[lead] = { rotulo: d.rotulo || "Sugestão da IA", orientacao: d.orientacao || "", mensagem: d.mensagem || "", fonte: "ia" };
+      WA.ia[lead] = { disc: d.disc, assuntos: Array.isArray(d.assuntos) ? d.assuntos : [], tratamento_interesse: d.tratamento_interesse || "" };
       if (typeof d.prontidao === "number") WA.temp[lead] = Math.round((WA.temp[lead] + d.prontidao) / 2);
       if (lead === WA.sel) renderChat();
     } catch (e) { /* fica a sugestão do roteiro */ }
@@ -1001,33 +1013,182 @@
   function naoLida(c) { return c.autor === "cliente" && (!WA.lido[c.lead] || c.ts > WA.lido[c.lead]); }
   function badgeWA() { const n = WA.conversas.filter(naoLida).length; const b = $("#badgeWA"); b.textContent = n; b.classList.toggle("hide", !n); }
 
+  /* ------------------------------------------------------------ */
+  /* Tratamentos, assuntos e perfil DISC                           */
+  /* ------------------------------------------------------------ */
+  const TRAT = [
+    { nome: "Invisalign", g: ["invisalign", "alinhador", "alinhadores", "invisivel", "transparente", "placa transparente"] },
+    { nome: "Aparelho estético", g: ["aparelho estetico", "safira", "porcelana", "ceramica", "autoligado", "fixo estetico"] },
+    { nome: "Aparelho fixo", g: ["aparelho fixo", "aparelho metalico", "braquete", "bracket", "aparelho"] },
+    { nome: "Ortodontia infantil", g: ["meu filho", "minha filha", "crianca", "infantil", "expansor", "ortopedia"] },
+    { nome: "Contenção / finalização", g: ["contencao", "finalizacao", "voltou a entortar", "voltaram a entortar"] },
+    { nome: "Clareamento", g: ["clareamento", "clarear", "amarelado", "branquear"] },
+    { nome: "Lentes e facetas", g: ["lente de contato", "lentes", "faceta", "facetas", "laminado"] },
+    { nome: "Implante", g: ["implante", "protese", "dente faltando", "perdi um dente"] },
+    { nome: "Check-up digital (iTero)", g: ["check up", "checkup", "escaneamento", "itero", "avaliacao"] }
+  ];
+  const tratDe = (txt) => { if (!txt) return ""; const t = TRAT.find((x) => casa(txt, x.g)); return t ? t.nome : ""; };
+  const tratDoPaciente = (p) => tratDe(p.interesse || p.tratamento) || String(p.interesse || p.tratamento || "").trim() || "Não informado";
+  const ASSUNTOS = [
+    { id: "preco", nome: "Preço e parcelas", g: ["quanto custa", "valor", "preco", "parcela", "parcelas", "caro", "orcamento", "cartao", "pix", "desconto", "entrada", "pagamento", "investimento"] },
+    { id: "agenda", nome: "Agendamento", g: ["horario", "agendar", "agenda", "marcar", "disponivel", "amanha", "que dia", "encaixe", "remarcar"] },
+    { id: "tratamento", nome: "Tratamento", g: TRAT.slice(0, 8).flatMap((x) => x.g).concat(["tratamento", "como funciona"]) },
+    { id: "medo", nome: "Medo e dor", g: ["medo", "dor", "doi", "doer", "pavor", "receio", "nervoso", "ansiosa", "ansioso"] },
+    { id: "tempo", nome: "Duração", g: ["quanto tempo", "demora", "meses", "prazo", "rapido", "duracao"] },
+    { id: "estetica", nome: "Sorriso e resultado", g: ["sorriso", "foto", "fotos", "torto", "tortos", "vergonha", "bonito", "resultado", "casamento", "formatura", "aparece"] },
+    { id: "decisor", nome: "Decide com alguém", g: ["marido", "esposa", "noivo", "noiva", "namorad", "meus pais", "minha mae", "meu pai", "conversar com", "ver com"] },
+    { id: "local", nome: "Endereço e unidade", g: ["endereco", "onde fica", "localizacao", "estacionamento", "como chego"] },
+    { id: "convenio", nome: "Convênio", g: ["convenio", "plano odontologico", "plano de saude", "reembolso"] }
+  ];
+  const ASS_NOME = Object.fromEntries(ASSUNTOS.map((a) => [a.id, a.nome]));
+  function assuntosDe(msgs) {
+    const n = {};
+    (msgs || []).filter((m) => m.autor === "cliente").forEach((m) => ASSUNTOS.forEach((a) => { if (casa(m.texto, a.g)) n[a.id] = (n[a.id] || 0) + 1; }));
+    return Object.keys(n).sort((a, b) => n[b] - n[a]);
+  }
+  function tratamentoDaConversa(msgs) {
+    const n = {};
+    (msgs || []).filter((m) => m.autor === "cliente").forEach((m) => { const t = tratDe(m.texto); if (t) n[t] = (n[t] || 0) + 1; });
+    const ks = Object.keys(n).sort((a, b) => n[b] - n[a]);
+    return ks.find((k) => !k.startsWith("Check-up")) || ks[0] || ""; // check-up só se não houver outro tratamento citado
+  }
+  // DISC: leitura do jeito de falar do paciente (indicativo, não é diagnóstico)
+  const DISC = {
+    D: { nome: "Dominante", cor: "Direto, quer resultado", g: ["quanto custa", "quanto tempo", "rapido", "logo", "direto", "resultado", "resolver", "quero", "agora", "prazo", "objetivo", "quando comeca", "sem enrolar", "pode ser", "fechado"],
+      como: "Vá direto ao ponto: resultado, prazo e valor em poucas linhas. Dê duas opções e deixe a pessoa decidir.", evitar: "Rodeios, textos longos e detalhes demais." },
+    I: { nome: "Influente", cor: "Comunicativo, emocional", g: ["amei", "adorei", "lindo", "linda", "festa", "casamento", "kkk", "rs", "haha", "maravilh", "perfeito", "top", "sonho", "apaixon", "foto", "fotos"],
+      como: "Seja caloroso e animado: fale do sorriso, de fotos, do evento e de histórias de outros pacientes.", evitar: "Frieza e excesso de números." },
+    S: { nome: "Estável", cor: "Cauteloso, busca segurança", g: ["medo", "seguranca", "calma", "pensar", "familia", "marido", "esposa", "confianca", "dor", "receio", "tranquil", "nervos", "ansios", "preocup", "com calma"],
+      como: "Passe segurança: explique passo a passo, mostre o acompanhamento e acolha o medo. Não apresse.", evitar: "Pressão, urgência e mudanças bruscas." },
+    C: { nome: "Analítico", cor: "Detalhista, quer entender", g: ["como funciona", "detalhe", "explica", "garantia", "quantos", "por que", "porque", "diferenca", "etapas", "contrato", "planejamento", "comparar", "material", "tecnologia", "incluso", "inclui"],
+      como: "Seja preciso: etapas, o que está incluído e a tecnologia (iTero, planejamento digital). Mande por escrito.", evitar: "Exageros e promessas vagas." }
+  };
+  const DK = ["D", "I", "S", "C"];
+  function discDe(textos) {
+    const s = { D: 1, I: 1, S: 1, C: 1 };
+    const lista = (textos || []).filter(Boolean);
+    lista.forEach((t0) => {
+      DK.forEach((k) => { DISC[k].g.forEach((w) => { if (casa(t0, [w])) s[k] += 2; }); });
+      if (t0.length < 40) s.D += 0.6; if (t0.length > 160) s.C += 1;
+      if (/!{2,}|😍|🥰|😂|🤣|❤|✨|🤩|😁|😊|🙏/u.test(t0)) s.I += 1.2;
+      if (t0.includes("?")) s.C += 0.4;
+    });
+    return normDisc(s, lista.length);
+  }
+  function normDisc(s, n) {
+    const tot = DK.reduce((a, k) => a + (Number(s[k]) || 0), 0) || 1;
+    const r = Object.fromEntries(DK.map((k) => [k, Math.round(((Number(s[k]) || 0) / tot) * 100)]));
+    const dif = 100 - DK.reduce((a, k) => a + r[k], 0); const top = DK.slice().sort((a, b) => r[b] - r[a]);
+    r[top[0]] += dif; r.perfil = top[0]; r.n = n || 0;
+    r.seguro = r.n >= 3 && r[top[0]] - r[top[1]] >= 8;
+    return r;
+  }
+  // junta a leitura local com a da IA (quando houver)
+  function discMesclar(local, ia) {
+    if (!ia || !DK.every((k) => typeof ia[k] === "number")) return local;
+    const m = normDisc(Object.fromEntries(DK.map((k) => [k, (local[k] + ia[k]) / 2])), Math.max(local.n, 3));
+    if (ia.como_falar) m.como_falar = ia.como_falar;
+    return m;
+  }
+  function discHTML(d, titulo) {
+    if (!d || !d.n) return `<div class="small dim">${titulo ? "" : ""}O perfil aparece quando o paciente começar a falar.</div>`;
+    const P = DISC[d.perfil];
+    return `<div class="disc" role="img" aria-label="Perfil DISC: D ${d.D}%, I ${d.I}%, S ${d.S}%, C ${d.C}%">${DK.map((k) => `<div title="${esc(DISC[k].nome + ": " + DISC[k].cor)}"><div class="dcol${k === d.perfil ? " top" : ""}"><b style="height:${Math.max(4, d[k])}%"></b></div><span>${k} ${d[k]}%</span><em>${DISC[k].nome}</em></div>`).join("")}</div>
+      <div><b>${esc(P.nome)}</b> <span class="small dim">· ${esc(P.cor)}${d.seguro ? "" : " · leitura inicial"}</span></div>
+      <div class="small"><b>Como falar:</b> ${esc(d.como_falar || P.como)}</div><div class="small dim"><b>Evite:</b> ${esc(P.evitar)}</div>`;
+  }
+  // SPIN e N.E.A.T. aplicados a uma conversa de WhatsApp (Social Selling)
+  function metodoConversa(msgs) {
+    const spin = {}, neat = {};
+    (msgs || []).forEach((m) => {
+      const t = norm(m.texto);
+      if (m.autor === "cliente") Object.entries(PISTA_NEAT).forEach(([k, ps]) => { if (ps.some((x) => t.includes(x))) neat[k] = true; });
+      else Object.entries(PISTA_SPIN).forEach(([k, ps]) => { if (ps.some((x) => t.includes(x))) spin[k] = true; });
+    });
+    // se o paciente já contou o problema, a etapa P está coberta
+    if (neat.N) spin.P = true;
+    let rot = "", q = "";
+    // segue adiante: a próxima etapa depois da última já feita (no WhatsApp não se volta para a Situação)
+    const ord = ["S", "P", "I", "N"], ult = ord.reduce((a, x, i) => (spin[x] ? i : a), -1);
+    const k = ord.slice(ult + 1).find((x) => !spin[x]) || (ult < 0 ? "S" : "");
+    if (k) { rot = "SPIN · " + MET.spin[k].nome; q = MET.spin[k].perguntas[0]; }
+    else { const n = ["N", "E", "A", "T"].find((x) => !neat[x]); if (n) { rot = "N.E.A.T. · " + MET.neat[n].nome; q = MET.neat[n].pergunta; } }
+    return { spin, neat, rot, q };
+  }
+
+  /* ------------------------------------------------------------ */
+  /* WhatsApp: lista · chat · chat sugerido                         */
+  /* ------------------------------------------------------------ */
+  WA.filtro = ""; WA.ia = {}; WA.rascunho = {};
+  function linkWA(i, txt) { return i.telefone ? `https://wa.me/${(digits(i.telefone).length <= 11 ? "55" : "") + digits(i.telefone)}?text=${encodeURIComponent(txt || "")}` : ""; }
+  function analiseWA(lead) {
+    const msgs = WA.msgs[lead] || [], ia = WA.ia[lead] || {};
+    const cli = msgs.filter((m) => m.autor === "cliente").map((m) => m.texto);
+    const ass = assuntosDe(msgs); (ia.assuntos || []).forEach((a) => { if (ASS_NOME[a] && !ass.includes(a)) ass.push(a); });
+    return { disc: discMesclar(discDe(cli), ia.disc), assuntos: ass, tratamento: tratDe(ia.tratamento_interesse) || ia.tratamento_interesse || tratamentoDaConversa(msgs), metodo: metodoConversa(msgs) };
+  }
+  function renderAssuntosFiltro() {
+    const n = {};
+    WA.conversas.forEach((c) => { const msgs = WA.msgs[c.lead]; const ass = msgs ? assuntosDe(msgs) : (c.assuntos || []); ass.forEach((a) => { n[a] = (n[a] || 0) + 1; }); });
+    const ids = Object.keys(n).sort((a, b) => n[b] - n[a]);
+    $("#waAssuntos").innerHTML = ids.length ? `<button data-ass="" class="${WA.filtro ? "" : "on"}">Todos os assuntos</button>` + ids.map((a) => `<button data-ass="${a}" class="${WA.filtro === a ? "on" : ""}">${esc(ASS_NOME[a])} · ${n[a]}</button>`).join("") : "";
+  }
   function renderWA() {
-    $("#waEstado").textContent = waModoReal() ? "conectado ao Kommo" : PLAT ? "aguardando configuração do webhook" : "demonstração";
-    $("#waLista").innerHTML = WA.conversas.length ? WA.conversas.map((c) => { const i = WA.info[c.lead] || {}; return `<button data-wa="${esc(c.lead)}" class="${c.lead === WA.sel ? "on" : ""}"><div class="ava">${esc(iniciais(i.nome || c.nome || "?"))}</div><div class="t"><b>${esc(i.nome || c.nome || "Lead " + c.lead)}${naoLida(c) ? '<span class="nova" title="nova mensagem"></span>' : ""}</b><span class="u">${c.autor === "clinica" ? "Você: " : ""}${esc(c.ultima)}</span></div><span class="h">${c.ts ? hora(c.ts) : ""}</span></button>`; }).join("")
-      : `<div class="vazio">${PLAT ? "Nenhuma conversa ainda. Assim que o webhook do Kommo estiver configurado, as mensagens do WhatsApp aparecem aqui." : "Sem conversas."}</div>`;
+    $("#waEstado").textContent = waModoReal() ? "conectado" : PLAT ? "aguardando configuração do webhook" : "demonstração";
+    renderAssuntosFiltro();
+    const lista = WA.conversas.filter((c) => { if (!WA.filtro) return true; const msgs = WA.msgs[c.lead]; return (msgs ? assuntosDe(msgs) : (c.assuntos || [])).includes(WA.filtro); });
+    $("#waLista").innerHTML = lista.length ? lista.map((c) => { const i = WA.info[c.lead] || {}; const msgs = WA.msgs[c.lead]; const ass = (msgs ? assuntosDe(msgs) : (c.assuntos || [])).slice(0, 3);
+      return `<button data-wa="${esc(c.lead)}" class="${c.lead === WA.sel ? "on" : ""}"><div class="ava">${esc(iniciais(i.nome || c.nome || "?"))}</div><div class="t"><b>${esc(i.nome || c.nome || "Lead " + c.lead)}${naoLida(c) ? '<span class="nova" title="nova mensagem"></span>' : ""}</b><span class="u">${c.autor === "clinica" ? "Você: " : ""}${esc(c.ultima)}</span>${ass.length ? `<span class="ass">${ass.map((a) => `<span>${esc(ASS_NOME[a])}</span>`).join("")}</span>` : ""}</div><span class="h">${c.ts ? hora(c.ts) : ""}</span></button>`; }).join("")
+      : `<div class="vazio">${WA.filtro ? "Nenhuma conversa com esse assunto." : PLAT ? "Nenhuma conversa ainda. Conecte o celular (Ajustes) ou configure o webhook do Kommo e as mensagens aparecem aqui." : "Sem conversas."}</div>`;
     renderChat();
   }
   function renderChat() {
-    const el = $("#waChat"); const lead = WA.sel;
+    const el = $("#waChat"), side = $("#waSide"); const lead = WA.sel;
+    const foco = document.activeElement && document.activeElement.id === "waTexto" ? [document.activeElement.selectionStart, document.activeElement.selectionEnd] : null;
     $("#wa").classList.toggle("aberta", !!lead);
-    if (!lead) { el.innerHTML = `<div class="vazio">Escolha uma conversa à esquerda.</div>`; return; }
-    const i = WA.info[lead] || {}, msgs = WA.msgs[lead] || [], sg = WA.sug[lead], t = WA.temp[lead] ?? 25, hum = WA.humano[lead];
+    if (!lead) { el.innerHTML = `<div class="vazio">Escolha uma conversa à esquerda.</div>`; side.innerHTML = ""; return; }
+    const i = WA.info[lead] || {}, msgs = WA.msgs[lead] || [], t = WA.temp[lead] ?? 25, hum = WA.humano[lead];
     const doCelular = lead.startsWith("tel-") || i.origem === "celular";
     const kommoLink = !doCelular && PLAT && PLAT.kommoUrl ? `${PLAT.kommoUrl}/leads/detail/${encodeURIComponent(lead)}` : "";
-    const wa = i.telefone ? `https://wa.me/${(digits(i.telefone).length <= 11 ? "55" : "") + digits(i.telefone)}?text=${encodeURIComponent(sg ? sg.mensagem : "")}` : "";
     const nivel = t >= 70 ? "🔥 Quente · pronto para fechar" : t >= 40 ? "🌤️ Morno" : "❄️ Frio";
+    const rasc = WA.rascunho[lead] || "";
+    const wa = linkWA(i, rasc);
+    const podeEnviar = doCelular || !PLAT; // celular conectado envia direto; na demonstração simula
     el.innerHTML = `<div class="card wahead"><button class="btn sm ghost voltar" id="waVoltar">← Conversas</button><div class="ava">${esc(iniciais(i.nome || "?"))}</div>
         <div class="grow"><b style="font-size:17px">${esc(i.nome || "Lead " + lead)}</b><div class="small dim">${esc([i.unidade, i.telefone, i.origem].filter(Boolean).join(" · ") || "lead " + lead)}</div></div>
         <span class="minitermo" title="Prontidão para o fechamento">🌡 <i><b style="width:${t}%"></b></i>${t}%</span><span class="pill ${t >= 70 ? "bad" : t >= 40 ? "warn" : ""}">${nivel}</span>
         <div class="row" style="width:100%">${doCelular ? `<span class="pill acc">📱 Celular conectado</span>` : hum ? `<span class="pill acc">✋ Atendimento humano · IA pausada</span><button class="btn sm" data-waact="devolver">🤖 Devolver para a IA</button>` : `<button class="btn sm" data-waact="assumir">✋ Assumir atendimento</button>`}
           <button class="btn sm" data-waact="followup">+ Adicionar ao follow-up</button>${kommoLink ? `<a class="btn sm" href="${esc(kommoLink)}" target="_blank" rel="noopener">Abrir no Kommo</a>` : ""}</div></div>
       <div class="thread" id="waThread">${msgs.map((m) => `<div class="bolha ${m.autor === "cliente" ? "cli" : "cl"}${m._nova ? " chegou" : ""}">${esc(m.texto)}<span class="m">${m.autor === "cliente" ? "Paciente" : m.ia ? "🤖 IA de atendimento" : "Clínica"} · ${hora(m.ts)}</span></div>`).join("") || '<p class="dim">Sem mensagens.</p>'}</div>
-      ${sg ? `<div class="resp"><div class="row"><span class="pill acc">${esc(sg.rotulo || "Sugestão")}</span><span class="small" style="color:var(--tip-dim)">${sg.fonte === "ia" ? "IA" : "roteiro"} · o que responder</span></div>
-        <div class="ori">${esc(sg.orientacao || "")}</div>
-        <textarea id="waTexto" aria-label="Resposta sugerida">${esc(sg.mensagem || "")}</textarea>
-        <div class="row">${doCelular ? `<button class="btn pri" data-waact="enviar">➤ Enviar pelo celular</button><button class="btn" data-waact="copiar">Copiar</button>` : `<button class="btn pri" data-waact="copiar">${kommoLink ? "Copiar e abrir no Kommo" : "Copiar"}</button>`}${wa ? `<a class="btn" id="waLink" href="${esc(wa)}" target="_blank" rel="noopener">Abrir no WhatsApp</a>` : ""}<button class="btn" data-waact="outra">↻ Outra versão</button><button class="btn" data-waact="modelos">📋 Modelos</button></div></div>` : ""}`;
+      <div class="composer"><textarea id="waTexto" rows="2" aria-label="Escreva a mensagem" placeholder="Escreva uma mensagem…">${esc(rasc)}</textarea>
+        ${podeEnviar ? `<button class="btn pri" data-waact="enviar" title="${doCelular ? "Enviar pelo celular conectado" : "Enviar"}">➤ Enviar</button>` : `<button class="btn pri" data-waact="copiar">${kommoLink ? "Copiar e abrir no Kommo" : "Copiar"}</button>`}
+        ${wa ? `<a class="btn" id="waLink" href="${esc(wa)}" target="_blank" rel="noopener" title="Abrir no WhatsApp">WhatsApp</a>` : ""}</div>`;
     msgs.forEach((m) => delete m._nova);
     const th = $("#waThread"); th.scrollTop = th.scrollHeight;
+    if (foco) { const ta = $("#waTexto"); ta.focus(); try { ta.setSelectionRange(foco[0], foco[1]); } catch (e) { /* */ } }
+    renderSide();
+  }
+  function renderSide() {
+    const lead = WA.sel, side = $("#waSide"); if (!lead) { side.innerHTML = ""; return; }
+    const sg = WA.sug[lead], A = analiseWA(lead), M = A.metodo;
+    const ch = (ok, txt, tip) => `<span class="pill ${ok ? "good" : ""}" title="${esc(tip || "")}">${ok ? "✓ " : ""}${esc(txt)}</span>`;
+    side.innerHTML = `${sg ? `<div class="resp"><div class="row"><span class="label grow" style="color:var(--tip-dim)">Chat sugerido</span><span class="small" style="color:var(--tip-dim)">${sg.fonte === "ia" ? "IA" : "roteiro"}</span></div>
+        <div class="row"><span class="pill acc">${esc(sg.rotulo || "Sugestão")}</span></div>
+        <div class="ori">${esc(sg.orientacao || "")}</div>
+        <textarea id="waSug" aria-label="Resposta sugerida">${esc(sg.mensagem || "")}</textarea>
+        <div class="row"><button class="btn pri" data-waact="usar">↙ Usar no chat</button><button class="btn" data-waact="outra">↻ Outra versão</button><button class="btn" data-waact="modelos">📋 Modelos</button></div></div>` : ""}
+      <div class="card stack"><div class="row"><span class="label grow">Perfil DISC do paciente</span><span class="tiny dim">pelo jeito de escrever</span></div>${discHTML(A.disc)}</div>
+      <div class="card stack"><div class="row"><span class="label grow">Social Selling</span><span class="tiny dim">SPIN · N.E.A.T.</span></div>
+        <div class="row">${["S", "P", "I", "N"].map((k) => ch(M.spin[k], k + " · " + MET.spin[k].nome, MET.spin[k].objetivo)).join("")}</div>
+        <div class="row">${["N", "E", "A", "T"].map((k) => ch(M.neat[k], MET.neat[k].nome, MET.neat[k].dica)).join("")}</div>
+        ${M.q ? `<div class="proxq"><span class="small dim">Próxima pergunta · <b>${esc(M.rot)}</b></span><div style="margin-top:4px">“${esc(M.q)}”</div><button class="btn sm" style="margin-top:8px" data-waact="pergunta">↙ Usar no chat</button></div>` : `<div class="small"><b>Tudo coberto.</b> Convide para o próximo passo.</div>`}</div>
+      <div class="card stack"><span class="label">Assuntos desta conversa</span>
+        <div class="row">${A.assuntos.length ? A.assuntos.map((a) => `<span class="pill">${esc(ASS_NOME[a])}</span>`).join("") : '<span class="small dim">Nenhum ainda.</span>'}</div>
+        <div class="small">Tratamento de interesse: <b>${esc(A.tratamento || "não identificado")}</b></div></div>`;
+  }
+  function usarNoChat(lead, txt) {
+    WA.rascunho[lead] = txt; const ta = $("#waTexto"); if (!ta) return;
+    ta.value = txt; ta.focus(); const a = $("#waLink"); if (a) a.href = linkWA(WA.info[lead] || {}, txt);
   }
   async function abrirConversa(lead) {
     WA.sel = lead;
@@ -1068,31 +1229,39 @@
     if (vista === "whatsapp" && WA.conversas.some((c) => antes[c.lead] !== c.ts)) renderWA();
   }
   $("#waLista").addEventListener("click", (e) => { const b = e.target.closest("[data-wa]"); if (b) abrirConversa(b.dataset.wa); });
-  $("#waChat").addEventListener("input", (e) => {
-    if (e.target.id !== "waTexto" || !WA.sel) return;
-    if (WA.sug[WA.sel]) WA.sug[WA.sel].mensagem = e.target.value;
-    const a = $("#waLink"), i = WA.info[WA.sel] || {}; if (a && i.telefone) a.href = `https://wa.me/${(digits(i.telefone).length <= 11 ? "55" : "") + digits(i.telefone)}?text=${encodeURIComponent(e.target.value)}`;
+  $("#waAssuntos").addEventListener("click", (e) => { const b = e.target.closest("[data-ass]"); if (!b) return; WA.filtro = b.dataset.ass; renderWA(); });
+  $("#wa").addEventListener("input", (e) => {
+    if (!WA.sel) return;
+    if (e.target.id === "waTexto") { WA.rascunho[WA.sel] = e.target.value; const a = $("#waLink"); if (a) a.href = linkWA(WA.info[WA.sel] || {}, e.target.value); }
+    if (e.target.id === "waSug" && WA.sug[WA.sel]) WA.sug[WA.sel].mensagem = e.target.value;
   });
-  $("#waChat").addEventListener("click", async (e) => {
+  $("#wa").addEventListener("keydown", (e) => {
+    if (e.target.id !== "waTexto" || e.key !== "Enter" || e.shiftKey || e.isComposing) return;
+    const b = $('#waChat [data-waact="enviar"]'); if (b) { e.preventDefault(); b.click(); }
+  });
+  $("#wa").addEventListener("click", async (e) => {
     if (e.target.closest("#waVoltar")) { WA.sel = null; renderWA(); return; }
     const b = e.target.closest("[data-waact]"); if (!b || !WA.sel) return;
     const lead = WA.sel, act = b.dataset.waact, i = WA.info[lead] || {};
-    if (act === "copiar") {
-      const txt = $("#waTexto").value;
-      try { await navigator.clipboard.writeText(txt); toast("Resposta copiada"); } catch (err) { $("#waTexto").select(); toast("Selecionado: use Ctrl+C para copiar"); }
+    if (act === "usar") {
+      usarNoChat(lead, ($("#waSug") || {}).value || (WA.sug[lead] || {}).mensagem || "");
+    } else if (act === "pergunta") {
+      const M = metodoConversa(WA.msgs[lead] || []); if (M.q) usarNoChat(lead, preencherBib(M.q, lead));
+    } else if (act === "copiar") {
+      const txt = $("#waTexto").value.trim() || ($("#waSug") || {}).value || "";
+      try { await navigator.clipboard.writeText(txt); toast("Mensagem copiada"); } catch (err) { $("#waTexto").select(); toast("Selecionado: use Ctrl+C para copiar"); }
       if (PLAT && PLAT.kommoUrl && !lead.startsWith("tel-")) window.open(`${PLAT.kommoUrl}/leads/detail/${encodeURIComponent(lead)}`, "_blank", "noopener");
     } else if (act === "modelos") {
-      abrirModelos(Object.assign({}, i, { nome: i.nome }), (txt) => { WA.sug[lead] = Object.assign({}, WA.sug[lead] || {}, { mensagem: txt, rotulo: "Modelo", orientacao: "Modelo da biblioteca: revise e envie.", fonte: "roteiro" }); renderChat(); });
+      abrirModelos(Object.assign({}, i, { nome: i.nome }), (txt) => { WA.sug[lead] = Object.assign({}, WA.sug[lead] || {}, { mensagem: txt, rotulo: "Modelo", orientacao: "Modelo da biblioteca: revise e envie.", fonte: "roteiro" }); renderSide(); });
     } else if (act === "enviar") {
-      const txt = $("#waTexto").value.trim(); if (!txt) return;
+      const txt = $("#waTexto").value.trim(); if (!txt) { toast("Escreva a mensagem ou use a sugestão ao lado"); return; }
       b.disabled = true; b.textContent = "Enviando…";
       try {
-        if (PLAT) { const d = await api("POST", "api/whatsapp/enviar", { lead, texto: txt }); receber(lead, [{ id: d.id, ts: new Date().toISOString(), autor: "clinica", texto: txt }]); }
-        else receber(lead, [{ id: "e" + Date.now(), ts: new Date().toISOString(), autor: "clinica", texto: txt }]);
-        toast("Mensagem enviada pelo celular ✓");
-      } catch (err) { toast("Não enviou: " + err.message); b.disabled = false; b.textContent = "➤ Enviar pelo celular"; }
+        if (PLAT) { const d = await api("POST", "api/whatsapp/enviar", { lead, texto: txt }); WA.rascunho[lead] = ""; receber(lead, [{ id: d.id, ts: new Date().toISOString(), autor: "clinica", texto: txt }]); toast("Mensagem enviada pelo celular ✓"); }
+        else { WA.rascunho[lead] = ""; receber(lead, [{ id: "e" + Date.now(), ts: new Date().toISOString(), autor: "clinica", texto: txt }]); toast("Mensagem enviada ✓ (demonstração)"); }
+      } catch (err) { toast("Não enviou: " + err.message); b.disabled = false; b.textContent = "➤ Enviar"; }
     } else if (act === "outra") {
-      b.disabled = true; b.textContent = "Gerando…"; await gerarSugestao(lead, $("#waTexto").value); 
+      b.disabled = true; b.textContent = "Gerando…"; await gerarSugestao(lead, ($("#waSug") || {}).value || "");
     } else if (act === "assumir" || act === "devolver") {
       const humano = act === "assumir";
       try { if (PLAT && PLAT.kommo) await api("POST", "api/whatsapp/atendimento", { lead_id: lead, humano }); WA.humano[lead] = humano; renderChat(); toast(humano ? "Você assumiu: a IA do n8n fica pausada neste lead" : "Lead devolvido para a IA"); }
@@ -1102,11 +1271,61 @@
       if (p) { abrirGaveta(p); return; }
       const cli = (WA.msgs[lead] || []).filter((m) => m.autor === "cliente");
       const objs = [...new Set(cli.flatMap((m) => BIB.objecoes.filter((o) => casa(m.texto, o.gatilhos)).map((o) => o.id)))];
+      const A = analiseWA(lead);
       p = { id: novoId(), leadId: lead, nome: i.nome || "Lead " + lead, telefone: i.telefone || "", unidade: i.unidade || "", origem: i.origem || "WhatsApp", status: "aberto", consultaEm: new Date().toISOString(),
+        tratamento: A.tratamento || "", interesse: A.tratamento || "", disc: A.disc.n ? A.disc : undefined, assuntos: A.assuntos,
         responsavel: (AJ.equipe || [])[0] || "", profissional: (AJ.equipe || [])[0] || "", objecoes: objs, palavras: cli.slice(-3).map((m) => m.texto.slice(0, 90)), oQueTravou: objs[0] ? OBJ_NOME[objs[0]] : "", prontidao: WA.temp[lead], toques: {} };
       await Store.salvar(p); toast("Adicionado ao follow-up (D0 hoje)"); render();
     }
   });
+
+  /* ------------------------------------------------------------ */
+  /* Resultados por tratamento                                      */
+  /* ------------------------------------------------------------ */
+  const RES = { dias: 0, unidade: "" };
+  function renderResultados() {
+    const corte = RES.dias ? Date.now() - RES.dias * 864e5 : 0;
+    const lista = PAC.filter((p) => (!RES.unidade || p.unidade === RES.unidade) && (!corte || new Date(p.status === "fechado" && p.fechadoEm ? p.fechadoEm : p.consultaEm).getTime() >= corte));
+    const G = {};
+    lista.forEach((p) => {
+      const k = tratDoPaciente(p); const g = G[k] = G[k] || { nome: k, interesse: 0, aberto: 0, fechado: 0, perdido: 0, valor: 0 };
+      g.interesse++; g[p.status === "fechado" ? "fechado" : p.status === "perdido" ? "perdido" : "aberto"]++;
+      if (p.status === "fechado") g.valor += Number(p.valorFechado || p.valorApresentado || 0);
+    });
+    const grupos = Object.values(G).sort((a, b) => b.interesse - a.interesse || b.fechado - a.fechado);
+    const tot = grupos.reduce((a, g) => ({ i: a.i + g.interesse, f: a.f + g.fechado, v: a.v + g.valor }), { i: 0, f: 0, v: 0 });
+    const top = grupos.slice().sort((a, b) => b.fechado - a.fechado || b.valor - a.valor)[0];
+    $$("#resPeriodo button").forEach((b) => b.classList.toggle("on", Number(b.dataset.p) === RES.dias));
+    $$("#resUnidade button").forEach((b) => b.classList.toggle("on", b.dataset.u === RES.unidade));
+    $("#kpisRes").innerHTML = [["Pacientes com interesse", tot.i, "no período"], ["Fecharam", tot.f, tot.i ? Math.round((tot.f / tot.i) * 100) + "% de conversão" : "—"], ["Valor fechado", brl(tot.v), tot.f ? "ticket " + brl(tot.v / tot.f) : "—"], ["Mais fechado", top && top.fechado ? top.nome : "—", top && top.fechado ? top.fechado + " paciente" + (top.fechado > 1 ? "s" : "") : ""]]
+      .map(([l, v, s]) => `<div class="kpi"><div class="label">${l}</div><b class="num">${esc(String(v))}</b><span>${esc(s)}</span></div>`).join("");
+    const max = Math.max(1, ...grupos.map((g) => g.interesse));
+    $("#resBarras").innerHTML = grupos.length ? grupos.map((g) => {
+      const conv = g.interesse ? Math.round((g.fechado / g.interesse) * 100) : 0;
+      const dica = (rot, n) => esc(`${g.nome} · ${rot}: ${n} paciente${n === 1 ? "" : "s"}${rot === "Fechados" ? ` (${conv}% de conversão${g.valor ? ", " + brl(g.valor) : ""})` : ` (${g.aberto} em negociação, ${g.perdido} ${g.perdido === 1 ? "não fechou" : "não fecharam"})`}`);
+      return `<div class="lin"><div class="nome">${esc(g.nome)}<small>${conv}% de conversão</small></div><div class="par">
+        <div class="bar"><b style="width:${(g.interesse / max) * 100}%;background:var(--s-interesse)" data-dica="${dica("Interesse", g.interesse)}"></b><span>${g.interesse}</span></div>
+        <div class="bar"><b style="width:${(g.fechado / max) * 100}%;background:var(--s-fechado)" data-dica="${dica("Fechados", g.fechado)}"></b><span>${g.fechado}</span></div></div></div>`; }).join("")
+      : `<div class="vazio">Nenhum paciente neste filtro. Os tratamentos entram aqui a partir das consultas, do follow-up e do WhatsApp.</div>`;
+    $("#resTabela").innerHTML = `<thead><tr><th>Tratamento</th><th class="n">Interesse</th><th class="n">Em negociação</th><th class="n">Fecharam</th><th class="n">Não fecharam</th><th class="n">Conversão</th><th class="n">Valor fechado</th><th class="n">Ticket médio</th></tr></thead><tbody>${grupos.map((g) => `<tr><td>${esc(g.nome)}</td><td class="n">${g.interesse}</td><td class="n">${g.aberto}</td><td class="n">${g.fechado}</td><td class="n">${g.perdido}</td><td class="n">${g.interesse ? Math.round((g.fechado / g.interesse) * 100) : 0}%</td><td class="n">${brl(g.valor)}</td><td class="n">${g.fechado ? brl(g.valor / g.fechado) : "—"}</td></tr>`).join("")}
+      ${grupos.length > 1 ? `<tr style="font-weight:800"><td>Total</td><td class="n">${tot.i}</td><td class="n">${grupos.reduce((a, g) => a + g.aberto, 0)}</td><td class="n">${tot.f}</td><td class="n">${grupos.reduce((a, g) => a + g.perdido, 0)}</td><td class="n">${tot.i ? Math.round((tot.f / tot.i) * 100) : 0}%</td><td class="n">${brl(tot.v)}</td><td class="n">${tot.f ? brl(tot.v / tot.f) : "—"}</td></tr>` : ""}</tbody>`;
+    // WhatsApp: tratamentos e assuntos das conversas
+    const nt = {}, na = {};
+    WA.conversas.filter((c) => !RES.unidade || (WA.info[c.lead] || {}).unidade === RES.unidade).forEach((c) => {
+      const msgs = WA.msgs[c.lead]; const A = msgs ? analiseWA(c.lead) : { tratamento: c.tratamento || "", assuntos: c.assuntos || [] };
+      if (A.tratamento) nt[A.tratamento] = (nt[A.tratamento] || 0) + 1;
+      A.assuntos.forEach((a) => { na[a] = (na[a] || 0) + 1; });
+    });
+    const bloco = (titulo, obj, nome) => { const ks = Object.keys(obj).sort((a, b) => obj[b] - obj[a]); const mx = Math.max(1, ...ks.map((k) => obj[k]));
+      return `<div><span class="label">${titulo}</span><div class="lista-bar" style="margin-top:8px">${ks.length ? ks.map((k) => `<div><span>${esc(nome(k))}</span><i style="width:${(obj[k] / mx) * 100}%" data-dica="${esc(nome(k) + ": " + obj[k] + " conversa" + (obj[k] > 1 ? "s" : ""))}"></i><b class="num">${obj[k]}</b></div>`).join("") : '<span class="small dim">Sem conversas ainda.</span>'}</div></div>`; };
+    $("#resWA").innerHTML = bloco("Tratamento de interesse", nt, (k) => k) + bloco("Assuntos mais falados", na, (k) => ASS_NOME[k] || k);
+  }
+  $("#resPeriodo").addEventListener("click", (e) => { const b = e.target.closest("[data-p]"); if (b) { RES.dias = Number(b.dataset.p); renderResultados(); } });
+  $("#resUnidade").addEventListener("click", (e) => { const b = e.target.closest("[data-u]"); if (b) { RES.unidade = b.dataset.u; renderResultados(); } });
+  // dica ao passar o mouse (ou tocar) nas barras
+  const dicaG = $("#dicaGrafico");
+  document.addEventListener("pointerover", (e) => { const el = e.target.closest("[data-dica]"); if (!el) { dicaG.classList.add("hide"); return; } dicaG.textContent = el.dataset.dica; dicaG.classList.remove("hide"); });
+  document.addEventListener("pointermove", (e) => { if (dicaG.classList.contains("hide")) return; const w = dicaG.offsetWidth; dicaG.style.left = Math.min(window.innerWidth - w - 8, e.clientX + 14) + "px"; dicaG.style.top = (e.clientY + 16) + "px"; });
 
   /* ------------------------------------------------------------ */
   /* Navegação e início                                            */
@@ -1126,6 +1345,7 @@
     if (vista === "briefings") renderBriefings();
     if (vista === "ajustes") renderAjustes();
     if (vista === "whatsapp") renderWA();
+    if (vista === "resultados") renderResultados();
   }
 
   /* lema da marca: Alinha a conversa → o orçamento → o fechamento → o tratamento → o sorriso */

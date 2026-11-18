@@ -34,6 +34,11 @@ As conversas dos WhatsApps de **Caruaru e Recife**, que já estão ligados ao Ko
 
 **Ligar (uma vez):** no Kommo, **Configurações › Integrações › Webhooks**, cadastre `https://SEU-ENDERECO/webhooks/kommo/VALOR_DE_KOMMO_CHAVE_WEBHOOK` (o valor aparece no Render, em Environment) e marque os eventos de **mensagem recebida** e **mensagem enviada**. O webhook da IA atual continua funcionando.
 
+## Resultados, perfil DISC e Social Selling
+- **Resultados**: quantos pacientes têm interesse em cada tratamento e quantos fecharam (conversão, valor fechado e ticket médio), por período e unidade. Também mostra os tratamentos e assuntos mais falados no WhatsApp. O tratamento vem da consulta, da conversa de WhatsApp ou do campo Tratamento na ficha do paciente.
+- **Perfil DISC**: durante a consulta (painel Método) e em cada conversa de WhatsApp, o Alinha lê o jeito de falar do paciente e indica o perfil predominante (Dominante, Influente, Estável ou Analítico) e como falar com ele. É uma leitura indicativa, para adaptar a comunicação; não é diagnóstico nem rótulo do paciente.
+- **Social Selling no WhatsApp**: o painel lateral acompanha as etapas SPIN e N.E.A.T. da conversa e sugere a próxima pergunta, pronta para usar no chat.
+
 ## Conectar celular por QR code (WhatsApp)
 Em **Ajustes › Conectar celular**, o administrador gera um QR code; no celular: **WhatsApp › Aparelhos conectados › Conectar um aparelho**. As conversas desse número aparecem na tela WhatsApp e o botão **"Enviar pelo celular"** manda a resposta direto do Alinha.
 - Usa a **Evolution API** (conector gratuito de WhatsApp Web, muito usado com n8n), que precisa rodar em um servidor próprio com Docker (Render, Railway, VPS) ou num provedor que a ofereça. Se a IA de vocês no n8n já usa uma Evolution API, use a mesma.

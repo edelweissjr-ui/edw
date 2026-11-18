@@ -22,6 +22,7 @@
   --accent:#7C6CF6; --accent-ink:#FFFFFF; --accent-soft:rgba(124,108,246,.18); --accent-2:#A79BFF;
   --good:#4FD08F; --good-bg:rgba(79,208,143,.14); --warn:#F2B45A; --warn-bg:rgba(242,180,90,.14); --bad:#FF7A72; --bad-bg:rgba(255,122,114,.14);
   --tip-bg:#1D1A47; --tip-fg:#F4F2FF; --tip-dim:#D2CDFB; --forte:#FFFFFF;
+  --s-interesse:#9085e9; --s-fechado:#199e70;
   --glow:radial-gradient(1200px 600px at 70% -10%,rgba(124,108,246,.22),transparent 60%),radial-gradient(900px 500px at 0% 100%,rgba(70,60,190,.18),transparent 60%);
   --shadow:0 1px 2px rgba(0,0,0,.3),0 10px 30px rgba(0,0,0,.35);
   --f:"Plus Jakarta Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
@@ -33,6 +34,7 @@
   --accent:#5B4BE0; --accent-ink:#FFFFFF; --accent-soft:#E7E3FF; --accent-2:#8577F0;
   --good:#1E8A57; --good-bg:#E2F5EA; --warn:#A8690F; --warn-bg:#FBF0DC; --bad:#C0392B; --bad-bg:#FCE8E6;
   --tip-bg:#1D1A47; --tip-fg:#F4F2FF; --tip-dim:#B9B3F2; --forte:#0B0820;
+  --s-interesse:#6250d6; --s-fechado:#1baf7a;
   --glow:radial-gradient(1200px 600px at 70% -10%,rgba(124,108,246,.12),transparent 60%);
   --shadow:0 1px 2px rgba(20,10,80,.05),0 8px 24px rgba(20,10,80,.08); color-scheme:light;
 }
@@ -250,7 +252,15 @@ button.kpi.hl .go{color:#fff}
 body.perfil-equipe .so-admin{display:none!important}
 body.perfil-equipe #gApagar{display:none!important}
 /* WhatsApp */
-.wa{display:grid;grid-template-columns:320px minmax(0,1fr);gap:16px;align-items:start}
+.wa{display:grid;grid-template-columns:300px minmax(0,1fr) 340px;gap:16px;align-items:start}
+@media (max-width:1280px){.wa{grid-template-columns:280px minmax(0,1fr)}.waside{grid-column:2}}
+.waside{display:flex;flex-direction:column;gap:12px;min-width:0}
+.waside:empty{display:none}
+.composer{display:flex;gap:8px;align-items:flex-end;background:var(--surface);border:1px solid var(--line-2);border-radius:14px;padding:8px}
+.composer textarea{flex:1;border:0;background:transparent;resize:none;min-height:44px;max-height:180px;font-size:16px;line-height:1.45;padding:6px 8px}
+.composer textarea:focus{outline:none}
+.walist .ass{display:flex;gap:4px;flex-wrap:wrap;margin-top:4px}
+.walist .ass span{font-size:11.5px;font-weight:700;padding:1px 7px;border-radius:999px;background:var(--surface-2);color:var(--dim)}
 .walist{display:flex;flex-direction:column;gap:6px;max-height:calc(100vh - 200px);overflow:auto}
 .walist button{border:1px solid var(--line);background:var(--surface);border-radius:14px;padding:11px 12px;text-align:left;display:flex;gap:10px;align-items:flex-start}
 .walist button.on{border-color:var(--accent);background:var(--accent-soft)}
@@ -261,7 +271,8 @@ body.perfil-equipe #gApagar{display:none!important}
 .walist .nova{width:10px;height:10px;border-radius:50%;background:var(--good);display:inline-block;margin-left:6px}
 .wachat{display:flex;flex-direction:column;gap:12px;min-width:0}
 .wahead{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-.thread{background:var(--surface-2);border:1px solid var(--line);border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:8px;max-height:46vh;overflow:auto}
+.thread{background:var(--surface-2);border:1px solid var(--line);border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:8px;min-height:38vh;max-height:60vh;overflow:auto}
+.mdisc{border-top:1px solid var(--line);padding-top:10px;margin-top:4px}
 .bolha{max-width:78%;padding:9px 12px;border-radius:14px;font-size:15.5px;line-height:1.45;white-space:pre-wrap}
 .bolha.cli{align-self:flex-start;background:var(--surface);border:1px solid var(--line-2);border-top-left-radius:4px}
 .bolha.cl{align-self:flex-end;background:#1F5F4E;color:#EFFFF8;border-top-right-radius:4px}
@@ -275,7 +286,7 @@ body.perfil-equipe #gApagar{display:none!important}
 .resp .btn{background:rgba(255,255,255,.08);color:var(--tip-fg);border-color:rgba(167,158,255,.35)}
 .resp .btn.pri{background:var(--accent);border-color:var(--accent);color:#fff}
 .voltar{display:none}
-@media (max-width:860px){.wa{grid-template-columns:1fr}.wa.aberta .walist{display:none}.wa:not(.aberta) .wachat{display:none}.voltar{display:inline-flex}.walist{max-height:none}}
+@media (max-width:860px){.wa{grid-template-columns:1fr}.waside{grid-column:auto}.wa.aberta .walist{display:none}.wa:not(.aberta) .wachat,.wa:not(.aberta) .waside{display:none}.voltar{display:inline-flex}.walist{max-height:none}}
 @media (prefers-reduced-motion:reduce){.bolha.chegou{animation:none}}
 /* método */
 .metodo{display:flex;flex-direction:column;gap:10px}
@@ -298,6 +309,35 @@ body.perfil-equipe #gApagar{display:none!important}
 .qrbox img,.qrbox canvas{display:block}
 .qrmini{background:#fff;border-radius:12px;padding:10px;line-height:0}
 .qrmini:empty{display:none}
+/* DISC */
+.disc{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.disc>div{display:flex;flex-direction:column;gap:4px;align-items:center}
+.disc .dcol{width:100%;height:64px;flex-direction:row;background:var(--surface-2);border-radius:8px;display:flex;align-items:flex-end;overflow:hidden}
+.disc .dcol b{display:block;width:100%;border-radius:6px 6px 0 0;background:var(--accent-2)}
+.disc .dcol.top b{background:var(--accent)}
+.disc span{font-size:12.5px;font-weight:800}
+.disc em{font-style:normal;font-size:12px;color:var(--dim)}
+/* resultados */
+.legenda{display:flex;gap:14px;font-size:13.5px;color:var(--dim)}
+.legenda i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+.barras{display:flex;flex-direction:column;gap:14px}
+.barras .lin{display:grid;grid-template-columns:190px minmax(0,1fr);gap:12px;align-items:center}
+@media (max-width:640px){.barras .lin{grid-template-columns:1fr}}
+.barras .nome{font-weight:700;font-size:14.5px}
+.barras .nome small{display:block;font-weight:600;color:var(--dim);font-size:12.5px}
+.barras .par{display:flex;flex-direction:column;gap:2px}
+.barras .bar{display:flex;align-items:center;gap:8px;height:18px}
+.barras .bar b{display:block;height:14px;border-radius:0 4px 4px 0;min-width:2px;cursor:default}
+.barras .bar span{font-size:13px;font-weight:700;color:var(--fg);font-variant-numeric:tabular-nums}
+.tabela{width:100%;border-collapse:collapse;font-size:14.5px}
+.tabela th,.tabela td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
+.tabela th{font-size:12.5px;color:var(--dim);text-transform:uppercase;letter-spacing:.05em}
+.tabela td.n{text-align:right;font-variant-numeric:tabular-nums}
+.tabela th.n{text-align:right}
+.lista-bar{display:flex;flex-direction:column;gap:8px}
+.lista-bar div{display:grid;grid-template-columns:150px minmax(0,1fr) 32px;gap:8px;align-items:center;font-size:14px}
+.lista-bar i{display:block;height:10px;border-radius:0 4px 4px 0;background:var(--s-interesse)}
+#dicaGrafico{position:fixed;z-index:120;pointer-events:none;background:var(--fg);color:var(--bg);padding:7px 10px;border-radius:8px;font-size:13px;font-weight:600;max-width:260px}
 #toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translate(-50%,120px);background:var(--fg);color:var(--bg);padding:10px 16px;border-radius:11px;font-weight:700;z-index:99;transition:transform .25s;max-width:calc(100% - 32px)}
 #toast.on{transform:translate(-50%,0)}
 @media (max-width:860px){#toast{bottom:calc(84px + env(safe-area-inset-bottom,0px))}}
@@ -314,6 +354,7 @@ body.perfil-equipe #gApagar{display:none!important}
       <button data-v="consulta"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0M12 17v5"/></svg>Consulta</button>
       <button data-v="briefings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 2h9l5 5v15H6z"/><path d="M14 2v6h6M9 13h7M9 17h5"/></svg>Briefings</button>
       <button data-v="followup"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="5" height="16" rx="1.5"/><rect x="10" y="4" width="5" height="11" rx="1.5"/><rect x="17" y="4" width="4" height="7" rx="1.5"/></svg>Follow-up</button>
+      <button data-v="resultados"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Resultados</button>
       <button data-v="ajustes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1.2l2-1.5-2-3.4-2.4 1a7 7 0 0 0-2-1.2L14 3h-4l-.5 2.6a7 7 0 0 0-2 1.2l-2.4-1-2 3.4 2 1.5A7 7 0 0 0 5 12c0 .4 0 .8.1 1.2l-2 1.5 2 3.4 2.4-1a7 7 0 0 0 2 1.2L10 21h4l.5-2.6a7 7 0 0 0 2-1.2l2.4 1 2-3.4-2-1.5c.1-.4.1-.8.1-1.2z"/></svg>Ajustes</button>
     </nav>
     <div class="foot" id="modoInfo">Modo demonstração</div>
@@ -332,10 +373,12 @@ body.perfil-equipe #gApagar{display:none!important}
 
     <!-- WHATSAPP -->
     <section class="view" id="v-whatsapp">
-      <div class="head"><div><h1>WhatsApp ao vivo</h1><p>As conversas de Caruaru e Recife chegam pelo Kommo. O Alinha mostra o que responder em cada mensagem.</p></div><span class="pill" id="waEstado">demonstração</span></div>
+      <div class="head"><div><h1>WhatsApp ao vivo</h1><p>As conversas chegam pelo Kommo ou pelo celular conectado. No centro, o chat; ao lado, o chat sugerido, o perfil DISC e a próxima pergunta.</p></div><span class="pill" id="waEstado">demonstração</span></div>
+      <div class="chips" id="waAssuntos" style="margin-bottom:12px"></div>
       <div class="wa" id="wa">
         <aside class="walist" id="waLista"></aside>
         <section class="wachat" id="waChat"><div class="vazio">Escolha uma conversa à esquerda.</div></section>
+        <aside class="waside" id="waSide"></aside>
       </div>
     </section>
 
@@ -367,6 +410,7 @@ body.perfil-equipe #gApagar{display:none!important}
             <div class="proxq" id="mProx"></div>
             <div class="mrow"><span class="mlab">N.E.A.T.</span><div class="chips mchips" id="mNeat"></div></div>
             <div class="mrow"><span class="mlab">Sandler</span><div class="chips mchips" id="mSandler"></div></div>
+            <div class="mdisc"><div class="row"><span class="mlab grow">Perfil DISC</span><span class="tiny dim">pela fala do paciente</span></div><div class="stack" id="mDisc" style="gap:8px;margin-top:8px"></div></div>
             <details class="mguia"><summary>Guia rápido das técnicas</summary><div id="mGuia"></div></details>
           </div>
           <div class="card">
@@ -418,6 +462,27 @@ body.perfil-equipe #gApagar{display:none!important}
         <div class="chips" id="filtroResp"></div></div>
       <div class="kpis" id="kpisFU"></div>
       <div class="kanban" id="kanban"></div>
+    </section>
+
+    <!-- RESULTADOS -->
+    <section class="view" id="v-resultados">
+      <div class="head"><div><h1>Resultados por tratamento</h1><p>Interesse e fechamento de cada tratamento.</p></div>
+        <div class="row"><div class="chips" id="resPeriodo"><button data-p="30">30 dias</button><button data-p="90">90 dias</button><button data-p="0" class="on">Tudo</button></div>
+        <div class="chips" id="resUnidade"><button data-u="" class="on">Todas</button><button data-u="Caruaru">Caruaru</button><button data-u="Recife">Recife</button></div></div></div>
+      <div class="kpis" id="kpisRes"></div>
+      <div class="card stack">
+        <div class="row"><h3 class="grow">Pacientes por tratamento</h3>
+          <div class="legenda"><span><i style="background:var(--s-interesse)"></i>Interesse</span><span><i style="background:var(--s-fechado)"></i>Fechados</span></div></div>
+        <div class="barras" id="resBarras"></div>
+      </div>
+      <div class="card stack" style="margin-top:14px">
+        <h3>Tabela</h3>
+        <div style="overflow-x:auto"><table class="tabela" id="resTabela"></table></div>
+      </div>
+      <div class="card stack" style="margin-top:14px">
+        <div class="row"><h3 class="grow">Interesse nas conversas de WhatsApp</h3><span class="small dim">tratamentos e assuntos detectados nas mensagens</span></div>
+        <div class="duo" id="resWA"></div>
+      </div>
     </section>
 
     <!-- AJUSTES -->
@@ -480,6 +545,7 @@ body.perfil-equipe #gApagar{display:none!important}
 </div>
 <div id="drawerHost"></div>
 <div id="toast"></div>
+<div id="dicaGrafico" role="tooltip" class="hide"></div>
 <script src="qrcode.js"></script>
 <script src="biblioteca.js"></script>
 <script src="demo.js"></script>
