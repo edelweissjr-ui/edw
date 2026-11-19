@@ -64,26 +64,32 @@ h1,h2,h3{margin:0;line-height:1.2;text-wrap:balance}
 .nav button svg{width:18px;height:18px;flex:none}
 .nav button:hover{background:var(--surface-2);color:var(--fg)}
 .nav button.on{background:var(--accent-soft);color:var(--accent-2)}
+#navMais{display:none}
 .nav .badge{margin-left:auto;background:var(--bad);color:#fff;border-radius:999px;font-size:12.5px;padding:1px 7px;font-weight:700}
 .side .foot{margin-top:auto;padding:10px;font-size:13.5px;color:var(--faint)}
-main{min-width:0;padding:26px max(16px,env(safe-area-inset-right,0px)) 90px max(16px,env(safe-area-inset-left,0px));max-width:1320px;width:100%}
+main{min-width:0;padding:18px max(16px,env(safe-area-inset-right,0px)) 22px max(16px,env(safe-area-inset-left,0px));max-width:1320px;width:100%}
 .view{display:none} .view.on{display:block}
-.head{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:18px}
-.head h1{font-size:26px;letter-spacing:-.02em}
+.head{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+.head h1{font-size:25px;letter-spacing:-.02em}
 .head h1.titulo-forte{font-size:30px;font-weight:800;color:var(--forte);letter-spacing:-.03em}
 .head p{margin:4px 0 0;color:var(--dim)}
 @media (max-width:860px){
   .app{grid-template-columns:1fr}
   .side{position:fixed;inset:auto 0 0 0;height:auto;flex-direction:row;padding:6px max(8px,env(safe-area-inset-left,0px)) calc(6px + env(safe-area-inset-bottom,0px));border-right:0;border-top:1px solid var(--line);z-index:30}
   .side .logo,.side .foot{display:none}
-  .nav{flex-direction:row;width:100%;justify-content:space-around;overflow-x:auto;scrollbar-width:none}
-  .nav button{flex-direction:column;gap:3px;font-size:12.5px;padding:6px 4px;flex:1 0 64px;align-items:center;text-align:center}
+  .nav{flex-direction:row;width:100%;justify-content:space-around;flex-wrap:wrap}
+  .nav button:not(.prim):not(#navMais){display:none}
+  .nav.aberto button:not(.prim):not(#navMais):not(.hide){display:flex;order:-1;flex:1 0 18%;padding:8px 2px}
+  .nav.aberto button.prim,.nav.aberto #navMais{order:1}
+  .nav.aberto::after{content:"";order:0;flex-basis:100%;height:6px;border-bottom:1px solid var(--line);margin-bottom:6px}
+  #navMais:not(.hide){display:flex!important}
+  .nav button{flex-direction:column;gap:3px;font-size:12.5px;padding:6px 4px;flex:1 1 0;min-width:0;align-items:center;text-align:center}
   .nav .badge{position:absolute;margin-left:16px;margin-top:-4px}
-  main{padding-top:18px}
+  main{padding-top:18px;padding-bottom:calc(90px + env(safe-area-inset-bottom,0px))}
 }
 
 /* blocos */
-.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:18px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px}
 .stack{display:flex;flex-direction:column;gap:14px}
 .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
 .grow{flex:1;min-width:0}
@@ -108,10 +114,10 @@ textarea.in{resize:vertical;min-height:80px;line-height:1.5}
 .chips button.on{background:var(--fg);border-color:var(--fg);color:var(--bg)}
 
 /* números */
-.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:18px}
+.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:12px}
 @media (max-width:980px){.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
-.kpi{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px}
-.kpi b{display:block;font-size:24px;letter-spacing:-.02em;margin-top:6px}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:12px 15px}
+.kpi b{display:block;font-size:23px;letter-spacing:-.02em;margin-top:4px}
 .kpi span{font-size:13.5px;color:var(--dim)}
 .kpi.hl{background:linear-gradient(135deg,#6A5AF0,#9A8CFF);border-color:transparent;color:#fff;box-shadow:0 10px 30px rgba(124,108,246,.35)}
 .kpi.hl .label,.kpi.hl span{color:inherit;opacity:.85}
@@ -119,13 +125,13 @@ textarea.in{resize:vertical;min-height:80px;line-height:1.5}
 /* hoje: fila de mensagens */
 .fila{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:14px}
 @media (max-width:420px){.fila{grid-template-columns:1fr}}
-.msgcard{display:flex;flex-direction:column;gap:10px}
+.msgcard{display:flex;flex-direction:column;gap:8px}
 .msgcard .top{display:flex;gap:10px;align-items:flex-start}
 .ava{width:36px;height:36px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;font-weight:800;font-size:14.5px;flex:none}
 .msgcard h3{font-size:17px}
 .msgcard .meta{font-size:14px;color:var(--dim)}
 .sug{border:1px solid var(--line-2);border-radius:12px;background:var(--surface-2);padding:10px 12px}
-.sug textarea{width:100%;border:0;background:transparent;resize:vertical;min-height:96px;font-size:16px;line-height:1.5;padding:0}
+.sug textarea{width:100%;border:0;background:transparent;resize:vertical;min-height:78px;font-size:16px;line-height:1.5;padding:0}
 .sug textarea:focus{outline:none}
 .vazio{padding:36px 18px;text-align:center;color:var(--dim);border:1px dashed var(--line-2);border-radius:var(--r)}
 
@@ -143,7 +149,7 @@ textarea.in{resize:vertical;min-height:80px;line-height:1.5}
 @media (max-width:720px){.duo{grid-template-columns:1fr}}
 .termo{transition:box-shadow .4s,border-color .4s}
 .termo .topo{display:flex;align-items:baseline;gap:10px;margin-top:4px}
-.termo .pct{font-size:34px;font-weight:800;letter-spacing:-.03em}
+.termo .pct{font-size:32px;font-weight:800;letter-spacing:-.03em}
 .termo .est{font-weight:700;font-size:15.5px}
 .termo .barra{height:14px;border-radius:99px;background:linear-gradient(90deg,#4C7DFF 0%,#8E7CFF 42%,#F2B45A 70%,#FF6B6B 100%);position:relative;margin:16px 0 6px}
 .termo .meta{position:absolute;left:70%;top:-7px;bottom:-7px;width:2px;background:var(--fg);opacity:.55;border-radius:2px}
@@ -158,7 +164,7 @@ textarea.in{resize:vertical;min-height:80px;line-height:1.5}
 .minitermo i{display:block;width:46px;height:6px;border-radius:9px;background:var(--line-2);position:relative;overflow:hidden}
 .minitermo i b{position:absolute;inset:0 auto 0 0;border-radius:9px;background:linear-gradient(90deg,#4C7DFF,#8E7CFF 60%,#F2B45A 85%,#FF6B6B)}
 @media (prefers-reduced-motion:reduce){.termo .marc{transition:none}}
-.dica{background:var(--tip-bg);color:var(--tip-fg);border:1.5px solid var(--accent-2);box-shadow:0 0 0 4px rgba(124,108,246,.12),0 18px 40px rgba(40,20,140,.35);border-radius:20px;padding:22px 24px;min-height:190px;display:flex;flex-direction:column;justify-content:center;gap:12px;transition:opacity .3s}
+.dica{background:var(--tip-bg);color:var(--tip-fg);border:1.5px solid var(--accent-2);box-shadow:0 0 0 4px rgba(124,108,246,.12),0 18px 40px rgba(40,20,140,.35);border-radius:20px;padding:20px 22px;min-height:150px;display:flex;flex-direction:column;justify-content:center;gap:12px;transition:opacity .3s}
 .dica .rot{display:inline-flex;gap:8px;align-items:center;font-size:13.5px;font-weight:700;color:var(--tip-dim)}
 .dica .rot b{background:var(--accent);color:var(--accent-ink);padding:3px 9px;border-radius:999px;font-size:12.5px}
 .dica .txt{font-size:clamp(20px,2.4vw,28px);font-weight:800;letter-spacing:-.02em;line-height:1.22}
@@ -167,7 +173,8 @@ textarea.in{resize:vertical;min-height:80px;line-height:1.5}
 .dica .bar{height:3px;border-radius:9px;background:rgba(127,127,127,.25);overflow:hidden}
 .dica .bar i{display:block;height:100%;background:var(--accent);width:100%}
 .dica.idle .txt{font-weight:600;font-size:18px;color:var(--tip-dim)}
-.hist{display:flex;flex-direction:column;gap:8px;max-height:340px;overflow:auto}
+.dica.idle{min-height:76px;padding:16px 20px}
+.hist{display:flex;flex-direction:column;gap:8px;max-height:230px;overflow:auto}
 .hist .h{border:1px solid var(--line);border-radius:12px;padding:9px 12px;background:var(--surface)}
 .hist .h b{font-size:15px;display:block}
 .hist .h span{font-size:13.5px;color:var(--dim)}
@@ -214,8 +221,17 @@ textarea.in{resize:vertical;min-height:80px;line-height:1.5}
 .aval .a .peso .label{color:var(--bad)} .aval .a .como .label{color:var(--good)}
 
 /* follow-up */
-.kanban{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(240px,1fr);gap:12px;overflow-x:auto;padding-bottom:8px}
-.col{background:var(--surface-2);border:1px solid var(--line);border-radius:var(--r);padding:12px;display:flex;flex-direction:column;gap:9px;min-height:200px}
+.kanban{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,190px),1fr));gap:12px}
+.kanban .col{min-height:110px;gap:7px}
+.kanban .pc{padding:8px 10px;display:grid;grid-template-columns:auto minmax(0,1fr);column-gap:8px;row-gap:2px;align-items:center}
+.kanban .pc b{grid-column:1/-1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.kanban .pc .m{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:right}
+.kanban .pc .m:last-child{grid-column:1/-1;text-align:left}
+.kanban .pc .minitermo{grid-column:1/-1}
+.barra-abas{margin-bottom:12px;gap:10px}
+.kanban .pc .v{font-size:14px}
+.kanban .pc .m{font-size:12.5px}
+.col{background:var(--surface-2);border:1px solid var(--line);border-radius:var(--r);padding:12px;display:flex;flex-direction:column;gap:9px;min-height:150px}
 .col h3{font-size:15.5px;display:flex;justify-content:space-between;align-items:center}
 .col .sub{font-size:13px;color:var(--dim);margin-top:-4px}
 .pc{border:1px solid var(--line);background:var(--surface);border-radius:12px;padding:10px 11px;text-align:left;display:flex;flex-direction:column;gap:4px;border-left:3px solid var(--line-2)}
@@ -232,6 +248,15 @@ button.kpi:hover:not(:disabled){transform:translateY(-2px);border-color:var(--ac
 button.kpi:disabled{cursor:default}
 button.kpi .go{display:block;font-style:normal;font-size:13.5px;font-weight:700;color:var(--accent-2);margin-top:8px}
 button.kpi.hl .go{color:#fff}
+/* telas baixas (notebooks): menos altura para caber sem rolar */
+@media (min-width:861px) and (max-height:820px){
+  .kpi{padding:9px 13px}.kpi b{font-size:20px;margin-top:2px}.kpi span{font-size:13px}
+  button.kpi .go{margin-top:3px;font-size:12.5px}
+  .head p{display:none}
+  .head h1.titulo-forte{font-size:27px}
+  .col .sub{display:none}
+  .termo .mot{display:none}
+}
 .veil.center{justify-content:center;align-items:flex-start;padding:max(24px,env(safe-area-inset-top,0px)) 12px 24px;overflow:auto}
 .seq{width:min(640px,100%);background:var(--bg);border:1px solid var(--line-2);border-radius:20px;padding:20px;display:flex;flex-direction:column;gap:14px;box-shadow:var(--shadow)}
 .seqdots{display:flex;gap:5px}
@@ -309,9 +334,40 @@ body.perfil-equipe #gApagar{display:none!important}
 .qrbox img,.qrbox canvas{display:block}
 .qrmini{background:#fff;border-radius:12px;padding:10px;line-height:0}
 .qrmini:empty{display:none}
+/* sem barras de rolagem visíveis em toda a plataforma */
+*{scrollbar-width:none}
+*::-webkit-scrollbar{display:none;width:0;height:0}
+html,body{overflow-x:hidden}
+/* abas */
+.abas{display:inline-flex;flex-wrap:wrap;gap:4px;background:var(--surface-2);border:1px solid var(--line);border-radius:12px;padding:4px}
+.abas button{border:0;background:none;border-radius:9px;padding:7px 13px;font-weight:700;font-size:14.5px;color:var(--dim)}
+.abas button.on{background:var(--surface);color:var(--fg);box-shadow:0 1px 3px rgba(0,0,0,.25)}
+.abas.mini button{padding:5px 10px;font-size:13.5px}
+.painel{display:none}.painel.on{display:block}
+.unids{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr));gap:12px}
+.unids fieldset{border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin:0;display:flex;flex-direction:column;gap:8px}
+.unids legend{font-weight:800;padding:0 4px}
+#cmFunil{gap:5px}#cmFunil .trilho{height:14px}#cmFunil .val strong{font-size:17px}
+.ajgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,440px),1fr));gap:14px;align-items:start}
+.cadgrid{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:14px;align-items:start}
+@media (max-width:1100px){.cadgrid{grid-template-columns:1fr}}
+.pager{display:flex;align-items:center;justify-content:center;gap:14px;margin-top:14px;font-weight:700}
+.msgcard.fora{display:none}
+.mais-col{border:1px dashed var(--line-2);background:none;border-radius:10px;padding:6px;font-weight:700;color:var(--dim);font-size:13px}
+/* tabelas viram cartões em telas estreitas (sem rolagem lateral) */
+.tabela td,.tabela th{white-space:normal}
+@media (max-width:760px){
+  .tabela thead{display:none}
+  .tabela,.tabela tbody,.tabela tr,.tabela td{display:block;width:100%}
+  .tabela tr{border:1px solid var(--line);border-radius:12px;padding:6px 12px;margin-bottom:8px}
+  .tabela td,.tabela td.n{display:flex;justify-content:space-between;gap:12px;border:0;padding:5px 0;text-align:right}
+  .tabela td::before{content:attr(data-label);font-weight:700;color:var(--dim);text-align:left;flex:none;max-width:45%}
+  .tabela.perm td.c{justify-content:space-between}
+}
 /* comercial */
 .funil{display:flex;flex-direction:column;gap:12px}
-.funil .fl{display:grid;grid-template-columns:130px minmax(0,1fr) 230px;gap:12px;align-items:center}
+.funil .fl{display:grid;grid-template-columns:130px minmax(0,1fr) 250px;gap:12px;align-items:center}
+.funil .val{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 @media (max-width:760px){.funil .fl{grid-template-columns:96px minmax(0,1fr)}.funil .val{grid-column:2}}
 .funil .nome{font-weight:700}
 .funil .trilho{height:22px;background:var(--surface-2);border-radius:6px;overflow:hidden}
@@ -321,7 +377,9 @@ body.perfil-equipe #gApagar{display:none!important}
 .pipeline{display:flex;flex-direction:column;gap:16px}
 .pghead{font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--dim);margin-bottom:8px}
 .pghead.cliente{color:var(--good)}
-.pipe{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(220px,1fr);gap:12px;overflow-x:auto;padding-bottom:6px}
+.pipe{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,180px),1fr));gap:12px}
+.pipe .col{min-height:120px}
+.pipe .pc{padding:8px 10px;gap:2px}
 .pipe .col.alvo{outline:2px dashed var(--accent);outline-offset:2px}
 .pipe .pc[draggable=true]{cursor:grab}
 .calc{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:14px;align-items:start}
@@ -329,7 +387,7 @@ body.perfil-equipe #gApagar{display:none!important}
 .trio{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
 .piramide{display:flex;flex-direction:column;gap:6px}
 .piramide .camada{display:flex;flex-direction:column;align-items:center;gap:4px}
-.piramide .forma{width:var(--w);height:64px;display:flex;align-items:center;justify-content:center;clip-path:polygon(0 0,100% 0,89% 100%,11% 100%);color:#fff}
+.piramide .forma{width:var(--w);height:54px;display:flex;align-items:center;justify-content:center;clip-path:polygon(0 0,100% 0,89% 100%,11% 100%);color:#fff}
 .piramide .forma b{font-size:22px}
 .pyval{display:flex;align-items:center;gap:2px;font-size:22px;font-weight:800;color:#fff}
 .pyin{width:64px;text-align:center;font:inherit;color:#fff;background:rgba(255,255,255,.14);border:1.5px solid rgba(255,255,255,.45);border-radius:8px;padding:2px 4px}
@@ -340,6 +398,7 @@ body.perfil-equipe #gApagar{display:none!important}
 .tabela.quebra td{white-space:normal;vertical-align:top;min-width:120px}
 .tabela.perm td.c,.tabela.perm th.c{text-align:center}
 .tabela.perm input{width:18px;height:18px}
+.tabela.perm td,.tabela.perm th{padding:5px 10px}
 /* DISC */
 .disc{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
 .disc>div{display:flex;flex-direction:column;gap:4px;align-items:center}
@@ -372,7 +431,7 @@ body.perfil-equipe #gApagar{display:none!important}
 #toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translate(-50%,120px);background:var(--fg);color:var(--bg);padding:10px 16px;border-radius:11px;font-weight:700;z-index:99;transition:transform .25s;max-width:calc(100% - 32px)}
 #toast.on{transform:translate(-50%,0)}
 @media (max-width:860px){#toast{bottom:calc(84px + env(safe-area-inset-bottom,0px))}}
-.banner{background:var(--accent-soft);color:var(--accent-2);border-radius:12px;padding:10px 14px;font-size:15px;font-weight:600;margin-bottom:16px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.banner{background:var(--accent-soft);color:var(--accent-2);border-radius:12px;padding:7px 12px;font-size:14.5px;font-weight:600;margin-bottom:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 </style>
 </head>
 <body>
@@ -389,6 +448,7 @@ body.perfil-equipe #gApagar{display:none!important}
       <button data-v="resultados"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Resultados</button>
       <button data-v="campanhas"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 3 2 21h20z"/><path d="M6.5 13h11M9.5 8h5"/></svg>Campanhas</button>
       <button data-v="ajustes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1.2l2-1.5-2-3.4-2.4 1a7 7 0 0 0-2-1.2L14 3h-4l-.5 2.6a7 7 0 0 0-2 1.2l-2.4-1-2 3.4 2 1.5A7 7 0 0 0 5 12c0 .4 0 .8.1 1.2l-2 1.5 2 3.4 2.4-1a7 7 0 0 0 2 1.2L10 21h4l.5-2.6a7 7 0 0 0 2-1.2l2.4 1 2-3.4-2-1.5c.1-.4.1-.8.1-1.2z"/></svg>Ajustes</button>
+      <button id="navMais" aria-expanded="false" aria-label="Mais telas"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/></svg>Mais</button>
     </nav>
     <div class="foot" id="modoInfo">Modo demonstração</div>
   </aside>
@@ -402,6 +462,7 @@ body.perfil-equipe #gApagar{display:none!important}
       <div class="head"><div><h1 class="titulo-forte">Quem alinhar hoje?</h1><p id="hojeData"></p></div><button class="btn pri hide" id="btnSeqHoje" data-seq="hoje">▶ Alinhar em sequência</button></div>
       <div class="kpis" id="kpisHoje"></div>
       <div class="fila" id="fila"></div>
+      <div class="pager hide" id="filaPager"><button class="btn sm" data-pg="-1" aria-label="Página anterior">‹ Anterior</button><span id="filaPg"></span><button class="btn sm" data-pg="1" aria-label="Próxima página">Próxima ›</button></div>
     </section>
 
     <!-- WHATSAPP -->
@@ -439,17 +500,18 @@ body.perfil-equipe #gApagar{display:none!important}
           <div class="dica idle" id="dica"><div class="txt">As dicas aparecem aqui assim que o paciente falar algo importante: uma objeção, uma dúvida ou um sinal de que quer fechar.</div></div>
           <div class="card metodo" id="metodo">
             <div class="row"><span class="label grow">Método da consulta</span><span class="tiny dim">SPIN · N.E.A.T. · Sandler</span></div>
+            <div class="abas mini" data-grupo="met" role="tablist"><button data-aba="tec">Técnicas</button><button data-aba="disc">Perfil DISC</button><button data-aba="dicas">Dicas da consulta</button><button data-aba="guia">Guia</button></div>
+            <div class="painel" data-grupo="met" data-aba="tec">
             <div class="mrow"><span class="mlab">SPIN</span><div class="chips mchips" id="mSpin"></div></div>
             <div class="proxq" id="mProx"></div>
             <div class="mrow"><span class="mlab">N.E.A.T.</span><div class="chips mchips" id="mNeat"></div></div>
             <div class="mrow"><span class="mlab">Sandler</span><div class="chips mchips" id="mSandler"></div></div>
-            <div class="mdisc"><div class="row"><span class="mlab grow">Perfil DISC</span><span class="tiny dim">pela fala do paciente</span></div><div class="stack" id="mDisc" style="gap:8px;margin-top:8px"></div></div>
-            <details class="mguia"><summary>Guia rápido das técnicas</summary><div id="mGuia"></div></details>
+            </div>
+            <div class="painel" data-grupo="met" data-aba="disc"><div class="row"><span class="tiny dim grow">pela fala do paciente</span></div><div class="stack" id="mDisc" style="gap:8px;margin-top:8px"></div></div>
+            <div class="painel" data-grupo="met" data-aba="dicas"><div class="row"><span class="tiny dim grow">todas as dicas mostradas nesta consulta</span><span class="tiny dim" id="histCount"></span></div><div class="hist" id="hist" style="margin-top:8px"><p class="small dim" style="margin:0">Nenhuma dica ainda.</p></div></div>
+            <div class="painel mguia" data-grupo="met" data-aba="guia"><div id="mGuia"></div></div>
           </div>
-          <div class="card">
-            <div class="row"><span class="label grow">Dicas desta consulta</span><span class="tiny dim" id="histCount"></span></div>
-            <div class="hist" id="hist" style="margin-top:10px"><p class="small dim" style="margin:0">Nenhuma dica ainda.</p></div>
-          </div>
+
         </div>
         <div class="stack">
           <div class="card rec">
@@ -503,41 +565,55 @@ body.perfil-equipe #gApagar{display:none!important}
         <div class="row"><div class="chips" id="resPeriodo"><button data-p="30">30 dias</button><button data-p="90">90 dias</button><button data-p="0" class="on">Tudo</button></div>
         <div class="chips" id="resUnidade"><button data-u="" class="on">Todas</button><button data-u="Caruaru">Caruaru</button><button data-u="Recife">Recife</button></div></div></div>
       <div class="kpis" id="kpisRes"></div>
+      <div class="abas" data-grupo="res" role="tablist" style="margin-bottom:14px"><button data-aba="graf">Gráfico</button><button data-aba="tab">Tabela</button><button data-aba="wa">WhatsApp</button></div>
+      <div class="painel" data-grupo="res" data-aba="graf">
       <div class="card stack">
         <div class="row"><h3 class="grow">Pacientes por tratamento</h3>
           <div class="legenda"><span><i style="background:var(--s-interesse)"></i>Interesse</span><span><i style="background:var(--s-fechado)"></i>Fechados</span></div></div>
         <div class="barras" id="resBarras"></div>
       </div>
-      <div class="card stack" style="margin-top:14px">
-        <h3>Tabela</h3>
-        <div style="overflow-x:auto"><table class="tabela" id="resTabela"></table></div>
       </div>
-      <div class="card stack" style="margin-top:14px">
+      <div class="painel" data-grupo="res" data-aba="tab">
+      <div class="card stack">
+        <h3>Tabela por tratamento</h3>
+        <table class="tabela" id="resTabela"></table>
+      </div>
+      </div>
+      <div class="painel" data-grupo="res" data-aba="wa">
+      <div class="card stack">
         <div class="row"><h3 class="grow">Interesse nas conversas de WhatsApp</h3><span class="small dim">tratamentos e assuntos detectados nas mensagens</span></div>
         <div class="duo" id="resWA"></div>
+      </div>
       </div>
     </section>
 
     <!-- COMERCIAL -->
     <section class="view" id="v-comercial">
-      <div class="head"><div><h1>Comercial</h1><p>Do lead que entrou ao tratamento fechado. Quem comparece na clínica passa a ser cliente.</p></div>
-        <div class="row"><input class="in" type="month" id="comMes" aria-label="Mês" style="width:auto">
-        <div class="chips" id="comUnidade"><button data-u="" class="on">Todas</button><button data-u="Caruaru">Caruaru</button><button data-u="Recife">Recife</button></div></div></div>
+      <div class="head"><div><h1>Comercial</h1><p>Do lead que entrou ao tratamento fechado. Quem comparece na clínica passa a ser cliente.</p></div></div>
+      <div class="row barra-abas"><div class="abas" data-grupo="com" role="tablist"><button data-aba="funil">Funil do mês</button><button data-aba="pipe">CRM · Pipeline</button></div><span class="grow"></span>
+        <input class="in" type="month" id="comMes" aria-label="Mês" style="width:auto">
+        <div class="chips" id="comUnidade"><button data-u="" class="on">Todas</button><button data-u="Caruaru">Caruaru</button><button data-u="Recife">Recife</button></div></div>
+      <div class="painel" data-grupo="com" data-aba="funil">
       <div class="card stack">
-        <div class="row"><h3 class="grow" id="comTitulo">Leads do mês</h3><span class="small dim">de quem entrou no mês, até onde cada um chegou</span></div>
+        <div class="row"><h3 class="grow" id="comTitulo">Leads do mês</h3><span class="small dim" id="comMeta">de quem entrou no mês, até onde cada um chegou</span></div>
         <div class="funil" id="comFunil"></div>
       </div>
       <div class="kpis" id="comKpis" style="margin-top:14px"></div>
       <div class="row" style="margin:6px 0 10px"><h3 class="grow">Follow-up de orçamento no mês</h3><span class="small dim">clientes que compareceram no mês</span></div>
       <div class="kpis" id="comOrc"></div>
-      <div class="row" style="margin:10px 0"><h2 class="grow" style="font-size:20px">CRM · Pipeline</h2><input class="in" id="comBusca" placeholder="Buscar nome ou telefone" style="width:220px"><button class="btn pri" id="btnNovoLead">+ Novo lead</button></div>
+      </div>
+      <div class="painel" data-grupo="com" data-aba="pipe">
+      <div class="row" style="margin:0 0 10px"><h2 class="grow" style="font-size:20px">CRM · Pipeline</h2><input class="in" id="comBusca" placeholder="Buscar nome ou telefone" style="width:220px"><button class="btn pri" id="btnNovoLead">+ Novo lead</button></div>
       <p class="small dim" style="margin:-4px 0 10px">Arraste o card para mudar de etapa ou toque nele para abrir a ficha.</p>
       <div id="pipeline" class="pipeline"></div>
+      </div>
     </section>
 
     <!-- CAMPANHAS -->
     <section class="view" id="v-campanhas">
       <div class="head"><div><h1>Calculadora de campanhas</h1><p>Divida o investimento pela pirâmide (topo, meio e fundo), veja a cadência e o retorno previsto.</p></div><button class="btn ghost" id="kReset">Restaurar padrão</button></div>
+      <div class="abas" data-grupo="camp" role="tablist" style="margin-bottom:14px"><button data-aba="plan">Planejamento</button><button data-aba="proj">Projeção</button><button data-aba="cad">Cadência</button><button data-aba="real">Resultado do mês</button></div>
+      <div class="painel" data-grupo="camp" data-aba="plan">
       <div class="calc">
         <div class="card stack">
           <h3>Investimento</h3>
@@ -546,11 +622,8 @@ body.perfil-equipe #gApagar{display:none!important}
           <div><span class="label">Divisão pela pirâmide</span><div class="chips" id="kPreset" style="margin-top:6px"><button data-pr="equilibrado">Equilibrado 50/30/20</button><button data-pr="captacao">Mais captação 60/25/15</button><button data-pr="conversao">Mais conversão 40/30/30</button><button data-pr="lancamento">Novo público 70/20/10</button></div></div>
           <div class="trio"><div><label class="f" for="k_topo">Topo (%)</label><input class="in num" id="k_topo" inputmode="numeric"></div><div><label class="f" for="k_meio">Meio (%)</label><input class="in num" id="k_meio" inputmode="numeric"></div><div><label class="f" for="k_fundo">Fundo (%)</label><input class="in num" id="k_fundo" inputmode="numeric"></div></div>
           <p class="small" id="kSoma" style="margin:0;color:var(--warn)"></p>
-          <h3 style="margin-top:6px">Taxas do funil</h3>
-          <div class="duo"><div><label class="f" for="k_cpl">Custo por lead (R$)</label><input class="in num" id="k_cpl" inputmode="decimal"></div><div><label class="f" for="k_ticket">Ticket médio (R$)</label><input class="in num" id="k_ticket" inputmode="decimal"></div></div>
-          <div class="trio"><div><label class="f" for="k_agend">Agendamento (%)</label><input class="in num" id="k_agend" inputmode="numeric"></div><div><label class="f" for="k_comp">Comparecimento (%)</label><input class="in num" id="k_comp" inputmode="numeric"></div><div><label class="f" for="k_fech">Fechamento (%)</label><input class="in num" id="k_fech" inputmode="numeric"></div></div>
-          <div><label class="f" for="k_meta">Meta de fechamentos no período</label><input class="in num" id="k_meta" inputmode="numeric" style="max-width:160px"></div>
-          <p class="small dim" id="kReais" style="margin:0"></p>
+          <p class="small dim" style="margin:0">Projeção estimada a partir das taxas informadas; não é garantia de resultado. Anúncios de saúde seguem as normas do CFO: sem preço promocional ou desconto em anúncio, sem promessa de resultado e sem antes e depois sensacionalista.</p>
+
         </div>
         <div class="card stack">
           <div class="row"><h3 class="grow">Pirâmide do investimento</h3><span class="small dim">toque no % para editar</span></div>
@@ -559,38 +632,75 @@ body.perfil-equipe #gApagar{display:none!important}
           <div class="row"><button class="btn sm" id="kSalvarDiv">Salvar como minha divisão</button></div>
         </div>
       </div>
-      <div class="kpis" id="kProj" style="margin-top:14px"></div>
-      <div class="kpis" id="kRet"></div>
-      <div class="card stack"><h3>Cadência por fase</h3><div style="overflow-x:auto"><table class="tabela quebra" id="kCadencia"></table></div></div>
-      <div class="card stack" style="margin-top:14px"><h3>Cadência semanal do investimento</h3><div style="overflow-x:auto"><table class="tabela" id="kSemanas"></table></div></div>
-      <p class="small dim" style="margin-top:12px">Projeção estimada a partir das taxas informadas; não é garantia de resultado. Anúncios de saúde seguem as normas do CFO: sem preço promocional ou desconto em anúncio, sem promessa de resultado e sem antes e depois sensacionalista.</p>
+      </div>
+      <div class="painel" data-grupo="camp" data-aba="proj">
+        <div class="card stack" style="margin-bottom:14px">
+          <h3>Taxas do funil</h3>
+          <div class="duo"><div><label class="f" for="k_cpl">Custo por lead (R$)</label><input class="in num" id="k_cpl" inputmode="decimal"></div><div><label class="f" for="k_ticket">Ticket médio (R$)</label><input class="in num" id="k_ticket" inputmode="decimal"></div></div>
+          <div class="trio"><div><label class="f" for="k_agend">Agendamento (%)</label><input class="in num" id="k_agend" inputmode="numeric"></div><div><label class="f" for="k_comp">Comparecimento (%)</label><input class="in num" id="k_comp" inputmode="numeric"></div><div><label class="f" for="k_fech">Fechamento (%)</label><input class="in num" id="k_fech" inputmode="numeric"></div></div>
+          <div class="duo"><div><label class="f" for="k_meta">Meta de fechamentos no período</label><input class="in num" id="k_meta" inputmode="numeric"></div><div></div></div>
+          <p class="small dim" id="kReais" style="margin:0"></p>
+        </div>
+        <div class="kpis" id="kProj"></div>
+        <div class="kpis" id="kRet"></div>
+      </div>
+      <div class="painel" data-grupo="camp" data-aba="cad">
+        <div class="cadgrid">
+          <div class="card stack"><h3>Cadência por fase</h3><table class="tabela quebra" id="kCadencia"></table></div>
+          <div class="card stack"><h3>Cadência semanal do investimento</h3><table class="tabela" id="kSemanas"></table></div>
+        </div>
+      </div>
+      <div class="painel" data-grupo="camp" data-aba="real">
+        <div class="row" style="margin-bottom:10px"><input class="in" type="month" id="cmMes" aria-label="Mês" style="width:auto">
+          <div class="chips" id="cmUnidade"><button data-u="" class="on">Todas</button><button data-u="Caruaru">Caruaru</button><button data-u="Recife">Recife</button></div>
+          <span class="grow"></span><label class="f" for="cmInvest" style="margin:0">Investido neste mês (R$)</label><input class="in num" id="cmInvest" inputmode="decimal" style="width:130px"></div>
+        <div class="kpis" id="cmKpis"></div>
+        <div class="kpis" id="cmKpis2"></div>
+        <div class="duo">
+          <div class="card stack"><div class="row"><h3 class="grow" id="cmTitulo">Funil do mês</h3><span class="small dim">dos leads que entraram</span></div><div class="funil" id="cmFunil"></div></div>
+          <div class="card stack"><h3>Previsto, meta e realizado</h3><table class="tabela" id="cmComp"></table></div>
+        </div>
+      </div>
+
     </section>
 
     <!-- AJUSTES -->
     <section class="view" id="v-ajustes">
-      <div class="head"><div><h1>Ajustes</h1></div></div>
-      <div class="stack" style="max-width:720px">
+      <div class="head"><div><h1>Ajustes</h1></div>
+        <div class="abas" data-grupo="aj" role="tablist"><button data-aba="clinica" class="so-admin">Clínica e metas</button><button data-aba="unid" class="so-admin">Unidades</button><button data-aba="perm" class="so-admin">Permissões</button><button data-aba="cel">Celular e acesso</button><button data-aba="dom" class="so-admin">Domínio</button><button data-aba="voz">Voz</button><button data-aba="sis">Sistema</button></div></div>
+      <div class="painel" data-grupo="aj" data-aba="clinica"><div class="ajgrid">
         <div class="card stack so-admin">
           <h3>Equipe</h3>
           <div><label class="f" for="aEquipe">Nomes (separados por vírgula)</label><input class="in" id="aEquipe"></div>
           <div><label class="f" for="aCondicao">Condição especial vigente (só se for real)</label><input class="in" id="aCondicao" placeholder="ex.: check-up digital abatido no tratamento até 30/11"></div>
           <div class="row"><button class="btn pri" id="btnSalvarAjustes">Salvar</button><span class="small dim" id="ajStatus"></span></div>
         </div>
+        <div class="card stack so-admin" id="cardMetas">
+          <h3>Metas do mês</h3>
+          <p class="small dim" style="margin:0">Aparecem no Comercial e no Resultado do mês das Campanhas. Deixe em branco o que não quiser acompanhar.</p>
+          <div class="duo"><div><label class="f" for="mLeads">Leads</label><input class="in num" id="mLeads" inputmode="numeric"></div><div><label class="f" for="mComp">Comparecimentos</label><input class="in num" id="mComp" inputmode="numeric"></div></div>
+          <div class="duo"><div><label class="f" for="mFech">Fechamentos</label><input class="in num" id="mFech" inputmode="numeric"></div><div><label class="f" for="mFat">Faturamento (R$)</label><input class="in num" id="mFat" inputmode="decimal"></div></div>
+          <div class="row"><button class="btn pri" id="btnSalvarMetas">Salvar metas</button><span class="small dim" id="metaStatus"></span></div>
+        </div>
+      </div></div>
+      <div class="painel" data-grupo="aj" data-aba="unid">
+        <div class="card stack so-admin" id="cardUnidades">
+          <h3>Unidades</h3>
+          <p class="small dim" style="margin:0">Usados nas mensagens (endereço e contato) e nos filtros por unidade.</p>
+          <div class="unids" id="aUnidades"></div>
+          <div class="row"><button class="btn pri" id="btnSalvarUnid">Salvar unidades</button><span class="small dim" id="unidStatus"></span></div>
+        </div>
+      </div>
+      <div class="painel" data-grupo="aj" data-aba="perm">
         <div class="card stack so-admin" id="cardPermissoes">
           <h3>Permissões</h3>
           <p class="small dim" style="margin:0">Cada perfil entra com o seu usuário: <b>admin</b>, <b>operacional</b> ou <b>crc</b> (as senhas ficam na hospedagem). Marque o que cada perfil pode ver e fazer.</p>
-          <div style="overflow-x:auto"><table class="tabela perm" id="permTabela"></table></div>
+          <table class="tabela perm" id="permTabela"></table>
           <label class="row" style="gap:8px;font-weight:600"><input type="checkbox" id="aLeadsAuto"> Criar lead no CRM automaticamente quando chega conversa nova no WhatsApp</label>
           <div class="row"><button class="btn pri" id="btnSalvarPerm">Salvar permissões</button><button class="btn ghost" id="btnPermPadrao">Restaurar padrão</button><span class="small dim" id="permStatus"></span></div>
         </div>
-        <div class="card stack so-admin" id="cardDominio">
-          <div class="row"><h3 class="grow">Domínio e endereços</h3><span class="pill" id="domEstado">…</span></div>
-          <div><span class="label">Endereço oficial do Alinha</span><p class="num" id="domEndereco" style="margin:4px 0 0;word-break:break-all;font-weight:700"></p></div>
-          <div id="domWebhooks" class="stack" style="gap:8px"></div>
-          <div class="row"><button class="btn" id="btnDomVerificar">Verificar apontamento</button></div>
-          <div class="small" id="domResultado"></div>
-          <p class="small dim" style="margin:0">Para usar um domínio do Registro.br, cadastre-o na hospedagem (Vercel ou Render), crie o registro no DNS do Registro.br e preencha <b>APP_URL</b> com o endereço completo. O passo a passo está no manual.</p>
-        </div>
+      </div>
+      <div class="painel" data-grupo="aj" data-aba="cel"><div class="ajgrid">
         <div class="card stack so-admin" id="cardCelular">
           <div class="row"><h3 class="grow">Conectar celular (WhatsApp) por QR code</h3><span class="pill" id="celEstado">…</span></div>
           <p class="small dim" style="margin:0">As conversas desse número aparecem na tela WhatsApp e você responde direto do Alinha. No celular: <b>WhatsApp › Aparelhos conectados › Conectar um aparelho</b> e aponte para o QR code.</p>
@@ -603,13 +713,18 @@ body.perfil-equipe #gApagar{display:none!important}
           <h3>Abrir o Alinha no celular</h3>
           <div class="row" style="align-items:flex-start"><div id="abrirQr" class="qrmini"></div><div class="grow"><p class="small" style="margin:0">Aponte a câmera do celular para o QR code e entre com o seu usuário e senha. Dica: no celular, use “Adicionar à tela de início” para abrir como um app.</p><p class="small dim num" id="abrirUrl" style="margin:8px 0 0;word-break:break-all"></p></div></div>
         </div>
-        <div class="card stack" id="cardAtualizacoes">
-          <h3>Atualizações</h3>
-          <div class="row"><span class="grow">Versão instalada: <b id="atVersao"></b></span><button class="btn" id="btnVerificarAt">Verificar atualizações</button></div>
-          <p class="small dim" id="atStatus" style="margin:0">Quando uma nova versão for publicada, aparece um aviso no topo com o botão “Atualizar agora”. Seus pacientes e ajustes são mantidos, e uma cópia de segurança é feita antes de cada atualização.</p>
-          <div class="row"><a class="btn sm hide" id="btnBackup" href="api/backup">Baixar cópia dos dados</a></div>
-          <div><span class="label">Novidades</span><div id="atNovidades" style="margin-top:6px"></div></div>
+      </div></div>
+      <div class="painel" data-grupo="aj" data-aba="dom">
+        <div class="card stack so-admin" id="cardDominio">
+          <div class="row"><h3 class="grow">Domínio e endereços</h3><span class="pill" id="domEstado">…</span></div>
+          <div><span class="label">Endereço oficial do Alinha</span><p class="num" id="domEndereco" style="margin:4px 0 0;word-break:break-all;font-weight:700"></p></div>
+          <div id="domWebhooks" class="stack" style="gap:8px"></div>
+          <div class="row"><button class="btn" id="btnDomVerificar">Verificar apontamento</button></div>
+          <div class="small" id="domResultado"></div>
+          <p class="small dim" style="margin:0">Para usar um domínio do Registro.br, cadastre-o na hospedagem (Vercel ou Render), crie o registro no DNS do Registro.br e preencha <b>APP_URL</b> com o endereço completo. O passo a passo está no manual.</p>
         </div>
+      </div>
+      <div class="painel" data-grupo="aj" data-aba="voz">
         <div class="card stack" id="cardVoz">
           <h3>Reconhecimento de voz</h3>
           <p class="small dim" style="margin:0">Cadastre a voz do profissional uma vez. Na consulta, o Alinha passa a separar sozinho quem fala: <b>a sua voz = Profissional</b>, qualquer outra = Paciente. Não guarda áudio, só uma "impressão" numérica do timbre e do tom.</p>
@@ -618,16 +733,25 @@ body.perfil-equipe #gApagar{display:none!important}
           <div class="row"><button class="btn pri" id="btnVozGravar">● Gravar minha voz (20 s)</button><button class="btn" id="btnVozTestar">Testar reconhecimento</button><span class="small dim" id="vozStatus"></span></div>
           <div id="vozLista" class="small"></div>
         </div>
-        <div class="card stack">
-          <h3>Tema</h3>
-          <div class="chips" id="tema"><button data-t="auto" class="on">Escuro (padrão)</button><button data-t="light">Claro</button></div>
+      </div>
+      <div class="painel" data-grupo="aj" data-aba="sis"><div class="ajgrid">
+        <div class="card stack" id="cardAtualizacoes">
+          <h3>Atualizações</h3>
+          <div class="row"><span class="grow">Versão instalada: <b id="atVersao"></b></span><button class="btn" id="btnVerificarAt">Verificar atualizações</button></div>
+          <p class="small dim" id="atStatus" style="margin:0">Quando uma nova versão for publicada, aparece um aviso no topo com o botão “Atualizar agora”. Seus pacientes e ajustes são mantidos, e uma cópia de segurança é feita antes de cada atualização.</p>
+          <div class="row"><a class="btn sm hide" id="btnBackup" href="api/backup">Baixar cópia dos dados</a></div>
+          <div><span class="label">Novidades</span><div id="atNovidades" style="margin-top:6px"></div></div>
         </div>
         <div class="card stack so-admin">
           <h3>Dados</h3>
           <p class="small dim" style="margin:0" id="dadosInfo"></p>
           <div class="row"><button class="btn" id="btnExemplos">Carregar pacientes de exemplo</button><button class="btn" id="btnApagarTudo">Apagar todos os dados</button></div>
         </div>
-      </div>
+        <div class="card stack">
+          <h3>Tema</h3>
+          <div class="chips" id="tema"><button data-t="auto" class="on">Escuro (padrão)</button><button data-t="light">Claro</button></div>
+        </div>
+      </div></div>
     </section>
   </main>
 </div>

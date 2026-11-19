@@ -42,6 +42,12 @@ As conversas dos WhatsApps de **Caruaru e Recife**, que já estão ligados ao Ko
 ## Campanhas: calculadora da pirâmide
 Informe o valor investido e os dias de campanha. O Alinha divide o investimento entre **topo (atração), meio (consideração) e fundo (conversão)** — com divisões prontas (50/30/20, 60/25/15, 40/30/30, 70/20/10) ou a sua, editando o percentual direto na pirâmide (as outras fases se ajustam para somar 100%) e salvando como "minha divisão" —, mostra o valor por fase por dia e por semana, a **cadência** de conteúdo e de investimento semana a semana e a **projeção**: leads, agendamentos, comparecimentos, fechamentos, faturamento, retorno e o investimento necessário para a meta. As taxas podem vir dos números reais do Comercial.
 
+## Telas sem rolagem
+As telas cabem no monitor sem barra de rolagem (testado em 1366×768, 1440×900 e 1920×1080): o conteúdo longo fica em **abas** e o Hoje mostra os cartões em **páginas**. Nada rola para o lado; no celular, as tabelas viram cartões e a barra inferior mostra as 4 telas principais e o botão **Mais**. Em telas muito pequenas (celular) as listas longas ainda deslizam com o dedo, sem barra visível.
+
+## Campanhas › Resultado do mês
+Dos leads que entraram no mês escolhido: quantos compareceram, fecharam, faltaram à consulta, não fecharam e estão em follow-up de orçamento, com a porcentagem sobre o total. Informe o valor investido no mês para ver o custo por lead, o custo por fechamento e o retorno, e compare **previsto x meta x realizado**. As metas são definidas em **Ajustes › Clínica e metas**.
+
 ## Resultados, perfil DISC e Social Selling
 - **Resultados**: quantos pacientes têm interesse em cada tratamento e quantos fecharam (conversão, valor fechado e ticket médio), por período e unidade. Também mostra os tratamentos e assuntos mais falados no WhatsApp. O tratamento vem da consulta, da conversa de WhatsApp ou do campo Tratamento na ficha do paciente.
 - **Perfil DISC**: durante a consulta (painel Método) e em cada conversa de WhatsApp, o Alinha lê o jeito de falar do paciente e indica o perfil predominante (Dominante, Influente, Estável ou Analítico) e como falar com ele. É uma leitura indicativa, para adaptar a comunicação; não é diagnóstico nem rótulo do paciente.

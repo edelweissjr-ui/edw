@@ -1,5 +1,13 @@
 # Novidades do Alinha
 
+## 1.9.0 — nov/2026
+- **Sem barras de rolagem**: as telas longas foram organizadas em abas (Comercial: Funil do mês · CRM-Pipeline; Campanhas: Planejamento · Projeção · Cadência · Resultado do mês; Resultados: Gráfico · Tabela · WhatsApp; Consulta: Técnicas · Perfil DISC · Dicas · Guia) e o Hoje mostra os cartões em páginas que cabem na tela. As barras de rolagem não aparecem mais.
+- **Nada rola para o lado**: Follow-up e Pipeline quebram as colunas em linhas (até 2 a 5 cartões por coluna, com "+ mais"); no celular, as tabelas viram cartões.
+- **Ajustes ampliado**: usa a largura toda, em abas (Clínica e metas · Unidades · Permissões · Celular e acesso · Domínio · Voz · Sistema). Novos: **Unidades** (endereço, WhatsApp, telefone e e-mail editáveis, usados nas mensagens) e **Metas do mês** (leads, comparecimentos, fechamentos e faturamento).
+- **Campanhas › Resultado do mês**: dos leads que entraram no mês, quantos compareceram, fecharam, faltaram, não fecharam e estão em follow-up de orçamento; custo por lead e por fechamento com o valor investido no mês; quadro previsto x meta x realizado.
+- **Comercial** mostra o andamento das metas do mês.
+- **Celular**: barra inferior com as 4 telas principais e o botão **Mais**.
+
 ## 1.8.1 — nov/2026
 - Campanhas: o percentual de cada fase (topo, meio e fundo) é editável direto na pirâmide, digitando no próprio percentual ou arrastando o controle.
 - Opção "Ajustar as outras fases para somar 100%": ao mudar uma fase, as outras se ajustam mantendo a proporção entre elas (pode desligar para editar livremente).

@@ -8,8 +8,9 @@
   const BIB = window.ROTEIRO, DEMO = window.ALINHA_DEMO;
   /* Versão: na plataforma, vem do servidor (package.json) no momento em que a tela abriu.
      Ao publicar uma atualização, aumente a versão em package.json e registre em NOVIDADES. */
-  let VERSAO = "1.8.1";
+  let VERSAO = "1.9.0";
   const NOVIDADES = [
+    { v: "1.9.0", data: "nov/2026", itens: ["Telas sem barras de rolagem: conteúdo organizado em abas e páginas para caber na tela (Comercial, Campanhas, Resultados, Consulta, Hoje e Ajustes)", "Nada rola para o lado: Follow-up e Pipeline quebram em linhas e as tabelas viram cartões no celular", "Ajustes ampliado: largura total em abas, com Unidades (endereço e contatos editáveis) e Metas do mês", "Campanhas › Resultado do mês: leads que entraram, compareceram, fecharam, faltaram, não fecharam e follow-up de orçamento, com custo por lead e por fechamento, e previsto x meta x realizado", "Celular: barra com as 4 telas principais e o botão Mais"] },
     { v: "1.8.1", data: "nov/2026", itens: ["Campanhas: percentual de cada fase editável direto na pirâmide (digitando ou arrastando), com ajuste automático para somar 100% e a opção de salvar a sua divisão"] },
     { v: "1.8.0", data: "nov/2026", itens: ["Comercial: funil do mês com leads que entraram, agendaram, compareceram, faltaram, fecharam e não fecharam, e o follow-up de orçamento", "CRM-Pipeline com funil de leads e de clientes (quem comparece vira cliente), arrastar e soltar", "Campanhas: calculadora da pirâmide (topo, meio e fundo), cadência e projeção de resultados", "Permissões por perfil: Administrador, Operacional e CRC"] },
     { v: "1.7.0", data: "nov/2026", itens: ["Resultados por tratamento: quantos pacientes têm interesse e quantos fecharam em cada tratamento, com conversão, valor e ticket médio", "WhatsApp em três colunas: conversas, o chat normal para escrever e enviar, e o chat sugerido ao lado", "Assuntos de cada conversa (preço, agendamento, medo, prazo…) com filtro e tratamento de interesse detectado", "Perfil DISC do paciente durante a consulta e no WhatsApp, com como falar com cada perfil", "Social Selling no WhatsApp: SPIN e N.E.A.T. acompanhados em cada conversa, com a próxima pergunta pronta"] },
@@ -325,9 +326,12 @@
     const fila = paraHoje();
     $("#fila").innerHTML = fila.length ? fila.map((o) => cardMensagem(o.p, o.x)).join("") : `<div class="vazio">Ninguém para alinhar hoje. Quando uma consulta terminar sem fechamento, o paciente aparece aqui no dia certo.</div>`;
     fila.forEach((o) => garantirMensagemIA(o.p, o.x.dia));
+    paginarFila();
     const b = $("#badgeHoje"); b.textContent = N.hoje; b.classList.toggle("hide", !N.hoje);
   }
   let filtro = "Todos";
+  const FU_ABERTAS = {};
+  $("#kanban").addEventListener("click", (e) => { const m = e.target.closest("[data-maisfu]"); if (!m) return; e.stopPropagation(); FU_ABERTAS[m.dataset.maisfu] = !FU_ABERTAS[m.dataset.maisfu]; renderFollowup(); }, true);
   function renderFollowup() {
     const N = numeros();
     kpis("#kpisFU", [
@@ -344,9 +348,10 @@
     colunas.push({ d: "fim", titulo: "Fim da cadência", sub: "decidir: fechou ou encerrar", itens: lista.filter((p) => { const x = proximo(p); return x && x.fim; }) });
     colunas.push({ d: "ok", titulo: "Fecharam", sub: "no mês", itens: lista.filter((p) => p.status === "fechado" && doMes(p.fechadoEm)) });
     $("#kanban").innerHTML = colunas.map((c) => `<div class="col"><h3>${c.titulo}<span class="pill">${c.itens.length}</span></h3><div class="sub">${c.sub}</div>
-      ${c.itens.map((p) => { const x = proximo(p); const cls = x && !x.fim ? (x.atraso > 0 ? "late" : x.atraso === 0 ? "today" : "") : "";
+      ${c.itens.slice(0, FU_ABERTAS[c.d] ? c.itens.length : 2).map((p) => { const x = proximo(p); const cls = x && !x.fim ? (x.atraso > 0 ? "late" : x.atraso === 0 ? "today" : "") : "";
         const quando = !x ? (p.status === "fechado" ? `fechou ${p.fechadoEm ? fmtData(p.fechadoEm) : ""}` : "") : x.fim ? "todos os toques feitos" : x.atraso > 0 ? `<span style="color:var(--bad)">${x.atraso} dia${x.atraso > 1 ? "s" : ""} de atraso</span>` : x.atraso === 0 ? "alinhar hoje" : `em ${-x.atraso} dia${x.atraso < -1 ? "s" : ""}`;
         return `<button class="pc ${cls}" data-id="${p.id}" data-act="abrir"><b>${esc(p.nome)}</b><span class="v num">${brl(p.status === "fechado" ? p.valorFechado : p.valorApresentado)}</span><span class="m">${quando}</span>${p.status === "aberto" ? miniTermo(p.prontidao) : ""}<span class="m">${esc(p.responsavel || "")}${(p.objecoes || [])[0] ? " · " + esc(OBJ_NOME[p.objecoes[0]] || "") : ""}</span></button>`; }).join("") || `<span class="tiny dim">vazio</span>`}
+      ${c.itens.length > 2 ? `<button class="mais-col" data-maisfu="${c.d}">${FU_ABERTAS[c.d] ? "Mostrar menos" : `+ ${c.itens.length - 2} mais`}</button>` : ""}
     </div>`).join("");
   }
   $("#filtroResp").addEventListener("click", (e) => { const b = e.target.closest("[data-f]"); if (b) { filtro = b.dataset.f; renderFollowup(); } });
@@ -792,7 +797,7 @@
     $("#cProf").innerHTML = profs.map((n) => `<option${n === atual ? " selected" : ""}>${esc(n)}</option>`).join("");
     renderVozes(); atualizarAuto();
     estadoCelular(); renderAbrirCelular(); renderDominio(false);
-    if (ehAdminFront()) renderPermissoes();
+    if (ehAdminFront()) { renderPermissoes(); renderUnidadesMetas(); }
   }
   function ehAdminFront() { return !PLAT || PLAT.papel === "admin"; }
   /* ------------------------------------------------------------ */
@@ -921,6 +926,23 @@
     AJ.vozes = v; await Store.ajustes({ vozes: v }); renderVozes(); atualizarAuto();
   });
 
+  // Unidades (endereço e contatos) e metas do mês
+  const UNID_CAMPOS = [["endereco", "Endereço"], ["whatsapp", "WhatsApp"], ["fixo", "Telefone fixo"], ["email", "E-mail"]];
+  function aplicarUnidades() { Object.entries(AJ.unidades || {}).forEach(([n, u]) => { BIB.unidades[n] = Object.assign({}, BIB.unidades[n] || {}, u); }); }
+  function renderUnidadesMetas() {
+    aplicarUnidades();
+    $("#aUnidades").innerHTML = Object.entries(BIB.unidades).map(([n, u]) => `<fieldset data-unid="${esc(n)}"><legend>${esc(n)}</legend>${UNID_CAMPOS.map(([k, r]) => `<div><label class="f" for="u_${esc(n)}_${k}">${r}</label><input class="in" id="u_${esc(n)}_${k}" data-k="${k}" value="${esc(u[k] || "")}"></div>`).join("")}</fieldset>`).join("");
+    const M = AJ.metas || {};
+    $("#mLeads").value = M.leads || ""; $("#mComp").value = M.comparecimentos || ""; $("#mFech").value = M.fechamentos || ""; $("#mFat").value = M.faturamento || "";
+  }
+  $("#btnSalvarUnid").addEventListener("click", async () => {
+    const U = {}; $$("#aUnidades fieldset").forEach((f) => { U[f.dataset.unid] = Object.fromEntries($$("input", f).map((i) => [i.dataset.k, i.value.trim()])); });
+    try { await Store.ajustes({ unidades: U }); aplicarUnidades(); $("#unidStatus").textContent = "✓ Salvo"; } catch (e) { $("#unidStatus").textContent = "Erro: " + e.message; }
+  });
+  $("#btnSalvarMetas").addEventListener("click", async () => {
+    const n = (id) => { const v = num($(id).value); return v > 0 ? v : null; };
+    try { await Store.ajustes({ metas: { leads: n("#mLeads"), comparecimentos: n("#mComp"), fechamentos: n("#mFech"), faturamento: n("#mFat") } }); $("#metaStatus").textContent = "✓ Salvo"; render(); } catch (e) { $("#metaStatus").textContent = "Erro: " + e.message; }
+  });
   $("#btnSalvarAjustes").addEventListener("click", async () => {
     try {
       await Store.ajustes({ equipe: $("#aEquipe").value.split(",").map((s) => s.trim()).filter(Boolean), condicao: $("#aCondicao").value.trim() });
@@ -1313,6 +1335,7 @@
       : `<div class="vazio">Nenhum paciente neste filtro. Os tratamentos entram aqui a partir das consultas, do follow-up e do WhatsApp.</div>`;
     $("#resTabela").innerHTML = `<thead><tr><th>Tratamento</th><th class="n">Interesse</th><th class="n">Em negociação</th><th class="n">Fecharam</th><th class="n">Não fecharam</th><th class="n">Conversão</th><th class="n">Valor fechado</th><th class="n">Ticket médio</th></tr></thead><tbody>${grupos.map((g) => `<tr><td>${esc(g.nome)}</td><td class="n">${g.interesse}</td><td class="n">${g.aberto}</td><td class="n">${g.fechado}</td><td class="n">${g.perdido}</td><td class="n">${g.interesse ? Math.round((g.fechado / g.interesse) * 100) : 0}%</td><td class="n">${brl(g.valor)}</td><td class="n">${g.fechado ? brl(g.valor / g.fechado) : "—"}</td></tr>`).join("")}
       ${grupos.length > 1 ? `<tr style="font-weight:800"><td>Total</td><td class="n">${tot.i}</td><td class="n">${grupos.reduce((a, g) => a + g.aberto, 0)}</td><td class="n">${tot.f}</td><td class="n">${grupos.reduce((a, g) => a + g.perdido, 0)}</td><td class="n">${tot.i ? Math.round((tot.f / tot.i) * 100) : 0}%</td><td class="n">${brl(tot.v)}</td><td class="n">${tot.f ? brl(tot.v / tot.f) : "—"}</td></tr>` : ""}</tbody>`;
+    rotularTabela($("#resTabela"));
     // WhatsApp: tratamentos e assuntos das conversas
     const nt = {}, na = {};
     WA.conversas.filter((c) => !RES.unidade || (WA.info[c.lead] || {}).unidade === RES.unidade).forEach((c) => {
@@ -1348,7 +1371,11 @@
   }
   const pode = (k) => perm().telas.includes(k) || perm().acoes.includes(k);
   function aplicarPermissoes() {
-    $$("#nav button").forEach((b) => b.classList.toggle("hide", !pode(b.dataset.v)));
+    $$("#nav button[data-v]").forEach((b) => b.classList.toggle("hide", !pode(b.dataset.v)));
+    // celular: 4 telas na barra + "Mais" com as outras
+    const vis = $$("#nav button[data-v]").filter((b) => !b.classList.contains("hide"));
+    vis.forEach((b, i) => b.classList.toggle("prim", i < 4 || vis.length <= 5));
+    $("#navMais").classList.toggle("hide", vis.length <= 5);
     document.body.dataset.papel = papel();
   }
   function renderPermissoes() {
@@ -1359,6 +1386,7 @@
       ${TELAS.map(([k, n]) => linha(k, n, "telas")).join("")}${ACOES.map(([k, n]) => linha(k, n, "acoes")).join("")}
       <tr><td>Ajustes da clínica, equipe, domínio, conectar celular, apagar dados</td><td class="c">✓</td><td class="c dim">—</td><td class="c dim">—</td></tr></tbody>`;
     $("#aLeadsAuto").checked = AJ.leadsAutomaticos !== false;
+    rotularTabela(el);
   }
   $("#btnSalvarPerm").addEventListener("click", async () => {
     const P = { operacional: { telas: [], acoes: [] }, crc: { telas: [], acoes: [] } };
@@ -1406,21 +1434,21 @@
     toast(etapa === "orcamento" && !["fechado", "nao_fechou"].includes(antes) ? `${primeiro(p.nome)} compareceu: agora é cliente (follow-up D0)` : `${primeiro(p.nome)} → ${ETAPA[etapa].nome}`);
     render();
   }
-  const COM = { mes: new Date().toISOString().slice(0, 7), unidade: "", busca: "" };
+  const COM = { mes: new Date().toISOString().slice(0, 7), unidade: "", busca: "", abertas: {} };
   const noMes = (iso, mes) => !!iso && String(new Date(iso).toISOString()).slice(0, 7) === mes;
   const pct = (a, b) => (b ? Math.round((a / b) * 100) : 0);
   function numerosComercial(mes, unidade) {
     const base = PAC.filter((p) => !unidade || p.unidade === unidade);
     const coorte = base.filter((p) => noMes(entrouEm(p), mes)); // leads que entraram no mês
-    const c = { entraram: coorte.length, agendaram: 0, compareceram: 0, faltaram: 0, fecharam: 0, naoFecharam: 0, emFollowup: 0, aguardando: 0 };
+    const c = { entraram: coorte.length, agendaram: 0, compareceram: 0, faltaram: 0, fecharam: 0, naoFecharam: 0, emFollowup: 0, aguardando: 0, valorFechado: 0, valorFollowup: 0 };
     coorte.forEach((p) => {
       const e = etapaDe(p);
       if (ehCliente(p) || ["agendado", "faltou"].includes(e) || p.agendadoEm) c.agendaram++;
       if (ehCliente(p)) c.compareceram++;
       if (e === "faltou") c.faltaram++;
-      if (e === "fechado") c.fecharam++;
+      if (e === "fechado") { c.fecharam++; c.valorFechado += Number(p.valorFechado || 0); }
       if (e === "nao_fechou") c.naoFecharam++;
-      if (e === "orcamento") c.emFollowup++;
+      if (e === "orcamento") { c.emFollowup++; c.valorFollowup += Number(p.valorApresentado || 0); }
       if (["novo", "contato", "agendado"].includes(e)) c.aguardando++;
     });
     // orçamentos (clientes que compareceram no mês) e o follow-up deles
@@ -1436,7 +1464,9 @@
     const { c, o } = numerosComercial(COM.mes, COM.unidade);
     const nomeMes = new Date(COM.mes + "-15").toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
     $("#comTitulo").textContent = `Leads que entraram em ${nomeMes}`;
-    const passos = [["Entraram", c.entraram, "leads no mês", ""], ["Agendaram", c.agendaram, `${pct(c.agendaram, c.entraram)}% dos leads`, "agendamento"], ["Compareceram", c.compareceram, `${pct(c.compareceram, c.agendaram)}% dos agendados · viraram clientes`, "comparecimento"], ["Fecharam", c.fecharam, `${pct(c.fecharam, c.compareceram)}% dos que compareceram`, "fechamento"]];
+    const MT = AJ.metas || {};
+    $("#comMeta").textContent = MT.fechamentos || MT.leads ? [MT.leads ? `meta de leads: ${c.entraram}/${MT.leads}` : "", MT.comparecimentos ? `comparecimentos: ${c.compareceram}/${MT.comparecimentos}` : "", MT.fechamentos ? `fechamentos: ${c.fecharam}/${MT.fechamentos}` : ""].filter(Boolean).join(" · ") : "de quem entrou no mês, até onde cada um chegou";
+    const passos = [["Entraram", c.entraram, "leads no mês", ""], ["Agendaram", c.agendaram, `${pct(c.agendaram, c.entraram)}% dos leads`, "agendamento"], ["Compareceram", c.compareceram, `${pct(c.compareceram, c.agendaram)}% dos agendados (clientes)`, "comparecimento"], ["Fecharam", c.fecharam, `${pct(c.fecharam, c.compareceram)}% dos que compareceram`, "fechamento"]];
     const mx = Math.max(1, c.entraram);
     $("#comFunil").innerHTML = passos.map(([n, v, s]) => `<div class="fl"><div class="nome">${n}</div><div class="trilho"><b style="width:${Math.max(v ? 2 : 0, (v / mx) * 100)}%" data-dica="${esc(`${n}: ${v} · ${s}`)}"></b></div><div class="val"><strong class="num">${v}</strong><span>${esc(s)}</span></div></div>`).join("");
     kpis("#comKpis", [
@@ -1461,7 +1491,8 @@
       const itens = lista.filter((p) => etapaDe(p) === e.id && recente(p)).sort((a, b) => ((b.fechadoEm || b.compareceuEm || entrouEm(b) || "") > (a.fechadoEm || a.compareceuEm || entrouEm(a) || "") ? 1 : -1));
       const soma = itens.reduce((t, p) => t + Number((e.id === "fechado" ? p.valorFechado : p.valorApresentado) || 0), 0);
       return `<div class="col" data-etapa="${e.id}"><h3>${e.nome}<span class="pill">${itens.length}</span></h3><div class="sub">${e.sub}${soma ? " · " + brl(soma) : ""}</div>
-        ${itens.map((p) => `<button class="pc" draggable="true" data-pid="${p.id}"><b>${esc(p.nome)}</b><span class="m">${esc([tratDoPaciente(p) !== "Não informado" ? tratDoPaciente(p) : "", p.unidade].filter(Boolean).join(" · "))}</span><span class="m">${e.grupo === "lead" ? `entrou ${fmtData(entrouEm(p))}${p.origem ? " · " + esc(p.origem) : ""}${p.agendaPara && e.id === "agendado" ? ` · <b>${fmtData(p.agendaPara)}</b>` : ""}` : brl(e.id === "fechado" ? p.valorFechado : p.valorApresentado)}</span></button>`).join("") || `<span class="tiny dim">vazio</span>`}</div>`; }).join("")}</div></div>`;
+        ${itens.slice(0, COM.abertas[e.id] ? itens.length : 5).map((p) => `<button class="pc" draggable="true" data-pid="${p.id}"><b>${esc(p.nome)}</b><span class="m">${esc([tratDoPaciente(p) !== "Não informado" ? tratDoPaciente(p) : "", p.unidade].filter(Boolean).join(" · "))}</span><span class="m">${e.grupo === "lead" ? `entrou ${fmtData(entrouEm(p))}${p.origem ? " · " + esc(p.origem) : ""}${p.agendaPara && e.id === "agendado" ? ` · <b>${fmtData(p.agendaPara)}</b>` : ""}` : brl(e.id === "fechado" ? p.valorFechado : p.valorApresentado)}</span></button>`).join("") || `<span class="tiny dim">vazio</span>`}
+        ${itens.length > 5 ? `<button class="mais-col" data-maiscol="${e.id}">${COM.abertas[e.id] ? "Mostrar menos" : `+ ${itens.length - 5} mais`}</button>` : ""}</div>`; }).join("")}</div></div>`;
     $("#pipeline").innerHTML = grupoHTML("lead", "Funil de leads") + grupoHTML("cliente", "Funil de clientes · compareceram");
   }
   // arrastar e soltar entre as colunas
@@ -1475,7 +1506,7 @@
     const p = PAC.find((x) => x.id === arrastando); arrastando = null; if (p) await mover(p, col.dataset.etapa);
   });
   $("#pipeline").addEventListener("dragend", () => { arrastando = null; $$("#pipeline .col.alvo").forEach((x) => x.classList.remove("alvo")); });
-  $("#pipeline").addEventListener("click", (e) => { const c = e.target.closest("[data-pid]"); if (!c) return; const p = PAC.find((x) => x.id === c.dataset.pid); if (p) abrirCard(p); });
+  $("#pipeline").addEventListener("click", (e) => { const m = e.target.closest("[data-maiscol]"); if (m) { COM.abertas[m.dataset.maiscol] = !COM.abertas[m.dataset.maiscol]; renderPipeline(); return; } const c = e.target.closest("[data-pid]"); if (!c) return; const p = PAC.find((x) => x.id === c.dataset.pid); if (p) abrirCard(p); });
   $("#comMes").addEventListener("change", (e) => { COM.mes = e.target.value || new Date().toISOString().slice(0, 7); renderComercial(); });
   $("#comUnidade").addEventListener("click", (e) => { const b = e.target.closest("[data-u]"); if (b) { COM.unidade = b.dataset.u; renderComercial(); } });
   $("#comBusca").addEventListener("input", (e) => { COM.busca = e.target.value; renderPipeline(); });
@@ -1607,6 +1638,8 @@
       ["Para a meta de " + C.meta + " fechamentos", brl(C.agend && C.comp && C.fech ? (C.meta / (C.agend / 100 * C.comp / 100 * C.fech / 100)) * C.cpl : 0), "investimento estimado no período"],
       ["Leads necessários para a meta", Math.ceil(C.agend && C.comp && C.fech ? C.meta / (C.agend / 100 * C.comp / 100 * C.fech / 100) : 0), "com as taxas acima"]
     ]);
+    rotularTabela($("#kCadencia")); rotularTabela($("#kSemanas"));
+    renderCampReal();
     const r = taxasReais();
     $("#kReais").innerHTML = r.n >= 5 ? `Números reais (últimos 3 meses, ${r.n} leads): agendamento ${r.agend}%, comparecimento ${r.comp}%, fechamento ${r.fech}%${r.ticket ? `, ticket ${brl(r.ticket)}` : ""}. <button class="btn sm" id="kUsarReais">Usar estes números</button>` : "Ainda há poucos leads registrados no Comercial: use estimativas. Com mais dados, o Alinha sugere as taxas reais da clínica.";
     const b = $("#kUsarReais"); if (b) b.onclick = () => { Object.assign(CALC, { agend: r.agend || CALC.agend, comp: r.comp || CALC.comp, fech: r.fech || CALC.fech, ticket: r.ticket || CALC.ticket }); ls.set("alinha.calc", CALC); renderCampanhas(); toast("Taxas reais aplicadas"); };
@@ -1640,6 +1673,93 @@
   $("#kReset").addEventListener("click", () => { const minha = CALC.minha; CALC = JSON.parse(JSON.stringify(CALC0)); if (minha) CALC.minha = minha; ls.set("alinha.calc", CALC); renderCampanhas(); });
 
   /* ------------------------------------------------------------ */
+  /* Abas, paginação e resultado do mês (sem barras de rolagem)    */
+  /* ------------------------------------------------------------ */
+  const ABAS = ls.get("alinha.abas", {});
+  function abrirAba(grupo, aba) {
+    const todos = $$(`.abas[data-grupo="${grupo}"] button`);
+    const vis = todos.filter((b) => getComputedStyle(b).display !== "none");
+    if (!vis.some((b) => b.dataset.aba === aba)) aba = vis[0] && vis[0].dataset.aba;
+    todos.forEach((b) => { const on = b.dataset.aba === aba; b.classList.toggle("on", on); b.setAttribute("role", "tab"); b.setAttribute("aria-selected", on ? "true" : "false"); });
+    $$(`.painel[data-grupo="${grupo}"]`).forEach((pn) => pn.classList.toggle("on", pn.dataset.aba === aba));
+    ABAS[grupo] = aba; ls.set("alinha.abas", ABAS);
+  }
+  function iniciarAbas() { $$(".abas[data-grupo]").forEach((a) => abrirAba(a.dataset.grupo, ABAS[a.dataset.grupo])); }
+  document.addEventListener("click", (e) => {
+    const b = e.target.closest(".abas button"); if (!b) return;
+    const g = b.closest(".abas").dataset.grupo; abrirAba(g, b.dataset.aba); window.scrollTo({ top: 0 });
+    if (g === "com") renderComercial(); if (g === "camp") renderCampanhas(); if (g === "res") renderResultados(); if (g === "aj") renderAjustes();
+  });
+  // tabela vira cartão no celular: cada célula leva o nome da coluna
+  function rotularTabela(t) {
+    if (!t) return; const th = $$("thead th", t).map((x) => x.textContent.trim());
+    $$("tbody tr", t).forEach((tr) => [...tr.children].forEach((td, i) => td.setAttribute("data-label", th[i] || "")));
+  }
+  // Hoje: os cartões viram páginas que cabem na tela
+  let filaPg = 0;
+  function paginarFila() {
+    const f = $("#fila"), pg = $("#filaPager"), cards = $$("#fila .msgcard");
+    cards.forEach((c) => c.classList.remove("fora"));
+    if (vista !== "hoje" || cards.length < 2) { pg.classList.add("hide"); return; }
+    const cols = Math.max(1, getComputedStyle(f).gridTemplateColumns.split(" ").filter(Boolean).length);
+    const topo = f.getBoundingClientRect().top + window.scrollY;
+    const disp = window.innerHeight - topo - 64 - (window.innerWidth <= 860 ? 84 : 12);
+    const alt = Math.max(...cards.slice(0, cols).map((c) => c.offsetHeight)) + 14;
+    const por = cols * Math.max(1, Math.floor(disp / alt));
+    const paginas = Math.ceil(cards.length / por);
+    if (paginas <= 1) { pg.classList.add("hide"); return; }
+    filaPg = Math.max(0, Math.min(filaPg, paginas - 1));
+    cards.forEach((c, i) => c.classList.toggle("fora", Math.floor(i / por) !== filaPg));
+    pg.classList.remove("hide");
+    $("#filaPg").textContent = `${filaPg + 1} de ${paginas} · ${cards.length} paciente${cards.length > 1 ? "s" : ""}`;
+    $('#filaPager [data-pg="-1"]').disabled = filaPg === 0; $('#filaPager [data-pg="1"]').disabled = filaPg >= paginas - 1;
+  }
+  $("#filaPager").addEventListener("click", (e) => { const b = e.target.closest("[data-pg]"); if (!b) return; filaPg += Number(b.dataset.pg); paginarFila(); window.scrollTo({ top: 0 }); });
+  let tRes = null;
+  window.addEventListener("resize", () => { clearTimeout(tRes); tRes = setTimeout(() => { if (vista === "hoje") paginarFila(); }, 150); });
+
+  // Campanhas › Resultado do mês: o que os leads do mês viraram
+  const CM = { mes: new Date().toISOString().slice(0, 7), unidade: "" };
+  function renderCampReal() {
+    if (!$("#cmMes")) return;
+    if (!$("#cmMes").value) $("#cmMes").value = CM.mes;
+    $$("#cmUnidade button").forEach((b) => b.classList.toggle("on", b.dataset.u === CM.unidade));
+    const { c } = numerosComercial(CM.mes, CM.unidade);
+    CALC.real = CALC.real || {};
+    const inv = CALC.real[CM.mes] != null ? CALC.real[CM.mes] : CALC.invest;
+    if (document.activeElement !== $("#cmInvest")) $("#cmInvest").value = inv;
+    const dos = (n) => `${pct(n, c.entraram)}% dos leads`;
+    kpis("#cmKpis", [
+      ["Leads que entraram", c.entraram, "total do mês", true],
+      ["Compareceram", c.compareceram, `${dos(c.compareceram)} · viraram clientes`],
+      ["Fecharam", c.fecharam, `${dos(c.fecharam)} · ${pct(c.fecharam, c.compareceram)}% de quem compareceu`],
+      ["Faltaram à consulta", c.faltaram, `${dos(c.faltaram)} · ${pct(c.faltaram, c.agendaram)}% dos agendados`]
+    ]);
+    kpis("#cmKpis2", [
+      ["Não fecharam", c.naoFecharam, `${dos(c.naoFecharam)} · ${pct(c.naoFecharam, c.compareceram)}% de quem compareceu`],
+      ["Follow-up de orçamento", c.emFollowup, `${dos(c.emFollowup)} · ${brl(c.valorFollowup)} em negociação`],
+      ["Custo por lead", c.entraram ? brl(inv / c.entraram) : "—", `investido ${brl(inv)} no mês`],
+      ["Custo por fechamento", c.fecharam ? brl(inv / c.fecharam) : "—", c.valorFechado ? `${brl(c.valorFechado)} fechados · retorno ${inv ? (c.valorFechado / inv).toFixed(1).replace(".", ",") + "x" : "—"}` : "sem fechamentos ainda"]
+    ]);
+    const nomeMes = new Date(CM.mes + "-15").toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
+    $("#cmTitulo").textContent = `Leads de ${nomeMes}`;
+    const linhas = [["Entraram", c.entraram], ["Agendaram", c.agendaram], ["Compareceram", c.compareceram], ["Fecharam", c.fecharam], ["Faltaram", c.faltaram], ["Não fecharam", c.naoFecharam], ["Follow-up", c.emFollowup], ["No funil de leads", c.aguardando]];
+    const mx = Math.max(1, c.entraram);
+    $("#cmFunil").innerHTML = linhas.map(([n, v]) => `<div class="fl"><div class="nome">${n}</div><div class="trilho"><b style="width:${Math.max(v ? 2 : 0, (v / mx) * 100)}%" data-dica="${esc(`${n}: ${v} de ${c.entraram} leads (${pct(v, c.entraram)}%)`)}"></b></div><div class="val"><strong class="num">${v}</strong><span>${pct(v, c.entraram)}%</span></div></div>`).join("");
+    // previsto (com as taxas da projeção e o investido no mês) x realizado
+    const lp = CALC.cpl ? inv / CALC.cpl : 0, ap = lp * CALC.agend / 100, cp = ap * CALC.comp / 100, fp = cp * CALC.fech / 100;
+    const MT = AJ.metas || {};
+    const fmt = (v, moeda) => (v == null ? "—" : moeda ? brl(v) : Math.round(v));
+    const linha = (n, prev, real, meta, moeda) => `<tr><td>${n}</td><td class="n">${fmt(prev, moeda)}</td><td class="n">${fmt(meta, moeda)}</td><td class="n"><b>${fmt(real, moeda)}</b></td><td class="n">${meta ? Math.round((real / meta) * 100) + "% da meta" : prev ? Math.round((real / prev) * 100) + "% do previsto" : "—"}</td></tr>`;
+    $("#cmComp").innerHTML = `<thead><tr><th>Etapa</th><th class="n">Previsto</th><th class="n">Meta</th><th class="n">Realizado</th><th class="n">Atingido</th></tr></thead><tbody>
+      ${linha("Leads", lp, c.entraram, MT.leads)}${linha("Agendamentos", ap, c.agendaram, null)}${linha("Comparecimentos", cp, c.compareceram, MT.comparecimentos)}${linha("Fechamentos", fp, c.fecharam, MT.fechamentos)}${linha("Faturamento", fp * CALC.ticket, c.valorFechado, MT.faturamento, true)}</tbody>`;
+    rotularTabela($("#cmComp"));
+  }
+  $("#cmMes").addEventListener("change", (e) => { CM.mes = e.target.value || new Date().toISOString().slice(0, 7); renderCampReal(); });
+  $("#cmUnidade").addEventListener("click", (e) => { const b = e.target.closest("[data-u]"); if (b) { CM.unidade = b.dataset.u; renderCampReal(); } });
+  $("#cmInvest").addEventListener("input", (e) => { CALC.real = CALC.real || {}; CALC.real[CM.mes] = Math.max(0, num(e.target.value)); ls.set("alinha.calc", CALC); renderCampReal(); });
+
+  /* ------------------------------------------------------------ */
   /* Navegação e início                                            */
   /* ------------------------------------------------------------ */
   let vista = "hoje";
@@ -1647,10 +1767,15 @@
     if (!pode(v)) v = ["hoje", "whatsapp", "comercial", "consulta", "followup", "ajustes"].find((x) => pode(x)) || "ajustes";
     vista = v;
     $$("#nav button").forEach((b) => b.classList.toggle("on", b.dataset.v === v));
+    const atual = $(`#nav button[data-v="${v}"]`); $("#navMais").classList.toggle("on", !!atual && !atual.classList.contains("prim"));
     $$(".view").forEach((s) => s.classList.toggle("on", s.id === "v-" + v));
     render(); window.scrollTo({ top: 0 });
   }
-  $("#nav").addEventListener("click", (e) => { const b = e.target.closest("button"); if (b) mostrar(b.dataset.v); });
+  $("#nav").addEventListener("click", (e) => {
+    const b = e.target.closest("button"); if (!b) return;
+    if (b.id === "navMais") { const ab = $("#nav").classList.toggle("aberto"); b.setAttribute("aria-expanded", ab); return; }
+    $("#nav").classList.remove("aberto"); $("#navMais").setAttribute("aria-expanded", "false"); mostrar(b.dataset.v);
+  });
   function render() {
     if (!$("#bannerDemo").dataset.fixo) $("#bannerDemo").classList.toggle("hide", !PAC.some((p) => p.exemplo));
     renderHoje();
@@ -1699,7 +1824,8 @@
   function renderAtualizacoes() {
     const el = $("#atVersao"); if (!el) return;
     el.textContent = VERSAO;
-    $("#atNovidades").innerHTML = NOVIDADES.map((n) => `<div class="nov"><b>Versão ${n.v}</b> <span class="dim small">· ${n.data}</span><ul>${n.itens.map((i) => `<li>${esc(i)}</li>`).join("")}</ul></div>`).join("");
+    const nv = (n) => `<div class="nov"><b>Versão ${n.v}</b> <span class="dim small">· ${n.data}</span><ul>${n.itens.map((i) => `<li>${esc(i)}</li>`).join("")}</ul></div>`;
+    $("#atNovidades").innerHTML = NOVIDADES.slice(0, 1).map(nv).join("") + (NOVIDADES.length > 1 ? `<details class="small"><summary>Versões anteriores</summary>${NOVIDADES.slice(1).map(nv).join("")}</details>` : "");
     $("#btnBackup").classList.toggle("hide", !PLAT || !pode("exportar"));
   }
 
@@ -1712,6 +1838,7 @@
     const ehAdmin = !PLAT || PLAT.papel === "admin";
     document.body.classList.toggle("perfil-equipe", !ehAdmin);
     aplicarPermissoes();
+    iniciarAbas();
     $("#modoInfo").innerHTML = (PLAT ? `${PAPEL_NOME[papel()] || "Equipe"} · IA ${PLAT.ia ? "ativa" : "desligada"}<br><a href="sair" style="color:inherit">Sair</a>` : "Modo demonstração") + `<br><span style="opacity:.7">Weiss Odontologia · v${VERSAO}</span>`;
     renderAtualizacoes();
     if (PLAT) { verificarAtualizacao(false); setInterval(() => verificarAtualizacao(false), 5 * 60 * 1000); }
@@ -1722,7 +1849,7 @@
     }
     $("#pillIA").textContent = PLAT && PLAT.ia ? "IA ouvindo + roteiro" : "Dicas do roteiro";
     try { await Store.carregar(); } catch (e) { toast("Não foi possível carregar os dados: " + e.message); }
-    renderAjustes(); mostrar(vista);
+    aplicarUnidades(); renderAjustes(); mostrar(vista);
   }
   iniciar();
 })();
