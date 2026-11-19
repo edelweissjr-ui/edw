@@ -301,15 +301,15 @@ function falhou(ip) { const t = tentativas.get(ip) || { n: 0, em: Date.now() }; 
 
 function paginaLogin(erro = "") {
   return `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex">
-<title>Alinha</title><link rel="icon" href="logo.svg"><style>
+<title>Alinha · Gestão Infinity</title><link rel="icon" href="logo.svg"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600&display=swap"><style>
 :root{--bg:#0A0A1C;--card:#13122B;--fg:#EEEDFF;--dim:#CDCAF2;--accent:#7C6CF6;--line:rgba(167,158,255,.18);--bad:#FF7A72;color-scheme:dark}
 *{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;background:var(--bg) radial-gradient(900px 500px at 70% -10%,rgba(124,108,246,.25),transparent 60%);color:var(--fg);font:15px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;padding:16px}
 form{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:30px;width:100%;max-width:360px;display:grid;gap:12px}
-.logo{display:flex;align-items:center;gap:10px;font-weight:800;font-size:24px;letter-spacing:-.02em}.logo svg{width:36px;height:36px}p{margin:0;color:var(--dim);font-size:15px}
+.logo{display:flex;flex-direction:column;align-items:center;text-align:center;gap:2px;margin-bottom:4px}.logo svg{width:96px;height:51px}.logo b{font-family:Cinzel,Georgia,serif;font-weight:600;font-size:38px;letter-spacing:.03em;line-height:1;background:linear-gradient(180deg,#F3EEFF,#B9A2F5);-webkit-background-clip:text;background-clip:text;color:transparent}.logo span{font-family:Cinzel,Georgia,serif;font-size:14px;letter-spacing:.14em;color:#D9CFF8}p{margin:0;color:var(--dim);font-size:15px}
 input{font:inherit;color:inherit;padding:11px 12px;border:1px solid var(--line);border-radius:10px;background:var(--bg)}
 button{font:inherit;font-weight:700;padding:12px;border:0;border-radius:10px;background:var(--accent);color:#fff;cursor:pointer}.err{color:var(--bad);font-weight:600}.lema{color:var(--fg);font-size:14.5px;line-height:1.5}.lema b{color:#A79BFF}.small{font-size:12px}
 </style></head><body><form method="post" action="login">
-<div class="logo"><svg aria-hidden="true" viewBox="0 0 32 32"><defs><linearGradient id="gA" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#6A5AF0"/><stop offset="1" stop-color="#A193FF"/></linearGradient></defs><rect width="32" height="32" rx="9" fill="url(#gA)"/><path d="M10 24 16 8l6 16" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M11.9 18.6q4.1 3 8.2 0" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/></svg>Alinha</div><p class="lema">Alinha a conversa, o orçamento, o fechamento e o tratamento.<br><b>Do primeiro contato ao sorriso alinhado.</b></p><p class="small">Weiss Odontologia</p>
+<div class="logo"><svg aria-hidden="true" viewBox="0 0 120 64"><defs><linearGradient id="mkA" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#B9A0EE"/><stop offset=".4" stop-color="#6A3FBF"/><stop offset="1" stop-color="#2A1150"/></linearGradient><linearGradient id="mkB" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#2A1150"/><stop offset=".55" stop-color="#5E35B1"/><stop offset="1" stop-color="#CDB9F7"/></linearGradient><linearGradient id="mkC" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#341869"/><stop offset=".5" stop-color="#7A50CF"/><stop offset="1" stop-color="#341869"/></linearGradient></defs><g fill="none" stroke-linecap="round"><path d="M60 32C50 18 39 9 27 9 14 9 6 19 6 32s8 23 21 23c12 0 23-9 33-23" stroke="url(#mkA)" stroke-width="10"/><path d="M60 32c10 14 21 23 33 23 13 0 21-10 21-23S106 9 93 9C81 9 70 18 60 32" stroke="url(#mkB)" stroke-width="10"/><path d="M47 18c5 4 9 9 13 14s8 10 13 14" stroke="url(#mkC)" stroke-width="10.5"/><path d="M14 22c3-6 8-8 13-8" stroke="#fff" stroke-opacity=".38" stroke-width="2"/><path d="M93 14c6 0 11 3 13 9" stroke="#fff" stroke-opacity=".38" stroke-width="2"/></g></svg><b>ALINHA</b><span>GESTÃO INFINITY</span></div><p class="lema">Alinha a conversa, o orçamento, o fechamento e o tratamento.<br><b>Do primeiro contato ao sorriso alinhado.</b></p><p class="small">Weiss Odontologia</p>
 ${erro ? `<p class="err">${erro}</p>` : ""}
 <label for="usuario" style="font-size:13px;font-weight:600">Usuário</label>
 <input id="usuario" name="usuario" autocomplete="username" placeholder="admin, operacional ou crc" value="" autocapitalize="none" spellcheck="false">
@@ -692,26 +692,31 @@ function aplicarEtapa(p, etapa) {
   if (etapa === "fechado") { p.status = "fechado"; p.fechadoEm = agora; p.valorFechado = p.valorFechado || p.valorApresentado || 0; }
   if (etapa === "nao_fechou") { p.status = "perdido"; p.encerradoEm = agora; }
 }
-const FLUXO_IDS = {
-  protese: ["orcamento", "aprovado", "preparo", "moldagem", "enviado", "recebido", "agendado", "instalado"],
-  invisalign: ["orcamento", "aprovado", "moldagem", "planejamento", "enviado", "recebido", "agendado", "tratamento", "contencao"],
-  fixo: ["orcamento", "aprovado", "documentacao", "agendado", "instalado", "manutencao", "remocao", "contencao"],
-  generico: ["orcamento", "aprovado", "agendado", "execucao", "concluido"]
-};
-const FLUXO_TIPO = { "Coroa em porcelana": "protese", "Prótese sobre implante": "protese", "Coroa sobre implante": "protese", Invisalign: "invisalign", "Aparelho fixo": "fixo" };
+// fases padrão (os tratamentos novos guardam a própria lista em t.fases, com o papel de cada fase)
+const FASES_PADRAO = (() => {
+  const F = (id, papel = "") => ({ id, papel });
+  const prot = [F("orcamento"), F("aprovado", "aprovacao"), F("preparo"), F("moldagem", "moldagem"), F("enviado", "lab_envio"), F("recebido", "lab_recebido"), F("agendado", "agendamento"), F("instalado"), F("finalizado")];
+  return { "Coroa em porcelana": prot, "Prótese sobre implante": prot, "Coroa sobre implante": prot,
+    Invisalign: [F("consulta"), F("orcamento"), F("pagamento", "aprovacao"), F("escaneamento", "moldagem"), F("fotografias"), F("radiografias"), F("clincheck_mod"), F("clincheck_ok", "lab_envio"), F("alinhadores", "lab_recebido"), F("agendado", "agendamento"), F("instalacao"), F("finalizado")],
+    "Aparelho fixo": [F("orcamento"), F("aprovado", "aprovacao"), F("documentacao"), F("agendado", "agendamento"), F("instalado"), F("manutencao"), F("remocao"), F("contencao"), F("finalizado")],
+    "Outro procedimento": [F("orcamento"), F("aprovado", "aprovacao"), F("agendado", "agendamento"), F("execucao"), F("finalizado")] };
+})();
 function recursoTrabalho(t) {
-  const ids = FLUXO_IDS[FLUXO_TIPO[t.tipo] || "generico"], feitas = ids.filter((k) => (t.etapas || {})[k]);
-  const atual = feitas[feitas.length - 1] || null, prox = ids[ids.indexOf(atual) + 1] || null;
-  return { id: t.id, tipo: t.tipo, dente: t.dente || "", etapa_atual: atual, proxima_etapa: prox, concluido: !prox,
+  const fases = (t.fases && t.fases.length ? t.fases : ((AJC.procedimentos || {})[t.tipo] || FASES_PADRAO[t.tipo] || FASES_PADRAO["Outro procedimento"]));
+  const feitas = fases.filter((f) => (t.etapas || {})[f.id]), atual = feitas[feitas.length - 1] || null;
+  const prox = fases.find((f) => !(t.etapas || {})[f.id]) || null, fim = fases[fases.length - 1];
+  return { id: t.id, tipo: t.tipo, dente: t.dente || "", etapa_atual: atual ? atual.id : null, etapa_atual_papel: atual ? atual.papel || "" : "", proxima_etapa: prox ? prox.id : null,
+    concluido: !!(fim && (t.etapas || {})[fim.id]),
+    fases: fases.map((f) => ({ id: f.id, nome: f.nome || f.id, papel: f.papel || "", data: ((t.etapas || {})[f.id] || {}).em || null })),
     etapas: Object.fromEntries(Object.entries(t.etapas || {}).map(([k, v]) => [k, v && v.em])),
     laboratorio: t.lab ? { nome: t.lab.nome || "", enviado_em: t.lab.enviadoEm || null, entrega_combinada: t.lab.entrega || null, recebido_em: t.lab.recebidoEm || null } : null,
-    consulta_colocacao: t.consulta || null };
+    consulta: t.consulta || null };
 }
 function recursoPaciente(p) {
   const e = etapaSrv(p);
   return { id: p.id, nome: p.nome || "", telefone: p.telefone || "", unidade: p.unidade || "", origem: p.origem || "", tratamento: p.tratamento || p.interesse || "",
     funil: funilDe(e), etapa: e, etapa_nome: NOME_ETAPA[e], valor_apresentado: p.valorApresentado ?? null, valor_fechado: p.valorFechado ?? null,
-    entrada_em: p.entradaEm || p.consultaEm || null, agendado_em: p.agendadoEm || null, compareceu_em: p.compareceuEm || null, fechado_em: p.fechadoEm || null,
+    email: p.email || "", termometro: p.temp || null, entrada_em: p.entradaEm || p.consultaEm || null, agendado_em: p.agendadoEm || null, compareceu_em: p.compareceuEm || null, fechado_em: p.fechadoEm || null,
     kommo_lead_id: p.leadId || null, responsavel: p.responsavel || "", obs: p.obs || "", tratamentos: (p.trabalhos || []).map(recursoTrabalho) };
 }
 function numerosMes(pacs, mes, unidade) {
@@ -859,7 +864,7 @@ function indiceApi(base) {
     rotas: [
       "GET    /api/v1/leads?funil=lead|cliente&etapa=&unidade=&desde=AAAA-MM-DD&limite=100",
       "GET    /api/v1/leads/{id ou kommo_lead_id}",
-      "POST   /api/v1/leads  { nome*, telefone, unidade, origem, tratamento, etapa, kommo_lead_id, valor_apresentado, obs }",
+      "POST   /api/v1/leads  { nome*, telefone, email, unidade, origem, tratamento, etapa, kommo_lead_id, valor_apresentado, obs }",
       "PATCH  /api/v1/leads/{id}  { etapa, nome, telefone, unidade, tratamento, valor_apresentado, valor_fechado, obs }",
       "GET    /api/v1/tratamentos?situacao=andamento|laboratorio|concluido",
       "GET    /api/v1/funil?mes=AAAA-MM&unidade=",
@@ -899,6 +904,7 @@ async function apiV1(req, res, url, p) {
       const aplicarCampos = (x) => {
         if (b.nome != null) x.nome = texto(b.nome, 120);
         if (b.telefone != null) x.telefone = texto(b.telefone, 30);
+        if (b.email != null) { const em = texto(b.email, 120); if (em && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)) throw new Error("e-mail inválido"); x.email = em; }
         if (b.unidade != null) x.unidade = b.unidade;
         if (b.origem != null) x.origem = texto(b.origem, 60);
         if (b.tratamento != null) { x.tratamento = texto(b.tratamento, 80); x.interesse = x.tratamento; }
@@ -930,7 +936,7 @@ async function apiV1(req, res, url, p) {
     if (partes[0] === "tratamentos" && req.method === "GET") {
       const sit = url.searchParams.get("situacao") || "";
       const l = (await STORE.pacientes()).flatMap((x) => (x.trabalhos || []).map((t) => ({ paciente: { id: x.id, nome: x.nome, unidade: x.unidade || "" }, ...recursoTrabalho(t) })))
-        .filter((t) => !sit || (sit === "concluido" ? t.concluido : sit === "laboratorio" ? ["enviado", "recebido", "agendado"].includes(t.etapa_atual) && t.laboratorio : !t.concluido));
+        .filter((t) => !sit || (sit === "concluido" ? t.concluido : sit === "laboratorio" ? !t.concluido && ["lab_envio", "lab_recebido", "agendamento"].includes(t.etapa_atual_papel) && t.laboratorio : !t.concluido));
       return out(200, { total: l.length, dados: l });
     }
     if (partes[0] === "funil" && req.method === "GET") {

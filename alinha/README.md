@@ -43,6 +43,8 @@ As conversas dos WhatsApps de **Caruaru e Recife**, que já estão ligados ao Ko
 Informe o valor investido e os dias de campanha. O Alinha divide o investimento entre **topo (atração), meio (consideração) e fundo (conversão)** — com divisões prontas (50/30/20, 60/25/15, 40/30/30, 70/20/10) ou a sua, editando o percentual direto na pirâmide (as outras fases se ajustam para somar 100%) e salvando como "minha divisão" —, mostra o valor por fase por dia e por semana, a **cadência** de conteúdo e de investimento semana a semana e a **projeção**: leads, agendamentos, comparecimentos, fechamentos, faturamento, retorno e o investimento necessário para a meta. As taxas podem vir dos números reais do Comercial.
 
 ## CRM: Funil Lead e Funil Cliente
+Cartões compactos: nome e data, com atalhos para **e-mail, WhatsApp, SMS e lembrete** e a **bolinha do termômetro** (toque para trocar a cor). O botão **Filtrar** filtra por etapa, termômetro, origem, tratamento, responsável, período, lembrete, contato, valor, faltas e tratamento em andamento.
+
 O menu **CRM** tem dois funis. **Funil Lead** (antes de vir à clínica): Lead novo, Em contato, Agendou, Faltou e Perdido. **Funil Cliente** (quem compareceu): Compareceu · orçamento, Fechou e Não fechou. Arraste o card entre as etapas; solte sobre a aba do outro funil para trocar de funil. Na conversa do WhatsApp, o seletor **CRM** muda a etapa do paciente.
 
 ## API aberta, tokens e webhooks
@@ -52,7 +54,8 @@ O menu **CRM** tem dois funis. **Funil Lead** (antes de vir à clínica): Lead n
 - **Kommo:** cadastre no Kommo o endereço mostrado em **Ajustes › Kommo** (eventos: lead adicionado, status do lead alterado, mensagem recebida e enviada). Leads novos entram no Funil Lead; quem vai para o funil de clientes do Kommo passa para o Funil Cliente. Com os IDs dos funis preenchidos e a sincronização ligada, quando o paciente comparece no Alinha o card é movido para o funil Cliente no Kommo.
 
 ## Tratamentos e laboratório
-Cada tratamento tem uma **linha do tempo** com as etapas e as datas, para o profissional saber em que ponto o paciente está.
+Cada tratamento tem uma **linha do tempo** com as fases e as datas, para o profissional saber em que ponto o paciente está. Todas terminam em **Finalizado**. Qualquer fase pode ser marcada ou desmarcada (passe o mouse para ver a data) e tudo fica no **prontuário** do paciente. As fases de cada procedimento são cadastradas em **Ajustes › Procedimentos**, e cada tratamento pode ser personalizado. Ao aprovar o orçamento, o Alinha abre o cadastro da linha do tempo.
+- **Invisalign:** consulta › orçamento › pagamento aprovado › escaneamento › fotografias › radiografias › ClinCheck em modificação › ClinCheck aprovado › alinhadores na clínica › paciente agendado › concluída instalação › finalizado.
 - **Coroa em porcelana, prótese sobre implante e coroa sobre implante:** orçamento (necessidade identificada) › orçamento aprovado › preparo do dente › escaneamento ou moldagem › **enviado ao laboratório, com a data de entrega combinada** › recebido do laboratório › **consulta de colocação agendada** › instalado.
 - Também há fluxos para Invisalign, aparelho fixo e outros procedimentos.
 - Em **Tratamentos › + Novo tratamento** escolha o paciente, o tipo e o dente; em cada cartão, o botão **Próxima: …** registra a etapa seguinte com a data.

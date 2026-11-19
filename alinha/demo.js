@@ -53,7 +53,7 @@ window.ALINHA_DEMO = (function () {
     ex9: [{ id: "tr2", tipo: "Coroa sobre implante", dente: "36", criadoEm: diasAtras(30),
       etapas: E(["orcamento", 30], ["aprovado", 25], ["preparo", 6], ["moldagem", 6], ["enviado", 5]), metodo: "Escaneamento digital (iTero)",
       lab: { nome: "Prótese Caruaru", enviadoEm: diasAtras(5), entrega: diasAtras(-2) } },
-      { id: "tr3", tipo: "Invisalign", criadoEm: diasAtras(5), etapas: E(["orcamento", 5], ["aprovado", 5], ["moldagem", 4]), metodo: "Escaneamento digital (iTero)" }],
+      { id: "tr3", tipo: "Invisalign", criadoEm: diasAtras(5), etapas: E(["consulta", 6], ["orcamento", 6], ["pagamento", 5], ["escaneamento", 4], ["fotografias", 4], ["radiografias", 3], ["clincheck_mod", 1]), metodo: "Escaneamento digital (iTero)" }],
     ex3: [{ id: "tr4", tipo: "Prótese sobre implante", dente: "24 e 25", criadoEm: diasAtras(40),
       etapas: E(["orcamento", 40], ["aprovado", 33], ["preparo", 15], ["moldagem", 15], ["enviado", 14], ["recebido", 1]), metodo: "Moldagem convencional",
       lab: { nome: "Laboratório Dental Pina", enviadoEm: diasAtras(14), entrega: diasAtras(1), recebidoEm: diasAtras(1) } }],
@@ -62,11 +62,16 @@ window.ALINHA_DEMO = (function () {
       lab: { nome: "Prótese Caruaru", enviadoEm: diasAtras(11), entrega: diasAtras(3), recebidoEm: diasAtras(3) }, consulta: diasAtras(-1, 14) }],
     ex5: [{ id: "tr6", tipo: "Prótese sobre implante", dente: "15", criadoEm: diasAtras(3), etapas: E(["orcamento", 3]) }],
     ex1: [{ id: "tr7", tipo: "Coroa em porcelana", dente: "21", criadoEm: diasAtras(60),
-      etapas: E(["orcamento", 60], ["aprovado", 55], ["preparo", 40], ["moldagem", 40], ["enviado", 39], ["recebido", 32], ["agendado", 31], ["instalado", 28]),
+      etapas: E(["orcamento", 60], ["aprovado", 55], ["preparo", 40], ["moldagem", 40], ["enviado", 39], ["recebido", 32], ["agendado", 31], ["instalado", 28], ["finalizado", 27]),
       lab: { nome: "Laboratório Dental Pina", enviadoEm: diasAtras(39), entrega: diasAtras(32), recebidoEm: diasAtras(32) }, consulta: diasAtras(28, 15) }]
   };
   // clientes vieram de um lead alguns dias antes da consulta
-  const pacientes = () => clientes().map((p) => (trabalhos[p.id] ? Object.assign(p, { trabalhos: JSON.parse(JSON.stringify(trabalhos[p.id])) }) : p)).map((p) => Object.assign({ entradaEm: new Date(new Date(p.consultaEm).getTime() - 4 * 864e5).toISOString(), agendadoEm: new Date(new Date(p.consultaEm).getTime() - 3 * 864e5).toISOString(), compareceuEm: p.consultaEm }, p)).concat(leads());
+  const extras = {
+    ex2: { email: "bianca.exemplo@email.com" }, ex3: { email: "tatiane.exemplo@email.com", temp: "quente" }, ex11: { email: "mariana.exemplo@email.com", temp: "quente" },
+    ex13: { temp: "morno" }, ex15: { lembretes: [{ id: "lbx1", quando: diasAtras(0, 15), texto: "Ligar para confirmar a consulta", feito: false }] }, ex17: { temp: "frio" },
+    ex6: { lembretes: [{ id: "lbx2", quando: diasAtras(-2, 10), texto: "Enviar a simulação do sorriso", feito: false }] }
+  };
+  const pacientes = () => clientes().map((p) => (trabalhos[p.id] ? Object.assign(p, { trabalhos: JSON.parse(JSON.stringify(trabalhos[p.id])) }) : p)).map((p) => Object.assign({ entradaEm: new Date(new Date(p.consultaEm).getTime() - 4 * 864e5).toISOString(), agendadoEm: new Date(new Date(p.consultaEm).getTime() - 3 * 864e5).toISOString(), compareceuEm: p.consultaEm }, p)).concat(leads()).map((p) => (extras[p.id] ? Object.assign(p, JSON.parse(JSON.stringify(extras[p.id]))) : p));
 
   // Consulta simulada (≈ 2 minutos, acelerada)
   const consulta = {

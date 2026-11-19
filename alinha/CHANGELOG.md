@@ -1,5 +1,19 @@
 # Novidades do Alinha
 
+## 2.2.0 — nov/2026
+- **Nova logomarca** Alinha · Gestão Infinity (vetor, nítida em qualquer tamanho; versão clara para o tema escuro).
+- **Linha do tempo**:
+  - todas terminam em **Finalizado**;
+  - **Invisalign**: Consulta › Orçamento › Pagamento aprovado › Escaneamento › Fotografias › Radiografias › ClinCheck em modificação › ClinCheck aprovado › Alinhadores na clínica › Paciente agendado › Concluída instalação › Finalizado;
+  - **marcar e desmarcar qualquer fase**, em qualquer ordem, pelas bolinhas (desmarcar pede um segundo clique) ou pelas caixas da linha do tempo, com a **data editável**;
+  - **passar o mouse** na fase mostra a data;
+  - cada marcação, desmarcação e mudança de data fica no **prontuário** do paciente (nova seção na ficha).
+- **Procedimentos e fases cadastráveis** (Ajustes › Procedimentos): fases com tipo (aprovação, escaneamento, envio ao laboratório com data de entrega, recebido, agendamento). Cada tratamento copia as fases do procedimento e pode ser **personalizado** (Editar fases).
+- **Ao aprovar o orçamento** (Fechou), o Alinha abre o cadastro da linha do tempo já com consulta, orçamento e aprovação marcados.
+- **Cartões do CRM compactos**: nome e data; em cima, atalhos em círculo para e-mail, WhatsApp, SMS e **lembrete**, e a **bolinha do termômetro** (frio, morno, quente) que troca de cor com um toque. Lembretes do dia aparecem no Hoje. Campo e-mail na ficha.
+- **Filtrar no CRM**: etapa, termômetro, origem, tratamento, responsável, período, lembrete, contato, valor, faltas e tratamento em andamento.
+- API: leads com `email` e `termometro`; tratamentos com a lista de fases e as datas.
+
 ## 2.1.0 — nov/2026
 - **CRM em tela própria** (menu CRM), com dois funis em abas:
   - **Funil Lead** (antes de vir à clínica): Lead novo › Em contato › Agendou › Faltou › Perdido (nova etapa).

@@ -8,8 +8,9 @@
   const BIB = window.ROTEIRO, DEMO = window.ALINHA_DEMO;
   /* Versão: na plataforma, vem do servidor (package.json) no momento em que a tela abriu.
      Ao publicar uma atualização, aumente a versão em package.json e registre em NOVIDADES. */
-  let VERSAO = "2.1.0";
+  let VERSAO = "2.2.0";
   const NOVIDADES = [
+    { v: "2.2.0", data: "nov/2026", itens: ["Nova logomarca Alinha · Gestão Infinity", "Linha do tempo com Finalizado e o fluxo completo do Invisalign (consulta, orçamento, pagamento, escaneamento, fotografias, radiografias, ClinCheck, alinhadores, agendamento, instalação)", "Marcar e desmarcar qualquer fase, com a data ao passar o mouse e o registro no prontuário", "Procedimentos e fases cadastráveis; ao aprovar o orçamento, a linha do tempo é criada e pode ser personalizada", "Cartões do CRM compactos com e-mail, WhatsApp, SMS, lembrete e termômetro; filtros completos no CRM"] },
     { v: "2.1.0", data: "nov/2026", itens: ["CRM em tela própria com dois funis: Funil Lead (lead novo, em contato, agendou, faltou, perdido) e Funil Cliente (compareceu, fechou, não fechou)", "Etapa do CRM direto na conversa do WhatsApp", "API aberta com tokens (ler e gravar ou só leitura) para conectar n8n, Kommo, site e outros apps", "Webhooks assinados: o Alinha avisa outros apps quando um lead entra, muda de etapa, comparece, fecha ou avança no tratamento", "Kommo: leads novos entram no Funil Lead, a mudança para o funil de clientes passa para o Funil Cliente e o card pode ser movido no Kommo quando o paciente comparece"] },
     { v: "2.0.0", data: "nov/2026", itens: ["Tratamentos: linha do tempo de cada tratamento, com a etapa atual e a próxima (coroa em porcelana, prótese e coroa sobre implante, Invisalign, aparelho fixo)", "Laboratório: trabalhos enviados com a data de entrega combinada, aviso de atraso, recebidos para agendar e colocações marcadas; avisos no Hoje", "Linha do tempo completa do paciente na ficha (comercial e tratamentos)", "Suporte: chat com IA e manual de ajuda pesquisável para tirar dúvidas sobre o sistema", "Letras mais nítidas: fonte carregada antes, mínimo de 13 px e mais contraste"] },
     { v: "1.9.0", data: "nov/2026", itens: ["Telas sem barras de rolagem: conteúdo organizado em abas e páginas para caber na tela (Comercial, Campanhas, Resultados, Consulta, Hoje e Ajustes)", "Nada rola para o lado: Follow-up e Pipeline quebram em linhas e as tabelas viram cartões no celular", "Ajustes ampliado: largura total em abas, com Unidades (endereço e contatos editáveis) e Metas do mês", "Campanhas › Resultado do mês: leads que entraram, compareceram, fecharam, faltaram, não fecharam e follow-up de orçamento, com custo por lead e por fechamento, e previsto x meta x realizado", "Celular: barra com as 4 telas principais e o botão Mais"] },
@@ -369,6 +370,7 @@
       ${x && !x.fim ? cardMensagem(p, x) : ""}
       <div class="card stack"><span class="label">Resultado</span>
         <div class="row"><div class="grow"><label class="f" for="gTrat">Tratamento</label><select class="in" id="gTrat">${(() => { const atual = tratDoPaciente(p); const ops = TRAT.map((t) => t.nome); if (!ops.includes(atual)) ops.unshift(atual); return ops.map((o) => `<option${o === atual ? " selected" : ""}>${esc(o)}</option>`).join(""); })()}</select></div>
+          <div class="grow"><label class="f" for="gEmail">E-mail</label><input class="in" id="gEmail" type="email" value="${esc(p.email || "")}"></div>
           <div class="grow"><label class="f" for="gValor">Valor fechado (R$)</label><input class="in num" id="gValor" inputmode="decimal" value="${p.valorFechado || p.valorApresentado || ""}"></div></div>
         <div class="row"><button class="btn pri" id="gFechou">Fechou</button><button class="btn" id="gPerdeu">Não fechou</button>${p.status !== "aberto" ? `<button class="btn ghost" id="gReabrir">Voltar ao follow-up</button>` : ""}</div>
         <div class="tiny dim">Histórico: ${CAD.filter((d) => (p.toques || {})[d]).map((d) => `D${d} ${p.toques[d].status}`).join(" · ") || "nenhum toque ainda"}</div>
@@ -380,12 +382,13 @@
     ligarTimelinePaciente(p);
     $("#veil").addEventListener("click", (e) => { if (e.target.id === "veil") fecharGaveta(); });
     $("#btnFechar").onclick = fecharGaveta;
+    $("#gEmail").onchange = async (e) => { p.email = e.target.value.trim(); await Store.salvar(p); toast("E-mail salvo"); };
     $("#gTrat").onchange = async (e) => { p.tratamento = e.target.value; p.interesse = e.target.value; await Store.salvar(p); toast("Tratamento atualizado"); };
     const valor = () => { const v = String($("#gValor").value).replace(/[^\d,.]/g, ""); return Number(v.includes(",") ? v.replace(/\./g, "").replace(",", ".") : v) || 0; };
     $("#gFechou").onclick = async () => {
       p.status = "fechado"; p.valorFechado = valor(); p.fechadoEm = new Date().toISOString();
       p.recuperado = inicioDia(p.fechadoEm).getTime() > inicioDia(p.consultaEm).getTime();
-      await Store.salvar(p); toast("Fechamento registrado 🎉"); fecharGaveta(); render();
+      await Store.salvar(p); toast("Fechamento registrado 🎉"); fecharGaveta(); render(); aposFechamento(p);
     };
     $("#gPerdeu").onclick = async () => { p.status = "perdido"; p.encerradoEm = new Date().toISOString(); await Store.salvar(p); toast("Paciente encerrado"); fecharGaveta(); render(); };
     if ($("#gReabrir")) $("#gReabrir").onclick = async () => { p.status = "aberto"; delete p.fechadoEm; await Store.salvar(p); fecharGaveta(); render(); };
@@ -801,7 +804,7 @@
     $("#cProf").innerHTML = profs.map((n) => `<option${n === atual ? " selected" : ""}>${esc(n)}</option>`).join("");
     renderVozes(); atualizarAuto();
     estadoCelular(); renderAbrirCelular(); renderDominio(false);
-    if (ehAdminFront()) { renderPermissoes(); renderUnidadesMetas(); if (["api", "kommo"].includes(ABAS.aj)) { if (INTEG) renderIntegracoes(); else carregarIntegracoes(); } }
+    if (ehAdminFront()) { renderPermissoes(); renderUnidadesMetas(); renderProcedimentos(); if (["api", "kommo"].includes(ABAS.aj)) { if (INTEG) renderIntegracoes(); else carregarIntegracoes(); } }
   }
   function ehAdminFront() { return !PLAT || PLAT.papel === "admin"; }
   /* ------------------------------------------------------------ */
@@ -1445,6 +1448,7 @@
     await Store.salvar(p);
     toast(etapa === "orcamento" && !["fechado", "nao_fechou"].includes(antes) ? `${primeiro(p.nome)} compareceu: agora é cliente (follow-up D0)` : `${primeiro(p.nome)} → ${ETAPA[etapa].nome}`);
     render();
+    if (etapa === "fechado") aposFechamento(p);
   }
   const COM = { mes: new Date().toISOString().slice(0, 7), unidade: "", busca: "", abertas: {} };
   const noMes = (iso, mes) => !!iso && String(new Date(iso).toISOString()).slice(0, 7) === mes;
@@ -1496,21 +1500,139 @@
     ]);
   }
   const CRMS = { unidade: "" };
+  // termômetro do cliente (bolinha colorida): manual ou pela prontidão registrada
+  const TEMPS = [["frio", "Frio"], ["morno", "Morno"], ["quente", "Quente"]];
+  const tempDe = (p) => p.temp || (p.prontidao == null ? "sem" : p.prontidao >= 70 ? "quente" : p.prontidao >= 40 ? "morno" : "frio");
+  const TEMP_NOME = { sem: "Sem leitura", frio: "Frio", morno: "Morno", quente: "Quente" };
+  const telIntl = (t) => { const d = digits(t || ""); return d ? (d.length <= 11 ? "55" : "") + d : ""; };
+  const ICO = {
+    email: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>',
+    wa: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.5 11.6a8.4 8.4 0 0 1-12.4 7.4L3.5 20.5l1.6-4.4A8.4 8.4 0 1 1 20.5 11.6z"/><path d="M9 8.8c.2 2.6 2.6 5 5.2 5.2l.9-1.3-1.6-.8-.7.6a4 4 0 0 1-2.2-2.2l.6-.7-.8-1.6z" fill="currentColor" stroke="none"/></svg>',
+    sms: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H8l-5 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><path d="M8 10h.01M12 10h.01M16 10h.01"/></svg>',
+    bell: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.9 1.9 0 0 0 3.4 0"/></svg>'
+  };
+  function dataDoCartao(p, e) {
+    if (e === "agendado" && p.agendaPara) return [p.agendaPara, "Consulta agendada para"];
+    if (e === "orcamento") return [p.compareceuEm || p.consultaEm, "Compareceu em"];
+    if (e === "fechado") return [p.fechadoEm, "Fechou em"];
+    if (e === "nao_fechou") return [p.encerradoEm || p.consultaEm, "Encerrado em"];
+    if (e === "faltou" && p.faltouEm) return [p.faltouEm, "Faltou em"];
+    if (e === "perdido" && p.perdidoEm) return [p.perdidoEm, "Perdido em"];
+    return [entrouEm(p), "Entrou em"];
+  }
+  function cartaoCRM(p) {
+    const e = etapaDe(p), [dt, rot] = dataDoCartao(p, e), tel = telIntl(p.telefone), tp = tempDe(p);
+    const lp = lembretesPendentes(p), atrasado = lp.some((l) => new Date(l.quando) <= fimDoDia());
+    const lnk = (ok, href, ic, nome, extra = "") => ok ? `<a class="ic" href="${esc(href)}" ${extra} draggable="false" data-ic="${ic}" aria-label="${nome} para ${esc(p.nome)}" data-dica="${nome}">${ICO[ic]}</a>` : `<span class="ic off" aria-hidden="true" data-dica="${nome}: sem ${ic === "email" ? "e-mail" : "telefone"}">${ICO[ic]}</span>`;
+    return `<div class="pc mini" draggable="true" data-pid="${p.id}" tabindex="0" role="button" aria-label="${esc(p.nome)} · ${esc(ETAPA[e].nome)}">
+      <div class="icons">${lnk(!!p.email, "mailto:" + (p.email || ""), "email", "E-mail")}${lnk(!!tel, `https://wa.me/${tel}`, "wa", "WhatsApp", 'target="_blank" rel="noopener"')}${lnk(!!tel, `sms:+${tel}`, "sms", "SMS")}
+        <button class="ic${lp.length ? (atrasado ? " late" : " on") : ""}" data-ic="lembrete" aria-label="Lembrete" data-dica="${lp.length ? `${lp.length} lembrete${lp.length > 1 ? "s" : ""} pendente${lp.length > 1 ? "s" : ""}` : "Criar lembrete"}">${ICO.bell}</button>
+        <span class="grow"></span><button class="tdot t-${tp}" data-ic="temp" aria-label="Termômetro: ${TEMP_NOME[tp]}. Toque para trocar" data-dica="Termômetro: ${TEMP_NOME[tp]} (toque para trocar)"></button></div>
+      <b>${esc(p.nome)}</b><span class="m num" data-dica="${esc(rot + " " + (dt ? dataBR(dt) : "—"))}">${dt ? dataBR(dt) : "—"}</span></div>`;
+  }
+
+  // filtros do CRM (Funil Lead e Funil Cliente)
+  const CRMF0 = { origens: [], tratamentos: [], temps: [], responsaveis: [], etapas: [], de: "", ate: "", lembrete: "", contato: "", valorMin: "", valorMax: "", faltou: false, emTratamento: false };
+  let CRMF = Object.assign({}, CRMF0, ls.get("alinha.crmFiltro", {}));
+  const nFiltros = () => ["origens", "tratamentos", "temps", "responsaveis", "etapas"].filter((k) => CRMF[k].length).length + ["de", "ate", "lembrete", "contato", "valorMin", "valorMax"].filter((k) => CRMF[k]).length + (CRMF.faltou ? 1 : 0) + (CRMF.emTratamento ? 1 : 0);
+  function passaFiltro(p) {
+    const F = CRMF, ent = (entrouEm(p) || "").slice(0, 10), v = Number(p.status === "fechado" ? p.valorFechado : p.valorApresentado) || 0;
+    if (F.origens.length && !F.origens.includes(p.origem || "Sem origem")) return false;
+    if (F.tratamentos.length && !F.tratamentos.includes(tratDoPaciente(p))) return false;
+    if (F.temps.length && !F.temps.includes(tempDe(p))) return false;
+    if (F.responsaveis.length && !F.responsaveis.includes(p.responsavel || "Sem responsável")) return false;
+    if (F.etapas.length && !F.etapas.includes(etapaDe(p))) return false;
+    if (F.de && ent < F.de) return false; if (F.ate && ent > F.ate) return false;
+    const lp = lembretesPendentes(p);
+    if (F.lembrete === "pendente" && !lp.length) return false;
+    if (F.lembrete === "atrasado" && !lp.some((l) => new Date(l.quando) <= fimDoDia())) return false;
+    if (F.lembrete === "sem" && lp.length) return false;
+    if (F.contato === "telefone" && !digits(p.telefone || "")) return false;
+    if (F.contato === "email" && !p.email) return false;
+    if (F.contato === "sem" && (digits(p.telefone || "") || p.email)) return false;
+    if (F.valorMin && v < num(F.valorMin)) return false; if (F.valorMax && v > num(F.valorMax)) return false;
+    if (F.faltou && !(p.faltas > 0 || p.faltouEm)) return false;
+    if (F.emTratamento && !(p.trabalhos || []).some((t) => !concluido(t))) return false;
+    return true;
+  }
+  function abrirFiltros() {
+    const opc = (arr) => [...new Set(arr)].sort((a, b) => a.localeCompare(b));
+    const origens = opc(PAC.map((p) => p.origem || "Sem origem")), trats = opc(PAC.map(tratDoPaciente)), resps = opc(PAC.map((p) => p.responsavel || "Sem responsável"));
+    const grupo = (chave, lista, rotulos) => `<div class="chips fchips" data-fk="${chave}">${lista.map((x) => `<button data-fv="${esc(x)}" class="${CRMF[chave].includes(x) ? "on" : ""}">${esc(rotulos ? rotulos[x] : x)}</button>`).join("")}</div>`;
+    const um = (chave, ops) => `<div class="chips fchips" data-fu="${chave}">${ops.map(([v, n]) => `<button data-fv="${v}" class="${CRMF[chave] === v ? "on" : ""}">${n}</button>`).join("")}</div>`;
+    $("#drawerHost").innerHTML = `<div class="veil" id="veil"><div class="drawer" role="dialog" aria-label="Filtrar o CRM">
+      <div class="row"><h2 class="grow" style="font-size:21px">Filtrar</h2><span class="small dim" id="fQtd"></span><button class="btn sm ghost" id="btnFechar" aria-label="Fechar">✕</button></div>
+      <div class="card stack filtros" id="fBox">
+        <div><span class="label">Etapa</span>${grupo("etapas", ETAPAS.map((e) => e.id), Object.fromEntries(ETAPAS.map((e) => [e.id, e.nome])))}</div>
+        <div><span class="label">Termômetro</span>${grupo("temps", ["quente", "morno", "frio", "sem"], TEMP_NOME)}</div>
+        <div><span class="label">Origem</span>${grupo("origens", origens)}</div>
+        <div><span class="label">Tratamento de interesse</span>${grupo("tratamentos", trats)}</div>
+        <div><span class="label">Responsável</span>${grupo("responsaveis", resps)}</div>
+        <div><span class="label">Entrou entre</span><div class="row"><input class="in" type="date" id="fDe" value="${CRMF.de}" aria-label="De" style="width:auto"><span class="dim">e</span><input class="in" type="date" id="fAte" value="${CRMF.ate}" aria-label="Até" style="width:auto">
+          <div class="chips"><button data-fper="7">7 dias</button><button data-fper="30">30 dias</button><button data-fper="90">90 dias</button></div></div></div>
+        <div class="duo"><div><span class="label">Lembrete</span>${um("lembrete", [["", "Todos"], ["pendente", "Com lembrete"], ["atrasado", "Para hoje/atrasado"], ["sem", "Sem lembrete"]])}</div>
+          <div><span class="label">Contato</span>${um("contato", [["", "Todos"], ["telefone", "Com telefone"], ["email", "Com e-mail"], ["sem", "Sem contato"]])}</div></div>
+        <div><span class="label">Valor (orçamento ou fechado, R$)</span><div class="row"><input class="in num" id="fMin" placeholder="mínimo" inputmode="decimal" value="${esc(CRMF.valorMin)}" style="width:130px"><input class="in num" id="fMax" placeholder="máximo" inputmode="decimal" value="${esc(CRMF.valorMax)}" style="width:130px"></div></div>
+        <label class="row" style="gap:8px;font-weight:600"><input type="checkbox" id="fFaltou"${CRMF.faltou ? " checked" : ""}> Já faltou alguma vez</label>
+        <label class="row" style="gap:8px;font-weight:600"><input type="checkbox" id="fTrat"${CRMF.emTratamento ? " checked" : ""}> Com tratamento em andamento</label>
+      </div>
+      <div class="row"><button class="btn pri" id="fAplicar">Ver resultados</button><button class="btn" id="fLimpar">Limpar filtros</button></div></div></div>`;
+    const aplicar = () => { ls.set("alinha.crmFiltro", CRMF); renderPipeline(); $("#fQtd").textContent = `${PAC.filter(passaFiltro).length} pacientes`; };
+    aplicar();
+    $("#veil").addEventListener("click", (e) => { if (e.target.id === "veil") fecharGaveta(); });
+    $("#btnFechar").onclick = fecharGaveta; $("#fAplicar").onclick = fecharGaveta;
+    $("#fLimpar").onclick = () => { CRMF = clonar(CRMF0); aplicar(); abrirFiltros(); };
+    $("#fBox").addEventListener("click", (e) => {
+      const b = e.target.closest("[data-fv]"); const per = e.target.closest("[data-fper]");
+      if (per) { const d = new Date(Date.now() - Number(per.dataset.fper) * DIA).toISOString().slice(0, 10); CRMF.de = d; CRMF.ate = ""; $("#fDe").value = d; $("#fAte").value = ""; aplicar(); return; }
+      if (!b) return;
+      const multi = b.closest("[data-fk]"), unico = b.closest("[data-fu]");
+      if (multi) { const k = multi.dataset.fk, v = b.dataset.fv; CRMF[k] = CRMF[k].includes(v) ? CRMF[k].filter((x) => x !== v) : CRMF[k].concat(v); b.classList.toggle("on"); }
+      if (unico) { const k = unico.dataset.fu; CRMF[k] = b.dataset.fv; $$("button", unico).forEach((x) => x.classList.toggle("on", x === b)); }
+      aplicar();
+    });
+    $("#fBox").addEventListener("input", (e) => {
+      if (e.target.id === "fDe") CRMF.de = e.target.value; if (e.target.id === "fAte") CRMF.ate = e.target.value;
+      if (e.target.id === "fMin") CRMF.valorMin = e.target.value; if (e.target.id === "fMax") CRMF.valorMax = e.target.value;
+      if (e.target.id === "fFaltou") CRMF.faltou = e.target.checked; if (e.target.id === "fTrat") CRMF.emTratamento = e.target.checked;
+      aplicar();
+    });
+  }
+
   function renderPipeline() {
     const q = norm(COM.busca);
     $$("#crmUnidade button").forEach((b) => b.classList.toggle("on", b.dataset.u === CRMS.unidade));
-    const lista = PAC.filter((p) => (!CRMS.unidade || p.unidade === CRMS.unidade) && (!q || norm(p.nome + " " + (p.telefone || "")).includes(q)));
+    const lista = PAC.filter((p) => (!CRMS.unidade || p.unidade === CRMS.unidade) && (!q || norm(p.nome + " " + (p.telefone || "") + " " + (p.email || "")).includes(q)) && passaFiltro(p));
     const recente = (p) => { const e = etapaDe(p); if (["fechado"].includes(e)) return Date.now() - new Date(p.fechadoEm || 0) < 60 * 864e5; if (e === "nao_fechou") return Date.now() - new Date(p.encerradoEm || p.consultaEm || 0) < 60 * 864e5; return true; };
-    const grupoHTML = (g) => ETAPAS.filter((e) => e.grupo === g).map((e) => {
-      const itens = lista.filter((p) => etapaDe(p) === e.id && recente(p)).sort((a, b) => ((b.fechadoEm || b.compareceuEm || entrouEm(b) || "") > (a.fechadoEm || a.compareceuEm || entrouEm(a) || "") ? 1 : -1));
+    const LIM = 7;
+    const grupoHTML = (g) => ETAPAS.filter((e) => e.grupo === g && (!CRMF.etapas.length || CRMF.etapas.includes(e.id))).map((e) => {
+      const itens = lista.filter((p) => etapaDe(p) === e.id && recente(p)).sort((a, b) => ((dataDoCartao(b, e.id)[0] || "") > (dataDoCartao(a, e.id)[0] || "") ? 1 : -1));
       const soma = itens.reduce((t, p) => t + Number((e.id === "fechado" ? p.valorFechado : p.valorApresentado) || 0), 0);
       return `<div class="col" data-etapa="${e.id}"><h3>${e.nome}<span class="pill">${itens.length}</span></h3><div class="sub">${e.sub}${soma ? " · " + brl(soma) : ""}</div>
-        ${itens.slice(0, COM.abertas[e.id] ? itens.length : 5).map((p) => `<button class="pc" draggable="true" data-pid="${p.id}"><b>${esc(p.nome)}</b><span class="m">${esc([tratDoPaciente(p) !== "Não informado" ? tratDoPaciente(p) : "", p.unidade].filter(Boolean).join(" · "))}</span><span class="m">${e.grupo === "lead" ? `entrou ${fmtData(entrouEm(p))}${p.origem ? " · " + esc(p.origem) : ""}${p.agendaPara && e.id === "agendado" ? ` · <b>${fmtData(p.agendaPara)}</b>` : ""}` : brl(e.id === "fechado" ? p.valorFechado : p.valorApresentado)}</span></button>`).join("") || `<span class="tiny dim">vazio</span>`}
-        ${itens.length > 5 ? `<button class="mais-col" data-maiscol="${e.id}">${COM.abertas[e.id] ? "Mostrar menos" : `+ ${itens.length - 5} mais`}</button>` : ""}</div>`; }).join("");
-    $("#pipeLead").innerHTML = grupoHTML("lead"); $("#pipeCliente").innerHTML = grupoHTML("cliente");
+        ${itens.slice(0, COM.abertas[e.id] ? itens.length : LIM).map(cartaoCRM).join("") || `<span class="tiny dim">vazio</span>`}
+        ${itens.length > LIM ? `<button class="mais-col" data-maiscol="${e.id}">${COM.abertas[e.id] ? "Mostrar menos" : `+ ${itens.length - LIM} mais`}</button>` : ""}</div>`; }).join("");
+    $("#pipeLead").innerHTML = grupoHTML("lead") || `<div class="vazio">Nenhuma etapa do Funil Lead no filtro.</div>`;
+    $("#pipeCliente").innerHTML = grupoHTML("cliente") || `<div class="vazio">Nenhuma etapa do Funil Cliente no filtro.</div>`;
     const qtd = (g) => lista.filter((p) => ETAPA[etapaDe(p)].grupo === g && recente(p)).length;
     $("#crmQtdLead").textContent = qtd("lead"); $("#crmQtdCliente").textContent = qtd("cliente");
+    const n = nFiltros(); $("#crmFiltroN").textContent = n || ""; $("#crmFiltroN").classList.toggle("hide", !n); $("#btnCrmLimpar").classList.toggle("hide", !n);
   }
+  $("#btnCrmFiltro").addEventListener("click", abrirFiltros);
+  $("#btnCrmLimpar").addEventListener("click", () => { CRMF = clonar(CRMF0); ls.set("alinha.crmFiltro", CRMF); renderPipeline(); });
+  // ícones do cartão: lembrete, termômetro (os links de e-mail, WhatsApp e SMS abrem direto)
+  $("#pipeline").addEventListener("click", async (e) => {
+    const ic = e.target.closest("[data-ic]"); if (!ic) return;
+    e.stopPropagation();
+    const p = PAC.find((x) => x.id === ic.closest("[data-pid]").dataset.pid); if (!p) return;
+    if (ic.dataset.ic === "lembrete") { e.preventDefault(); abrirLembrete(p); return; }
+    if (ic.dataset.ic === "temp") {
+      e.preventDefault();
+      const ord = ["frio", "morno", "quente"], at = tempDe(p), nv = ord[(ord.indexOf(at) + 1) % 3];
+      p.temp = nv; prontuario(p, `Termômetro: ${TEMP_NOME[nv]}`, new Date().toISOString());
+      await Store.salvar(p); renderPipeline(); toast(`${primeiro(p.nome)}: ${TEMP_NOME[nv]}`);
+    }
+  }, true);
+  $("#pipeline").addEventListener("keydown", (e) => { if (e.key === "Enter" && e.target.matches(".pc.mini")) { const p = PAC.find((x) => x.id === e.target.dataset.pid); if (p) abrirCard(p); } });
   // arrastar e soltar entre as colunas
   let arrastando = null;
   $("#pipeline").addEventListener("dragstart", (e) => { const c = e.target.closest("[data-pid]"); if (!c) return; arrastando = c.dataset.pid; e.dataTransfer.effectAllowed = "move"; try { e.dataTransfer.setData("text/plain", arrastando); } catch (er) { /* */ } });
@@ -1522,7 +1644,7 @@
     const p = PAC.find((x) => x.id === arrastando); arrastando = null; if (p) await mover(p, col.dataset.etapa);
   });
   $("#pipeline").addEventListener("dragend", () => { arrastando = null; $$("#pipeline .col.alvo").forEach((x) => x.classList.remove("alvo")); });
-  $("#pipeline").addEventListener("click", (e) => { const m = e.target.closest("[data-maiscol]"); if (m) { COM.abertas[m.dataset.maiscol] = !COM.abertas[m.dataset.maiscol]; renderPipeline(); return; } const c = e.target.closest("[data-pid]"); if (!c) return; const p = PAC.find((x) => x.id === c.dataset.pid); if (p) abrirCard(p); });
+  $("#pipeline").addEventListener("click", (e) => { const m = e.target.closest("[data-maiscol]"); if (m) { COM.abertas[m.dataset.maiscol] = !COM.abertas[m.dataset.maiscol]; renderPipeline(); return; } if (e.target.closest("[data-ic]")) return; const c = e.target.closest("[data-pid]"); if (!c) return; const p = PAC.find((x) => x.id === c.dataset.pid); if (p) abrirCard(p); });
   $("#comMes").addEventListener("change", (e) => { COM.mes = e.target.value || new Date().toISOString().slice(0, 7); renderComercial(); });
   $("#comUnidade").addEventListener("click", (e) => { const b = e.target.closest("[data-u]"); if (b) { COM.unidade = b.dataset.u; renderComercial(); } });
   $("#crmUnidade").addEventListener("click", (e) => { const b = e.target.closest("[data-u]"); if (b) { CRMS.unidade = b.dataset.u; renderPipeline(); } });
@@ -1553,7 +1675,8 @@
       <div class="card stack">
         <div><label class="f" for="lNome">Nome</label><input class="in" id="lNome" value="${esc(p.nome || "")}"></div>
         <div class="duo"><div><label class="f" for="lTel">WhatsApp</label><input class="in" id="lTel" inputmode="tel" value="${esc(p.telefone || "")}"></div>
-          <div><label class="f" for="lUni">Unidade</label>${sel("lUni", ["", "Caruaru", "Recife"], p.unidade || "")}</div></div>
+          <div><label class="f" for="lEmail">E-mail</label><input class="in" id="lEmail" type="email" inputmode="email" value="${esc(p.email || "")}"></div></div>
+        <div><label class="f" for="lUni">Unidade</label>${sel("lUni", ["", "Caruaru", "Recife"], p.unidade || "")}</div>
         <div class="duo"><div><label class="f" for="lTrat">Tratamento de interesse</label>${sel("lTrat", [""].concat(TRAT.map((t) => t.nome)), trat)}</div>
           <div><label class="f" for="lOrig">Origem</label>${sel("lOrig", ["Anúncio Meta", "Instagram orgânico", "Indicação", "Google", "WhatsApp (Kommo)", "WhatsApp (celular)", "Passou na frente", "Outro"].concat(p.origem && !["Anúncio Meta", "Instagram orgânico", "Indicação", "Google", "WhatsApp (Kommo)", "WhatsApp (celular)", "Passou na frente", "Outro"].includes(p.origem) ? [p.origem] : []), p.origem || "")}</div></div>
         <div class="duo"><div><label class="f" for="lEtapa">Etapa</label>${sel("lEtapa", ETAPAS.filter((e) => e.grupo === "lead").map((e) => e.nome), ETAPA[etapaDe(p)].nome)}</div>
@@ -1569,7 +1692,7 @@
     $("#veil").addEventListener("click", (e) => { if (e.target.id === "veil") fecharGaveta(); });
     $("#btnFechar").onclick = fecharGaveta;
     const ler = () => {
-      p.nome = $("#lNome").value.trim(); p.telefone = $("#lTel").value.trim(); p.unidade = $("#lUni").value; p.origem = $("#lOrig").value; p.obs = $("#lObs").value.trim();
+      p.nome = $("#lNome").value.trim(); p.telefone = $("#lTel").value.trim(); p.email = $("#lEmail").value.trim(); p.unidade = $("#lUni").value; p.origem = $("#lOrig").value; p.obs = $("#lObs").value.trim();
       const t = $("#lTrat").value; p.interesse = t; p.tratamento = t;
       const ag = $("#lAgenda").value; p.agendaPara = ag ? new Date(ag + "T12:00:00").toISOString() : undefined;
       const et = ETAPAS.find((e) => e.nome === $("#lEtapa").value);
@@ -1789,78 +1912,91 @@
   $("#cmInvest").addEventListener("input", (e) => { CALC.real = CALC.real || {}; CALC.real[CM.mes] = Math.max(0, num(e.target.value)); ls.set("alinha.calc", CALC); renderCampReal(); });
 
   /* ------------------------------------------------------------ */
-  /* Tratamentos: linha do tempo e laboratório                      */
+  /* Tratamentos: linha do tempo (fases cadastráveis) e laboratório  */
   /* ------------------------------------------------------------ */
-  const E_ORC = { id: "orcamento", nome: "Orçamento", desc: "necessidade identificada" };
-  const E_APR = { id: "aprovado", nome: "Orçamento aprovado", campos: ["comercial"] };
-  const FLUXOS = {
-    // coroa em porcelana, prótese sobre implante e coroa sobre implante
-    protese: [E_ORC, E_APR, { id: "preparo", nome: "Preparo do dente" }, { id: "moldagem", nome: "Escaneamento ou moldagem", campos: ["metodo"] },
-      { id: "enviado", nome: "Enviado ao laboratório", campos: ["lab"] }, { id: "recebido", nome: "Recebido do laboratório" },
-      { id: "agendado", nome: "Colocação agendada", campos: ["consulta"] }, { id: "instalado", nome: "Instalado", fim: true }],
-    invisalign: [E_ORC, E_APR, { id: "moldagem", nome: "Escaneamento iTero", campos: ["metodo"] }, { id: "planejamento", nome: "Planejamento (ClinCheck) aprovado" },
-      { id: "enviado", nome: "Alinhadores pedidos", campos: ["lab"] }, { id: "recebido", nome: "Alinhadores recebidos" },
-      { id: "agendado", nome: "Entrega dos alinhadores agendada", campos: ["consulta"] }, { id: "tratamento", nome: "Em tratamento (trocas e revisões)" }, { id: "contencao", nome: "Contenção", fim: true }],
-    fixo: [E_ORC, E_APR, { id: "documentacao", nome: "Documentação (exames)" }, { id: "agendado", nome: "Instalação agendada", campos: ["consulta"] },
-      { id: "instalado", nome: "Aparelho instalado" }, { id: "manutencao", nome: "Manutenções" }, { id: "remocao", nome: "Remoção do aparelho" }, { id: "contencao", nome: "Contenção", fim: true }],
-    generico: [E_ORC, E_APR, { id: "agendado", nome: "Consulta agendada", campos: ["consulta"] }, { id: "execucao", nome: "Procedimento realizado" }, { id: "concluido", nome: "Concluído", fim: true }]
+  // papéis especiais que uma fase pode ter
+  const PAPEIS = { "": "Fase simples", aprovacao: "Aprovação do orçamento (registra o fechamento)", moldagem: "Escaneamento ou moldagem (pergunta como foi feito)", lab_envio: "Envio ao laboratório (pede a data de entrega)", lab_recebido: "Recebido do laboratório", agendamento: "Agendamento (pede dia e horário)" };
+  const Fz = (id, nome, papel) => ({ id, nome, papel: papel || "" });
+  const protese = (final) => [Fz("orcamento", "Orçamento"), Fz("aprovado", "Orçamento aprovado", "aprovacao"), Fz("preparo", "Preparo do dente"), Fz("moldagem", "Escaneamento ou moldagem", "moldagem"),
+    Fz("enviado", "Enviado ao laboratório", "lab_envio"), Fz("recebido", "Recebido do laboratório", "lab_recebido"), Fz("agendado", "Colocação agendada", "agendamento"), Fz("instalado", final), Fz("finalizado", "Finalizado")];
+  const PROC_PADRAO = {
+    "Coroa em porcelana": protese("Coroa cimentada"),
+    "Prótese sobre implante": protese("Prótese instalada"),
+    "Coroa sobre implante": protese("Coroa instalada"),
+    "Invisalign": [Fz("consulta", "Consulta"), Fz("orcamento", "Orçamento"), Fz("pagamento", "Pagamento aprovado", "aprovacao"), Fz("escaneamento", "Escaneamento", "moldagem"), Fz("fotografias", "Fotografias"), Fz("radiografias", "Radiografias"),
+      Fz("clincheck_mod", "ClinCheck em modificação"), Fz("clincheck_ok", "ClinCheck aprovado", "lab_envio"), Fz("alinhadores", "Alinhadores na clínica", "lab_recebido"), Fz("agendado", "Paciente agendado", "agendamento"), Fz("instalacao", "Concluída instalação"), Fz("finalizado", "Finalizado")],
+    "Aparelho fixo": [Fz("orcamento", "Orçamento"), Fz("aprovado", "Orçamento aprovado", "aprovacao"), Fz("documentacao", "Documentação (exames)"), Fz("agendado", "Instalação agendada", "agendamento"), Fz("instalado", "Aparelho instalado"),
+      Fz("manutencao", "Manutenções"), Fz("remocao", "Remoção do aparelho"), Fz("contencao", "Contenção"), Fz("finalizado", "Finalizado")],
+    "Outro procedimento": [Fz("orcamento", "Orçamento"), Fz("aprovado", "Orçamento aprovado", "aprovacao"), Fz("agendado", "Consulta agendada", "agendamento"), Fz("execucao", "Procedimento realizado"), Fz("finalizado", "Finalizado")]
   };
-  const TIPOS_TRAB = {
-    "Coroa em porcelana": { fluxo: "protese", final: "Coroa cimentada" },
-    "Prótese sobre implante": { fluxo: "protese", final: "Prótese instalada" },
-    "Coroa sobre implante": { fluxo: "protese", final: "Coroa instalada" },
-    "Invisalign": { fluxo: "invisalign" },
-    "Aparelho fixo": { fluxo: "fixo" },
-    "Outro procedimento": { fluxo: "generico" }
-  };
-  const etapasDe = (t) => { const tp = TIPOS_TRAB[t.tipo] || TIPOS_TRAB["Outro procedimento"]; return FLUXOS[tp.fluxo].map((e) => (e.fim && tp.final ? Object.assign({}, e, { nome: tp.final }) : e)); };
-  const temLab = (t) => etapasDe(t).some((e) => e.id === "enviado");
-  function posicao(t) { // índice da última etapa feita (-1 = nenhuma)
-    const E = etapasDe(t); let k = -1; E.forEach((e, i) => { if ((t.etapas || {})[e.id]) k = i; }); return k;
-  }
-  const concluido = (t) => posicao(t) === etapasDe(t).length - 1;
+  const clonar = (x) => JSON.parse(JSON.stringify(x));
+  const procedimentos = () => clonar(AJ.procedimentos && Object.keys(AJ.procedimentos).length ? AJ.procedimentos : PROC_PADRAO);
+  const fasesModelo = (tipo) => { const P = procedimentos(); return clonar(P[tipo] || P["Outro procedimento"] || PROC_PADRAO["Outro procedimento"]); };
+  const fasesDe = (t) => (t.fases && t.fases.length ? t.fases : fasesModelo(t.tipo));
+  const feita = (t, f) => !!(t.etapas || {})[f.id];
+  const temLab = (t) => fasesDe(t).some((f) => f.papel === "lab_envio");
+  function posicao(t) { let k = -1; fasesDe(t).forEach((f, i) => { if (feita(t, f)) k = i; }); return k; } // última fase marcada
+  const proxima = (t) => fasesDe(t).find((f) => !feita(t, f)) || null; // primeira fase ainda não marcada
+  const concluido = (t) => { const F = fasesDe(t); return !!F.length && feita(t, F[F.length - 1]); };
   const hojeISO = () => new Date().toISOString().slice(0, 10);
   const diasAte = (iso) => Math.round((inicioDia(iso) - hoje0()) / DIA);
   const dataBR = (iso) => (iso ? new Date(iso).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "2-digit" }) : "");
   const horaBR = (iso) => (iso && String(iso).length > 10 ? new Date(iso).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }) : "");
-  // situação do trabalho de laboratório
+  const slug = (s) => norm(s).replace(/\s+/g, "_").slice(0, 24) || "fase";
+  const nomeTrab = (t) => `${t.tipo}${t.dente ? " (dente " + t.dente + ")" : ""}`;
+  // prontuário do paciente: cada marcação e desmarcação fica registrada com a data
+  function prontuario(p, texto, data) {
+    p.prontuario = [{ em: new Date().toISOString(), data: data || null, texto, por: PLAT ? (PAPEL_NOME[papel()] || "") : "" }].concat(p.prontuario || []).slice(0, 400);
+  }
+  // situação do trabalho de laboratório (pela última fase marcada)
   function situacaoLab(t) {
-    const pos = posicao(t), E = etapasDe(t), atual = E[pos] && E[pos].id;
-    if (atual === "enviado" && t.lab && t.lab.entrega) { const d = diasAte(t.lab.entrega); return { fase: "lab", d, cls: d < 0 ? "late" : d === 0 ? "today" : "ok", txt: d < 0 ? `atrasado ${-d} dia${d < -1 ? "s" : ""}` : d === 0 ? "entrega hoje" : `entrega em ${d} dia${d > 1 ? "s" : ""}` }; }
-    if (atual === "recebido") return { fase: "agendar", cls: "today", txt: "chegou · agendar a colocação" };
-    if (atual === "agendado" && t.consulta) { const d = diasAte(t.consulta); return { fase: "agendado", d, cls: d < 0 ? "late" : d === 0 ? "today" : "ok", txt: d === 0 ? `consulta hoje ${horaBR(t.consulta)}` : d < 0 ? `consulta era ${dataBR(t.consulta)} · confirmar` : `consulta ${dataBR(t.consulta)} ${horaBR(t.consulta)}` }; }
+    const F = fasesDe(t), pos = posicao(t), atual = F[pos]; if (!atual || concluido(t)) return null;
+    if (atual.papel === "lab_envio" && t.lab && t.lab.entrega) { const d = diasAte(t.lab.entrega); return { fase: "lab", d, cls: d < 0 ? "late" : d === 0 ? "today" : "ok", txt: d < 0 ? `atrasado ${-d} dia${d < -1 ? "s" : ""}` : d === 0 ? "entrega hoje" : `entrega em ${d} dia${d > 1 ? "s" : ""}` }; }
+    if (atual.papel === "lab_recebido") return { fase: "agendar", cls: "today", txt: "chegou · agendar a consulta" };
+    if (atual.papel === "agendamento" && t.consulta) { const d = diasAte(t.consulta); return { fase: "agendado", d, cls: d < 0 ? "late" : d === 0 ? "today" : "ok", txt: d === 0 ? `consulta hoje ${horaBR(t.consulta)}` : d < 0 ? `consulta era ${dataBR(t.consulta)} · confirmar` : `consulta ${dataBR(t.consulta)} ${horaBR(t.consulta)}` }; }
     return null;
   }
   const todosTrabalhos = () => PAC.flatMap((p) => (p.trabalhos || []).map((t) => ({ p, t })));
   function resumoLab() {
     const r = { atrasados: 0, hoje: 0, agendar: 0, colocacaoHoje: 0, total: 0 };
-    todosTrabalhos().forEach(({ t }) => { const s = situacaoLab(t); if (!s) return; r.total++; if (s.fase === "lab" && s.d < 0) r.atrasados++; if (s.fase === "lab" && s.d === 0) r.hoje++; if (s.fase === "agendar") r.agendar++; if (s.fase === "agendado" && s.d === 0) r.colocacaoHoje++; });
+    todosTrabalhos().forEach(({ t }) => { if (!temLab(t)) return; const s = situacaoLab(t); if (!s) return; r.total++; if (s.fase === "lab" && s.d < 0) r.atrasados++; if (s.fase === "lab" && s.d === 0) r.hoje++; if (s.fase === "agendar") r.agendar++; if (s.fase === "agendado" && s.d === 0) r.colocacaoHoje++; });
     return r;
   }
   function renderAvisosLab() {
     const el = $("#avisosLab"); if (!el) return;
-    if (!pode("tratamentos")) { el.classList.add("hide"); return; }
-    const r = resumoLab(), it = [];
-    if (r.atrasados) it.push(`<button class="bad" data-irlab="1">🧪 ${r.atrasados} trabalho${r.atrasados > 1 ? "s" : ""} atrasado${r.atrasados > 1 ? "s" : ""} no laboratório</button>`);
-    if (r.hoje) it.push(`<button class="warn" data-irlab="1">📦 ${r.hoje} chega${r.hoje > 1 ? "m" : ""} hoje do laboratório</button>`);
-    if (r.agendar) it.push(`<button class="warn" data-irlab="1">📅 ${r.agendar} para agendar a colocação</button>`);
-    if (r.colocacaoHoje) it.push(`<button data-irlab="1">🦷 ${r.colocacaoHoje} colocação hoje</button>`);
+    const it = [];
+    if (pode("tratamentos")) {
+      const r = resumoLab();
+      if (r.atrasados) it.push(`<button class="bad" data-irlab="1" title="Trabalhos atrasados no laboratório">🧪 ${r.atrasados} atrasado${r.atrasados > 1 ? "s" : ""} no lab</button>`);
+      if (r.hoje) it.push(`<button class="warn" data-irlab="1" title="Trabalhos que chegam hoje do laboratório">📦 ${r.hoje} chega${r.hoje > 1 ? "m" : ""} hoje</button>`);
+      if (r.agendar) it.push(`<button class="warn" data-irlab="1">📅 ${r.agendar} para agendar</button>`);
+      if (r.colocacaoHoje) it.push(`<button data-irlab="1">🦷 ${r.colocacaoHoje} consulta${r.colocacaoHoje > 1 ? "s" : ""} hoje</button>`);
+      const n = r.atrasados + r.hoje + r.agendar; const c = $("#labCont"); if (c) { c.textContent = n || ""; c.className = "pill" + (r.atrasados ? " bad" : n ? " warn" : ""); c.classList.toggle("hide", !n); }
+    }
+    const lb = lembretesVencidos().length; if (lb) it.push(`<button class="warn" data-irlemb="1" title="Lembretes para hoje">🔔 ${lb} lembrete${lb > 1 ? "s" : ""} hoje</button>`);
     el.innerHTML = it.join(""); el.classList.toggle("hide", !it.length);
-    const n = r.atrasados + r.hoje + r.agendar; const c = $("#labCont"); if (c) { c.textContent = n || ""; c.className = "pill" + (r.atrasados ? " bad" : n ? " warn" : ""); c.classList.toggle("hide", !n); }
   }
-  $("#avisosLab").addEventListener("click", (e) => { if (e.target.closest("[data-irlab]")) { mostrar("tratamentos"); abrirAba("trat", "lab"); renderTratamentos(); } });
+  $("#avisosLab").addEventListener("click", (e) => {
+    if (e.target.closest("[data-irlab]")) { mostrar("tratamentos"); abrirAba("trat", "lab"); renderTratamentos(); }
+    if (e.target.closest("[data-irlemb]")) abrirLembretesDoDia();
+  });
 
   const TR = { busca: "", unidade: "", pg: 0 };
   const filtraTR = ({ p }) => (!TR.unidade || p.unidade === TR.unidade) && (!TR.busca || norm(p.nome).includes(norm(TR.busca)));
+  // bolinhas da linha do tempo: passar o mouse mostra a data; clicar marca ou desmarca
+  function bolinhas(t) {
+    const F = fasesDe(t), prox = proxima(t);
+    return F.map((f, i) => { const r = (t.etapas || {})[f.id];
+      return `${i ? `<i class="${r && feita(t, F[i - 1]) ? "ok" : ""}"></i>` : ""}<button class="fz${r ? " ok" : ""}${prox && prox.id === f.id ? " atual" : ""}" data-fase="${esc(f.id)}" aria-label="${esc(f.nome)}: ${r ? "marcada em " + dataBR(r.em) : "pendente"}" data-dica="${esc(`${f.nome} · ${r ? dataBR(r.em) + " (clique para desmarcar)" : "pendente (clique para marcar)"}`)}"></button>`; }).join("");
+  }
   function cartaoTrab(p, t) {
-    const E = etapasDe(t), pos = posicao(t), atual = E[pos], prox = E[pos + 1], s = situacaoLab(t);
-    const dots = E.map((e, i) => `${i ? `<i class="${i <= pos ? "ok" : ""}"></i>` : ""}<b class="${i <= pos ? "ok" : i === pos + 1 ? "atual" : ""}" title="${esc(e.nome)}"></b>`).join("");
+    const F = fasesDe(t), pos = posicao(t), atual = F[pos], prox = proxima(t), s = situacaoLab(t);
     return `<div class="card trab" data-trab="${t.id}" data-pid="${p.id}">
       <div class="row"><div class="ava">${esc(iniciais(p.nome))}</div><div class="grow"><h3>${esc(p.nome)}</h3><div class="meta">${esc(t.tipo)}${t.dente ? " · dente " + esc(t.dente) : ""}${p.unidade ? " · " + esc(p.unidade) : ""}</div></div></div>
       ${s ? `<div><span class="pill ${s.cls === "late" ? "bad" : s.cls === "today" ? "warn" : "good"}">${esc(s.txt)}</span></div>` : ""}
-      <div class="passos" aria-label="Etapa ${pos + 1} de ${E.length}">${dots}</div>
-      <div class="agora">${atual ? `Agora: <b>${esc(atual.nome)}</b> <span class="dim small">· ${dataBR(t.etapas[atual.id].em)}</span>` : "<b>Não iniciado</b>"}</div>
-      <div class="row">${prox ? `<button class="btn pri sm" data-tact="avancar" title="Registrar a próxima etapa">Próxima: ${esc(prox.nome)}</button>` : `<span class="pill good">✓ Tratamento concluído</span>`}<button class="btn sm" data-tact="linha">Linha do tempo</button></div>
+      <div class="passos" aria-label="Fases: ${F.filter((f) => feita(t, f)).length} de ${F.length} marcadas">${bolinhas(t)}</div>
+      <div class="agora">${atual ? `Agora: <b>${esc(atual.nome)}</b> <span class="dim small">· ${dataBR(t.etapas[atual.id].em)}</span>` : "<b>Nenhuma fase marcada</b>"}</div>
+      <div class="row">${prox && !concluido(t) ? `<button class="btn pri sm" data-tact="avancar" title="Marcar a próxima fase">Próxima: ${esc(prox.nome)}</button>` : `<span class="pill good">✓ Finalizado</span>`}<button class="btn sm" data-tact="linha">Linha do tempo</button></div>
     </div>`;
   }
   function paginarTrab() {
@@ -1880,118 +2016,237 @@
   function renderTratamentos() {
     $$("#tratUnidade button").forEach((b) => b.classList.toggle("on", b.dataset.u === TR.unidade));
     const lista = todosTrabalhos().filter(filtraTR);
-    // ordem: o que pede ação primeiro (atrasado, hoje), depois pelo início
     const peso = ({ t }) => { const s = situacaoLab(t); return s ? (s.cls === "late" ? 0 : s.cls === "today" ? 1 : 2) : 3; };
     const and = lista.filter(({ t }) => !concluido(t)).sort((a, b) => peso(a) - peso(b) || ((a.t.criadoEm || "") < (b.t.criadoEm || "") ? 1 : -1));
     $("#trabLista").innerHTML = and.length ? and.map(({ p, t }) => cartaoTrab(p, t)).join("") : `<div class="vazio">Nenhum tratamento em andamento. Toque em <b>+ Novo tratamento</b> para começar a linha do tempo de um paciente.</div>`;
-    const fim = lista.filter(({ t }) => concluido(t)).sort((a, b) => { const fa = a.t.etapas[etapasDe(a.t).slice(-1)[0].id].em, fb = b.t.etapas[etapasDe(b.t).slice(-1)[0].id].em; return fa < fb ? 1 : -1; }).slice(0, 12);
-    $("#trabFim").innerHTML = fim.length ? fim.map(({ p, t }) => cartaoTrab(p, t)).join("") : `<div class="vazio">Nenhum tratamento concluído ainda.</div>`;
-    // laboratório
+    const fimEm = (t) => { const F = fasesDe(t); return ((t.etapas || {})[F[F.length - 1].id] || {}).em || ""; };
+    const fim = lista.filter(({ t }) => concluido(t)).sort((a, b) => (fimEm(a.t) < fimEm(b.t) ? 1 : -1)).slice(0, 12);
+    $("#trabFim").innerHTML = fim.length ? fim.map(({ p, t }) => cartaoTrab(p, t)).join("") : `<div class="vazio">Nenhum tratamento finalizado ainda.</div>`;
     const L = lista.filter(({ t }) => temLab(t) && situacaoLab(t));
     const col = (titulo, sub, itens, acao) => `<div class="col"><h3>${titulo}<span class="pill">${itens.length}</span></h3><div class="sub">${sub}</div>
-      ${itens.map(({ p, t }) => { const s = situacaoLab(t); return `<div class="labcard ${s.cls}" data-trab="${t.id}" data-pid="${p.id}"><b>${esc(p.nome)}</b><span class="m">${esc(t.tipo)}${t.dente ? " · dente " + esc(t.dente) : ""}${t.lab && t.lab.nome ? " · " + esc(t.lab.nome) : ""}</span>
+      ${itens.map(({ p, t }) => { const s = situacaoLab(t), prox = proxima(t); return `<div class="labcard ${s.cls}" data-trab="${t.id}" data-pid="${p.id}"><b>${esc(p.nome)}</b><span class="m">${esc(t.tipo)}${t.dente ? " · dente " + esc(t.dente) : ""}${t.lab && t.lab.nome ? " · " + esc(t.lab.nome) : ""}</span>
         <span class="m" style="color:${s.cls === "late" ? "var(--bad)" : s.cls === "today" ? "var(--warn)" : "var(--dim)"};font-weight:700">${esc(s.txt)}${s.fase === "lab" ? ` · ${dataBR(t.lab.entrega)}` : ""}</span>
-        <div class="row" style="margin-top:4px"><button class="btn sm pri" data-tact="${acao[0]}">${acao[1]}</button><button class="btn sm" data-tact="linha">Linha do tempo</button></div></div>`; }).join("") || `<span class="tiny dim">nada aqui</span>`}</div>`;
+        <div class="row" style="margin-top:4px">${prox ? `<button class="btn sm pri" data-tact="avancar">${acao}: ${esc(prox.nome)}</button>` : ""}<button class="btn sm" data-tact="linha">Linha do tempo</button></div></div>`; }).join("") || `<span class="tiny dim">nada aqui</span>`}</div>`;
     const ord = (a, b) => (situacaoLab(a.t).d ?? 0) - (situacaoLab(b.t).d ?? 0);
-    $("#labCols").innerHTML = col("No laboratório", "aguardando a entrega", L.filter(({ t }) => situacaoLab(t).fase === "lab").sort(ord), ["avancar", "✓ Recebido"])
-      + col("Chegou · agendar", "marcar a consulta de colocação", L.filter(({ t }) => situacaoLab(t).fase === "agendar"), ["avancar", "📅 Agendar colocação"])
-      + col("Colocação agendada", "consulta marcada com o paciente", L.filter(({ t }) => situacaoLab(t).fase === "agendado").sort(ord), ["avancar", "✓ Concluir"]);
+    $("#labCols").innerHTML = col("No laboratório", "aguardando a entrega", L.filter(({ t }) => situacaoLab(t).fase === "lab").sort(ord), "✓")
+      + col("Chegou · agendar", "marcar a consulta com o paciente", L.filter(({ t }) => situacaoLab(t).fase === "agendar"), "📅")
+      + col("Consulta agendada", "consulta marcada com o paciente", L.filter(({ t }) => situacaoLab(t).fase === "agendado").sort(ord), "✓");
     renderAvisosLab(); paginarTrab();
   }
   $("#tratBusca").addEventListener("input", (e) => { TR.busca = e.target.value; TR.pg = 0; renderTratamentos(); });
   $("#tratUnidade").addEventListener("click", (e) => { const b = e.target.closest("[data-u]"); if (b) { TR.unidade = b.dataset.u; TR.pg = 0; renderTratamentos(); } });
   $("#btnNovoTrab").addEventListener("click", () => novoTrabalho(null));
+  const achaTrab = (el) => { const box = el.closest("[data-trab]"); if (!box) return {}; const p = PAC.find((x) => x.id === box.dataset.pid); return { p, t: p && (p.trabalhos || []).find((x) => x.id === box.dataset.trab) }; };
+  let confirmaFase = null;
   $("#v-tratamentos").addEventListener("click", (e) => {
+    const dot = e.target.closest("[data-fase]");
+    if (dot) { const { p, t } = achaTrab(dot); if (t) clicarFase(p, t, dot.dataset.fase, dot); return; }
     const b = e.target.closest("[data-tact]"); if (!b) return;
-    const box = b.closest("[data-trab]"), p = PAC.find((x) => x.id === box.dataset.pid), t = p && (p.trabalhos || []).find((x) => x.id === box.dataset.trab); if (!t) return;
-    if (b.dataset.tact === "avancar") avancarEtapa(p, t); else linhaDoTempo(p, t);
+    const { p, t } = achaTrab(b); if (!t) return;
+    if (b.dataset.tact === "avancar") { const f = proxima(t); if (f) marcarFase(p, t, f); } else linhaDoTempo(p, t);
   });
-
-  // novo tratamento (com o paciente já escolhido ou não)
-  function novoTrabalho(pac) {
-    const nomes = PAC.slice().sort((a, b) => a.nome.localeCompare(b.nome));
-    $("#drawerHost").innerHTML = `<div class="veil" id="veil"><div class="drawer" role="dialog" aria-label="Novo tratamento">
-      <div class="row"><h2 class="grow" style="font-size:22px">Novo tratamento</h2><button class="btn sm ghost" id="btnFechar" aria-label="Fechar">✕</button></div>
-      <div class="card stack">
-        <div><label class="f" for="ntPac">Paciente</label>${pac ? `<input class="in" id="ntPac" value="${esc(pac.nome)}" disabled>` : `<input class="in" id="ntPac" list="ntPacs" placeholder="Digite o nome" autocomplete="off"><datalist id="ntPacs">${nomes.map((p) => `<option value="${esc(p.nome)}">`).join("")}</datalist>`}</div>
-        <div class="duo"><div><label class="f" for="ntTipo">Tipo</label><select class="in" id="ntTipo">${Object.keys(TIPOS_TRAB).map((k) => `<option>${esc(k)}</option>`).join("")}</select></div>
-          <div><label class="f" for="ntDente">Dente(s)</label><input class="in" id="ntDente" placeholder="ex.: 26 ou 11 e 21"></div></div>
-        <div><label class="f" for="ntObs">Observações</label><input class="in" id="ntObs" placeholder="ex.: coroa em dissilicato de lítio, cor A2"></div>
-        <div class="small dim" id="ntFluxo"></div>
-        <div class="row"><button class="btn pri" id="ntSalvar">Criar e registrar o orçamento</button><span class="small" id="ntSt" style="color:var(--bad)"></span></div>
-      </div></div></div>`;
-    const fluxo = () => { $("#ntFluxo").innerHTML = "Etapas: " + etapasDe({ tipo: $("#ntTipo").value }).map((e) => esc(e.nome)).join(" › "); };
-    fluxo(); $("#ntTipo").onchange = fluxo;
-    $("#veil").addEventListener("click", (e) => { if (e.target.id === "veil") fecharGaveta(); });
-    $("#btnFechar").onclick = fecharGaveta;
-    $("#ntSalvar").onclick = async () => {
-      const p = pac || PAC.find((x) => norm(x.nome) === norm($("#ntPac").value));
-      if (!p) { $("#ntSt").textContent = "Escolha um paciente da lista (cadastre antes no Comercial, se for novo)."; return; }
-      const t = { id: "t" + Date.now().toString(36) + Math.random().toString(36).slice(2, 5), tipo: $("#ntTipo").value, dente: $("#ntDente").value.trim(), obs: $("#ntObs").value.trim(), criadoEm: new Date().toISOString(), etapas: { orcamento: { em: new Date().toISOString() } } };
-      p.trabalhos = (p.trabalhos || []).concat(t);
-      await Store.salvar(p); fecharGaveta(); toast("Tratamento criado: orçamento registrado");
-      if (vista === "tratamentos") { abrirAba("trat", "and"); renderTratamentos(); } else render();
-    };
-    if (!pac) setTimeout(() => { const n = $("#ntPac"); if (n) n.focus(); }, 50);
+  // clicar numa bolinha: pendente = marca (hoje); marcada = desmarca (pede um segundo clique)
+  async function clicarFase(p, t, id, el) {
+    const f = fasesDe(t).find((x) => x.id === id); if (!f) return;
+    if (!feita(t, f)) { marcarFase(p, t, f); return; }
+    const chave = p.id + t.id + id;
+    if (confirmaFase !== chave) { confirmaFase = chave; if (el) el.classList.add("confirma"); toast(`Clique de novo para desmarcar "${f.nome}"`); setTimeout(() => { if (confirmaFase === chave) { confirmaFase = null; if (el) el.classList.remove("confirma"); } }, 4000); return; }
+    confirmaFase = null; await desmarcarFase(p, t, f); render();
   }
-
-  // concluir a próxima etapa (com os campos que ela pede)
-  function avancarEtapa(p, t) {
-    const E = etapasDe(t), prox = E[posicao(t) + 1]; if (!prox) return;
-    const c = prox.campos || [], labs = [...new Set(todosTrabalhos().map(({ t: x }) => x.lab && x.lab.nome).filter(Boolean).concat(AJ.laboratorios || []))];
-    const abertoNoComercial = c.includes("comercial") && p.status !== "fechado";
-    $("#drawerHost").innerHTML = `<div class="veil" id="veil"><div class="drawer" role="dialog" aria-label="${esc(prox.nome)}">
-      <div class="row"><div class="grow"><h2 style="font-size:21px">${esc(prox.nome)}</h2><div class="small dim">${esc(p.nome)} · ${esc(t.tipo)}${t.dente ? " · dente " + esc(t.dente) : ""}</div></div><button class="btn sm ghost" id="btnFechar" aria-label="Fechar">✕</button></div>
+  async function desmarcarFase(p, t, f) {
+    const antes = (t.etapas || {})[f.id]; if (!antes) return;
+    const et = Object.assign({}, t.etapas); delete et[f.id]; t.etapas = et;
+    if (f.papel === "lab_envio") delete t.lab; if (f.papel === "lab_recebido" && t.lab) delete t.lab.recebidoEm; if (f.papel === "agendamento") delete t.consulta; if (f.papel === "moldagem") delete t.metodo;
+    prontuario(p, `${nomeTrab(t)}: ${f.nome} desmarcada (estava em ${dataBR(antes.em)})`, null);
+    await Store.salvar(p); toast(`${f.nome} desmarcada`);
+  }
+  // marca uma fase; as fases com papel especial pedem os dados (laboratório, data de entrega, consulta…)
+  function marcarFase(p, t, f, depois) {
+    const precisa = ["aprovacao", "moldagem", "lab_envio", "agendamento"].includes(f.papel) && !(f.papel === "aprovacao" && p.status === "fechado");
+    if (!precisa) {
+      const em = new Date(hojeISO() + "T12:00:00").toISOString();
+      t.etapas = Object.assign({}, t.etapas, { [f.id]: { em } });
+      if (f.papel === "lab_recebido" && t.lab) t.lab.recebidoEm = em;
+      prontuario(p, `${nomeTrab(t)}: ${f.nome}`, em);
+      Store.salvar(p).then(() => { toast(`${primeiro(p.nome)}: ${f.nome} (${dataBR(em)})`); render(); if (depois) depois(); });
+      return;
+    }
+    const labs = [...new Set(todosTrabalhos().map(({ t: x }) => x.lab && x.lab.nome).filter(Boolean).concat(t.tipo === "Invisalign" ? ["Align Technology"] : []))];
+    const ehAprov = f.papel === "aprovacao";
+    $("#drawerHost").innerHTML = `<div class="veil" id="veil"><div class="drawer" role="dialog" aria-label="${esc(f.nome)}">
+      <div class="row"><div class="grow"><h2 style="font-size:21px">${esc(f.nome)}</h2><div class="small dim">${esc(p.nome)} · ${esc(nomeTrab(t))}</div></div><button class="btn sm ghost" id="btnFechar" aria-label="Fechar">✕</button></div>
       <div class="card stack">
-        <div class="duo"><div><label class="f" for="aeData">Data da etapa</label><input class="in" type="date" id="aeData" value="${hojeISO()}"></div><div></div></div>
-        ${c.includes("metodo") ? `<div><label class="f" for="aeMetodo">Como foi feito</label><select class="in" id="aeMetodo"><option>Escaneamento digital (iTero)</option><option>Moldagem convencional</option></select></div>` : ""}
-        ${c.includes("lab") ? `<div class="duo"><div><label class="f" for="aeLab">Laboratório</label><input class="in" id="aeLab" list="aeLabs" value="${esc(labs[0] || "")}" placeholder="nome do laboratório"><datalist id="aeLabs">${labs.map((l) => `<option value="${esc(l)}">`).join("")}</datalist></div>
+        <div class="duo"><div><label class="f" for="aeData">Data</label><input class="in" type="date" id="aeData" value="${hojeISO()}"></div><div></div></div>
+        ${f.papel === "moldagem" ? `<div><label class="f" for="aeMetodo">Como foi feito</label><select class="in" id="aeMetodo"><option>Escaneamento digital (iTero)</option><option>Moldagem convencional</option></select></div>` : ""}
+        ${f.papel === "lab_envio" ? `<div class="duo"><div><label class="f" for="aeLab">Laboratório</label><input class="in" id="aeLab" list="aeLabs" value="${esc(labs[0] || "")}" placeholder="nome do laboratório"><datalist id="aeLabs">${labs.map((l) => `<option value="${esc(l)}">`).join("")}</datalist></div>
           <div><label class="f" for="aeEntrega">Data de entrega combinada</label><input class="in" type="date" id="aeEntrega" value="${new Date(Date.now() + 7 * DIA).toISOString().slice(0, 10)}"></div></div>
           <p class="small dim" style="margin:0">O Alinha avisa no Hoje quando a entrega chegar ou atrasar.</p>` : ""}
-        ${c.includes("consulta") ? `<div class="duo"><div><label class="f" for="aeConsulta">Dia da consulta</label><input class="in" type="date" id="aeConsulta" value="${new Date(Date.now() + 2 * DIA).toISOString().slice(0, 10)}"></div><div><label class="f" for="aeHora">Horário</label><input class="in" type="time" id="aeHora" value="09:00"></div></div>` : ""}
-        ${abertoNoComercial ? `<label class="row" style="gap:8px;font-weight:600"><input type="checkbox" id="aeFechou" checked> Registrar como fechado no Comercial</label><div><label class="f" for="aeValor">Valor do orçamento aprovado (R$)</label><input class="in num" id="aeValor" inputmode="decimal" value="${p.valorApresentado || ""}"></div>` : ""}
+        ${f.papel === "agendamento" ? `<div class="duo"><div><label class="f" for="aeConsulta">Dia da consulta</label><input class="in" type="date" id="aeConsulta" value="${new Date(Date.now() + 2 * DIA).toISOString().slice(0, 10)}"></div><div><label class="f" for="aeHora">Horário</label><input class="in" type="time" id="aeHora" value="09:00"></div></div>` : ""}
+        ${ehAprov ? `<label class="row" style="gap:8px;font-weight:600"><input type="checkbox" id="aeFechou" checked> Registrar como fechado no Comercial</label><div><label class="f" for="aeValor">Valor aprovado (R$)</label><input class="in num" id="aeValor" inputmode="decimal" value="${p.valorApresentado || ""}"></div>` : ""}
         <div><label class="f" for="aeObs">Observação</label><input class="in" id="aeObs" placeholder="opcional"></div>
-        <div class="row"><button class="btn pri" id="aeSalvar">✓ Registrar ${esc(prox.nome.toLowerCase())}</button><span class="small" id="aeSt" style="color:var(--bad)"></span></div>
+        <div class="row"><button class="btn pri" id="aeSalvar">✓ Marcar ${esc(f.nome.toLowerCase())}</button><span class="small" id="aeSt" style="color:var(--bad)"></span></div>
       </div></div></div>`;
     $("#veil").addEventListener("click", (e) => { if (e.target.id === "veil") fecharGaveta(); });
     $("#btnFechar").onclick = fecharGaveta;
     $("#aeSalvar").onclick = async () => {
       const d = $("#aeData").value || hojeISO(), em = new Date(d + "T12:00:00").toISOString();
-      if (c.includes("lab")) {
+      let extra = "";
+      if (f.papel === "lab_envio") {
         const nome = $("#aeLab").value.trim(), ent = $("#aeEntrega").value;
         if (!ent) { $("#aeSt").textContent = "Escolha a data em que o laboratório deve entregar."; return; }
-        t.lab = { nome, enviadoEm: em, entrega: new Date(ent + "T12:00:00").toISOString() };
+        t.lab = { nome, enviadoEm: em, entrega: new Date(ent + "T12:00:00").toISOString() }; extra = ` · ${nome ? nome + " · " : ""}entrega combinada ${dataBR(t.lab.entrega)}`;
       }
-      if (c.includes("consulta")) { const dc = $("#aeConsulta").value; if (!dc) { $("#aeSt").textContent = "Escolha o dia da consulta."; return; } t.consulta = new Date(dc + "T" + ($("#aeHora").value || "09:00") + ":00").toISOString(); }
-      if (c.includes("metodo")) t.metodo = $("#aeMetodo").value;
-      if (prox.id === "recebido" && t.lab) t.lab.recebidoEm = em;
-      t.etapas = Object.assign({}, t.etapas, { [prox.id]: { em, obs: $("#aeObs").value.trim() || undefined } });
-      if (abertoNoComercial && $("#aeFechou").checked) {
+      if (f.papel === "agendamento") { const dc = $("#aeConsulta").value; if (!dc) { $("#aeSt").textContent = "Escolha o dia da consulta."; return; } t.consulta = new Date(dc + "T" + ($("#aeHora").value || "09:00") + ":00").toISOString(); extra = ` · consulta ${dataBR(t.consulta)} ${horaBR(t.consulta)}`; }
+      if (f.papel === "moldagem") { t.metodo = $("#aeMetodo").value; extra = " · " + t.metodo; }
+      t.etapas = Object.assign({}, t.etapas, { [f.id]: { em, obs: $("#aeObs").value.trim() || undefined } });
+      if (ehAprov && $("#aeFechou").checked) {
         const v = num($("#aeValor").value);
         if (p.status === "lead") { p.compareceuEm = p.compareceuEm || em; p.consultaEm = p.consultaEm || em; }
         p.status = "fechado"; p.fechadoEm = em; p.valorFechado = v || p.valorApresentado || 0; p.tratamento = p.tratamento || t.tipo;
       }
-      await Store.salvar(p); fecharGaveta(); toast(`${primeiro(p.nome)}: ${prox.nome}`);
-      render();
+      prontuario(p, `${nomeTrab(t)}: ${f.nome}${extra}`, em);
+      await Store.salvar(p); fecharGaveta(); toast(`${primeiro(p.nome)}: ${f.nome}`);
+      render(); if (depois) depois();
     };
   }
-  // linha do tempo de um tratamento
+
+  // linha do tempo de um tratamento: marcar/desmarcar qualquer fase, mudar a data, editar as fases
   function linhaDoTempo(p, t) {
-    const E = etapasDe(t), pos = posicao(t);
+    const F = fasesDe(t), prox = proxima(t);
     $("#drawerHost").innerHTML = `<div class="veil" id="veil"><div class="drawer" role="dialog" aria-label="Linha do tempo">
-      <div class="row"><div class="ava">${esc(iniciais(p.nome))}</div><div class="grow"><h2 style="font-size:21px">${esc(p.nome)}</h2><div class="small dim">${esc(t.tipo)}${t.dente ? " · dente " + esc(t.dente) : ""}${t.obs ? " · " + esc(t.obs) : ""}</div></div><button class="btn sm ghost" id="btnFechar" aria-label="Fechar">✕</button></div>
-      <div class="card"><ol class="tl">${E.map((e, i) => { const r = (t.etapas || {})[e.id];
-        const extra = e.id === "enviado" && t.lab ? `${t.lab.nome ? esc(t.lab.nome) + " · " : ""}entrega combinada ${dataBR(t.lab.entrega)}` : e.id === "agendado" && t.consulta ? `consulta ${dataBR(t.consulta)} ${horaBR(t.consulta)}` : e.id === "moldagem" && t.metodo ? esc(t.metodo) : e.desc || "";
-        return `<li class="${r ? "ok" : i === pos + 1 ? "atual" : "pend"}"><div class="q">${esc(e.nome)}</div><div class="d">${r ? dataBR(r.em) : i === pos + 1 ? "próxima etapa" : "pendente"}${extra ? " · " + extra : ""}${r && r.obs ? " · " + esc(r.obs) : ""}</div></li>`; }).join("")}</ol></div>
-      <div class="row">${E[pos + 1] ? `<button class="btn pri" id="ltAvancar">✓ ${esc(E[pos + 1].nome)}</button>` : ""}${pos > 0 ? `<button class="btn" id="ltDesfazer">Desfazer última etapa</button>` : ""}<span class="grow"></span>${pode("apagar") ? `<button class="btn ghost" id="ltApagar">Apagar tratamento</button>` : ""}</div>
+      <div class="row"><div class="ava">${esc(iniciais(p.nome))}</div><div class="grow"><h2 style="font-size:21px">${esc(p.nome)}</h2><div class="small dim">${esc(nomeTrab(t))}${t.obs ? " · " + esc(t.obs) : ""}</div></div><button class="btn sm ghost" id="btnFechar" aria-label="Fechar">✕</button></div>
+      <div class="card"><ol class="tl tledit">${F.map((f) => { const r = (t.etapas || {})[f.id];
+        const extra = f.papel === "lab_envio" && t.lab ? `${t.lab.nome ? esc(t.lab.nome) + " · " : ""}entrega combinada ${dataBR(t.lab.entrega)}` : f.papel === "agendamento" && t.consulta ? `consulta ${dataBR(t.consulta)} ${horaBR(t.consulta)}` : f.papel === "moldagem" && t.metodo ? esc(t.metodo) : "";
+        return `<li class="${r ? "ok" : prox && prox.id === f.id ? "atual" : "pend"}"><label class="row" style="gap:10px"><input type="checkbox" data-ltfase="${esc(f.id)}"${r ? " checked" : ""} aria-label="${esc(f.nome)}"><span class="grow"><span class="q">${esc(f.nome)}</span><span class="d">${extra ? extra : f.papel ? esc(PAPEIS[f.papel].split(" (")[0]) : ""}${r && r.obs ? (extra ? " · " : "") + esc(r.obs) : ""}</span></span></label>
+          ${r ? `<input class="in" type="date" data-ltdata="${esc(f.id)}" value="${String(r.em).slice(0, 10)}" aria-label="Data de ${esc(f.nome)}">` : `<span class="tiny dim">pendente</span>`}</li>`; }).join("")}</ol></div>
+      <div class="row"><button class="btn" id="ltEditar">✎ Editar fases</button><span class="grow"></span>${pode("apagar") ? `<button class="btn ghost" id="ltApagar">Apagar tratamento</button>` : ""}</div>
+      <p class="tiny dim" style="margin:0">Marque ou desmarque qualquer fase. A data fica registrada no prontuário do paciente.</p>
     </div></div>`;
     $("#veil").addEventListener("click", (e) => { if (e.target.id === "veil") fecharGaveta(); });
     $("#btnFechar").onclick = fecharGaveta;
-    if ($("#ltAvancar")) $("#ltAvancar").onclick = () => avancarEtapa(p, t);
-    if ($("#ltDesfazer")) $("#ltDesfazer").onclick = async () => { const ult = E[pos]; const et = Object.assign({}, t.etapas); delete et[ult.id]; t.etapas = et; if (ult.id === "enviado") delete t.lab; if (ult.id === "recebido" && t.lab) delete t.lab.recebidoEm; if (ult.id === "agendado") delete t.consulta; await Store.salvar(p); toast("Etapa desfeita"); render(); linhaDoTempo(p, t); };
-    if ($("#ltApagar")) $("#ltApagar").onclick = async (e) => { if (e.currentTarget.dataset.c !== "1") { e.currentTarget.dataset.c = "1"; e.currentTarget.textContent = "Toque de novo para apagar"; return; } p.trabalhos = (p.trabalhos || []).filter((x) => x.id !== t.id); await Store.salvar(p); fecharGaveta(); toast("Tratamento apagado"); render(); };
+    $$("#drawerHost [data-ltfase]").forEach((c) => (c.onchange = async () => {
+      const f = F.find((x) => x.id === c.dataset.ltfase);
+      if (c.checked) marcarFase(p, t, f, () => linhaDoTempo(p, t));
+      else { await desmarcarFase(p, t, f); render(); linhaDoTempo(p, t); }
+    }));
+    $$("#drawerHost [data-ltdata]").forEach((inp) => (inp.onchange = async () => {
+      const f = F.find((x) => x.id === inp.dataset.ltdata), r = t.etapas[f.id]; if (!inp.value || !r) return;
+      const novo = new Date(inp.value + "T12:00:00").toISOString(), velho = r.em;
+      t.etapas = Object.assign({}, t.etapas, { [f.id]: Object.assign({}, r, { em: novo }) });
+      prontuario(p, `${nomeTrab(t)}: data de ${f.nome} alterada de ${dataBR(velho)} para ${dataBR(novo)}`, novo);
+      await Store.salvar(p); toast("Data alterada"); render(); linhaDoTempo(p, t);
+    }));
+    $("#ltEditar").onclick = () => editorFases(fasesDe(t), `Fases · ${nomeTrab(t)}`, async (novas) => {
+      const ids = new Set(novas.map((f) => f.id)), removidas = fasesDe(t).filter((f) => !ids.has(f.id));
+      t.fases = novas; const et = Object.assign({}, t.etapas); removidas.forEach((f) => delete et[f.id]); t.etapas = et;
+      prontuario(p, `${nomeTrab(t)}: fases editadas (${novas.length} fases)`, null);
+      await Store.salvar(p); toast("Fases salvas"); render(); linhaDoTempo(p, t);
+    }, () => linhaDoTempo(p, t));
+    if ($("#ltApagar")) $("#ltApagar").onclick = async (e) => { if (e.currentTarget.dataset.c !== "1") { e.currentTarget.dataset.c = "1"; e.currentTarget.textContent = "Toque de novo para apagar"; return; } p.trabalhos = (p.trabalhos || []).filter((x) => x.id !== t.id); prontuario(p, `${nomeTrab(t)}: tratamento apagado`, null); await Store.salvar(p); fecharGaveta(); toast("Tratamento apagado"); render(); };
   }
-  // linha do tempo completa do paciente (na ficha): comercial + tratamentos
+
+  // editor de fases (usado no tratamento e nos modelos de procedimento)
+  function linhasFasesHTML(fases) {
+    return fases.map((f, i) => `<div class="faserow" data-i="${i}"><span class="tiny dim num">${i + 1}</span><input class="in" data-fnome value="${esc(f.nome)}" aria-label="Nome da fase ${i + 1}"><select class="in" data-fpapel aria-label="Tipo da fase ${i + 1}">${Object.entries(PAPEIS).map(([k, n]) => `<option value="${k}"${(f.papel || "") === k ? " selected" : ""}>${esc(n)}</option>`).join("")}</select>
+      <button class="btn sm" data-fmov="-1" aria-label="Subir"${i ? "" : " disabled"}>↑</button><button class="btn sm" data-fmov="1" aria-label="Descer"${i < fases.length - 1 ? "" : " disabled"}>↓</button><button class="btn sm ghost" data-fdel aria-label="Remover fase">✕</button></div>`).join("");
+  }
+  function lerLinhasFases(box, fases) {
+    return $$(".faserow", box).map((r) => { const f = fases[Number(r.dataset.i)]; return { id: f.id, nome: $("[data-fnome]", r).value.trim() || f.nome, papel: $("[data-fpapel]", r).value }; });
+  }
+  function ligarEditorFases(box, getFases, setFases) {
+    box.addEventListener("click", (e) => {
+      const r = e.target.closest(".faserow"), fs = lerLinhasFases(box, getFases());
+      if (e.target.closest("[data-fmov]") && r) { const i = Number(r.dataset.i), j = i + Number(e.target.closest("[data-fmov]").dataset.fmov); [fs[i], fs[j]] = [fs[j], fs[i]]; setFases(fs); }
+      else if (e.target.closest("[data-fdel]") && r) { fs.splice(Number(r.dataset.i), 1); setFases(fs); }
+      else if (e.target.closest("[data-fadd]")) { const nome = "Nova fase"; let id = slug(nome) + "_" + Math.random().toString(36).slice(2, 5); fs.push({ id, nome, papel: "" }); setFases(fs); const ins = $$("[data-fnome]", box); const u = ins[ins.length - 1]; if (u) { u.focus(); u.select(); } }
+    });
+  }
+  function editorFases(fases, titulo, aoSalvar, aoCancelar) {
+    let F = clonar(fases);
+    $("#drawerHost").innerHTML = `<div class="veil" id="veil"><div class="drawer" role="dialog" aria-label="${esc(titulo)}">
+      <div class="row"><h2 class="grow" style="font-size:20px">${esc(titulo)}</h2><button class="btn sm ghost" id="btnFechar" aria-label="Fechar">✕</button></div>
+      <p class="small dim" style="margin:0">Renomeie, mude a ordem, remova ou acrescente fases. O tipo da fase define o que o Alinha pede ao marcar (ex.: envio ao laboratório pede a data de entrega).</p>
+      <div class="card stack" id="efBox"><div class="fases" id="efLista"></div><button class="btn sm" data-fadd>+ Adicionar fase</button></div>
+      <div class="row"><button class="btn pri" id="efSalvar">Salvar fases</button><button class="btn" id="efCancelar">Cancelar</button></div>
+    </div></div>`;
+    const desenhar = () => { $("#efLista").innerHTML = linhasFasesHTML(F); };
+    desenhar(); ligarEditorFases($("#efBox"), () => F, (n) => { F = n; desenhar(); });
+    const sair = () => (aoCancelar ? aoCancelar() : fecharGaveta());
+    $("#veil").addEventListener("click", (e) => { if (e.target.id === "veil") sair(); });
+    $("#btnFechar").onclick = sair; $("#efCancelar").onclick = sair;
+    $("#efSalvar").onclick = () => { const n = lerLinhasFases($("#efBox"), F); if (!n.length) { toast("Deixe ao menos uma fase"); return; } aoSalvar(n); };
+  }
+
+  // novo tratamento: escolhe o procedimento e já personaliza as fases (também abre sozinho quando o orçamento é aprovado)
+  const tipoDoTratamento = (txt) => { const t = norm(txt); const P = Object.keys(procedimentos()); return P.find((k) => t && (t.includes(norm(k)) || norm(k).includes(t))) || (t.includes("alinhador") ? "Invisalign" : t.includes("fixo") || t.includes("aparelho") ? "Aparelho fixo" : "") || P[0]; };
+  function novoTrabalho(pac, opts = {}) {
+    const P = procedimentos(), nomes = PAC.slice().sort((a, b) => a.nome.localeCompare(b.nome));
+    let tipo = opts.tipo || (pac ? tipoDoTratamento(pac.tratamento || pac.interesse || "") : Object.keys(P)[0]);
+    let F = fasesModelo(tipo);
+    $("#drawerHost").innerHTML = `<div class="veil" id="veil"><div class="drawer" role="dialog" aria-label="Nova linha do tempo">
+      <div class="row"><div class="grow"><h2 style="font-size:21px">${opts.aprovado ? "Orçamento aprovado: cadastrar a linha do tempo" : "Novo tratamento"}</h2>${opts.aprovado ? `<div class="small dim">${esc(pac.nome)} fechou. Confira as fases deste tratamento.</div>` : ""}</div><button class="btn sm ghost" id="btnFechar" aria-label="Fechar">✕</button></div>
+      <div class="card stack" id="ntBox">
+        <div><label class="f" for="ntPac">Paciente</label>${pac ? `<input class="in" id="ntPac" value="${esc(pac.nome)}" disabled>` : `<input class="in" id="ntPac" list="ntPacs" placeholder="Digite o nome" autocomplete="off"><datalist id="ntPacs">${nomes.map((p) => `<option value="${esc(p.nome)}">`).join("")}</datalist>`}</div>
+        <div class="duo"><div><label class="f" for="ntTipo">Procedimento</label><select class="in" id="ntTipo">${Object.keys(P).map((k) => `<option${k === tipo ? " selected" : ""}>${esc(k)}</option>`).join("")}</select></div>
+          <div><label class="f" for="ntDente">Dente(s)</label><input class="in" id="ntDente" placeholder="ex.: 26 ou 11 e 21"></div></div>
+        <div><label class="f" for="ntObs">Observações</label><input class="in" id="ntObs" placeholder="ex.: cor A2, 3 refinamentos"></div>
+        <div class="row"><span class="label grow">Fases deste tratamento</span><span class="tiny dim">personalize se precisar</span></div>
+        <div class="fases" id="ntFases"></div><button class="btn sm" data-fadd>+ Adicionar fase</button>
+        <div class="row"><button class="btn pri" id="ntSalvar">Criar linha do tempo</button><span class="small" id="ntSt" style="color:var(--bad)"></span></div>
+      </div></div></div>`;
+    const desenhar = () => { $("#ntFases").innerHTML = linhasFasesHTML(F); };
+    desenhar(); ligarEditorFases($("#ntBox"), () => F, (n) => { F = n; desenhar(); });
+    $("#ntTipo").onchange = () => { tipo = $("#ntTipo").value; F = fasesModelo(tipo); desenhar(); };
+    $("#veil").addEventListener("click", (e) => { if (e.target.id === "veil") fecharGaveta(); });
+    $("#btnFechar").onclick = fecharGaveta;
+    $("#ntSalvar").onclick = async () => {
+      const p = pac || PAC.find((x) => norm(x.nome) === norm($("#ntPac").value));
+      if (!p) { $("#ntSt").textContent = "Escolha um paciente da lista (cadastre antes no CRM, se for novo)."; return; }
+      const fases = lerLinhasFases($("#ntBox"), F); if (!fases.length) { $("#ntSt").textContent = "Deixe ao menos uma fase."; return; }
+      const agora = new Date().toISOString(), etapas = {};
+      // fases iniciais já cumpridas: consulta e orçamento (data da consulta) e, se aprovado, a aprovação
+      const consultaEm = p.compareceuEm || p.consultaEm || agora;
+      const iAprov = fases.findIndex((f) => f.papel === "aprovacao");
+      fases.forEach((f, i) => { if (["consulta", "orcamento"].includes(f.id) && (i < iAprov || iAprov < 0)) etapas[f.id] = { em: consultaEm }; });
+      if (!Object.keys(etapas).length && fases[0]) etapas[fases[0].id] = { em: agora };
+      if ((opts.aprovado || p.status === "fechado") && iAprov >= 0) etapas[fases[iAprov].id] = { em: p.fechadoEm || agora };
+      const t = { id: "t" + Date.now().toString(36) + Math.random().toString(36).slice(2, 5), tipo, dente: $("#ntDente").value.trim(), obs: $("#ntObs").value.trim(), criadoEm: agora, fases, etapas };
+      p.trabalhos = (p.trabalhos || []).concat(t);
+      prontuario(p, `${nomeTrab(t)}: linha do tempo criada (${fases.length} fases) · ${fases.filter((f) => etapas[f.id]).map((f) => f.nome).join(", ")}`, agora);
+      await Store.salvar(p); fecharGaveta(); toast("Linha do tempo criada");
+      if (vista === "tratamentos") { abrirAba("trat", "and"); renderTratamentos(); } else render();
+    };
+    if (!pac) setTimeout(() => { const n = $("#ntPac"); if (n) n.focus(); }, 50);
+  }
+  // ao aprovar o orçamento (fechou): oferece cadastrar a linha do tempo do tratamento
+  function aposFechamento(p) {
+    if (!pode("tratamentos")) return;
+    if ((p.trabalhos || []).some((t) => !concluido(t))) return;
+    setTimeout(() => novoTrabalho(p, { aprovado: true }), 150);
+  }
+
+  // modelos de procedimento (Ajustes › Procedimentos)
+  const PROCED = { sel: null, mapa: null };
+  function renderProcedimentos() {
+    const box = $("#procBox"); if (!box) return;
+    if (!PROCED.mapa) PROCED.mapa = procedimentos();
+    const nomes = Object.keys(PROCED.mapa); if (!PROCED.sel || !PROCED.mapa[PROCED.sel]) PROCED.sel = nomes[0];
+    $("#procLista").innerHTML = nomes.map((n) => `<button data-proc="${esc(n)}" class="${n === PROCED.sel ? "on" : ""}">${esc(n)} <span class="tiny">${PROCED.mapa[n].length}</span></button>`).join("");
+    $("#procFases").innerHTML = linhasFasesHTML(PROCED.mapa[PROCED.sel]);
+    $("#procNome").textContent = PROCED.sel;
+  }
+  function ligarProcedimentos() {
+    const box = $("#procBox"); if (!box) return;
+    ligarEditorFases(box, () => PROCED.mapa[PROCED.sel], (n) => { PROCED.mapa[PROCED.sel] = n; renderProcedimentos(); });
+    $("#procLista").addEventListener("click", (e) => { const b = e.target.closest("[data-proc]"); if (!b) return; PROCED.mapa[PROCED.sel] = lerLinhasFases(box, PROCED.mapa[PROCED.sel]); PROCED.sel = b.dataset.proc; renderProcedimentos(); });
+    $("#btnProcNovo").addEventListener("click", () => { const n = $("#procNovoNome").value.trim(); if (!n) { toast("Digite o nome do procedimento"); return; } if (PROCED.mapa[n]) { toast("Esse procedimento já existe"); return; } PROCED.mapa[PROCED.sel] = lerLinhasFases(box, PROCED.mapa[PROCED.sel]); PROCED.mapa[n] = clonar(PROC_PADRAO["Outro procedimento"]); PROCED.sel = n; $("#procNovoNome").value = ""; renderProcedimentos(); });
+    $("#btnProcRemover").addEventListener("click", (e) => { if (Object.keys(PROCED.mapa).length <= 1) return; if (e.currentTarget.dataset.c !== "1") { e.currentTarget.dataset.c = "1"; e.currentTarget.textContent = "Confirmar remoção"; return; } e.currentTarget.dataset.c = ""; e.currentTarget.textContent = "Remover procedimento"; delete PROCED.mapa[PROCED.sel]; PROCED.sel = null; renderProcedimentos(); });
+    $("#btnProcSalvar").addEventListener("click", async () => { PROCED.mapa[PROCED.sel] = lerLinhasFases(box, PROCED.mapa[PROCED.sel]); try { await Store.ajustes({ procedimentos: PROCED.mapa }); $("#procStatus").textContent = "✓ Salvo: os próximos tratamentos usam estas fases"; } catch (er) { $("#procStatus").textContent = "Erro: " + er.message; } });
+    $("#btnProcPadrao").addEventListener("click", async () => { PROCED.mapa = clonar(PROC_PADRAO); PROCED.sel = null; await Store.ajustes({ procedimentos: null }); renderProcedimentos(); $("#procStatus").textContent = "Modelos padrão restaurados"; });
+  }
+  ligarProcedimentos();
+
+  // linha do tempo completa do paciente (na ficha): comercial + tratamentos + prontuário
   function timelinePacienteHTML(p) {
     const ev = [];
     if (p.entradaEm) ev.push([p.entradaEm, "Entrou como lead", p.origem || ""]);
@@ -2001,18 +2256,78 @@
     const toques = Object.entries(p.toques || {}).filter(([, x]) => x && x.status === "enviado"); if (toques.length) ev.push([toques.map(([, x]) => x.em).sort().pop(), `Follow-up: ${toques.length} contato${toques.length > 1 ? "s" : ""}`, toques.map(([d]) => (String(d).startsWith("R") ? d : "D" + d)).join(", ")]);
     if (p.status === "fechado" && p.fechadoEm) ev.push([p.fechadoEm, "Fechou o tratamento", brl(p.valorFechado)]);
     if (p.status === "perdido" && p.encerradoEm) ev.push([p.encerradoEm, "Não fechou", ""]);
-    (p.trabalhos || []).forEach((t) => etapasDe(t).forEach((e) => { const r = (t.etapas || {})[e.id]; if (r) ev.push([r.em, `${t.tipo}${t.dente ? " (" + t.dente + ")" : ""}: ${e.nome}`, e.id === "enviado" && t.lab ? `entrega ${dataBR(t.lab.entrega)}` : e.id === "agendado" && t.consulta ? `consulta ${dataBR(t.consulta)}` : "", true]); }));
+    (p.trabalhos || []).forEach((t) => fasesDe(t).forEach((f) => { const r = (t.etapas || {})[f.id]; if (r) ev.push([r.em, `${nomeTrab(t)}: ${f.nome}`, f.papel === "lab_envio" && t.lab ? `entrega ${dataBR(t.lab.entrega)}` : f.papel === "agendamento" && t.consulta ? `consulta ${dataBR(t.consulta)}` : "", true]); }));
     ev.sort((a, b) => (a[0] < b[0] ? -1 : 1));
-    const mostra = ev.slice(-10);
-    const andamento = (p.trabalhos || []).filter((t) => !concluido(t));
+    const mostra = ev.slice(-8), andamento = (p.trabalhos || []).filter((t) => !concluido(t)), pront = (p.prontuario || []).slice(0, 6);
     return `<div class="card stack"><div class="row"><span class="label grow">Linha do tempo</span>${pode("tratamentos") ? `<button class="btn sm" id="gNovoTrab">+ Tratamento</button>` : ""}</div>
-      ${andamento.map((t) => { const E = etapasDe(t), pos = posicao(t); return `<div class="prox"><b>${esc(t.tipo)}${t.dente ? " · dente " + esc(t.dente) : ""}</b>: ${esc(E[pos] ? E[pos].nome : "início")} → próxima: ${esc(E[pos + 1] ? E[pos + 1].nome : "—")} <button class="btn sm" data-gtrab="${t.id}" style="margin-left:6px">Ver</button></div>`; }).join("")}
+      ${andamento.map((t) => `<div class="prox"><div class="row"><b class="grow">${esc(nomeTrab(t))}</b><button class="btn sm" data-gtrab="${t.id}">Abrir</button></div><div class="passos">${bolinhas(t).replace(/data-fase=/g, "data-gfase=").replace(/<button class="fz/g, `<button data-gt="${t.id}" class="fz`)}</div></div>`).join("")}
       ${mostra.length ? `<ol class="tl">${mostra.map(([d, q, x, trab]) => `<li class="ok${trab ? "" : " com"}"><div class="q">${esc(q)}</div><div class="d">${dataBR(d)}${x ? " · " + esc(x) : ""}</div></li>`).join("")}</ol>` : `<span class="small dim">Sem eventos ainda.</span>`}
-      ${ev.length > mostra.length ? `<span class="tiny dim">mostrando os 10 mais recentes de ${ev.length}</span>` : ""}</div>`;
+    </div>
+    <div class="card stack"><div class="row"><span class="label grow">Prontuário</span><span class="tiny dim">${(p.prontuario || []).length} registro${(p.prontuario || []).length === 1 ? "" : "s"}</span></div>
+      ${pront.length ? `<ul class="pront">${pront.map((x) => `<li><b class="num">${x.data ? dataBR(x.data) : dataBR(x.em)}</b> ${esc(x.texto)}<span class="tiny dim"> · registrado ${dataHoraP(x.em)}${x.por ? " · " + esc(x.por) : ""}</span></li>`).join("")}</ul>` : `<span class="small dim">As fases marcadas e desmarcadas aparecem aqui com a data.</span>`}
+      ${(p.prontuario || []).length > pront.length ? `<button class="btn sm" id="gProntTudo">Ver prontuário completo</button>` : ""}</div>`;
   }
+  const dataHoraP = (iso) => new Date(iso).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", year: "2-digit", hour: "2-digit", minute: "2-digit" });
   function ligarTimelinePaciente(p) {
     const n = $("#gNovoTrab"); if (n) n.onclick = () => novoTrabalho(p);
     $$("#drawerHost [data-gtrab]").forEach((b) => (b.onclick = () => { const t = (p.trabalhos || []).find((x) => x.id === b.dataset.gtrab); if (t) linhaDoTempo(p, t); }));
+    $$("#drawerHost [data-gfase]").forEach((b) => (b.onclick = async () => { const t = (p.trabalhos || []).find((x) => x.id === b.dataset.gt); if (!t) return; await clicarFase(p, t, b.dataset.gfase, b); if (!$("#aeSalvar")) abrirGaveta(p); }));
+    const tudo = $("#gProntTudo"); if (tudo) tudo.onclick = () => {
+      $("#drawerHost").innerHTML = `<div class="veil" id="veil"><div class="drawer" role="dialog" aria-label="Prontuário"><div class="row"><h2 class="grow" style="font-size:21px">Prontuário · ${esc(p.nome)}</h2><button class="btn sm ghost" id="btnFechar" aria-label="Fechar">✕</button></div>
+        <div class="card"><ul class="pront">${(p.prontuario || []).map((x) => `<li><b class="num">${x.data ? dataBR(x.data) : dataBR(x.em)}</b> ${esc(x.texto)}<span class="tiny dim"> · registrado ${dataHoraP(x.em)}${x.por ? " · " + esc(x.por) : ""}</span></li>`).join("")}</ul></div>
+        <button class="btn" id="prVoltar">← Voltar à ficha</button></div></div>`;
+      $("#veil").addEventListener("click", (e) => { if (e.target.id === "veil") fecharGaveta(); });
+      $("#btnFechar").onclick = fecharGaveta; $("#prVoltar").onclick = () => abrirGaveta(p);
+    };
+  }
+
+  /* ------------------------------------------------------------ */
+  /* Lembretes (sininho nos cartões do CRM)                          */
+  /* ------------------------------------------------------------ */
+  const fimDoDia = () => { const d = new Date(); d.setHours(23, 59, 59, 999); return d; };
+  const lembretesPendentes = (p) => (p.lembretes || []).filter((l) => !l.feito);
+  const lembretesVencidos = () => PAC.flatMap((p) => lembretesPendentes(p).filter((l) => new Date(l.quando) <= fimDoDia()).map((l) => ({ p, l })));
+  function abrirLembrete(p) {
+    const amanha = new Date(Date.now() + DIA).toISOString().slice(0, 10);
+    const lista = () => lembretesPendentes(p).sort((a, b) => (a.quando > b.quando ? 1 : -1));
+    const desenhar = () => {
+      $("#lbLista").innerHTML = lista().length ? lista().map((l) => `<div class="it"><span class="grow"><b>${dataBR(l.quando)} ${horaBR(l.quando)}</b> · ${esc(l.texto)}</span><button class="btn sm" data-lbok="${l.id}">✓ Feito</button><button class="btn sm ghost" data-lbdel="${l.id}" aria-label="Apagar lembrete">✕</button></div>`).join("") : `<span class="small dim">Nenhum lembrete pendente.</span>`;
+    };
+    $("#drawerHost").innerHTML = `<div class="veil" id="veil"><div class="drawer" role="dialog" aria-label="Lembrete"><div class="row"><div class="grow"><h2 style="font-size:21px">Lembrete</h2><div class="small dim">${esc(p.nome)}</div></div><button class="btn sm ghost" id="btnFechar" aria-label="Fechar">✕</button></div>
+      <div class="card stack"><div class="duo"><div><label class="f" for="lbDia">Dia</label><input class="in" type="date" id="lbDia" value="${amanha}"></div><div><label class="f" for="lbHora">Horário</label><input class="in" type="time" id="lbHora" value="09:00"></div></div>
+        <div><label class="f" for="lbTexto">O que fazer</label><input class="in" id="lbTexto" value="Retornar o contato"></div>
+        <div class="row"><button class="btn pri" id="lbSalvar">Criar lembrete</button></div></div>
+      <div class="card stack"><span class="label">Pendentes</span><div class="lista-int" id="lbLista"></div></div>
+      <p class="tiny dim" style="margin:0">No dia, o lembrete aparece no topo do Hoje.</p></div></div>`;
+    desenhar();
+    $("#veil").addEventListener("click", (e) => { if (e.target.id === "veil") fecharGaveta(); });
+    $("#btnFechar").onclick = fecharGaveta;
+    $("#lbSalvar").onclick = async () => {
+      if (!$("#lbDia").value) return;
+      const l = { id: "lb" + Date.now().toString(36), quando: new Date($("#lbDia").value + "T" + ($("#lbHora").value || "09:00") + ":00").toISOString(), texto: $("#lbTexto").value.trim() || "Retornar o contato", feito: false };
+      p.lembretes = (p.lembretes || []).concat(l); prontuario(p, `Lembrete criado: ${l.texto} (${dataBR(l.quando)} ${horaBR(l.quando)})`, l.quando);
+      await Store.salvar(p); toast("Lembrete criado"); desenhar(); render();
+    };
+    $("#lbLista").addEventListener("click", async (e) => {
+      const ok = e.target.closest("[data-lbok]"), del = e.target.closest("[data-lbdel]"); if (!ok && !del) return;
+      const id = (ok || del).dataset[ok ? "lbok" : "lbdel"], l = (p.lembretes || []).find((x) => x.id === id); if (!l) return;
+      if (ok) { l.feito = true; l.feitoEm = new Date().toISOString(); prontuario(p, `Lembrete concluído: ${l.texto}`, l.feitoEm); } else p.lembretes = p.lembretes.filter((x) => x.id !== id);
+      await Store.salvar(p); desenhar(); render();
+    });
+  }
+  function abrirLembretesDoDia() {
+    const desenhar = () => { const L = lembretesVencidos();
+      $("#lbHoje").innerHTML = L.length ? L.map(({ p, l }) => `<div class="it" data-pid="${p.id}"><span class="grow"><b>${esc(p.nome)}</b> · ${esc(l.texto)} <span class="tiny dim">${dataBR(l.quando)} ${horaBR(l.quando)}</span></span><button class="btn sm" data-ld="${l.id}">✓ Feito</button><button class="btn sm" data-lf="1">Ficha</button></div>`).join("") : `<span class="small dim">Nenhum lembrete para hoje.</span>`; };
+    $("#drawerHost").innerHTML = `<div class="veil" id="veil"><div class="drawer" role="dialog" aria-label="Lembretes de hoje"><div class="row"><h2 class="grow" style="font-size:21px">Lembretes de hoje</h2><button class="btn sm ghost" id="btnFechar" aria-label="Fechar">✕</button></div><div class="card"><div class="lista-int" id="lbHoje"></div></div></div></div>`;
+    desenhar();
+    $("#veil").addEventListener("click", (e) => { if (e.target.id === "veil") fecharGaveta(); });
+    $("#btnFechar").onclick = fecharGaveta;
+    $("#lbHoje").addEventListener("click", async (e) => {
+      const it = e.target.closest("[data-pid]"); if (!it) return; const p = PAC.find((x) => x.id === it.dataset.pid); if (!p) return;
+      if (e.target.closest("[data-lf]")) { (ehCliente(p) ? abrirGaveta : abrirCard)(p); return; }
+      const b = e.target.closest("[data-ld]"); if (!b) return; const l = (p.lembretes || []).find((x) => x.id === b.dataset.ld); if (!l) return;
+      l.feito = true; l.feitoEm = new Date().toISOString(); prontuario(p, `Lembrete concluído: ${l.texto}`, l.feitoEm); await Store.salvar(p); desenhar(); render();
+    });
   }
 
   /* ------------------------------------------------------------ */
