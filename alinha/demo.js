@@ -43,8 +43,29 @@ window.ALINHA_DEMO = (function () {
     { id: "ex17", exemplo: true, status: "lead", etapa: "faltou", nome: "Paula Vieira", telefone: "(81) 90000-1017", unidade: "Caruaru", interesse: "Invisalign", tratamento: "Invisalign", origem: "Anúncio Meta", entradaEm: diasAtras(10), agendadoEm: diasAtras(9), faltouEm: diasAtras(3), faltas: 1, toques: {} },
     { id: "ex18", exemplo: true, status: "lead", etapa: "faltou", nome: "Bruno Melo", telefone: "(81) 90000-1018", unidade: "Recife", interesse: "Aparelho fixo", tratamento: "Aparelho fixo", origem: "Anúncio Meta", entradaEm: diasAtras(12), agendadoEm: diasAtras(11), faltouEm: diasAtras(6), faltas: 1, toques: {} }
   ];
+  // tratamentos em andamento (linha do tempo e laboratório)
+  const E = (...pares) => Object.fromEntries(pares.map(([id, n]) => [id, { em: diasAtras(n) }]));
+  const trabalhos = {
+    ex8: [{ id: "tr1", tipo: "Coroa em porcelana", dente: "11", obs: "dissilicato de lítio, cor A2", criadoEm: diasAtras(20),
+      etapas: E(["orcamento", 20], ["aprovado", 14], ["preparo", 9], ["moldagem", 9], ["enviado", 8]), metodo: "Escaneamento digital (iTero)",
+      lab: { nome: "Laboratório Dental Pina", enviadoEm: diasAtras(8), entrega: diasAtras(1) } }],
+    ex9: [{ id: "tr2", tipo: "Coroa sobre implante", dente: "36", criadoEm: diasAtras(30),
+      etapas: E(["orcamento", 30], ["aprovado", 25], ["preparo", 6], ["moldagem", 6], ["enviado", 5]), metodo: "Escaneamento digital (iTero)",
+      lab: { nome: "Prótese Caruaru", enviadoEm: diasAtras(5), entrega: diasAtras(-2) } },
+      { id: "tr3", tipo: "Invisalign", criadoEm: diasAtras(5), etapas: E(["orcamento", 5], ["aprovado", 5], ["moldagem", 4]), metodo: "Escaneamento digital (iTero)" }],
+    ex3: [{ id: "tr4", tipo: "Prótese sobre implante", dente: "24 e 25", criadoEm: diasAtras(40),
+      etapas: E(["orcamento", 40], ["aprovado", 33], ["preparo", 15], ["moldagem", 15], ["enviado", 14], ["recebido", 1]), metodo: "Moldagem convencional",
+      lab: { nome: "Laboratório Dental Pina", enviadoEm: diasAtras(14), entrega: diasAtras(1), recebidoEm: diasAtras(1) } }],
+    ex7: [{ id: "tr5", tipo: "Coroa em porcelana", dente: "46", criadoEm: diasAtras(25),
+      etapas: E(["orcamento", 25], ["aprovado", 20], ["preparo", 12], ["moldagem", 12], ["enviado", 11], ["recebido", 3], ["agendado", 2]), metodo: "Escaneamento digital (iTero)",
+      lab: { nome: "Prótese Caruaru", enviadoEm: diasAtras(11), entrega: diasAtras(3), recebidoEm: diasAtras(3) }, consulta: diasAtras(-1, 14) }],
+    ex5: [{ id: "tr6", tipo: "Prótese sobre implante", dente: "15", criadoEm: diasAtras(3), etapas: E(["orcamento", 3]) }],
+    ex1: [{ id: "tr7", tipo: "Coroa em porcelana", dente: "21", criadoEm: diasAtras(60),
+      etapas: E(["orcamento", 60], ["aprovado", 55], ["preparo", 40], ["moldagem", 40], ["enviado", 39], ["recebido", 32], ["agendado", 31], ["instalado", 28]),
+      lab: { nome: "Laboratório Dental Pina", enviadoEm: diasAtras(39), entrega: diasAtras(32), recebidoEm: diasAtras(32) }, consulta: diasAtras(28, 15) }]
+  };
   // clientes vieram de um lead alguns dias antes da consulta
-  const pacientes = () => clientes().map((p) => Object.assign({ entradaEm: new Date(new Date(p.consultaEm).getTime() - 4 * 864e5).toISOString(), agendadoEm: new Date(new Date(p.consultaEm).getTime() - 3 * 864e5).toISOString(), compareceuEm: p.consultaEm }, p)).concat(leads());
+  const pacientes = () => clientes().map((p) => (trabalhos[p.id] ? Object.assign(p, { trabalhos: JSON.parse(JSON.stringify(trabalhos[p.id])) }) : p)).map((p) => Object.assign({ entradaEm: new Date(new Date(p.consultaEm).getTime() - 4 * 864e5).toISOString(), agendadoEm: new Date(new Date(p.consultaEm).getTime() - 3 * 864e5).toISOString(), compareceuEm: p.consultaEm }, p)).concat(leads());
 
   // Consulta simulada (≈ 2 minutos, acelerada)
   const consulta = {

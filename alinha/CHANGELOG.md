@@ -1,5 +1,17 @@
 # Novidades do Alinha
 
+## 2.0.0 — nov/2026
+- Nova tela **Tratamentos**: cada tratamento do paciente tem uma **linha do tempo** com as etapas, as datas e o que vem a seguir.
+  - Coroa em porcelana, prótese sobre implante e coroa sobre implante: orçamento (necessidade identificada) › orçamento aprovado › preparo do dente › escaneamento ou moldagem › enviado ao laboratório (com a **data de entrega combinada**) › recebido do laboratório › consulta de colocação agendada (dia e horário) › instalado.
+  - Também: Invisalign (escaneamento iTero, ClinCheck, alinhadores pedidos e recebidos, entrega, tratamento, contenção), aparelho fixo e outros procedimentos.
+  - Ao aprovar o orçamento, o paciente pode ser registrado como fechado no Comercial, com o valor.
+  - Desfazer a última etapa e apagar tratamento (administrador).
+- Aba **Laboratório**: no laboratório (com aviso de atraso e entrega do dia), chegou · agendar colocação, colocação agendada. Os avisos aparecem no topo do **Hoje**.
+- **Linha do tempo completa** do paciente na ficha: entrada como lead, agendamento, consulta, follow-up, fechamento e todas as etapas dos tratamentos.
+- Nova tela **Suporte**: chat para tirar dúvidas sobre o sistema (com IA quando configurada, baseada no manual; sem IA, responde pelo manual) e **manual de ajuda** pesquisável com 26 tópicos e atalhos para cada tela. Liberada para todos os perfis.
+- **Letras mais nítidas**: fonte carregada mais cedo, ajuste de espaçamento entre letras, nenhum texto abaixo de 13 px e mais contraste nos textos secundários.
+- Permissões: nova tela Tratamentos (liberada por padrão para Operacional e CRC).
+
 ## 1.9.0 — nov/2026
 - **Sem barras de rolagem**: as telas longas foram organizadas em abas (Comercial: Funil do mês · CRM-Pipeline; Campanhas: Planejamento · Projeção · Cadência · Resultado do mês; Resultados: Gráfico · Tabela · WhatsApp; Consulta: Técnicas · Perfil DISC · Dicas · Guia) e o Hoje mostra os cartões em páginas que cabem na tela. As barras de rolagem não aparecem mais.
 - **Nada rola para o lado**: Follow-up e Pipeline quebram as colunas em linhas (até 2 a 5 cartões por coluna, com "+ mais"); no celular, as tabelas viram cartões.

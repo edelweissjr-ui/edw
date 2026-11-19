@@ -42,6 +42,17 @@ As conversas dos WhatsApps de **Caruaru e Recife**, que já estão ligados ao Ko
 ## Campanhas: calculadora da pirâmide
 Informe o valor investido e os dias de campanha. O Alinha divide o investimento entre **topo (atração), meio (consideração) e fundo (conversão)** — com divisões prontas (50/30/20, 60/25/15, 40/30/30, 70/20/10) ou a sua, editando o percentual direto na pirâmide (as outras fases se ajustam para somar 100%) e salvando como "minha divisão" —, mostra o valor por fase por dia e por semana, a **cadência** de conteúdo e de investimento semana a semana e a **projeção**: leads, agendamentos, comparecimentos, fechamentos, faturamento, retorno e o investimento necessário para a meta. As taxas podem vir dos números reais do Comercial.
 
+## Tratamentos e laboratório
+Cada tratamento tem uma **linha do tempo** com as etapas e as datas, para o profissional saber em que ponto o paciente está.
+- **Coroa em porcelana, prótese sobre implante e coroa sobre implante:** orçamento (necessidade identificada) › orçamento aprovado › preparo do dente › escaneamento ou moldagem › **enviado ao laboratório, com a data de entrega combinada** › recebido do laboratório › **consulta de colocação agendada** › instalado.
+- Também há fluxos para Invisalign, aparelho fixo e outros procedimentos.
+- Em **Tratamentos › + Novo tratamento** escolha o paciente, o tipo e o dente; em cada cartão, o botão **Próxima: …** registra a etapa seguinte com a data.
+- A aba **Laboratório** mostra o que está no laboratório (com aviso de atraso), o que chegou e precisa de agendamento e as colocações marcadas. Atrasos e entregas do dia também aparecem no **Hoje**.
+- A ficha do paciente mostra a **linha do tempo completa**: do lead ao tratamento concluído.
+
+## Suporte (chat e manual)
+A tela **Suporte** responde dúvidas sobre o uso do sistema. Com a IA configurada, a resposta vem da IA baseada no manual (`ajuda.js`) e considera o perfil de quem pergunta; sem IA, o Alinha responde pelo próprio manual. O manual de ajuda fica ao lado, com busca e atalhos para cada tela. Para atualizar o conteúdo, edite `ajuda.js`.
+
 ## Telas sem rolagem
 As telas cabem no monitor sem barra de rolagem (testado em 1366×768, 1440×900 e 1920×1080): o conteúdo longo fica em **abas** e o Hoje mostra os cartões em **páginas**. Nada rola para o lado; no celular, as tabelas viram cartões e a barra inferior mostra as 4 telas principais e o botão **Mais**. Em telas muito pequenas (celular) as listas longas ainda deslizam com o dedo, sem barra visível.
 

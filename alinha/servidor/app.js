@@ -11,6 +11,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import crypto from "node:crypto";
+import vm from "node:vm";
 import { fileURLToPath } from "node:url";
 import Anthropic from "@anthropic-ai/sdk";
 import { criarArmazenamento } from "./armazenamento.js";
@@ -265,16 +266,16 @@ function autenticar(usuario, senha) {
   return null;
 }
 /* permissões por perfil (o administrador ajusta em Ajustes › Permissões) */
-const TELAS = ["hoje", "whatsapp", "consulta", "briefings", "followup", "comercial", "resultados", "campanhas"];
+const TELAS = ["hoje", "whatsapp", "consulta", "briefings", "followup", "comercial", "tratamentos", "resultados", "campanhas"];
 const ACOES_CONFIG = ["enviar_whatsapp", "exportar"];
 const PERM_PADRAO = {
-  operacional: { telas: ["hoje", "consulta", "briefings", "followup", "comercial"], acoes: [] },
-  crc: { telas: ["hoje", "whatsapp", "briefings", "followup", "comercial"], acoes: ["enviar_whatsapp"] }
+  operacional: { telas: ["hoje", "consulta", "briefings", "followup", "comercial", "tratamentos"], acoes: [] },
+  crc: { telas: ["hoje", "whatsapp", "briefings", "followup", "comercial", "tratamentos"], acoes: ["enviar_whatsapp"] }
 };
 function permissoes(papel) {
-  if (papel === "admin") return { telas: [...TELAS, "ajustes"], acoes: [...ACOES_CONFIG, "apagar", "configurar"] };
+  if (papel === "admin") return { telas: [...TELAS, "suporte", "ajustes"], acoes: [...ACOES_CONFIG, "apagar", "configurar"] };
   const c = (AJC.permissoes && AJC.permissoes[papel]) || PERM_PADRAO[papel] || { telas: [], acoes: [] };
-  return { telas: [...(c.telas || []).filter((t) => TELAS.includes(t)), "ajustes"], acoes: (c.acoes || []).filter((a) => ACOES_CONFIG.includes(a)) };
+  return { telas: [...(c.telas || []).filter((t) => TELAS.includes(t)), "suporte", "ajustes"], acoes: (c.acoes || []).filter((a) => ACOES_CONFIG.includes(a)) };
 }
 const pode = (papel, k) => { const P = permissoes(papel); return P.telas.includes(k) || P.acoes.includes(k); };
 const ehHttps = (req) => (req.headers["x-forwarded-proto"] || "").includes("https");
@@ -501,6 +502,15 @@ Os números D, I, S e C somam 100.`;
 const JSON_DISC = `"disc": {"D": número, "I": número, "S": número, "C": número, "perfil": "D|I|S|C", "como_falar": "1 frase de como falar com este paciente"}`;
 const ASSUNTOS_IDS = "preco, agenda, tratamento, medo, tempo, estetica, decisor, local, convenio";
 
+// manual de ajuda: o mesmo arquivo usado na tela Suporte
+function carregarAjuda() {
+  try { const ctx = { window: {} }; vm.runInNewContext(fs.readFileSync(path.join(APP_DIR, "ajuda.js"), "utf8"), ctx, { timeout: 1000 }); return ctx.window.AJUDA || []; }
+  catch (e) { console.warn("Manual de ajuda não carregado:", e.message); return []; }
+}
+const AJUDA = carregarAjuda();
+const MANUAL_TXT = AJUDA.map((t) => `## ${t.titulo} [tela: ${t.tela}]\n${t.texto}\nComo fazer: ${(t.passos || []).join(" ")}`).join("\n\n");
+const NOME_TELA = { hoje: "Hoje", whatsapp: "WhatsApp", comercial: "Comercial", consulta: "Consulta", briefings: "Briefings", followup: "Follow-up", tratamentos: "Tratamentos", resultados: "Resultados", campanhas: "Campanhas", suporte: "Suporte", ajustes: "Ajustes" };
+
 const MOMENTOS = ["Acolhimento", "Investigação", "Diagnóstico", "Apresentação", "Negociação", "Fechamento"];
 
 function promptDica(b) {
@@ -591,6 +601,25 @@ Leitura DISC prévia (pelas palavras-chave): ${b.disc && b.disc.perfil ? `D ${b.
 ${b.versao_anterior ? "Escreva uma versão DIFERENTE desta: " + b.versao_anterior + "\n" : ""}
 CONVERSA (a mais recente por último):
 ${(b.conversa || []).slice(-30).map((m) => `${m.autor === "cliente" ? "PACIENTE" : m.ia ? "IA DE ATENDIMENTO" : "CLÍNICA"}: ${m.texto}`).join("\n")}`,
+    modelo: CFG.modeloDicas
+  };
+}
+
+function promptSuporte(b, papel) {
+  const P = permissoes(papel);
+  return {
+    sistema: `Você é o Suporte do Alinha, o sistema comercial e clínico da ${CLINICA}
+Responda dúvidas de quem usa o sistema (recepção, CRC, dentistas, administrador) sobre COMO USAR o Alinha, em português do Brasil, de forma curta e prática: no máximo 6 frases ou passos numerados. Baseie-se SOMENTE no manual abaixo. Se a resposta não estiver no manual, diga que não sabe e sugira falar com o administrador. Não invente telas, botões ou funções.
+O perfil desta pessoa é "${papel}" e ela tem acesso às telas: ${P.telas.map((t) => NOME_TELA[t] || t).join(", ")}. Se a função pedida estiver numa tela que ela não acessa, diga que é preciso pedir ao administrador (Ajustes › Permissões).
+Nunca peça nem mostre senhas, chaves ou tokens. Dúvidas clínicas ou de diagnóstico não são do suporte: oriente a conversar com o dentista responsável.
+
+MANUAL DO ALINHA:
+${MANUAL_TXT}
+
+Responda SOMENTE com JSON: {"resposta": "texto da resposta (pode ter passos numerados com quebras de linha)", "tela": "id da tela mais relacionada entre: ${Object.keys(NOME_TELA).join(", ")}, ou ''", "topico": "id do tópico do manual mais relacionado, ou ''"}`,
+    prompt: `Conversa até agora:
+${(b.historico || []).slice(-8).map((m) => `${m.autor === "eu" ? "USUÁRIO" : "SUPORTE"}: ${String(m.texto || "").slice(0, 800)}`).join("\n")}
+USUÁRIO: ${String(b.pergunta || "").slice(0, 1200)}`,
     modelo: CFG.modeloDicas
   };
 }
@@ -718,7 +747,8 @@ async function rotas(req, res) {
     if (!anthropic) return json(res, 503, { erro: "IA não configurada (ANTHROPIC_API_KEY)" });
     const b = await lerJSON(req);
     const tipo = p.split("/").pop();
-    if (exige(...({ dica: ["consulta"], briefing: ["consulta"], whatsapp: ["whatsapp"], mensagem: ["hoje", "followup", "comercial"] }[tipo] || ["configurar"]))) return;
+    if (exige(...({ dica: ["consulta"], briefing: ["consulta"], whatsapp: ["whatsapp"], mensagem: ["hoje", "followup", "comercial"], suporte: ["suporte"] }[tipo] || ["configurar"]))) return;
+    if (tipo === "suporte") return json(res, 200, { ok: true, ...(await chamarIA(promptSuporte(b, papel))) });
     const montar = { dica: promptDica, briefing: promptBriefing, mensagem: promptMensagem, whatsapp: promptWhatsApp }[tipo];
     if (!montar) return json(res, 404, { erro: "Não encontrado" });
     return json(res, 200, { ok: true, ...(await chamarIA(montar(b))) });
@@ -794,7 +824,7 @@ async function rotas(req, res) {
   }
 
   const arq = p === "/" ? "index.html" : p.slice(1);
-  if (["index.html", "app.js", "biblioteca.js", "demo.js", "voz.js", "qrcode.js"].includes(arq)) return servirArquivo(res, APP_DIR, arq);
+  if (["index.html", "app.js", "biblioteca.js", "demo.js", "voz.js", "qrcode.js", "ajuda.js"].includes(arq)) return servirArquivo(res, APP_DIR, arq);
   json(res, 404, { erro: "Não encontrado" });
 }
 
