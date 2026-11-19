@@ -477,6 +477,11 @@ html[data-theme] .honey{background:radial-gradient(closest-side,#0B2A1D,#020C07)
 html[data-theme] .bub{box-shadow:0 0 0 1.5px rgba(232,213,168,.9),0 6px 16px -6px rgba(0,0,0,.6)!important}
 html[data-theme] .at-3d path[stroke^="url"]{stroke:#C9A86A}html[data-theme] .at-3d path[stroke="#2997FF"],html[data-theme] .at-3d path[stroke="#5AC8FA"]{stroke:#E8D5A8}html[data-theme] .spark{fill:#E8D5A8}
 html[data-theme="light"] .at-white .at-3d path[stroke^="url"]{stroke:#00643C}
+
+/* dark-mode negative logo */
+html[data-theme="dark"]{--logo-f:none}
+html[data-theme="dark"] .brand-logo,html[data-theme="dark"] .f-logo,html[data-theme="dark"] footer img[src$="logo-weiss.png"]{content:url(assets/logo-weiss-escuro.png);filter:none!important;mix-blend-mode:normal!important}
+html[data-theme="dark"] .back img,html[data-theme="dark"] .watermark{content:url(assets/escudo-escuro.png);filter:none!important}
 /* theme toggle */
 .theme-btn{position:fixed;left:calc(18px + env(safe-area-inset-left,0px));bottom:calc(18px + env(safe-area-inset-bottom,0px));z-index:75;width:52px;height:52px;border-radius:50%;border:1px solid var(--gold,#A8884A);background:var(--surface,#fff);color:var(--gold,#A8884A);display:grid;place-items:center;cursor:pointer;box-shadow:0 12px 30px -12px rgba(0,0,0,.45);transition:transform .3s,background .3s}
 .theme-btn:hover{transform:scale(1.06)}
