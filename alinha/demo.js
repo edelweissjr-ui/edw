@@ -73,6 +73,7 @@ window.ALINHA_DEMO = (function () {
   };
   const crcs = [{ nome: "Renata", metas: { agendamentos: 10, comparecimentos: 7, fechamentos: 3, faturamento: 30000 } }, { nome: "Joana", metas: { agendamentos: 8, comparecimentos: 6, fechamentos: 2, faturamento: 20000 } }];
   const doutores = ["Dr. Edelweiss", "Dra. Paula"];
+  const setores = [{ id: "comercial", nome: "Comercial", pessoas: ["Renata", "Joana"] }, { id: "financeiro", nome: "Financeiro", pessoas: ["Ana"] }, { id: "operacional", nome: "Operacional", pessoas: ["Carla"] }];
   const atendimento = { ex11: "Renata", ex12: "Joana", ex13: "Renata", ex14: "Joana", ex15: "Renata", ex16: "Joana", ex17: "Renata", ex18: "Joana", ex19: "Renata" };
   const decisores = { ex3: { decisorRel: "Noivo(a)", decisor: "Thiago", decisorTel: "(81) 90000-3003", melhorHorario: "Noite (18h–21h)" }, ex1: { decisorRel: "Pai ou mãe", decisor: "Sr. Menezes (pai)", decisorTel: "(81) 90000-3001", melhorHorario: "Almoço (12h–14h)" }, ex5: { decisorRel: "Cônjuge", decisor: "Cláudia (esposa)", melhorHorario: "Tarde (14h–18h)" } };
   const pacientes = () => clientes().map((p) => (trabalhos[p.id] ? Object.assign(p, { trabalhos: JSON.parse(JSON.stringify(trabalhos[p.id])) }) : p)).map((p) => Object.assign({ entradaEm: new Date(new Date(p.consultaEm).getTime() - 4 * 864e5).toISOString(), agendadoEm: new Date(new Date(p.consultaEm).getTime() - 3 * 864e5).toISOString(), compareceuEm: p.consultaEm }, p)).concat(leads()).map((p) => (extras[p.id] ? Object.assign(p, JSON.parse(JSON.stringify(extras[p.id]))) : p))
@@ -140,7 +141,7 @@ window.ALINHA_DEMO = (function () {
       { autor: "cliente", texto: "E também preciso ver com meu marido antes de marcar qualquer coisa" },
       { autor: "cliente", texto: "Mas eu queria muito, vou casar em março 😅 vocês atendem sábado?" }
     ] },
-    { lead: "9002", nome: "Patrícia Gomes", foto: foto("#A9E3D2", "#C68A62", "#1E1410"), telefone: "(81) 90000-2002", unidade: "Caruaru", origem: "Anúncio Meta", lista: [
+    { lead: "9002", setor: "financeiro", responsavel: "Ana", transf: [{ setor: "financeiro", pessoa: "Ana", de: "comercial", deP: "Renata", por: "Renata", nota: "Quer simular o parcelamento no boleto.", ts: new Date(Date.now() - 50 * 60000).toISOString() }], nome: "Patrícia Gomes", foto: foto("#A9E3D2", "#C68A62", "#1E1410"), telefone: "(81) 90000-2002", unidade: "Caruaru", origem: "Anúncio Meta", lista: [
       { id: "p1", ts: minAtras(180), autor: "cliente", texto: "Boa tarde! Fiz o check-up digital semana passada e adorei a simulação" },
       { id: "p2", ts: minAtras(170), autor: "clinica", texto: "Que alegria, Patrícia! Ficou alguma dúvida sobre o plano?" },
       { id: "p3", ts: minAtras(12), autor: "cliente", texto: "Quando posso começar? Dá pra parcelar no cartão?" }
@@ -156,5 +157,5 @@ window.ALINHA_DEMO = (function () {
     ] }
   ];
 
-  return { pacientes, consulta, whatsapp, crcs, doutores };
+  return { pacientes, consulta, whatsapp, crcs, doutores, setores };
 })();

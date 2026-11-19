@@ -8,8 +8,9 @@
   const BIB = window.ROTEIRO, DEMO = window.ALINHA_DEMO;
   /* Versão: na plataforma, vem do servidor (package.json) no momento em que a tela abriu.
      Ao publicar uma atualização, aumente a versão em package.json e registre em NOVIDADES. */
-  let VERSAO = "2.3.0";
+  let VERSAO = "2.4.0";
   const NOVIDADES = [
+    { v: "2.4.0", data: "nov/2026", itens: ["Versículo do dia em pop-up para cada operador ao abrir o app (já pergunta quem está atendendo)", "Setores do atendimento (Comercial, Financeiro, Operacional e outros) com os nomes de quem atende, em Ajustes › Chat", "Transferir a conversa do WhatsApp para outro setor no próprio chat, com recado; filtro por setor e “Comigo”"] },
     { v: "2.3.0", data: "nov/2026", itens: ["Login com código de 6 números do Google Authenticator (opcional, em Ajustes › Segurança)", "Temas Esmeralda e Pérola, sem mudar a logomarca", "Foto do paciente do WhatsApp no círculo; palavras negativadas e correção ortográfica no chat", "Comercial em ampulheta (Funil Lead e Funil Cliente) com todos os números clicáveis; desempenho por CRC com metas", "Alerta do dia com os pacientes de maior chance; versículo diário; decisor, melhor horário, CRC e doutor na ficha"] },
     { v: "2.2.0", data: "nov/2026", itens: ["Nova logomarca Alinha · Gestão Infinity", "Linha do tempo com Finalizado e o fluxo completo do Invisalign (consulta, orçamento, pagamento, escaneamento, fotografias, radiografias, ClinCheck, alinhadores, agendamento, instalação)", "Marcar e desmarcar qualquer fase, com a data ao passar o mouse e o registro no prontuário", "Procedimentos e fases cadastráveis; ao aprovar o orçamento, a linha do tempo é criada e pode ser personalizada", "Cartões do CRM compactos com e-mail, WhatsApp, SMS, lembrete e termômetro; filtros completos no CRM"] },
     { v: "2.1.0", data: "nov/2026", itens: ["CRM em tela própria com dois funis: Funil Lead (lead novo, em contato, agendou, faltou, perdido) e Funil Cliente (compareceu, fechou, não fechou)", "Etapa do CRM direto na conversa do WhatsApp", "API aberta com tokens (ler e gravar ou só leitura) para conectar n8n, Kommo, site e outros apps", "Webhooks assinados: o Alinha avisa outros apps quando um lead entra, muda de etapa, comparece, fecha ou avança no tratamento", "Kommo: leads novos entram no Funil Lead, a mudança para o funil de clientes passa para o Funil Cliente e o card pode ser movido no Kommo quando o paciente comparece"] },
@@ -63,7 +64,7 @@
       } else {
         PAC = ls.get("alinha.pacientes", null);
         if (!PAC) { PAC = DEMO.pacientes(); ls.set("alinha.pacientes", PAC); }
-        AJ = Object.assign(AJ, { crcs: DEMO.crcs, doutores: DEMO.doutores }, ls.get("alinha.ajustes", {})); // demonstração: CRCs e doutores de exemplo
+        AJ = Object.assign(AJ, { crcs: DEMO.crcs, doutores: DEMO.doutores, setores: DEMO.setores }, ls.get("alinha.ajustes", {})); // demonstração: CRCs e doutores de exemplo
       }
     },
     async salvar(p) {
@@ -809,7 +810,7 @@
     renderVozes(); atualizarAuto();
     estadoCelular(); renderAbrirCelular(); renderDominio(false);
     renderEu(); if (ABAS.aj === "seg") renderSeguranca();
-    if (ehAdminFront()) { renderPermissoes(); renderUnidadesMetas(); renderProcedimentos(); renderCrcsAjustes(); renderChatAjustes(); if (["api", "kommo"].includes(ABAS.aj)) { if (INTEG) renderIntegracoes(); else carregarIntegracoes(); } }
+    if (ehAdminFront()) { renderPermissoes(); renderUnidadesMetas(); renderProcedimentos(); renderCrcsAjustes(); renderChatAjustes(); renderSetoresAjustes(); if (["api", "kommo"].includes(ABAS.aj)) { if (INTEG) renderIntegracoes(); else carregarIntegracoes(); } }
   }
   function ehAdminFront() { return !PLAT || PLAT.papel === "admin"; }
   /* ------------------------------------------------------------ */
@@ -988,7 +989,7 @@
   /* ------------------------------------------------------------ */
   /* WhatsApp ao vivo (mensagens chegam pelo webhook do Kommo)     */
   /* ------------------------------------------------------------ */
-  const WA = { conversas: [], sel: null, msgs: {}, info: {}, sug: {}, temp: {}, humano: {}, demo: null, timers: [], lido: ls.get("alinha.wa.lido", {}) };
+  const WA = { conversas: [], sel: null, msgs: {}, info: {}, sug: {}, temp: {}, humano: {}, demo: null, timers: [], lido: ls.get("alinha.wa.lido", {}), setor: {}, transf: {}, fSetor: "" };
   const waModoReal = () => !!(PLAT && PLAT.whatsapp);
   const hora = (iso) => { const d = new Date(iso), h = new Date(); return d.toDateString() === h.toDateString() ? d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }) : fmtData(iso); };
   function preencherBib(t, lead) {
@@ -1043,9 +1044,10 @@
       let d; try { d = await api("GET", "api/whatsapp/conversas" + (WA.ver != null ? "?ver=" + WA.ver : "")); } catch (e) { return false; }
       if (d.mudou === false) return false; // nada novo desde a última busca
       WA.ver = d.ver; WA.conversas = d.conversas || [];
-      WA.conversas.forEach((c) => { WA.info[c.lead] = Object.assign({ nome: c.nome, unidade: c.unidade }, WA.info[c.lead] || {}); if (c.foto) WA.info[c.lead].foto = c.foto; });
+      WA.conversas.forEach((c) => { WA.info[c.lead] = Object.assign({ nome: c.nome, unidade: c.unidade }, WA.info[c.lead] || {}); if (c.foto) WA.info[c.lead].foto = c.foto; if (c.setor) WA.setor[c.lead] = { setor: c.setor, pessoa: c.responsavel || "" }; });
     } else {
-      if (!WA.demo) { WA.demo = DEMO.whatsapp(); WA.demo.forEach((c) => { WA.msgs[c.lead] = c.lista.slice(); WA.info[c.lead] = { nome: c.nome, telefone: c.telefone, unidade: c.unidade, foto: c.foto, origem: c.origem }; recalcularTemp(c.lead); }); }
+      if (!WA.demo) { WA.demo = DEMO.whatsapp(); WA.demo.forEach((c) => { WA.msgs[c.lead] = c.lista.slice(); WA.info[c.lead] = { nome: c.nome, telefone: c.telefone, unidade: c.unidade, foto: c.foto, origem: c.origem }; if (c.setor) WA.setor[c.lead] = { setor: c.setor, pessoa: c.responsavel || "" }; if (c.transf) WA.transf[c.lead] = c.transf.slice(); recalcularTemp(c.lead); });
+        const gs = ls.get("alinha.wa.setor", null); if (gs) { Object.assign(WA.setor, gs.setor || {}); Object.assign(WA.transf, gs.transf || {}); } }
       WA.conversas = WA.demo.map((c) => { const l = WA.msgs[c.lead], u = l[l.length - 1]; return { lead: c.lead, nome: c.nome, unidade: c.unidade, ultima: u.texto, autor: u.autor, ts: u.ts }; }).sort((a, b) => (a.ts < b.ts ? 1 : -1));
     }
     badgeWA(); return true;
@@ -1171,14 +1173,14 @@
     const n = {};
     WA.conversas.forEach((c) => { const msgs = WA.msgs[c.lead]; const ass = msgs ? assuntosDe(msgs) : (c.assuntos || []); ass.forEach((a) => { n[a] = (n[a] || 0) + 1; }); });
     const ids = Object.keys(n).sort((a, b) => n[b] - n[a]);
-    $("#waAssuntos").innerHTML = ids.length ? `<button data-ass="" class="${WA.filtro ? "" : "on"}">Todos os assuntos</button>` + ids.map((a) => `<button data-ass="${a}" class="${WA.filtro === a ? "on" : ""}">${esc(ASS_NOME[a])} · ${n[a]}</button>`).join("") : "";
+    $("#waAssuntos").innerHTML = filtroSetorHTML() + (ids.length ? `<button data-ass="" class="${WA.filtro ? "" : "on"}">Todos os assuntos</button>` + ids.map((a) => `<button data-ass="${a}" class="${WA.filtro === a ? "on" : ""}">${esc(ASS_NOME[a])} · ${n[a]}</button>`).join("") : "");
   }
   function renderWA() {
     $("#waEstado").textContent = waModoReal() ? "conectado" : PLAT ? "aguardando configuração do webhook" : "demonstração";
     renderAssuntosFiltro();
-    const lista = WA.conversas.filter((c) => { if (!WA.filtro) return true; const msgs = WA.msgs[c.lead]; return (msgs ? assuntosDe(msgs) : (c.assuntos || [])).includes(WA.filtro); });
+    const lista = WA.conversas.filter((c) => { if (!passaSetor(c.lead)) return false; if (!WA.filtro) return true; const msgs = WA.msgs[c.lead]; return (msgs ? assuntosDe(msgs) : (c.assuntos || [])).includes(WA.filtro); });
     $("#waLista").innerHTML = lista.length ? lista.map((c) => { const i = WA.info[c.lead] || {}; const msgs = WA.msgs[c.lead]; const ass = (msgs ? assuntosDe(msgs) : (c.assuntos || [])).slice(0, 3);
-      return `<button data-wa="${esc(c.lead)}" class="${c.lead === WA.sel ? "on" : ""}">${avaHTML(i.nome || c.nome, i.foto || c.foto)}<div class="t"><b>${esc(i.nome || c.nome || "Lead " + c.lead)}${naoLida(c) ? '<span class="nova" title="nova mensagem"></span>' : ""}</b><span class="u">${c.autor === "clinica" ? "Você: " : ""}${esc(c.ultima)}</span>${ass.length ? `<span class="ass">${ass.map((a) => `<span>${esc(ASS_NOME[a])}</span>`).join("")}</span>` : ""}</div><span class="h">${c.ts ? hora(c.ts) : ""}</span></button>`; }).join("")
+      return `<button data-wa="${esc(c.lead)}" class="${c.lead === WA.sel ? "on" : ""}">${avaHTML(i.nome || c.nome, i.foto || c.foto)}<div class="t"><b>${esc(i.nome || c.nome || "Lead " + c.lead)}${naoLida(c) ? '<span class="nova" title="nova mensagem"></span>' : ""}</b><span class="u">${c.autor === "clinica" ? "Você: " : ""}${esc(c.ultima)}</span>${ass.length || WA.setor[c.lead] ? `<span class="ass">${setorTag(c.lead)}${ass.map((a) => `<span>${esc(ASS_NOME[a])}</span>`).join("")}</span>` : ""}</div><span class="h">${c.ts ? hora(c.ts) : ""}</span></button>`; }).join("")
       : `<div class="vazio">${WA.filtro ? "Nenhuma conversa com esse assunto." : PLAT ? "Nenhuma conversa ainda. Conecte o celular (Ajustes) ou configure o webhook do Kommo e as mensagens aparecem aqui." : "Sem conversas."}</div>`;
     renderChat();
   }
@@ -1197,11 +1199,11 @@
     el.innerHTML = `<div class="card wahead"><button class="btn sm ghost voltar" id="waVoltar">← Conversas</button>${avaHTML(i.nome, i.foto)}
         <div class="grow"><b style="font-size:17px">${esc(i.nome || "Lead " + lead)}</b><div class="small dim">${esc([i.unidade, i.telefone, i.origem].filter(Boolean).join(" · ") || "lead " + lead)}</div></div>
         <span class="minitermo" title="Prontidão para o fechamento">🌡 <i><b style="width:${t}%"></b></i>${t}%</span><span class="pill ${t >= 70 ? "bad" : t >= 40 ? "warn" : ""}">${nivel}</span>
-        <div class="row" style="width:100%">${doCelular ? `<span class="pill acc">📱 Celular conectado</span>` : hum ? `<span class="pill acc">✋ Atendimento humano · IA pausada</span><button class="btn sm" data-waact="devolver">🤖 Devolver para a IA</button>` : `<button class="btn sm" data-waact="assumir">✋ Assumir atendimento</button>`}
+        <div class="row" style="width:100%">${setorPill(lead)}<button class="btn sm" data-waact="transferir" title="Transferir a conversa para outro setor">⇄ Transferir</button>${doCelular ? `<span class="pill acc">📱 Celular conectado</span>` : hum ? `<span class="pill acc">✋ Atendimento humano · IA pausada</span><button class="btn sm" data-waact="devolver">🤖 Devolver para a IA</button>` : `<button class="btn sm" data-waact="assumir">✋ Assumir atendimento</button>`}
           ${(() => { const px = PAC.find((x) => x.leadId && String(x.leadId) === String(lead)); if (!px) return `<button class="btn sm" data-waact="followup">+ Adicionar ao CRM</button>`;
           const e0 = etapaDe(px), op = (g, t) => `<optgroup label="${t}">${ETAPAS.filter((e) => e.grupo === g).map((e) => `<option value="${e.id}"${e.id === e0 ? " selected" : ""}>${esc(e.nome)}</option>`).join("")}</optgroup>`;
           return `<label class="small dim" for="waCrm">CRM</label><select class="in crmsel" id="waCrm" data-crmsel="${px.id}" aria-label="Etapa no CRM">${op("lead", "Funil Lead")}${op("cliente", "Funil Cliente")}</select><button class="btn sm" data-waact="followup">Ficha</button>`; })()}${kommoLink ? `<a class="btn sm" href="${esc(kommoLink)}" target="_blank" rel="noopener">Abrir no Kommo</a>` : ""}</div></div>
-      <div class="thread" id="waThread">${msgs.map((m) => `<div class="bolha ${m.autor === "cliente" ? "cli" : "cl"}${m._nova ? " chegou" : ""}">${esc(m.texto)}<span class="m">${m.autor === "cliente" ? "Paciente" : m.ia ? "🤖 IA de atendimento" : "Clínica"} · ${hora(m.ts)}</span></div>`).join("") || '<p class="dim">Sem mensagens.</p>'}</div>
+      <div class="thread" id="waThread">${comTransf(lead, msgs).map((m) => m._tr ? transfHTML(m) : `<div class="bolha ${m.autor === "cliente" ? "cli" : "cl"}${m._nova ? " chegou" : ""}">${esc(m.texto)}<span class="m">${m.autor === "cliente" ? "Paciente" : m.ia ? "🤖 IA de atendimento" : "Clínica"} · ${hora(m.ts)}</span></div>`).join("") || '<p class="dim">Sem mensagens.</p>'}</div>
       <div class="wa-avisos hide" id="waAvisos" aria-live="polite"></div>
       <div class="composer"><textarea id="waTexto" rows="2" spellcheck="true" lang="pt-BR" aria-label="Escreva a mensagem" placeholder="Escreva uma mensagem…">${esc(rasc)}</textarea>
         ${podeEnviar ? `<button class="btn pri" data-waact="enviar" title="${doCelular ? "Enviar pelo celular conectado" : "Enviar"}">➤ Enviar</button>` : `<button class="btn pri" data-waact="copiar">${kommoLink ? "Copiar e abrir no Kommo" : "Copiar"}</button>`}
@@ -1237,7 +1239,7 @@
   async function abrirConversa(lead) {
     WA.sel = lead;
     if (waModoReal() && !WA.msgs[lead]) {
-      try { WA.msgs[lead] = (await api("GET", "api/whatsapp/mensagens?lead=" + encodeURIComponent(lead))).mensagens || []; } catch (e) { WA.msgs[lead] = []; }
+      try { const d = await api("GET", "api/whatsapp/mensagens?lead=" + encodeURIComponent(lead)); WA.msgs[lead] = d.mensagens || []; WA.transf[lead] = d.transferencias || []; } catch (e) { WA.msgs[lead] = []; }
       recalcularTemp(lead);
     }
     const c = WA.conversas.find((x) => x.lead === lead); if (c) { WA.lido[lead] = c.ts; ls.set("alinha.wa.lido", WA.lido); }
@@ -1318,6 +1320,8 @@
       const humano = act === "assumir";
       try { if (PLAT && PLAT.kommo) await api("POST", "api/whatsapp/atendimento", { lead_id: lead, humano }); WA.humano[lead] = humano; renderChat(); toast(humano ? "Você assumiu: a IA do n8n fica pausada neste lead" : "Lead devolvido para a IA"); }
       catch (err) { toast("Kommo: " + err.message); }
+    } else if (act === "transferir") {
+      abrirTransferir(lead);
     } else if (act === "followup") {
       let p = PAC.find((x) => x.leadId && String(x.leadId) === String(lead));
       if (p) { abrirCard(p); return; }
@@ -2618,16 +2622,41 @@
     $$(".versiculo").forEach((el) => { el.innerHTML = `<span>“${esc(t)}”</span><b>${esc(ref)}</b>`; el.title = `${t} (${ref})`; });
   }
 
+
+  // Pop-up do versículo: para cada operador, uma vez por dia, ao abrir o app (ou ao trocar quem está atendendo)
+  const chaveOperador = () => eu() || "_" + (PLAT ? papel() : "demo");
+  const versiculoVisto = () => ls.get("alinha.versiculoVisto", {})[chaveOperador()] === hojeISO();
+  function marcarVersiculo() { const m = ls.get("alinha.versiculoVisto", {}); Object.keys(m).forEach((k) => { if (m[k] !== hojeISO()) delete m[k]; }); m[chaveOperador()] = hojeISO(); ls.set("alinha.versiculoVisto", m); }
+  function abrirVersiculo(depois) {
+    const d = new Date(), ini = new Date(d.getFullYear(), 0, 0), dia = Math.floor((d - ini) / DIA);
+    const [t, ref] = VERSICULOS[dia % VERSICULOS.length];
+    const h = d.getHours(), saud = h < 12 ? "Bom dia" : h < 18 ? "Boa tarde" : "Boa noite";
+    renderEu(); const opts = $("#euSel") ? $("#euSel").innerHTML : "";
+    const host = $("#popHost");
+    host.innerHTML = `<div class="pop-veil" id="popVeil"><div class="pop" role="dialog" aria-modal="true" aria-labelledby="popTit">
+      <div class="pop-cruz" aria-hidden="true">✝</div>
+      <div class="pop-saud" id="popTit">${saud}${eu() ? ", " + esc(eu()) : ""}!</div>
+      <div class="tiny dim">Palavra do dia · ${d.toLocaleDateString("pt-BR", { weekday: "long", day: "numeric", month: "long" })}</div>
+      <blockquote class="pop-vers">“${esc(t)}”<cite>${esc(ref)}</cite></blockquote>
+      <label class="pop-eu"><span>Quem está atendendo agora?</span><select class="in" id="popEu">${opts}</select></label>
+      <button class="btn pri" id="popOk">Amém · Começar o dia</button></div></div>`;
+    const fechar = () => { const v = $("#popEu").value; if (v !== eu()) { ls.set("alinha.eu", v); renderEu(); if (vista === "whatsapp") renderWA(); } marcarVersiculo(); host.innerHTML = ""; if (depois) depois(); };
+    $("#popOk").onclick = fechar; $("#popOk").focus();
+    $("#popVeil").addEventListener("click", (e) => { if (e.target.id === "popVeil") fechar(); });
+    host.querySelector(".pop").addEventListener("keydown", (e) => { if (e.key === "Escape") fechar(); });
+  }
+  function aoAbrirApp() { if (!versiculoVisto()) abrirVersiculo(alertaAoAbrir); else alertaAoAbrir(); }
+
   /* ------------------------------------------------------------ */
   /* Quem está atendendo (CRC) — usado como CRC do lead e no prontuário */
   /* ------------------------------------------------------------ */
   const eu = () => ls.get("alinha.eu", "");
   function renderEu() {
     const el = $("#euSel"); if (!el) return;
-    const nomes = [...new Set(crcsCadastradas().map((x) => x.nome).concat(doutores()).concat(AJ.equipe || []))].filter(Boolean);
+    const nomes = [...new Set(crcsCadastradas().map((x) => x.nome).concat(setores().flatMap((x) => x.pessoas || [])).concat(doutores()).concat(AJ.equipe || []))].filter(Boolean);
     el.innerHTML = `<option value="">— escolha —</option>` + nomes.map((n) => `<option${n === eu() ? " selected" : ""}>${esc(n)}</option>`).join("");
   }
-  $("#euSel").addEventListener("change", (e) => { ls.set("alinha.eu", e.target.value); toast(e.target.value ? `Atendendo como ${e.target.value}` : "Atendente removido"); });
+  $("#euSel").addEventListener("change", (e) => { ls.set("alinha.eu", e.target.value); toast(e.target.value ? `Atendendo como ${e.target.value}` : "Atendente removido"); if (vista === "whatsapp") renderWA(); if (e.target.value && !versiculoVisto()) abrirVersiculo(); });
   const doutores = () => { const d = (AJ.doutores || []).filter(Boolean); if (d.length) return d; const e = (AJ.equipe || []).filter((n) => /^dr/i.test(n)); return e.length ? e : ["Dr. Edelweiss"]; };
 
   // Ajustes › CRCs e metas individuais
@@ -2719,6 +2748,80 @@
       try { await Store.ajustes({ palavrasNegativas: neg, correcao: { modo, extras } }); $("#chatStatus").textContent = "✓ Salvo"; } catch (er) { $("#chatStatus").textContent = "Erro: " + er.message; }
     }
     if (e.target.closest("#btnNegPadrao")) { AJ.palavrasNegativas = null; renderChatAjustes(); }
+  });
+
+
+  /* ------------------------------------------------------------ */
+  /* Setores do atendimento e transferência de conversa             */
+  /* ------------------------------------------------------------ */
+  const SETORES_PADRAO = [{ id: "comercial", nome: "Comercial", pessoas: [] }, { id: "financeiro", nome: "Financeiro", pessoas: [] }, { id: "operacional", nome: "Operacional", pessoas: [] }];
+  const setores = () => (Array.isArray(AJ.setores) && AJ.setores.length ? AJ.setores : SETORES_PADRAO);
+  const setorNome = (id) => (setores().find((x) => x.id === id) || {}).nome || id || "";
+  const slugSetor = (t) => String(t || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "setor";
+  const quemSetor = (x) => (x && x.setor ? setorNome(x.setor) + (x.pessoa ? " · " + x.pessoa : "") : "");
+  function passaSetor(lead) {
+    const f = WA.fSetor; if (!f) return true; const x = WA.setor[lead];
+    if (f === "@eu") return !!(x && eu() && x.pessoa === eu());
+    if (f === "@sem") return !x || !x.setor;
+    return !!(x && x.setor === f);
+  }
+  function filtroSetorHTML() {
+    const n = (f) => WA.conversas.filter((c) => { const o = WA.fSetor; WA.fSetor = f; const r = passaSetor(c.lead); WA.fSetor = o; return r; }).length;
+    return `<select class="in setor-f" id="waSetorF" aria-label="Filtrar por setor"><option value="">Todos os setores</option>${eu() ? `<option value="@eu"${WA.fSetor === "@eu" ? " selected" : ""}>Comigo (${esc(eu())}) · ${n("@eu")}</option>` : ""}${setores().map((x) => `<option value="${esc(x.id)}"${WA.fSetor === x.id ? " selected" : ""}>${esc(x.nome)} · ${n(x.id)}</option>`).join("")}<option value="@sem"${WA.fSetor === "@sem" ? " selected" : ""}>Sem setor · ${n("@sem")}</option></select>`;
+  }
+  const setorTag = (lead) => { const x = WA.setor[lead]; return x && x.setor ? `<span class="st${eu() && x.pessoa === eu() ? " meu" : ""}" title="Setor responsável">${esc(quemSetor(x))}</span>` : ""; };
+  const setorPill = (lead) => { const x = WA.setor[lead]; return `<span class="pill setor-pill" title="Setor responsável pela conversa">🏷 ${x && x.setor ? esc(quemSetor(x)) : "Sem setor"}</span>`; };
+  const comTransf = (lead, msgs) => msgs.concat((WA.transf[lead] || []).map((t) => Object.assign({ _tr: true }, t))).sort((a, b) => (a.ts < b.ts ? -1 : a.ts > b.ts ? 1 : 0));
+  const transfHTML = (t) => `<div class="transf" role="note"><span>⇄ Transferida ${t.de ? `de <b>${esc(quemSetor({ setor: t.de, pessoa: t.deP }))}</b> ` : ""}para <b>${esc(quemSetor(t))}</b>${t.por ? ` · por ${esc(t.por)}` : ""} · ${hora(t.ts)}</span>${t.nota ? `<i>“${esc(t.nota)}”</i>` : ""}</div>`;
+  $("#waAssuntos").addEventListener("change", (e) => { if (e.target.id === "waSetorF") { WA.fSetor = e.target.value; renderWA(); } });
+
+  function abrirTransferir(lead) {
+    const i = WA.info[lead] || {}, atual = WA.setor[lead] || {};
+    let esc0 = atual.setor && setores().some((x) => x.id === atual.setor) ? atual.setor : setores()[0].id;
+    const pessoasHTML = (id) => { const st = setores().find((x) => x.id === id) || { pessoas: [] };
+      return `<option value="">Qualquer pessoa do setor</option>` + (st.pessoas || []).map((n) => `<option${n === atual.pessoa && id === atual.setor ? " selected" : ""}>${esc(n)}</option>`).join(""); };
+    $("#drawerHost").innerHTML = `<div class="veil" id="veil"><div class="drawer pequeno" role="dialog" aria-label="Transferir conversa">
+      <div class="row"><div class="grow"><h2 style="font-size:21px">⇄ Transferir conversa</h2><div class="small dim">${esc(i.nome || "Lead " + lead)} · agora com <b>${esc(quemSetor(atual) || "nenhum setor")}</b></div></div><button class="btn sm ghost" id="btnFechar" aria-label="Fechar">✕</button></div>
+      <div class="card stack"><span class="label">Para qual setor?</span>
+        <div class="chips" id="trSetores">${setores().map((x) => `<button data-st="${esc(x.id)}" class="${x.id === esc0 ? "on" : ""}">${esc(x.nome)}</button>`).join("")}</div>
+        <label class="f" for="trPessoa">Quem vai atender</label><select class="in" id="trPessoa">${pessoasHTML(esc0)}</select>
+        <label class="f" for="trNota">Recado para quem recebe (opcional)</label><textarea class="in" id="trNota" rows="3" placeholder="Ex.: quer simular o parcelamento; prefere falar à noite."></textarea>
+        <p class="tiny dim" style="margin:0">Os nomes de cada setor são cadastrados em Ajustes › Chat. A transferência fica registrada na conversa${PAC.some((x) => x.leadId && String(x.leadId) === String(lead)) ? " e no prontuário" : ""}.</p></div>
+      <div class="row"><button class="btn pri" id="trOk">⇄ Transferir</button><button class="btn ghost" id="trCancelar">Cancelar</button></div></div></div>`;
+    $("#veil").addEventListener("click", (e) => { if (e.target.id === "veil") fecharGaveta(); });
+    $("#btnFechar").onclick = fecharGaveta; $("#trCancelar").onclick = fecharGaveta;
+    $("#trSetores").addEventListener("click", (e) => { const b = e.target.closest("[data-st]"); if (!b) return; esc0 = b.dataset.st; $$("#trSetores button").forEach((x) => x.classList.toggle("on", x === b)); $("#trPessoa").innerHTML = pessoasHTML(esc0); });
+    $("#trOk").onclick = async () => {
+      const pessoa = $("#trPessoa").value, nota = $("#trNota").value.trim(), por = eu() || (PLAT ? PAPEL_NOME[papel()] || "" : "");
+      if (atual.setor === esc0 && (atual.pessoa || "") === pessoa) { toast("A conversa já está com " + quemSetor(atual)); return; }
+      let t = { setor: esc0, pessoa, de: atual.setor || "", deP: atual.pessoa || "", por, nota, ts: new Date().toISOString() };
+      if (waModoReal()) {
+        try { t = (await api("POST", "api/whatsapp/transferir", { lead, setor: esc0, pessoa, nota, por })).transferencia || t; } catch (er) { toast("Não foi possível transferir: " + er.message); return; }
+      }
+      WA.setor[lead] = { setor: t.setor, pessoa: t.pessoa }; (WA.transf[lead] = WA.transf[lead] || []).push(t);
+      if (!waModoReal()) ls.set("alinha.wa.setor", { setor: WA.setor, transf: WA.transf });
+      const px = PAC.find((x) => x.leadId && String(x.leadId) === String(lead));
+      if (px) { prontuario(px, `WhatsApp: conversa transferida para ${quemSetor(t)}${nota ? ` (${nota})` : ""}`, t.ts); try { await Store.salvar(px); } catch (er) { /* fica no próximo salvamento */ } }
+      fecharGaveta(); toast(`Conversa transferida para ${quemSetor(t)}`); renderWA();
+    };
+  }
+
+  // Ajustes › Chat › Setores do atendimento
+  function renderSetoresAjustes() {
+    const el = $("#setLista"); if (!el) return;
+    el.innerHTML = setores().map(setorLinha).join("");
+  }
+  const setorLinha = (x) => `<div class="setrow" data-id="${esc(x.id || "")}"><input class="in" data-s="n" value="${esc(x.nome || "")}" placeholder="Setor" aria-label="Nome do setor"><input class="in" data-s="p" value="${esc((x.pessoas || []).join(", "))}" placeholder="Nomes (separe por vírgula)" aria-label="Pessoas do setor ${esc(x.nome || "")}"><button class="btn sm ghost" data-setdel="1" aria-label="Remover setor">✕</button></div>`;
+  $("#setBox").addEventListener("click", async (e) => {
+    if (e.target.closest("#btnSetAdd")) { $("#setLista").insertAdjacentHTML("beforeend", setorLinha({ nome: "", pessoas: [] })); $("#setLista .setrow:last-child input").focus(); return; }
+    const d = e.target.closest("[data-setdel]"); if (d) { d.closest(".setrow").remove(); return; }
+    if (e.target.closest("#btnSetSalvar")) {
+      const usados = new Set();
+      const lista = $$("#setLista .setrow").map((r) => { const nome = $("[data-s=n]", r).value.trim(); if (!nome) return null; let id = r.dataset.id || slugSetor(nome); while (usados.has(id)) id += "-2"; usados.add(id);
+        return { id, nome, pessoas: [...new Set($("[data-s=p]", r).value.split(",").map((n) => n.trim()).filter(Boolean))] }; }).filter(Boolean);
+      if (!lista.length) { $("#setStatus").textContent = "Cadastre pelo menos um setor."; return; }
+      try { await Store.ajustes({ setores: lista }); $("#setStatus").textContent = "✓ Salvo"; renderSetoresAjustes(); renderEu(); } catch (er) { $("#setStatus").textContent = "Erro: " + er.message; }
+    }
   });
 
   /* ------------------------------------------------------------ */
@@ -2887,7 +2990,7 @@
     $("#pillIA").textContent = PLAT && PLAT.ia ? "IA ouvindo + roteiro" : "Dicas do roteiro";
     try { await Store.carregar(); } catch (e) { toast("Não foi possível carregar os dados: " + e.message); }
     aplicarUnidades(); renderAjustes(); mostrar(vista);
-    versiculoDoDia(); renderEu(); setTimeout(alertaAoAbrir, 400);
+    versiculoDoDia(); renderEu(); setTimeout(aoAbrirApp, 400);
   }
   iniciar();
 })();

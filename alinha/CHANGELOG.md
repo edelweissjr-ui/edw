@@ -1,5 +1,10 @@
 # Novidades do Alinha
 
+## 2.4.0 — nov/2026
+- **Versículo do dia em pop-up**: ao abrir o app, cada operador recebe a Palavra do dia e escolhe quem está atendendo. Aparece uma vez por dia por operador (trocar o nome em "Atendendo" mostra para a nova pessoa). Depois vem o Alerta do dia.
+- **Setores do atendimento**: Comercial, Financeiro e Operacional (e outros que a clínica criar), cada um com os nomes de quem atende, em Ajustes › Chat.
+- **Transferir conversa**: no chat do WhatsApp, o botão ⇄ Transferir passa a conversa para outro setor e pessoa, com recado. A transferência aparece na conversa, entra no prontuário e gera o webhook `conversa.transferida`. A lista de conversas mostra o setor e filtra por setor, "Comigo" ou "Sem setor".
+
 ## 2.3.0 — nov/2026
 - **Login com Google Authenticator**: o acesso continua por usuário e senha; depois do primeiro acesso, cada perfil pode ativar o código de 6 números (TOTP, compatível com Google Authenticator e similares) em Ajustes › Segurança. Códigos não podem ser reaproveitados; o administrador desativa para um perfil que perdeu o celular. As chaves não vão para a cópia dos dados.
 - **Temas**: além de escuro e claro, Esmeralda e Pérola. A logomarca não muda de cor.

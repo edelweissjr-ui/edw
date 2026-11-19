@@ -621,6 +621,32 @@ label.row>input[type=checkbox]{flex:none;margin-top:4px;width:17px;height:17px}
 #toast.on{transform:translate(-50%,0)}
 @media (max-width:860px){#toast{bottom:calc(84px + env(safe-area-inset-bottom,0px))}}
 .banner{background:var(--accent-soft);color:var(--accent-2);border-radius:12px;padding:7px 12px;font-size:14.5px;font-weight:600;margin-bottom:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+
+/* v2.4: setores, transferência e pop-up do versículo */
+.setrow{display:grid;grid-template-columns:minmax(122px,.9fr) minmax(0,1.5fr) auto;gap:6px;align-items:center}
+.col-chat{gap:14px}
+.setor-f{width:auto;min-width:190px;padding:6px 10px;font-size:14px}
+#waAssuntos{align-items:center}
+.walist .ass .st{background:color-mix(in srgb,var(--accent) 22%,transparent);color:var(--fg)}
+.walist .ass .st.meu{background:var(--accent);color:var(--accent-ink)}
+.setor-pill{background:color-mix(in srgb,var(--accent) 16%,transparent)}
+.thread .transf{align-self:center;max-width:86%;text-align:center;font-size:13px;color:var(--dim);border:1px dashed var(--line);border-radius:12px;padding:6px 12px;display:flex;flex-direction:column;gap:2px;margin:4px 0}
+.thread .transf b{color:var(--fg)}
+.thread .transf i{color:var(--fg)}
+.drawer.pequeno{max-width:520px}
+.pop-veil{position:fixed;inset:0;z-index:80;background:rgba(5,5,18,.62);backdrop-filter:blur(6px);display:grid;place-items:center;padding:16px;animation:popIn .25s ease}
+.pop{width:min(520px,100%);background:var(--surface);border:1px solid var(--line);border-radius:22px;padding:28px 28px 24px;box-shadow:0 30px 80px rgba(0,0,0,.45);display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center}
+.pop-cruz{font-size:30px;line-height:1;width:58px;height:58px;border-radius:50%;display:grid;place-items:center;background:var(--accent);color:var(--accent-ink)}
+.pop-saud{font-size:22px;font-weight:700}
+.pop-vers{margin:6px 0 4px;font-family:"Cinzel",Georgia,serif;font-size:21px;line-height:1.45;color:var(--fg)}
+.pop-vers cite{display:block;margin-top:10px;font-family:inherit;font-style:normal;font-size:15px;font-weight:700;color:var(--accent)}
+.pop-eu{display:flex;gap:8px;align-items:center;justify-content:center;flex-wrap:wrap;font-size:14px;color:var(--dim)}
+.pop-eu select{width:auto;min-width:170px}
+.pop .btn.pri{margin-top:6px;min-width:240px}
+@keyframes popIn{from{opacity:0}to{opacity:1}}
+@media (min-width:861px) and (max-width:1340px){.abas[data-grupo="aj"] button{padding-left:9px;padding-right:9px;font-size:14px}}
+@media (min-width:861px) and (max-height:860px){#setBox>p.small,#chatBox .col-chat>.card:last-child>p.small{display:none}#setLista .in{padding-top:7px;padding-bottom:7px}}
+@media (prefers-reduced-motion:reduce){.pop-veil{animation:none}}
 </style>
 </head>
 <body>
@@ -1018,11 +1044,17 @@ label.row>input[type=checkbox]{flex:none;margin-top:4px;width:17px;height:17px}
         <div class="card stack"><div class="row"><h3 class="grow">Palavras negativadas no chat</h3><button class="btn sm ghost" id="btnNegPadrao">Restaurar padrão</button></div>
           <p class="small dim" style="margin:0">Quando o atendente digitar uma destas palavras no WhatsApp, o Alinha avisa e sugere a troca antes de enviar.</p>
           <div class="fases" id="negLista"></div><button class="btn sm" id="btnNegAdd">+ Adicionar palavra</button></div>
+        <div class="stack col-chat">
+        <div class="card stack" id="setBox"><div class="row"><h3 class="grow">Setores do atendimento</h3><button class="btn sm ghost" id="btnSetAdd">+ Setor</button></div>
+          <p class="small dim" style="margin:0">Cadastre quem atende em cada setor. No chat, use <b>⇄ Transferir</b> para passar a conversa.</p>
+          <div class="stack" id="setLista" style="gap:6px"></div>
+          <div class="row"><button class="btn pri sm" id="btnSetSalvar">Salvar setores</button><span class="small dim" id="setStatus"></span></div></div>
         <div class="card stack"><h3>Correção ortográfica ao digitar</h3>
           <div class="chips" id="corrModo"><button data-m="auto">Automática</button><button data-m="sugerir">Sugerir (editável)</button><button data-m="off">Desligada</button></div>
           <p class="small dim" style="margin:0">Automática troca a palavra ao terminar de digitá-la (com “desfazer”). Sugerir mostra as correções para aplicar com um toque. O corretor do navegador também sublinha erros.</p>
-          <label class="f" for="corrExtras">Correções da clínica (uma por linha: errado = certo)</label><textarea class="in" id="corrExtras" rows="4" placeholder="invisaling = Invisalign&#10;itero = iTero"></textarea>
+          <label class="f" for="corrExtras">Correções da clínica (uma por linha: errado = certo)</label><textarea class="in" id="corrExtras" rows="2" placeholder="invisaling = Invisalign&#10;itero = iTero"></textarea>
           <div class="row"><button class="btn pri" id="btnChatSalvar">Salvar</button><span class="small dim" id="chatStatus"></span></div></div>
+        </div>
       </div></div>
       <div class="painel" data-grupo="aj" data-aba="seg"><div class="ajgrid" id="segBox">
         <div class="card stack"><div class="row"><h3 class="grow">Verificação em duas etapas</h3><span class="pill" id="segEstado">…</span></div>
@@ -1064,6 +1096,7 @@ label.row>input[type=checkbox]{flex:none;margin-top:4px;width:17px;height:17px}
   </main>
 </div>
 <div id="drawerHost"></div>
+<div id="popHost"></div>
 <div id="toast"></div>
 <div id="dicaGrafico" role="tooltip" class="hide"></div>
 <script src="qrcode.js"></script>

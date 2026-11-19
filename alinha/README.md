@@ -42,10 +42,13 @@ As conversas dos WhatsApps de **Caruaru e Recife**, que já estão ligados ao Ko
 ## Campanhas: calculadora da pirâmide
 Informe o valor investido e os dias de campanha. O Alinha divide o investimento entre **topo (atração), meio (consideração) e fundo (conversão)** — com divisões prontas (50/30/20, 60/25/15, 40/30/30, 70/20/10) ou a sua, editando o percentual direto na pirâmide (as outras fases se ajustam para somar 100%) e salvando como "minha divisão" —, mostra o valor por fase por dia e por semana, a **cadência** de conteúdo e de investimento semana a semana e a **projeção**: leads, agendamentos, comparecimentos, fechamentos, faturamento, retorno e o investimento necessário para a meta. As taxas podem vir dos números reais do Comercial.
 
+## WhatsApp: setores e transferência
+Em **Ajustes › Chat › Setores do atendimento** cadastre quem atende no Comercial, Financeiro, Operacional (ou crie outros setores). No chat, **⇄ Transferir** passa a conversa para outro setor e pessoa, com recado; a transferência fica registrada na conversa e no prontuário. A lista filtra por setor, "Comigo" e "Sem setor".
+
 ## Comercial: ampulheta, CRCs e alerta do dia
 - **Ampulheta**: Funil Lead em cima (entraram, agendaram, compareceram) e Funil Cliente embaixo (em follow-up, fecharam), com faltaram, perdidos e não fecharam ao lado. Os números vêm do CRM e **todos são clicáveis**, abrindo a lista de nomes.
 - **Equipe (CRCs)**: cadastre as CRCs e as metas individuais em Ajustes › Clínica e metas; o Comercial mostra o desempenho, o índice da meta e a evolução de cada uma.
-- **Alerta do dia**: ao abrir o app, os pacientes com maior probabilidade de fechamento (termômetro). No rodapé, um versículo bíblico por dia.
+- **Versículo e alerta do dia**: ao abrir o app, cada operador recebe em pop-up um versículo bíblico (um por dia) e, em seguida, os pacientes com maior probabilidade de fechamento (termômetro).
 - **Ficha**: decisor do pagamento (telefone e WhatsApp), melhor horário, CRC que atendeu, doutor da avaliação e doutor do tratamento.
 
 ## CRM: Funil Lead e Funil Cliente

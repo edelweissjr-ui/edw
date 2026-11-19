@@ -790,7 +790,8 @@ const EVENTOS = {
   "cliente.fechou": "Fechou o tratamento",
   "cliente.nao_fechou": "Não fechou",
   "tratamento.etapa": "Etapa de tratamento registrada (inclui laboratório)",
-  "mensagem.recebida": "Mensagem recebida do paciente"
+  "mensagem.recebida": "Mensagem recebida do paciente",
+  "conversa.transferida": "Conversa do WhatsApp transferida de setor"
 };
 async function integ() { const x = await STORE.integracoes(); return { tokens: [], webhooks: [], entregas: [], seg: {}, ...(x || {}) }; }
 const hashTk = (t) => crypto.createHash("sha256").update(String(t)).digest("hex");
@@ -1220,7 +1221,7 @@ async function rotas(req, res) {
   if (p === "/api/whatsapp/mensagens" && req.method === "GET") {
     const C = await STORE.conversa(String(url.searchParams.get("lead") || ""));
     const desde = url.searchParams.get("desde") || "";
-    return json(res, 200, { ok: true, mensagens: C ? C.lista.filter((m) => !desde || m.ts >= desde) : [] }); // >= e o navegador ignora repetidas
+    return json(res, 200, { ok: true, mensagens: C ? C.lista.filter((m) => !desde || m.ts >= desde) : [], transferencias: (C && C.transf) || [] }); // >= e o navegador ignora repetidas
   }
   if (p === "/api/whatsapp/lead" && req.method === "GET") {
     if (!kommoOk()) return json(res, 503, { erro: "Kommo não configurado" });
@@ -1258,6 +1259,19 @@ async function rotas(req, res) {
     const id = String((d && d.key && d.key.id) || "env-" + Date.now());
     await guardarMensagensEvo([{ lead, tel: numero, id, deMim: true, nome: "", texto, ts: new Date().toISOString() }]);
     return json(res, 200, { ok: true, id });
+  }
+  if (p === "/api/whatsapp/transferir" && req.method === "POST") {
+    const b = await lerJSON(req), lead = String(b.lead || "");
+    const C = await STORE.conversa(lead);
+    if (!C) return json(res, 404, { erro: "Conversa não encontrada" });
+    const setor = String(b.setor || "").trim().slice(0, 40);
+    if (!setor) return json(res, 400, { erro: "Escolha o setor" });
+    const t = { setor, pessoa: String(b.pessoa || "").trim().slice(0, 60), de: C.setor || "", deP: C.responsavel || "", por: String(b.por || "").trim().slice(0, 60), nota: String(b.nota || "").trim().slice(0, 500), ts: new Date().toISOString() };
+    C.setor = t.setor; C.responsavel = t.pessoa; C.transf = (C.transf || []).concat(t).slice(-50);
+    await STORE.salvarConversa(lead, C);
+    const pr = disparar("conversa.transferida", { lead, nome: C.nome || "", telefone: C.telefone || "", setor: t.setor, pessoa: t.pessoa, de: t.de, por: t.por, nota: t.nota }).catch(() => {});
+    if (process.env.VERCEL) await pr;
+    return json(res, 200, { ok: true, transferencia: t });
   }
   if (p === "/api/whatsapp/atendimento" && req.method === "POST") {
     if (!kommoOk()) return json(res, 503, { erro: "Kommo não configurado" });
