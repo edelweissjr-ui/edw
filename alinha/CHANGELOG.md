@@ -1,5 +1,17 @@
 # Novidades do Alinha
 
+## 2.5.0 — nov/2026
+- **Painel do dia** (primeira tela): leads de hoje, consultas de hoje, follow-up, atrasados, WhatsApp sem resposta, fechamentos, meta do mês e alta chance; todos clicáveis. Tarefas do operador, gráfico interativo dos últimos 14 dias e agenda com aniversariantes, lembretes e laboratório.
+- **Check-list diário** por operador: Fazer, Fazendo e Feito; pendências (com número no menu); tarefas só para hoje; **assinatura** com o nome do operador (travada depois de assinada; o administrador pode reabrir); **confetes** ao concluir tudo; **avaliação** com nota de 0 a 10, estrelas e sequência de dias 100%. Tarefas padrão por setor e horário limite em Check-list › Tarefas padrão.
+- **Pacientes**: lista com busca (nome, telefone, CPF, Instagram) e filtros; toque no nome para abrir a **ficha de cadastro** ao lado da **linha do tempo** dos procedimentos e do prontuário.
+- **Ficha do lead e do paciente**: Instagram, CPF (com validação), vários telefones, data de nascimento (idade e aniversário) e **foto** (câmera na hora, arquivo ou foto do WhatsApp).
+- **Marketing**: visão geral (leads, taxas, custo por lead, custo por fechamento, retorno, ticket médio), leads por origem e por semana, tratamentos procurados, Campanhas e Por tratamento, tudo numa aba.
+- **Ampulheta** com quantidade e percentual em cada camada; **Follow-up** com quadros (D0…D30) e números clicáveis; **Por tratamento** com barras clicáveis.
+- **SMS corrigido**: janela com mensagem; envio pelo celular (QR code ou app de mensagens) ou direto pela plataforma com Twilio ou Zenvia; registro no prontuário.
+- **Microfone**: ativar, escolher o microfone, testar com medidor, mensagens claras quando bloqueado e **gravação do áudio da consulta** para baixar.
+- **Unidades**: acrescente outras unidades em Ajustes › Unidades; aparecem em todos os filtros.
+- **Memória dos dados**: cópia automática diária no servidor (e manual), restauração pelo administrador, cópia no aparelho e fila de alterações quando a internet cai (enviadas sozinhas depois). Indicador "✓ Tudo salvo" no menu.
+
 ## 2.4.0 — nov/2026
 - **Versículo do dia em pop-up**: ao abrir o app, cada operador recebe a Palavra do dia e escolhe quem está atendendo. Aparece uma vez por dia por operador (trocar o nome em "Atendendo" mostra para a nova pessoa). Depois vem o Alerta do dia.
 - **Setores do atendimento**: Comercial, Financeiro e Operacional (e outros que a clínica criar), cada um com os nomes de quem atende, em Ajustes › Chat.

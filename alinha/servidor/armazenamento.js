@@ -6,6 +6,9 @@ import fs from "node:fs";
 import path from "node:path";
 
 const DIA = 86400000;
+const diaLocal = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+const ultimosDias = (n) => Array.from({ length: n }, (_, i) => diaLocal(new Date(Date.now() - i * DIA)));
+const nomeCopiaOk = (n) => /^[\w.-]{1,80}$/.test(String(n || ""));
 const resumoDe = (lead, C) => { const u = C.lista[C.lista.length - 1] || {}; return { lead, nome: C.nome || "", foto: C.foto || "", unidade: C.unidade || "", ultima: u.texto || "", autor: u.autor || "", ts: u.ts || "", total: C.lista.length, setor: C.setor || "", responsavel: C.responsavel || "", atualizado: C.atualizado || 0 }; };
 
 export function criarArmazenamento({ dados, prefixo = "alinha", env = process.env }) {
@@ -50,15 +53,30 @@ function arquivo(pasta) {
     async integracoes() { return DB.integracoes || {}; },
     async salvarIntegracoes(x) { DB.integracoes = x; salvar(true); },
     async exportar() { return DB; },
+    // check-list diário: { dia: { operador: registro } }
+    async checklistDia(dia) { return (DB.checklist || {})[dia] || {}; },
+    async salvarChecklist(dia, op, reg) {
+      DB.checklist = DB.checklist || {}; (DB.checklist[dia] = DB.checklist[dia] || {})[op] = reg;
+      const limite = diaLocal(new Date(Date.now() - 400 * DIA)); Object.keys(DB.checklist).forEach((d) => { if (d < limite) delete DB.checklist[d]; });
+      salvar(); return reg;
+    },
+    async checklistHistorico(n) { const out = {}; ultimosDias(n).forEach((d) => { if ((DB.checklist || {})[d]) out[d] = DB.checklist[d]; }); return out; },
+    // memória: cópias guardadas e restauração
+    async listarCopias() { return fs.readdirSync(BK).filter((f) => f.endsWith(".json")).map((f) => f.slice(0, -5)).sort().reverse(); },
+    async lerCopia(nome) { if (!nomeCopiaOk(nome)) return null; try { return JSON.parse(fs.readFileSync(path.join(BK, nome + ".json"), "utf8")); } catch { return null; } },
+    async importar(db) { DB.pacientes = Array.isArray(db.pacientes) ? db.pacientes : []; DB.ajustes = db.ajustes || {}; if (db.checklist) DB.checklist = db.checklist; salvar(true); },
+    async ultimaCopia() { return DB.ultimaCopia || ""; },
+    async marcarCopia(dia) { DB.ultimaCopia = dia; salvar(); },
     async backup(motivo) {
+      try { salvar(true); } catch (e) { console.error("Falha ao gravar antes da cópia:", e.message); } // grava o que estava esperando, para a cópia sair completa
       if (!fs.existsSync(ARQ)) return null;
-      const nome = `alinha-${new Date().toISOString().slice(0, 10)}-${motivo}.json`;
+      const nome = `alinha-${new Date().toISOString().slice(0, 10)}-${motivo}${motivo === "manual" || motivo === "antes-de-restaurar" ? "-" + new Date().toISOString().slice(11, 19).replace(/:/g, "") : ""}.json`;
       fs.copyFileSync(ARQ, path.join(BK, nome));
       const lista = fs.readdirSync(BK).filter((f) => f.endsWith(".json")).sort();
       const diarias = lista.filter((f) => f.includes("-diario"));
-      diarias.slice(0, Math.max(0, diarias.length - 7)).forEach((f) => fs.unlinkSync(path.join(BK, f)));
+      diarias.slice(0, Math.max(0, diarias.length - 30)).forEach((f) => fs.unlinkSync(path.join(BK, f)));
       lista.filter((f) => !f.includes("-diario")).forEach((f) => { if (Date.now() - new Date(f.slice(7, 17)) > 90 * DIA) fs.unlinkSync(path.join(BK, f)); });
-      return nome;
+      return nome.slice(0, -5);
     }
   };
 }
@@ -74,7 +92,8 @@ function redis(url, token, P) {
   }
   const um = async (...c) => (await pipe([c]))[0];
   const ler = (s, def) => { try { return s ? JSON.parse(s) : def; } catch { return def; } };
-  const K = { meta: `${P}:meta`, aj: `${P}:ajustes`, pac: `${P}:pacientes`, res: `${P}:wa:resumo`, wa: (l) => `${P}:wa:${l}`, integ: `${P}:integracoes` };
+  const K = { meta: `${P}:meta`, aj: `${P}:ajustes`, pac: `${P}:pacientes`, res: `${P}:wa:resumo`, wa: (l) => `${P}:wa:${l}`, integ: `${P}:integracoes`, ck: (d) => `${P}:ck:${d}`, bk: (n) => `${P}:backup:${n}`, ult: `${P}:ultimaCopia` };
+  const hash = (h) => { const o = {}; for (let i = 0; i + 1 < (h || []).length; i += 2) { const v = ler(h[i + 1], null); if (v) o[h[i]] = v; } return o; };
   return {
     tipo: "redis", persistente: true,
     async meta() { return ler(await um("GET", K.meta), { esquema: 0, versao: null }); },
@@ -106,11 +125,24 @@ function redis(url, token, P) {
       const [m, a] = await pipe([["GET", K.meta], ["GET", K.aj]]);
       const r = await this.resumoWA();
       const wa = {}; for (const it of r.itens) { const c = await this.conversa(it.lead); if (c) wa[it.lead] = c; }
-      return { ...ler(m, {}), ajustes: ler(a, {}), pacientes: await this.pacientes(), whatsapp: wa };
+      return { ...ler(m, {}), ajustes: ler(a, {}), pacientes: await this.pacientes(), whatsapp: wa, checklist: await this.checklistHistorico(120) };
     },
+    async checklistDia(dia) { return hash(await um("HGETALL", K.ck(dia))); },
+    async salvarChecklist(dia, op, reg) { await pipe([["HSET", K.ck(dia), op, JSON.stringify(reg)], ["EXPIRE", K.ck(dia), String(400 * 86400)]]); return reg; },
+    async checklistHistorico(n) { const dias = ultimosDias(n); const r = await pipe(dias.map((d) => ["HGETALL", K.ck(d)])); const out = {}; dias.forEach((d, i) => { const h = hash(r[i]); if (Object.keys(h).length) out[d] = h; }); return out; },
+    async listarCopias() { const ks = (await um("KEYS", K.bk("*"))) || []; return ks.map((k) => k.slice(K.bk("").length)).sort().reverse(); },
+    async lerCopia(nome) { if (!nomeCopiaOk(nome)) return null; return ler(await um("GET", K.bk(nome)), null); },
+    async importar(db) {
+      const cmds = [["SET", K.aj, JSON.stringify(db.ajustes || {})], ["DEL", K.pac]];
+      (db.pacientes || []).forEach((p) => p && p.id && cmds.push(["HSET", K.pac, p.id, JSON.stringify(p)]));
+      Object.entries(db.checklist || {}).forEach(([d, regs]) => Object.entries(regs || {}).forEach(([op, r]) => cmds.push(["HSET", K.ck(d), op, JSON.stringify(r)])));
+      await pipe(cmds);
+    },
+    async ultimaCopia() { return (await um("GET", K.ult)) || ""; },
+    async marcarCopia(dia) { await um("SET", K.ult, dia); },
     async backup(motivo) {
       // cópia no próprio banco, guardada por 90 dias
-      try { const db = await this.exportar(); await um("SET", `${P}:backup:${new Date().toISOString().slice(0, 10)}-${motivo}`, JSON.stringify(db), "EX", String(90 * 86400)); return motivo; }
+      try { const db = await this.exportar(); const nome = `${new Date().toISOString().slice(0, 10)}-${motivo}${motivo === "manual" || motivo === "antes-de-restaurar" ? "-" + new Date().toISOString().slice(11, 19).replace(/:/g, "") : ""}`; await um("SET", K.bk(nome), JSON.stringify(db), "EX", String(90 * 86400)); return nome; }
       catch (e) { console.error("Cópia de segurança não gravada:", e.message); return null; }
     }
   };

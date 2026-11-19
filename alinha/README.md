@@ -42,6 +42,20 @@ As conversas dos WhatsApps de **Caruaru e Recife**, que já estão ligados ao Ko
 ## Campanhas: calculadora da pirâmide
 Informe o valor investido e os dias de campanha. O Alinha divide o investimento entre **topo (atração), meio (consideração) e fundo (conversão)** — com divisões prontas (50/30/20, 60/25/15, 40/30/30, 70/20/10) ou a sua, editando o percentual direto na pirâmide (as outras fases se ajustam para somar 100%) e salvando como "minha divisão" —, mostra o valor por fase por dia e por semana, a **cadência** de conteúdo e de investimento semana a semana e a **projeção**: leads, agendamentos, comparecimentos, fechamentos, faturamento, retorno e o investimento necessário para a meta. As taxas podem vir dos números reais do Comercial.
 
+## Painel, check-list e pacientes
+- **Painel do dia**: a primeira tela, com as métricas do dia (todas clicáveis), as tarefas do operador, o gráfico dos últimos 14 dias e a agenda de hoje.
+- **Check-list diário**: Fazer, Fazendo e Feito; pendências; assinatura por operador; confetes ao concluir; avaliação com nota de 0 a 10. As tarefas padrão (por setor) ficam em Check-list › Tarefas padrão.
+- **Pacientes**: lista com busca e filtros; o nome abre a ficha de cadastro (foto, Instagram, CPF, telefones, nascimento) com a linha do tempo dos procedimentos.
+- **Marketing**: todas as métricas de marketing, as Campanhas e os resultados por tratamento numa aba só.
+
+## SMS
+Sem configuração, o SMS sai pelo celular (QR code ou app de mensagens). Para enviar direto pela plataforma, configure na hospedagem **um** destes provedores:
+- **Twilio**: `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN` e `TWILIO_FROM` (número de envio).
+- **Zenvia**: `ZENVIA_TOKEN` e `ZENVIA_FROM` (remetente).
+
+## Memória dos dados
+Na plataforma, os dados ficam no banco (Upstash Redis na Vercel ou arquivo no Render com disco). O Alinha faz uma **cópia automática por dia** (e antes de cada atualização), guarda uma cópia no aparelho e mantém uma fila do que foi alterado sem internet, enviada sozinha quando a conexão volta. O administrador faz cópias e restaura em Ajustes › Sistema › Dados e memória.
+
 ## WhatsApp: setores e transferência
 Em **Ajustes › Chat › Setores do atendimento** cadastre quem atende no Comercial, Financeiro, Operacional (ou crie outros setores). No chat, **⇄ Transferir** passa a conversa para outro setor e pessoa, com recado; a transferência fica registrada na conversa e no prontuário. A lista filtra por setor, "Comigo" e "Sem setor".
 

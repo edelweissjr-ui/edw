@@ -75,9 +75,17 @@ window.ALINHA_DEMO = (function () {
   const doutores = ["Dr. Edelweiss", "Dra. Paula"];
   const setores = [{ id: "comercial", nome: "Comercial", pessoas: ["Renata", "Joana"] }, { id: "financeiro", nome: "Financeiro", pessoas: ["Ana"] }, { id: "operacional", nome: "Operacional", pessoas: ["Carla"] }];
   const atendimento = { ex11: "Renata", ex12: "Joana", ex13: "Renata", ex14: "Joana", ex15: "Renata", ex16: "Joana", ex17: "Renata", ex18: "Joana", ex19: "Renata" };
+  // cadastro completo de alguns pacientes (Instagram, CPF, nascimento, outros telefones)
+  const H0 = new Date(), anivHoje = (anos) => `${H0.getFullYear() - anos}-${String(H0.getMonth() + 1).padStart(2, "0")}-${String(H0.getDate()).padStart(2, "0")}`;
+  const cadastro = {
+    ex1: { instagram: "larissa.menezes", cpf: "52998224725", nascimento: anivHoje(27), telefones: [{ rotulo: "Fixo", numero: "(81) 3000-1001" }] },
+    ex3: { instagram: "tati.alves", cpf: "11144477735", nascimento: "1993-03-14", telefones: [{ rotulo: "Trabalho", numero: "(81) 3000-1003" }] },
+    ex5: { instagram: "marcos.lima.pe", nascimento: "1985-11-02" },
+    ex12: { instagram: "alinesouza", nascimento: "1998-07-21" }
+  };
   const decisores = { ex3: { decisorRel: "Noivo(a)", decisor: "Thiago", decisorTel: "(81) 90000-3003", melhorHorario: "Noite (18h–21h)" }, ex1: { decisorRel: "Pai ou mãe", decisor: "Sr. Menezes (pai)", decisorTel: "(81) 90000-3001", melhorHorario: "Almoço (12h–14h)" }, ex5: { decisorRel: "Cônjuge", decisor: "Cláudia (esposa)", melhorHorario: "Tarde (14h–18h)" } };
   const pacientes = () => clientes().map((p) => (trabalhos[p.id] ? Object.assign(p, { trabalhos: JSON.parse(JSON.stringify(trabalhos[p.id])) }) : p)).map((p) => Object.assign({ entradaEm: new Date(new Date(p.consultaEm).getTime() - 4 * 864e5).toISOString(), agendadoEm: new Date(new Date(p.consultaEm).getTime() - 3 * 864e5).toISOString(), compareceuEm: p.consultaEm }, p)).concat(leads()).map((p) => (extras[p.id] ? Object.assign(p, JSON.parse(JSON.stringify(extras[p.id]))) : p))
-    .map((p) => Object.assign(p, { crc: p.crc || atendimento[p.id] || (/^dr/i.test(p.responsavel || "") ? "" : p.responsavel) || "", drAvaliacao: p.drAvaliacao || p.profissional || "" }, decisores[p.id] || {}, { trabalhos: (p.trabalhos || []).map((t) => Object.assign({ dr: p.profissional || "Dr. Edelweiss" }, t)) }));
+    .map((p) => Object.assign(p, { crc: p.crc || atendimento[p.id] || (/^dr/i.test(p.responsavel || "") ? "" : p.responsavel) || "", drAvaliacao: p.drAvaliacao || p.profissional || "" }, decisores[p.id] || {}, cadastro[p.id] || {}, p.id === "ex16" ? { agendaPara: new Date(H0.getFullYear(), H0.getMonth(), H0.getDate(), 12).toISOString() } : {}, { trabalhos: (p.trabalhos || []).map((t) => Object.assign({ dr: p.profissional || "Dr. Edelweiss" }, t)) }));
 
   // Consulta simulada (≈ 2 minutos, acelerada)
   const consulta = {

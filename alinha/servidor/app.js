@@ -83,6 +83,60 @@ export function iniciar() {
 }
 
 /* ------------------------------------------------------------------ */
+/* SMS: Twilio ou Zenvia (configurados na hospedagem)                  */
+/* ------------------------------------------------------------------ */
+function smsCfg() {
+  if (env.TWILIO_ACCOUNT_SID && env.TWILIO_AUTH_TOKEN && env.TWILIO_FROM) return { prov: "twilio" };
+  if (env.ZENVIA_TOKEN && env.ZENVIA_FROM) return { prov: "zenvia" };
+  return null;
+}
+const smsOk = () => !!smsCfg();
+function numeroBR(t) { let d = String(t || "").replace(/\D/g, ""); if (d.startsWith("00")) d = d.slice(2); if (d.length >= 10 && d.length <= 11) d = "55" + d; return d.length >= 12 && d.length <= 15 ? d : ""; }
+async function enviarSMS(numero, texto) {
+  const c = smsCfg(); if (!c) throw Object.assign(new Error("SMS não configurado"), { status: 503 });
+  const ctl = new AbortController(); const t = setTimeout(() => ctl.abort(), 15000);
+  try {
+    if (c.prov === "twilio") {
+      const base = (env.SMS_URL_BASE || "https://api.twilio.com").replace(/\/$/, "");
+      const r = await fetch(`${base}/2010-04-01/Accounts/${encodeURIComponent(env.TWILIO_ACCOUNT_SID)}/Messages.json`, { method: "POST", signal: ctl.signal, headers: { Authorization: "Basic " + Buffer.from(`${env.TWILIO_ACCOUNT_SID}:${env.TWILIO_AUTH_TOKEN}`).toString("base64"), "Content-Type": "application/x-www-form-urlencoded" }, body: new URLSearchParams({ To: "+" + numero, From: env.TWILIO_FROM, Body: texto }).toString() });
+      const d = await r.json().catch(() => ({}));
+      if (!r.ok) throw Object.assign(new Error("Twilio: " + (d.message || r.status)), { status: 502 });
+      return { id: d.sid || "", provedor: "twilio" };
+    }
+    const base = (env.SMS_URL_BASE || "https://api.zenvia.com").replace(/\/$/, "");
+    const r = await fetch(`${base}/v2/channels/sms/messages`, { method: "POST", signal: ctl.signal, headers: { "X-API-TOKEN": env.ZENVIA_TOKEN, "Content-Type": "application/json" }, body: JSON.stringify({ from: env.ZENVIA_FROM, to: numero, contents: [{ type: "text", text: texto }] }) });
+    const d = await r.json().catch(() => ({}));
+    if (!r.ok) throw Object.assign(new Error("Zenvia: " + (d.message || r.status)), { status: 502 });
+    return { id: d.id || "", provedor: "zenvia" };
+  } catch (e) { if (e.name === "AbortError") throw Object.assign(new Error("O provedor de SMS não respondeu"), { status: 504 }); throw e; }
+  finally { clearTimeout(t); }
+}
+
+/* memória: uma cópia automática por dia, na primeira gravação do dia */
+let copiaHoje = "";
+async function copiaDiaria() {
+  const dia = new Date().toISOString().slice(0, 10);
+  if (copiaHoje === dia) return;
+  copiaHoje = dia;
+  try { if ((await STORE.ultimaCopia()) === dia) return; const nome = await STORE.backup("diario"); if (nome) await STORE.marcarCopia(dia); } catch (e) { copiaHoje = ""; console.error("Cópia diária não feita:", e.message); }
+}
+
+/* check-list: confere o registro enviado pelo navegador */
+const EST_CK = ["fazer", "fazendo", "feito"];
+function limparRegistroCk(op, r, antes, papel) {
+  const txt = (x, n) => String(x || "").slice(0, n);
+  const out = { operador: op, itens: {}, extras: [], tarefas: null, assinado: null };
+  Object.entries((r && r.itens) || {}).slice(0, 80).forEach(([k, v]) => { if (EST_CK.includes(v)) out.itens[txt(k, 40)] = v; });
+  out.extras = (Array.isArray(r && r.extras) ? r.extras : []).slice(0, 30).map((x) => ({ id: txt(x && x.id, 40), txt: txt(x && x.txt, 200) })).filter((x) => x.id && x.txt);
+  if (Array.isArray(r && r.tarefas)) out.tarefas = r.tarefas.slice(0, 60).map((x) => ({ id: txt(x && x.id, 40), txt: txt(x && x.txt, 200) })).filter((x) => x.id && x.txt);
+  if (r && r.concluidoEm) out.concluidoEm = txt(r.concluidoEm, 30);
+  if (antes && antes.assinado) out.assinado = antes.assinado; // assinatura não se desfaz (só o administrador reabre)
+  else if (r && r.assinado) out.assinado = { em: new Date().toISOString(), nome: op };
+  if (antes && antes.assinado && papel === "admin" && r && r.reabrir) out.assinado = null;
+  return out;
+}
+
+/* ------------------------------------------------------------------ */
 /* Celular conectado por QR code (Evolution API)                       */
 /* ------------------------------------------------------------------ */
 const evoOk = () => !!(CFG.evoUrl && CFG.evoKey);
@@ -290,18 +344,21 @@ function autenticar(usuario, senha) {
   return null;
 }
 /* permissões por perfil (o administrador ajusta em Ajustes › Permissões) */
-const TELAS = ["hoje", "whatsapp", "crm", "consulta", "briefings", "followup", "comercial", "tratamentos", "resultados", "campanhas"];
-const ACOES_CONFIG = ["enviar_whatsapp", "exportar"];
+const TELAS = ["hoje", "whatsapp", "crm", "pacientes", "consulta", "briefings", "followup", "comercial", "tratamentos", "resultados", "campanhas"];
+const ACOES_CONFIG = ["enviar_whatsapp", "enviar_sms", "exportar"];
+const SEMPRE = ["painel", "checklist", "suporte", "ajustes"]; // telas de todos os perfis
 const PERM_PADRAO = {
-  operacional: { telas: ["hoje", "crm", "consulta", "briefings", "followup", "comercial", "tratamentos"], acoes: [] },
-  crc: { telas: ["hoje", "whatsapp", "crm", "briefings", "followup", "comercial", "tratamentos"], acoes: ["enviar_whatsapp"] }
+  operacional: { telas: ["hoje", "crm", "pacientes", "consulta", "briefings", "followup", "comercial", "tratamentos"], acoes: ["enviar_sms"] },
+  crc: { telas: ["hoje", "whatsapp", "crm", "pacientes", "briefings", "followup", "comercial", "tratamentos"], acoes: ["enviar_whatsapp", "enviar_sms"] }
 };
 function permissoes(papel) {
-  if (papel === "admin") return { telas: [...TELAS, "suporte", "ajustes"], acoes: [...ACOES_CONFIG, "apagar", "configurar"] };
+  if (papel === "admin") return { telas: [...TELAS, "marketing", ...SEMPRE], acoes: [...ACOES_CONFIG, "apagar", "configurar"] };
   const c = (AJC.permissoes && AJC.permissoes[papel]) || PERM_PADRAO[papel] || { telas: [], acoes: [] };
-  const telas = [...(c.telas || [])];
-  if (c.v !== 2 && telas.includes("comercial")) telas.push("crm", "tratamentos"); // permissões salvas antes do CRM e dos Tratamentos
-  return { telas: [...new Set(telas.filter((t) => TELAS.includes(t)))].concat("suporte", "ajustes"), acoes: (c.acoes || []).filter((a) => ACOES_CONFIG.includes(a)) };
+  const telas = [...(c.telas || [])], acoes = [...(c.acoes || [])];
+  if ((c.v || 0) < 2 && telas.includes("comercial")) telas.push("crm", "tratamentos"); // permissões salvas antes do CRM e dos Tratamentos
+  if ((c.v || 0) < 3) { if (telas.includes("crm")) telas.push("pacientes"); acoes.push("enviar_sms"); } // antes da tela Pacientes e do SMS
+  if (telas.includes("resultados") || telas.includes("campanhas")) telas.push("marketing");
+  return { telas: [...new Set(telas.filter((t) => TELAS.includes(t) || t === "marketing"))].concat(SEMPRE), acoes: [...new Set(acoes.filter((a) => ACOES_CONFIG.includes(a)))] };
 }
 const pode = (papel, k) => { const P = permissoes(papel); return P.telas.includes(k) || P.acoes.includes(k); };
 const ehHttps = (req) => (req.headers["x-forwarded-proto"] || "").includes("https");
@@ -1100,7 +1157,7 @@ async function rotas(req, res) {
       webhooks: { kommo: CFG.kommoChaveWebhook ? `${base}/webhooks/kommo/${CFG.kommoChaveWebhook}` : "", evolution: evoOk() ? `${base}/webhooks/evolution/${chaveWebhookEvo()}` : "" } });
   }
   if (p === "/api/config" && req.method === "GET") { try { AJC = await STORE.ajustes(); } catch { /* usa o que já tem */ } }
-  if (p === "/api/config" && req.method === "GET") return json(res, 200, { plataforma: true, endereco: baseDaRequisicao(req), versao: VERSAO, papel, permissoes: permissoes(papel), ia: !!anthropic, kommo: kommoOk(), whatsapp: !!CFG.kommoChaveWebhook || evoOk(), celular: evoOk(), armazenamento: STORE.tipo, dadosPersistentes: STORE.persistente, kommoUrl: CFG.kommoSub ? `https://${CFG.kommoSub}.kommo.com` : "" });
+  if (p === "/api/config" && req.method === "GET") return json(res, 200, { plataforma: true, endereco: baseDaRequisicao(req), versao: VERSAO, papel, permissoes: permissoes(papel), ia: !!anthropic, kommo: kommoOk(), whatsapp: !!CFG.kommoChaveWebhook || evoOk(), celular: evoOk(), armazenamento: STORE.tipo, dadosPersistentes: STORE.persistente, sms: smsOk(), kommoUrl: CFG.kommoSub ? `https://${CFG.kommoSub}.kommo.com` : "" });
   if (p === "/api/backup" && req.method === "GET") {
     if (exige("exportar")) return;
     res.writeHead(200, { "Content-Type": "application/json; charset=utf-8", "Content-Disposition": `attachment; filename="alinha-dados-${new Date().toISOString().slice(0, 10)}.json"`, "Cache-Control": "no-store" });
@@ -1173,12 +1230,58 @@ async function rotas(req, res) {
   }
 
   // pacientes (follow-up)
+  // check-list diário (todos os perfis)
+  const diaOk = (d) => /^\d{4}-\d{2}-\d{2}$/.test(String(d || ""));
+  if (p === "/api/checklist" && req.method === "GET") {
+    const dia = url.searchParams.get("dia"); if (!diaOk(dia)) return json(res, 400, { erro: "Informe o dia (AAAA-MM-DD)" });
+    return json(res, 200, { ok: true, dia, registros: await STORE.checklistDia(dia) });
+  }
+  if (p === "/api/checklist/historico" && req.method === "GET") {
+    const n = Math.max(1, Math.min(120, Number(url.searchParams.get("dias")) || 30));
+    return json(res, 200, { ok: true, dias: await STORE.checklistHistorico(n) });
+  }
+  if (p === "/api/checklist" && req.method === "POST") {
+    const b = await lerJSON(req); const op = String(b.operador || "").trim().slice(0, 60);
+    if (!diaOk(b.dia) || !op) return json(res, 400, { erro: "Informe o dia e o operador" });
+    const antes = (await STORE.checklistDia(b.dia))[op] || null;
+    if (antes && antes.assinado && papel !== "admin" && !(b.registro && b.registro.assinado)) return json(res, 409, { erro: "Este check-list já foi assinado." });
+    const reg = limparRegistroCk(op, b.registro, antes, papel);
+    await STORE.salvarChecklist(b.dia, op, reg); copiaDiaria();
+    return json(res, 200, { ok: true, registro: reg });
+  }
+  // SMS
+  if (p === "/api/sms/enviar" && req.method === "POST") {
+    if (exige("enviar_sms")) return;
+    if (!smsOk()) return json(res, 503, { erro: "SMS não configurado na hospedagem (Twilio ou Zenvia)" });
+    const b = await lerJSON(req); const numero = numeroBR(b.telefone), texto = String(b.texto || "").trim().slice(0, 640);
+    if (!numero || !texto) return json(res, 400, { erro: "Informe um telefone válido e a mensagem" });
+    try { const r = await enviarSMS(numero, texto); return json(res, 200, { ok: true, ...r }); }
+    catch (e) { return json(res, e.status || 502, { erro: e.message }); }
+  }
+  // memória dos dados: cópias guardadas e restauração
+  if (p === "/api/memoria" && req.method === "GET") {
+    if (soAdmin()) return;
+    return json(res, 200, { ok: true, tipo: STORE.tipo, persistente: STORE.persistente, ultimaCopia: await STORE.ultimaCopia(), copias: (await STORE.listarCopias()).slice(0, 30) });
+  }
+  if (p === "/api/memoria/copia" && req.method === "POST") {
+    if (soAdmin()) return;
+    const nome = await STORE.backup("manual"); if (!nome) return json(res, 500, { erro: "Não foi possível fazer a cópia" });
+    return json(res, 200, { ok: true, nome });
+  }
+  if (p === "/api/memoria/restaurar" && req.method === "POST") {
+    if (soAdmin()) return;
+    const b = await lerJSON(req); const db = await STORE.lerCopia(b.nome);
+    if (!db || !Array.isArray(db.pacientes)) return json(res, 404, { erro: "Cópia não encontrada" });
+    await STORE.backup("antes-de-restaurar");
+    await STORE.importar(db); AJC = await STORE.ajustes();
+    return json(res, 200, { ok: true, pacientes: db.pacientes.length });
+  }
   if (p === "/api/pacientes" && req.method === "GET") return json(res, 200, { ok: true, pacientes: await STORE.pacientes() });
   if (p === "/api/pacientes" && req.method === "POST") {
     const b = await lerJSON(req);
     if (!b.id) b.id = "p" + Date.now().toString(36) + crypto.randomBytes(2).toString("hex");
     const antes = (await STORE.pacientes()).find((x) => x.id === b.id) || null;
-    await STORE.salvarPaciente(b);
+    await STORE.salvarPaciente(b); copiaDiaria();
     await emitir(antes, b, "alinha");
     return json(res, 200, { ok: true, paciente: b });
   }
@@ -1193,7 +1296,7 @@ async function rotas(req, res) {
     const b = await lerJSON(req);
     // a equipe só pode cadastrar a própria voz; o resto dos ajustes é do administrador
     if (papel !== "admin" && Object.keys(b).some((k) => k !== "vozes")) return json(res, 403, { erro: "Somente o administrador pode alterar os ajustes." });
-    AJC = await STORE.salvarAjustes(b);
+    AJC = await STORE.salvarAjustes(b); copiaDiaria();
     return json(res, 200, { ok: true, ajustes: AJC });
   }
 

@@ -8,8 +8,9 @@
   const BIB = window.ROTEIRO, DEMO = window.ALINHA_DEMO;
   /* Versão: na plataforma, vem do servidor (package.json) no momento em que a tela abriu.
      Ao publicar uma atualização, aumente a versão em package.json e registre em NOVIDADES. */
-  let VERSAO = "2.4.0";
+  let VERSAO = "2.5.0";
   const NOVIDADES = [
+    { v: "2.5.0", data: "nov/2026", itens: ["Painel do dia com todas as métricas clicáveis e as suas tarefas", "Check-list diário (Fazer, Fazendo, Feito), pendências, assinatura por operador, confetes e avaliação com nota", "Pacientes: lista com busca e ficha de cadastro com a linha do tempo; foto (câmera, arquivo ou WhatsApp), Instagram, CPF, vários telefones e nascimento", "Marketing reúne campanhas e métricas; ampulheta com quantidade e percentual; follow-up e resultados clicáveis", "SMS funcionando (QR code, app do celular ou Twilio/Zenvia), microfone com teste e gravação, novas unidades e memória dos dados (cópias diárias e fila sem internet)"] },
     { v: "2.4.0", data: "nov/2026", itens: ["Versículo do dia em pop-up para cada operador ao abrir o app (já pergunta quem está atendendo)", "Setores do atendimento (Comercial, Financeiro, Operacional e outros) com os nomes de quem atende, em Ajustes › Chat", "Transferir a conversa do WhatsApp para outro setor no próprio chat, com recado; filtro por setor e “Comigo”"] },
     { v: "2.3.0", data: "nov/2026", itens: ["Login com código de 6 números do Google Authenticator (opcional, em Ajustes › Segurança)", "Temas Esmeralda e Pérola, sem mudar a logomarca", "Foto do paciente do WhatsApp no círculo; palavras negativadas e correção ortográfica no chat", "Comercial em ampulheta (Funil Lead e Funil Cliente) com todos os números clicáveis; desempenho por CRC com metas", "Alerta do dia com os pacientes de maior chance; versículo diário; decisor, melhor horário, CRC e doutor na ficha"] },
     { v: "2.2.0", data: "nov/2026", itens: ["Nova logomarca Alinha · Gestão Infinity", "Linha do tempo com Finalizado e o fluxo completo do Invisalign (consulta, orçamento, pagamento, escaneamento, fotografias, radiografias, ClinCheck, alinhadores, agendamento, instalação)", "Marcar e desmarcar qualquer fase, com a data ao passar o mouse e o registro no prontuário", "Procedimentos e fases cadastráveis; ao aprovar o orçamento, a linha do tempo é criada e pode ser personalizada", "Cartões do CRM compactos com e-mail, WhatsApp, SMS, lembrete e termômetro; filtros completos no CRM"] },
@@ -59,8 +60,15 @@
   const Store = {
     async carregar() {
       if (PLAT) {
-        PAC = (await api("GET", "api/pacientes")).pacientes || [];
-        AJ = Object.assign(AJ, (await api("GET", "api/ajustes")).ajustes || {});
+        try {
+          const [dp, da] = await Promise.all([apiCru("GET", "api/pacientes"), apiCru("GET", "api/ajustes")]);
+          PAC = dp.pacientes || []; AJ = Object.assign(AJ, da.ajustes || {});
+          // alterações feitas sem conexão que ainda não chegaram ao servidor
+          MEM.fila = (await IDB.get("fila")) || [];
+          MEM.fila.forEach((op) => { if (op.tipo === "salvar") { const i = PAC.findIndex((x) => x.id === op.p.id); if (i >= 0) PAC[i] = op.p; else PAC.push(op.p); } if (op.tipo === "remover") PAC = PAC.filter((x) => x.id !== op.id); if (op.tipo === "ajustes") Object.assign(AJ, op.novo); });
+          espelhar(); if (MEM.fila.length) enviarFila().catch(() => {});
+        } catch (e) { if (!e.rede || !(await memCarregarEspelho())) throw e; MEM.offline = true; }
+        memInfo();
       } else {
         PAC = ls.get("alinha.pacientes", null);
         if (!PAC) { PAC = DEMO.pacientes(); ls.set("alinha.pacientes", PAC); }
@@ -70,16 +78,16 @@
     async salvar(p) {
       const i = PAC.findIndex((x) => x.id === p.id);
       if (i >= 0) PAC[i] = p; else PAC.push(p);
-      if (PLAT) { const d = await api("POST", "api/pacientes", p); Object.assign(p, d.paciente); }
-      else ls.set("alinha.pacientes", PAC);
+      if (PLAT) { enfileirar({ tipo: "salvar", p }); await enviarFila(); }
+      else { try { ls.set("alinha.pacientes", PAC); } catch (e) { toast("O navegador está sem espaço para guardar os dados"); } }
     },
     async remover(id) {
       PAC = PAC.filter((x) => x.id !== id);
-      if (PLAT) await api("DELETE", "api/pacientes/" + encodeURIComponent(id)); else ls.set("alinha.pacientes", PAC);
+      if (PLAT) { enfileirar({ tipo: "remover", id }); await enviarFila(); } else ls.set("alinha.pacientes", PAC);
     },
     async ajustes(novo) {
       AJ = Object.assign(AJ, novo);
-      if (PLAT) await api("POST", "api/ajustes", novo); else ls.set("alinha.ajustes", AJ);
+      if (PLAT) { enfileirar({ tipo: "ajustes", novo }); await enviarFila(); } else ls.set("alinha.ajustes", AJ);
     }
   };
   const novoId = () => "p" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
@@ -339,12 +347,14 @@
   $("#kanban").addEventListener("click", (e) => { const m = e.target.closest("[data-maisfu]"); if (!m) return; e.stopPropagation(); FU_ABERTAS[m.dataset.maisfu] = !FU_ABERTAS[m.dataset.maisfu]; renderFollowup(); }, true);
   function renderFollowup() {
     const N = numeros();
-    kpis("#kpisFU", [
-      ["Valor em aberto", brl(N.emAberto), `${N.nAbertos} pacientes`, true],
-      ["Atrasados hoje", N.atrasados, "toques vencidos", false, "atrasados"],
-      ["Fecharam no mês", N.fecharamMes, "pacientes"],
-      ["Recuperado", brl(N.recuperado), "fechados pelo follow-up"]
-    ]);
+    FU_LISTAS = { abertos: PAC.filter((p) => p.status === "aberto"), fecharamMes: PAC.filter((p) => p.status === "fechado" && doMes(p.fechadoEm)), recuperados: PAC.filter((p) => p.status === "fechado" && p.recuperado && doMes(p.fechadoEm)) };
+    $("#kpisFU").innerHTML = [
+      ["Valor em aberto", brl(N.emAberto), `${N.nAbertos} pacientes · ver nomes`, true, "abertos", "Em follow-up (valor em aberto)"],
+      ["Atrasados hoje", N.atrasados, "toques vencidos", false, null],
+      ["Fecharam no mês", N.fecharamMes, "pacientes · ver nomes", false, "fecharamMes", "Fecharam no mês"],
+      ["Recuperado", brl(N.recuperado), "fechados pelo follow-up", false, "recuperados", "Recuperados pelo follow-up"]
+    ].map(([rot, val, sub, hl, k, tit]) => k ? `<button class="kpi click${hl ? " hl" : ""}" data-fulista="${k}" data-futit="${esc(tit)}"><div class="label">${rot}</div><b class="num">${val}</b><span>${sub}</span></button>`
+      : `<button class="kpi click" data-seq="atrasados" ${val ? "" : "disabled"}><div class="label">${rot}</div><b class="num">${val}</b><span>${sub}</span>${val ? `<em class="go">Alinhar em sequência →</em>` : ""}</button>`).join("");
     const resp = ["Todos", ...new Set([...(AJ.equipe || []), ...PAC.map((p) => p.responsavel).filter(Boolean)])];
     $("#filtroResp").innerHTML = resp.map((r) => `<button class="${r === filtro ? "on" : ""}" data-f="${esc(r)}">${esc(r)}</button>`).join("");
     const lista = PAC.filter((p) => filtro === "Todos" || p.responsavel === filtro);
@@ -352,7 +362,8 @@
     colunas.push({ d: "reat", titulo: "Reativação", sub: "30, 60 e 90 dias", itens: lista.filter((p) => { const x = proximo(p); return x && x.reativ; }) });
     colunas.push({ d: "fim", titulo: "Fim da cadência", sub: "decidir: fechou ou encerrar", itens: lista.filter((p) => { const x = proximo(p); return x && x.fim; }) });
     colunas.push({ d: "ok", titulo: "Fecharam", sub: "no mês", itens: lista.filter((p) => p.status === "fechado" && doMes(p.fechadoEm)) });
-    $("#kanban").innerHTML = colunas.map((c) => `<div class="col"><h3>${c.titulo}<span class="pill">${c.itens.length}</span></h3><div class="sub">${c.sub}</div>
+    colunas.forEach((c) => { FU_LISTAS["col_" + c.d] = c.itens; });
+    $("#kanban").innerHTML = colunas.map((c) => `<div class="col"><h3><button class="col-tit" data-fulista="col_${c.d}" data-futit="${esc(c.titulo + " · " + c.sub)}" aria-label="${esc(c.titulo)}: ${c.itens.length} pacientes. Ver a lista" data-dica="Toque para ver todos os pacientes de ${esc(c.titulo)}">${c.titulo}<span class="pill">${c.itens.length}</span></button></h3><div class="sub">${c.sub}</div>
       ${c.itens.slice(0, FU_ABERTAS[c.d] ? c.itens.length : 2).map((p) => { const x = proximo(p); const cls = x && !x.fim ? (x.atraso > 0 ? "late" : x.atraso === 0 ? "today" : "") : "";
         const quando = !x ? (p.status === "fechado" ? `fechou ${p.fechadoEm ? fmtData(p.fechadoEm) : ""}` : "") : x.fim ? "todos os toques feitos" : x.atraso > 0 ? `<span style="color:var(--bad)">${x.atraso} dia${x.atraso > 1 ? "s" : ""} de atraso</span>` : x.atraso === 0 ? "alinhar hoje" : `em ${-x.atraso} dia${x.atraso < -1 ? "s" : ""}`;
         return `<button class="pc ${cls}" data-id="${p.id}" data-act="abrir"><b>${esc(p.nome)}</b><span class="v num">${brl(p.status === "fechado" ? p.valorFechado : p.valorApresentado)}</span><span class="m">${quando}</span>${p.status === "aberto" ? miniTermo(p.prontidao) : ""}<span class="m">${esc(p.responsavel || "")}${(p.objecoes || [])[0] ? " · " + esc(OBJ_NOME[p.objecoes[0]] || "") : ""}</span></button>`; }).join("") || `<span class="tiny dim">vazio</span>`}
@@ -360,16 +371,19 @@
     </div>`).join("");
   }
   $("#filtroResp").addEventListener("click", (e) => { const b = e.target.closest("[data-f]"); if (b) { filtro = b.dataset.f; renderFollowup(); } });
+  let FU_LISTAS = {};
+  $("#v-followup").addEventListener("click", (e) => { const b = e.target.closest("[data-fulista]"); if (!b) return; abrirListaPacientes(b.dataset.futit, FU_LISTAS[b.dataset.fulista] || [], filtro !== "Todos" ? "responsável: " + filtro : ""); });
 
   /* gaveta do paciente */
   function abrirGaveta(p) {
     const x = proximo(p);
     $("#drawerHost").innerHTML = `<div class="veil" id="veil"><div class="drawer" role="dialog" aria-label="${esc(p.nome)}" data-id="${p.id}">
-      <div class="row"><div class="ava">${esc(iniciais(p.nome))}</div><div class="grow"><h2 style="font-size:22px">${esc(p.nome)}</h2><div class="small dim">${esc(p.tratamento || "")} · ${esc(p.unidade || "")} · consulta em ${fmtData(p.consultaEm)} com ${esc(p.profissional || "—")}</div></div><button class="btn sm ghost" id="btnFechar" aria-label="Fechar">✕</button></div>
+      <div class="row">${avaHTML(p.nome, p.foto)}<div class="grow"><h2 style="font-size:22px">${esc(p.nome)}</h2><div class="small dim">${esc(p.tratamento || "")} · ${esc(p.unidade || "")} · consulta em ${fmtData(p.consultaEm)} com ${esc(p.profissional || "—")}</div></div><button class="btn sm ghost" id="btnFechar" aria-label="Fechar">✕</button></div>
       <div class="row">${p.status === "fechado" ? `<span class="pill good">Fechou ${brl(p.valorFechado)}</span>` : p.status === "perdido" ? `<span class="pill bad">Não fechou</span>` : `<span class="pill acc">Em follow-up · ${brl(p.valorApresentado)}</span>`}${(p.objecoes || []).map((o) => `<span class="pill warn">${esc(OBJ_NOME[o] || o)}</span>`).join("")}</div>
       ${p.oQueTravou || p.dor ? `<div class="card small stack" style="gap:6px">${p.dor ? `<div><span class="label">Dor</span><br>${esc(p.dor)}</div>` : ""}${p.oQueTravou ? `<div><span class="label">O que travou</span><br>${esc(p.oQueTravou)}</div>` : ""}${(p.palavras || []).length ? `<div><span class="label">Palavras do paciente</span><br>${p.palavras.map((w) => "“" + esc(w) + "”").join(" · ")}</div>` : ""}</div>` : ""}
       <div id="gDecisor">${decisorResumo(p)}</div>
       <details class="card contato-det"${p.decisor || p.crc ? "" : " open"}><summary><span class="label">Decisor, melhor horário, CRC e doutor</span></summary><div class="stack" style="margin-top:10px">${camposContatoHTML(p, "g")}</div></details>
+      <details class="card contato-det cad-det"><summary><span class="label">Cadastro: foto, Instagram, CPF, telefones e nascimento</span></summary><div class="stack" style="margin-top:10px">${fotoHTML(p, "g")}${cadExtraHTML(p, "g")}<div class="row"><button class="btn sm pri" id="gCadSalvar">Salvar cadastro</button><span class="small dim" id="gCadSt"></span></div></div></details>
       ${p.disc && p.disc.n ? `<div class="card stack"><span class="label">Perfil DISC</span>${discHTML(p.disc)}</div>` : ""}
       ${x && !x.fim ? cardMensagem(p, x) : ""}
       <div class="card stack"><span class="label">Resultado</span>
@@ -385,6 +399,8 @@
     if (x && !x.fim) garantirMensagemIA(p, x.dia);
     ligarTimelinePaciente(p);
     ligarContato(p, "g", async () => { lerContato(p, "g"); await Store.salvar(p); $("#gDecisor").innerHTML = decisorResumo(p); toast("Ficha atualizada"); });
+    ligarCadExtra(p, "g"); ligarFoto(p, "g", async () => { await Store.salvar(p); });
+    $("#gCadSalvar").onclick = async () => { const c = soDig($("#gCpf").value); if (c && !cpfValido(c)) { $("#gCadSt").textContent = "Confira o CPF."; return; } lerCadExtra(p, "g"); await Store.salvar(p); $("#gCadSt").textContent = "✓ Salvo"; toast("Cadastro salvo"); };
     $("#veil").addEventListener("click", (e) => { if (e.target.id === "veil") fecharGaveta(); });
     $("#btnFechar").onclick = fecharGaveta;
     $("#gEmail").onchange = async (e) => { p.email = e.target.value.trim(); await Store.salvar(p); toast("E-mail salvo"); };
@@ -697,12 +713,18 @@
 
   $("#btnIniciar").addEventListener("click", async () => {
     if (C.falas.length && !C.gravando) reiniciarTela();
+    const ac = $("#audioConsulta"); if (ac) ac.classList.add("hide");
     C.gravando = true; C.inicio = new Date().toISOString();
     estadoBotoes(); iniciarRelogio();
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-    try { stream = await navigator.mediaDevices.getUserMedia({ audio: true }); }
-    catch (e) { $("#recHint").textContent = "O microfone não foi liberado neste aparelho. Digite as falas no campo da transcrição ou veja a consulta de demonstração."; return; }
-    if (!SR) { $("#recHint").textContent = "A transcrição automática funciona no Google Chrome. Neste navegador, digite as falas principais."; return; }
+    try { stream = await abrirMicrofone(); }
+    catch (e) { $("#recHint").textContent = erroMic(e) + " Enquanto isso, digite as falas no campo da transcrição."; return; }
+    pararNivel = medidorNivel(stream, (n) => { const b = $("#micNivel"); if (b) b.style.width = Math.round(n * 100) + "%"; });
+    $("#micNivelBox").classList.remove("hide");
+    if (gravarAudio() && window.MediaRecorder) {
+      try { pedacos = []; gravador = new MediaRecorder(stream); gravador.ondataavailable = (ev) => { if (ev.data && ev.data.size) pedacos.push(ev.data); }; gravador.start(1000); } catch (e) { gravador = null; }
+    }
+    if (!SR) { $("#recHint").textContent = "A transcrição automática funciona no Google Chrome e no Edge. Neste navegador, digite as falas principais" + (gravador ? " (o áudio está sendo gravado)." : "."); return; }
     sr = new SR(); sr.lang = "pt-BR"; sr.continuous = true; sr.interimResults = false;
     try { MED = window.AlinhaVoz.medidor(stream); } catch (e) { MED = null; }
     sr.onresult = (ev) => {
@@ -719,15 +741,28 @@
         addFala(q, ev.results[i][0].transcript, null, opts);
       }
     };
-    sr.onend = () => { if (C.gravando && !C.pausado) { try { sr.start(); } catch (e) { /* já ativo */ } } };
+    sr.onerror = (ev) => {
+      const m = { "not-allowed": "A transcrição foi bloqueada: permita o microfone para este site (cadeado ao lado do endereço).", "service-not-allowed": "A transcrição foi bloqueada: permita o microfone para este site (cadeado ao lado do endereço).", network: "A transcrição do navegador precisa de internet. Confira a conexão; o áudio continua sendo captado.", "audio-capture": "Nenhum microfone captando som. Confira o microfone em Ajustes › Voz." }[ev.error];
+      if (m) $("#recHint").textContent = m;
+      if (ev.error === "not-allowed" || ev.error === "service-not-allowed") { C.semSR = true; }
+    };
+    sr.onend = () => { if (C.gravando && !C.pausado && !C.semSR) { try { sr.start(); } catch (e) { /* já ativo */ } } };
     try { sr.start(); $("#recHint").textContent = quem === "auto" ? "Escutando e reconhecendo as vozes sozinho. Se errar, toque na frase para trocar." : "Escutando. Toque em Paciente ou Profissional para indicar quem fala (ou cadastre sua voz em Ajustes)."; } catch (e) { /* */ }
   });
   $("#btnPausar").addEventListener("click", () => {
     C.pausado = !C.pausado; estadoBotoes();
     if (sr) { try { C.pausado ? sr.stop() : sr.start(); } catch (e) { /* */ } }
   });
+  let gravador = null, pedacos = [], pararNivel = null;
   function pararCaptura() {
-    C.gravando = false; clearInterval(tick); clearInterval(demoTimer);
+    C.gravando = false; C.semSR = false; clearInterval(tick); clearInterval(demoTimer);
+    if (pararNivel) { pararNivel(); pararNivel = null; } const nb = $("#micNivelBox"); if (nb) nb.classList.add("hide");
+    if (gravador && gravador.state !== "inactive") {
+      const g = gravador; g.onstop = () => { const blob = new Blob(pedacos, { type: g.mimeType || "audio/webm" }); const url = URL.createObjectURL(blob); const nome = `consulta-${($("#cNome").value || "paciente").trim().replace(/\s+/g, "-").toLowerCase()}-${new Date().toISOString().slice(0, 16).replace(/[T:]/g, "-")}.webm`;
+        const a = $("#audioConsulta"); if (a) { a.href = url; a.download = nome; a.classList.remove("hide"); a.textContent = `⬇ Baixar áudio da consulta (${Math.max(1, Math.round(blob.size / 1024))} KB)`; } };
+      try { g.stop(); } catch (e) { /* */ }
+    }
+    gravador = null;
     try { sr && sr.stop(); } catch (e) { /* */ } sr = null;
     stream && stream.getTracks().forEach((t) => t.stop()); stream = null;
     if (MED) { MED.parar(); MED = null; }
@@ -807,9 +842,10 @@
     const profs = [...new Set([...(AJ.equipe || []), ...PAC.map((p) => p.profissional).filter(Boolean)])];
     const atual = $("#cProf").value;
     $("#cProf").innerHTML = profs.map((n) => `<option${n === atual ? " selected" : ""}>${esc(n)}</option>`).join("");
-    renderVozes(); atualizarAuto();
+    renderVozes(); atualizarAuto(); if (ABAS.aj === "voz") renderMic(); if (ABAS.aj === "sis") renderMemoria();
     estadoCelular(); renderAbrirCelular(); renderDominio(false);
     renderEu(); if (ABAS.aj === "seg") renderSeguranca();
+    $("#smsInfo").innerHTML = PLAT ? (PLAT.sms ? "✓ SMS pela plataforma ativo." : "SMS: sem provedor configurado. Sem ele, o SMS abre no celular (QR code) ou no app de mensagens. Para enviar direto, configure o Twilio ou a Zenvia na hospedagem.") : "";
     if (ehAdminFront()) { renderPermissoes(); renderUnidadesMetas(); renderProcedimentos(); renderCrcsAjustes(); renderChatAjustes(); renderSetoresAjustes(); if (["api", "kommo"].includes(ABAS.aj)) { if (INTEG) renderIntegracoes(); else carregarIntegracoes(); } }
   }
   function ehAdminFront() { return !PLAT || PLAT.papel === "admin"; }
@@ -941,16 +977,39 @@
 
   // Unidades (endereço e contatos) e metas do mês
   const UNID_CAMPOS = [["endereco", "Endereço"], ["whatsapp", "WhatsApp"], ["fixo", "Telefone fixo"], ["email", "E-mail"]];
-  function aplicarUnidades() { Object.entries(AJ.unidades || {}).forEach(([n, u]) => { BIB.unidades[n] = Object.assign({}, BIB.unidades[n] || {}, u); }); }
+  const UNID_FIXAS = Object.keys(BIB.unidades);
+  function aplicarUnidades() { Object.entries(AJ.unidades || {}).forEach(([n, u]) => { BIB.unidades[n] = Object.assign({}, BIB.unidades[n] || {}, u); }); Object.keys(BIB.unidades).forEach((n) => { if (!UNID_FIXAS.includes(n) && AJ.unidades && !AJ.unidades[n]) delete BIB.unidades[n]; }); }
+  const unidades = () => Object.keys(BIB.unidades);
+  // monta os seletores de unidade (chips e listas) com as unidades cadastradas
+  function montarUnidades() {
+    $$("[data-unidades]").forEach((el) => {
+      const on = ($("button.on", el) || {}).dataset; const atual = on ? on.u : "";
+      el.innerHTML = `<button data-u=""${!atual ? ' class="on"' : ""}>Todas</button>` + unidades().map((n) => `<button data-u="${esc(n)}"${atual === n ? ' class="on"' : ""}>${esc(n)}</button>`).join("");
+    });
+    const cu = $("#cUnidade"); if (cu) { const v = cu.value; cu.innerHTML = unidades().map((n) => `<option${n === v ? " selected" : ""}>${esc(n)}</option>`).join(""); }
+  }
   function renderUnidadesMetas() {
     aplicarUnidades();
-    $("#aUnidades").innerHTML = Object.entries(BIB.unidades).map(([n, u]) => `<fieldset data-unid="${esc(n)}"><legend>${esc(n)}</legend>${UNID_CAMPOS.map(([k, r]) => `<div><label class="f" for="u_${esc(n)}_${k}">${r}</label><input class="in" id="u_${esc(n)}_${k}" data-k="${k}" value="${esc(u[k] || "")}"></div>`).join("")}</fieldset>`).join("");
+    $("#aUnidades").innerHTML = Object.entries(BIB.unidades).map(([n, u]) => `<fieldset data-unid="${esc(n)}"><legend>${esc(n)}${UNID_FIXAS.includes(n) ? "" : ` <button type="button" class="btn sm ghost" data-unidel="${esc(n)}" aria-label="Remover unidade ${esc(n)}">✕</button>`}</legend>${UNID_CAMPOS.map(([k, r]) => `<div><label class="f" for="u_${esc(n)}_${k}">${r}</label><input class="in" id="u_${esc(n)}_${k}" data-k="${k}" value="${esc(u[k] || "")}"></div>`).join("")}</fieldset>`).join("");
     const M = AJ.metas || {};
     $("#mLeads").value = M.leads || ""; $("#mComp").value = M.comparecimentos || ""; $("#mFech").value = M.fechamentos || ""; $("#mFat").value = M.faturamento || "";
   }
   $("#btnSalvarUnid").addEventListener("click", async () => {
     const U = {}; $$("#aUnidades fieldset").forEach((f) => { U[f.dataset.unid] = Object.fromEntries($$("input", f).map((i) => [i.dataset.k, i.value.trim()])); });
-    try { await Store.ajustes({ unidades: U }); aplicarUnidades(); $("#unidStatus").textContent = "✓ Salvo"; } catch (e) { $("#unidStatus").textContent = "Erro: " + e.message; }
+    const removidas = Object.keys(BIB.unidades).filter((n) => !U[n] && !UNID_FIXAS.includes(n));
+    removidas.forEach((n) => delete BIB.unidades[n]);
+    try { await Store.ajustes({ unidades: U }); aplicarUnidades(); montarUnidades(); $("#unidStatus").textContent = "✓ Salvo"; } catch (e) { $("#unidStatus").textContent = "Erro: " + e.message; }
+  });
+  $("#cardUnidades").addEventListener("click", (e) => {
+    const d = e.target.closest("[data-unidel]"); if (d) { d.closest("fieldset").remove(); $("#unidStatus").textContent = "Toque em Salvar unidades para confirmar."; return; }
+    if (e.target.closest("#btnNovaUnid")) {
+      const n = $("#novaUnid").value.trim().replace(/\s+/g, " ");
+      if (!n) { $("#novaUnid").focus(); return; }
+      if (Object.keys(BIB.unidades).some((x) => x.toLowerCase() === n.toLowerCase()) || $$("#aUnidades fieldset").some((f) => f.dataset.unid.toLowerCase() === n.toLowerCase())) { $("#unidStatus").textContent = "Essa unidade já existe."; return; }
+      $("#aUnidades").insertAdjacentHTML("beforeend", `<fieldset data-unid="${esc(n)}"><legend>${esc(n)} <button type="button" class="btn sm ghost" data-unidel="${esc(n)}" aria-label="Remover unidade ${esc(n)}">✕</button></legend>${UNID_CAMPOS.map(([k, r]) => `<div><label class="f" for="u_${esc(n)}_${k}">${r}</label><input class="in" id="u_${esc(n)}_${k}" data-k="${k}"></div>`).join("")}</fieldset>`);
+      $("#novaUnid").value = ""; $("#unidStatus").textContent = "Preencha os dados e toque em Salvar unidades.";
+      const ul = $$("#aUnidades fieldset").pop(); const pi = ul && $("input", ul); if (pi) pi.focus();
+    }
   });
   $("#btnSalvarMetas").addEventListener("click", async () => {
     const n = (id) => { const v = num($(id).value); return v > 0 ? v : null; };
@@ -1339,6 +1398,9 @@
   /* Resultados por tratamento                                      */
   /* ------------------------------------------------------------ */
   const RES = { dias: 0, unidade: "" };
+  let RES_LISTAS = {};
+  $("#kpisRes").addEventListener("click", (e) => { const b = e.target.closest("[data-reslista]"); if (b) abrirListaPacientes(b.dataset.restit, RES_LISTAS[b.dataset.reslista] || []); });
+  $("#resBarras").addEventListener("click", (e) => { const b = e.target.closest("[data-reslista]"); if (b) abrirListaPacientes(b.dataset.restit, RES_LISTAS[b.dataset.reslista] || []); });
   function renderResultados() {
     const corte = RES.dias ? Date.now() - RES.dias * 864e5 : 0;
     const lista = PAC.filter((p) => (!RES.unidade || p.unidade === RES.unidade) && (!corte || new Date(p.status === "fechado" && p.fechadoEm ? p.fechadoEm : p.consultaEm).getTime() >= corte));
@@ -1353,15 +1415,17 @@
     const top = grupos.slice().sort((a, b) => b.fechado - a.fechado || b.valor - a.valor)[0];
     $$("#resPeriodo button").forEach((b) => b.classList.toggle("on", Number(b.dataset.p) === RES.dias));
     $$("#resUnidade button").forEach((b) => b.classList.toggle("on", b.dataset.u === RES.unidade));
+    RES_LISTAS = { todos: lista, fechados: lista.filter((p) => p.status === "fechado") };
     $("#kpisRes").innerHTML = [["Pacientes com interesse", tot.i, "no período"], ["Fecharam", tot.f, tot.i ? Math.round((tot.f / tot.i) * 100) + "% de conversão" : "—"], ["Valor fechado", brl(tot.v), tot.f ? "ticket " + brl(tot.v / tot.f) : "—"], ["Mais fechado", top && top.fechado ? top.nome : "—", top && top.fechado ? top.fechado + " paciente" + (top.fechado > 1 ? "s" : "") : ""]]
-      .map(([l, v, s]) => `<div class="kpi"><div class="label">${l}</div><b class="num">${esc(String(v))}</b><span>${esc(s)}</span></div>`).join("");
+      .map(([l, v, s], i) => i < 3 ? `<button class="kpi click" data-reslista="${i === 1 ? "fechados" : i === 2 ? "fechados" : "todos"}" data-restit="${esc(l)}"><div class="label">${l}</div><b class="num">${esc(String(v))}</b><span>${esc(s)}</span></button>` : `<div class="kpi"><div class="label">${l}</div><b class="num">${esc(String(v))}</b><span>${esc(s)}</span></div>`).join("");
+    grupos.forEach((g) => { RES_LISTAS["i:" + g.nome] = lista.filter((p) => tratDoPaciente(p) === g.nome); RES_LISTAS["f:" + g.nome] = RES_LISTAS["i:" + g.nome].filter((p) => p.status === "fechado"); });
     const max = Math.max(1, ...grupos.map((g) => g.interesse));
     $("#resBarras").innerHTML = grupos.length ? grupos.map((g) => {
       const conv = g.interesse ? Math.round((g.fechado / g.interesse) * 100) : 0;
       const dica = (rot, n) => esc(`${g.nome} · ${rot}: ${n} paciente${n === 1 ? "" : "s"}${rot === "Fechados" ? ` (${conv}% de conversão${g.valor ? ", " + brl(g.valor) : ""})` : ` (${g.aberto} em negociação, ${g.perdido} ${g.perdido === 1 ? "não fechou" : "não fecharam"})`}`);
       return `<div class="lin"><div class="nome">${esc(g.nome)}<small>${conv}% de conversão</small></div><div class="par">
-        <div class="bar"><b style="width:${(g.interesse / max) * 100}%;background:var(--s-interesse)" data-dica="${dica("Interesse", g.interesse)}"></b><span>${g.interesse}</span></div>
-        <div class="bar"><b style="width:${(g.fechado / max) * 100}%;background:var(--s-fechado)" data-dica="${dica("Fechados", g.fechado)}"></b><span>${g.fechado}</span></div></div></div>`; }).join("")
+        <button class="bar" data-reslista="i:${esc(g.nome)}" data-restit="${esc(g.nome + " · interesse")}" aria-label="${esc(g.nome)}: ${g.interesse} com interesse. Ver os nomes"><b style="width:${(g.interesse / max) * 100}%;background:var(--s-interesse)" data-dica="${dica("Interesse", g.interesse)}"></b><span>${g.interesse}</span></button>
+        <button class="bar" data-reslista="f:${esc(g.nome)}" data-restit="${esc(g.nome + " · fechados")}" aria-label="${esc(g.nome)}: ${g.fechado} fechados. Ver os nomes"><b style="width:${(g.fechado / max) * 100}%;background:var(--s-fechado)" data-dica="${dica("Fechados", g.fechado)}"></b><span>${g.fechado}</span></button></div></div>`; }).join("")
       : `<div class="vazio">Nenhum paciente neste filtro. Os tratamentos entram aqui a partir das consultas, do follow-up e do WhatsApp.</div>`;
     $("#resTabela").innerHTML = `<thead><tr><th>Tratamento</th><th class="n">Interesse</th><th class="n">Em negociação</th><th class="n">Fecharam</th><th class="n">Não fecharam</th><th class="n">Conversão</th><th class="n">Valor fechado</th><th class="n">Ticket médio</th></tr></thead><tbody>${grupos.map((g) => `<tr><td>${esc(g.nome)}</td><td class="n">${g.interesse}</td><td class="n">${g.aberto}</td><td class="n">${g.fechado}</td><td class="n">${g.perdido}</td><td class="n">${g.interesse ? Math.round((g.fechado / g.interesse) * 100) : 0}%</td><td class="n">${brl(g.valor)}</td><td class="n">${g.fechado ? brl(g.valor / g.fechado) : "—"}</td></tr>`).join("")}
       ${grupos.length > 1 ? `<tr style="font-weight:800"><td>Total</td><td class="n">${tot.i}</td><td class="n">${grupos.reduce((a, g) => a + g.aberto, 0)}</td><td class="n">${tot.f}</td><td class="n">${grupos.reduce((a, g) => a + g.perdido, 0)}</td><td class="n">${tot.i ? Math.round((tot.f / tot.i) * 100) : 0}%</td><td class="n">${brl(tot.v)}</td><td class="n">${tot.f ? brl(tot.v / tot.f) : "—"}</td></tr>` : ""}</tbody>`;
@@ -1387,24 +1451,26 @@
   /* ------------------------------------------------------------ */
   /* Permissões: Administrador · Operacional · CRC                  */
   /* ------------------------------------------------------------ */
-  const TELAS = [["hoje", "Hoje"], ["whatsapp", "WhatsApp"], ["crm", "CRM (Funil Lead e Funil Cliente)"], ["consulta", "Consulta"], ["briefings", "Briefings"], ["followup", "Follow-up"], ["comercial", "Comercial (funil do mês)"], ["tratamentos", "Tratamentos e laboratório"], ["resultados", "Resultados"], ["campanhas", "Campanhas"]];
-  const ACOES = [["enviar_whatsapp", "Enviar mensagens pelo celular conectado"], ["exportar", "Baixar cópia dos dados"]];
+  const TELAS = [["hoje", "Hoje"], ["whatsapp", "WhatsApp"], ["crm", "CRM (Funil Lead e Funil Cliente)"], ["consulta", "Consulta"], ["briefings", "Briefings"], ["followup", "Follow-up"], ["comercial", "Comercial (funil do mês)"], ["tratamentos", "Tratamentos e laboratório"], ["pacientes", "Pacientes"], ["resultados", "Marketing · por tratamento"], ["campanhas", "Marketing · campanhas"]];
+  const ACOES = [["enviar_whatsapp", "Enviar mensagens pelo celular conectado"], ["enviar_sms", "Enviar SMS"], ["exportar", "Baixar cópia dos dados"]];
   const PAPEL_NOME = { admin: "Administrador", operacional: "Operacional", crc: "CRC" };
   const PERM_PADRAO = {
-    operacional: { telas: ["hoje", "crm", "consulta", "briefings", "followup", "comercial", "tratamentos"], acoes: [] },
-    crc: { telas: ["hoje", "whatsapp", "crm", "briefings", "followup", "comercial", "tratamentos"], acoes: ["enviar_whatsapp"] }
+    operacional: { telas: ["hoje", "crm", "pacientes", "consulta", "briefings", "followup", "comercial", "tratamentos"], acoes: ["enviar_sms"] },
+    crc: { telas: ["hoje", "whatsapp", "crm", "pacientes", "briefings", "followup", "comercial", "tratamentos"], acoes: ["enviar_whatsapp", "enviar_sms"] }
   };
   const papel = () => (PLAT ? PLAT.papel : "admin");
   function perm() {
     if (PLAT && PLAT.permissoes) return PLAT.permissoes;
-    return { telas: TELAS.map((t) => t[0]).concat("suporte", "ajustes"), acoes: ACOES.map((a) => a[0]).concat("apagar", "configurar") };
+    return { telas: TELAS.map((t) => t[0]).concat("painel", "checklist", "marketing", "suporte", "ajustes"), acoes: ACOES.map((a) => a[0]).concat("apagar", "configurar") };
   }
   const pode = (k) => perm().telas.includes(k) || perm().acoes.includes(k);
   function aplicarPermissoes() {
     $$("#nav button[data-v]").forEach((b) => b.classList.toggle("hide", !pode(b.dataset.v)));
     // celular: 4 telas na barra + "Mais" com as outras
     const vis = $$("#nav button[data-v]").filter((b) => !b.classList.contains("hide"));
-    vis.forEach((b, i) => b.classList.toggle("prim", i < 4 || vis.length <= 5));
+    const pref = ["painel", "hoje", "whatsapp", "crm", "checklist", "comercial"].filter((v) => vis.some((b) => b.dataset.v === v)).slice(0, 4);
+    vis.forEach((b) => b.classList.toggle("prim", pref.includes(b.dataset.v) || vis.length <= 5));
+    $$('.abas[data-grupo="mkt"] [data-perm]').forEach((b) => b.classList.toggle("hide", !pode(b.dataset.perm)));
     $("#navMais").classList.toggle("hide", vis.length <= 5);
     document.body.dataset.papel = papel();
   }
@@ -1419,7 +1485,7 @@
     rotularTabela(el);
   }
   $("#btnSalvarPerm").addEventListener("click", async () => {
-    const P = { operacional: { telas: [], acoes: [], v: 2 }, crc: { telas: [], acoes: [], v: 2 } };
+    const P = { operacional: { telas: [], acoes: [], v: 3 }, crc: { telas: [], acoes: [], v: 3 } };
     $$("#permTabela [data-perm]").forEach((c) => { if (c.checked) { const [r, t, k] = c.dataset.perm.split("|"); P[r][t].push(k); } });
     try { await Store.ajustes({ permissoes: P, leadsAutomaticos: $("#aLeadsAuto").checked }); $("#permStatus").textContent = "Salvo ✓ (vale no próximo acesso de cada pessoa)"; }
     catch (e) { $("#permStatus").textContent = "Erro: " + e.message; }
@@ -1521,7 +1587,8 @@
     const nomeMes = new Date(COM.mes + "-15").toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
     $("#comTitulo").textContent = `Ampulheta de ${nomeMes}`;
     // ampulheta: em cima o Funil Lead (estreita até quem comparece), embaixo o Funil Cliente (alarga até quem fecha)
-    const cam = (k, n, v, sub, lado, larg) => `<button class="camada-a ${lado}" style="--w:${larg}%" data-lista="${k}" aria-label="${esc(n)}: ${v}. Ver os pacientes" data-dica="${esc(`${n}: ${v} · ${sub} (toque para ver os nomes)`)}"><span class="num">${v}</span><small>${esc(n)}</small><em>${esc(sub)}</em></button>`;
+    const pT = (v) => `${pct(v, c.entraram)}%`;
+    const cam = (k, n, v, sub, lado, larg) => `<button class="camada-a ${lado}" style="--w:${larg}%" data-lista="${k}" aria-label="${esc(n)}: ${v} pacientes, ${pT(v)} dos leads. Ver os pacientes" data-dica="${esc(`${n}: ${v} paciente${v === 1 ? "" : "s"} · ${pT(v)} dos leads do mês · ${sub} (toque para ver os nomes)`)}"><span class="qp"><span class="num">${v}</span><b class="pc-amp">${pT(v)}</b></span><small>${esc(n)}</small><em>${esc(sub)}</em></button>`;
     $("#ampulheta").innerHTML = `<div class="amp-rot">Funil Lead</div>
       ${cam("entraram", "Leads que entraram", c.entraram, "100%", "topo", 100)}
       ${cam("agendaram", "Agendaram", c.agendaram, `${pct(c.agendaram, c.entraram)}% dos leads`, "topo", 78)}
@@ -1531,7 +1598,7 @@
       ${cam("fecharam", "Fecharam", c.fecharam, `${pct(c.fecharam, c.compareceram)}% de quem compareceu · ${brl(c.valorFechado)}`, "base", 78)}
       <div class="amp-rot">Funil Cliente</div>`;
     $("#ampLados").innerHTML = [["faltaram", "Faltaram", c.faltaram, "bad"], ["perdidos", "Perdidos", c.perdidos, "bad"], ["aguardando", "Ainda no Funil Lead", c.aguardando, ""], ["naoFecharam", "Não fecharam", c.naoFecharam, "bad"]]
-      .map(([k, n, v, cls]) => `<button class="lado ${cls}" data-lista="${k}" data-dica="${esc(n)}: toque para ver os nomes"><b class="num">${v}</b> ${esc(n)}</button>`).join("");
+      .map(([k, n, v, cls]) => `<button class="lado ${cls}" data-lista="${k}" data-dica="${esc(n)}: ${v} · ${pct(v, c.entraram)}% dos leads do mês (toque para ver os nomes)"><b class="num">${v}</b><span class="pc-lado">${pct(v, c.entraram)}%</span> ${esc(n)}</button>`).join("");
     kpisClic("#comOrc", [
       ["Orçamentos no mês", o.total, brl(o.apresentado) + " apresentados", false, "orcTotal"],
       ["Fecharam", o.fecharam, `${pct(o.fecharam, o.total)}% · ${brl(o.fechado)}`, true, "orcFecharam"],
@@ -1596,7 +1663,7 @@
     const lp = lembretesPendentes(p), atrasado = lp.some((l) => new Date(l.quando) <= fimDoDia());
     const lnk = (ok, href, ic, nome, extra = "") => ok ? `<a class="ic" href="${esc(href)}" ${extra} draggable="false" data-ic="${ic}" aria-label="${nome} para ${esc(p.nome)}" data-dica="${nome}">${ICO[ic]}</a>` : `<span class="ic off" aria-hidden="true" data-dica="${nome}: sem ${ic === "email" ? "e-mail" : "telefone"}">${ICO[ic]}</span>`;
     return `<div class="pc mini" draggable="true" data-pid="${p.id}" tabindex="0" role="button" aria-label="${esc(p.nome)} · ${esc(ETAPA[e].nome)}">
-      <div class="icons">${lnk(!!p.email, "mailto:" + (p.email || ""), "email", "E-mail")}${lnk(!!tel, `https://wa.me/${tel}`, "wa", "WhatsApp", 'target="_blank" rel="noopener"')}${lnk(!!tel, `sms:+${tel}`, "sms", "SMS")}
+      <div class="icons">${lnk(!!p.email, "mailto:" + (p.email || ""), "email", "E-mail")}${lnk(!!tel, `https://wa.me/${tel}`, "wa", "WhatsApp", 'target="_blank" rel="noopener"')}${tel ? `<button class="ic" data-ic="sms" aria-label="SMS para ${esc(p.nome)}" data-dica="SMS">${ICO.sms}</button>` : `<span class="ic off" aria-hidden="true" data-dica="SMS: sem telefone">${ICO.sms}</span>`}
         <button class="ic${lp.length ? (atrasado ? " late" : " on") : ""}" data-ic="lembrete" aria-label="Lembrete" data-dica="${lp.length ? `${lp.length} lembrete${lp.length > 1 ? "s" : ""} pendente${lp.length > 1 ? "s" : ""}` : "Criar lembrete"}">${ICO.bell}</button>
         <span class="grow"></span><button class="tdot t-${tp}" data-ic="temp" aria-label="Termômetro: ${TEMP_NOME[tp]}. Toque para trocar" data-dica="Termômetro: ${TEMP_NOME[tp]} (toque para trocar)"></button></div>
       <b>${esc(p.nome)}</b><span class="m num" data-dica="${esc(rot + " " + (dt ? dataBR(dt) : "—"))}">${dt ? dataBR(dt) : "—"}</span></div>`;
@@ -1696,6 +1763,7 @@
     e.stopPropagation();
     const p = PAC.find((x) => x.id === ic.closest("[data-pid]").dataset.pid); if (!p) return;
     if (ic.dataset.ic === "lembrete") { e.preventDefault(); abrirLembrete(p); return; }
+    if (ic.dataset.ic === "sms") { e.preventDefault(); abrirSMS(p); return; }
     if (ic.dataset.ic === "temp") {
       e.preventDefault();
       const ord = ["frio", "morno", "quente"], at = tempDe(p), nv = ord[(ord.indexOf(at) + 1) % 3];
@@ -1742,13 +1810,14 @@
     const sel = (id, ops, atual) => `<select class="in" id="${id}">${ops.map((o) => `<option${o === atual ? " selected" : ""}>${esc(o)}</option>`).join("")}</select>`;
     const trat = tratDoPaciente(p) === "Não informado" ? "" : tratDoPaciente(p);
     $("#drawerHost").innerHTML = `<div class="veil" id="veil"><div class="drawer" role="dialog" aria-label="${novo ? "Novo lead" : esc(p.nome)}">
-      <div class="row"><div class="ava">${esc(iniciais(p.nome || "+"))}</div><div class="grow"><h2 style="font-size:22px">${novo ? "Novo lead" : esc(p.nome)}</h2><div class="small dim">${novo ? "Funil de leads" : `${ETAPA[etapaDe(p)].nome} · entrou ${fmtData(entrouEm(p))}${p.faltas ? ` · faltou ${p.faltas}x` : ""}`}</div></div><button class="btn sm ghost" id="btnFechar" aria-label="Fechar">✕</button></div>
+      <div class="row">${avaHTML(p.nome || "+", p.foto)}<div class="grow"><h2 style="font-size:22px">${novo ? "Novo lead" : esc(p.nome)}</h2><div class="small dim">${novo ? "Funil de leads" : `${ETAPA[etapaDe(p)].nome} · entrou ${fmtData(entrouEm(p))}${p.faltas ? ` · faltou ${p.faltas}x` : ""}`}</div></div><button class="btn sm ghost" id="btnFechar" aria-label="Fechar">✕</button></div>
       ${novo ? "" : decisorResumo(p)}
       <div class="card stack">
         <div><label class="f" for="lNome">Nome</label><input class="in" id="lNome" value="${esc(p.nome || "")}"></div>
         <div class="duo"><div><label class="f" for="lTel">WhatsApp</label><input class="in" id="lTel" inputmode="tel" value="${esc(p.telefone || "")}"></div>
           <div><label class="f" for="lEmail">E-mail</label><input class="in" id="lEmail" type="email" inputmode="email" value="${esc(p.email || "")}"></div></div>
-        <div><label class="f" for="lUni">Unidade</label>${sel("lUni", ["", "Caruaru", "Recife"], p.unidade || "")}</div>
+        <div><label class="f" for="lUni">Unidade</label>${sel("lUni", ["", ...unidades()], p.unidade || "")}</div>
+        <details class="contato-det cad-det"${p.instagram || p.cpf || p.nascimento || p.foto ? "" : " open"}><summary><span class="label">Foto, Instagram, CPF, telefones e nascimento</span></summary><div class="stack" style="margin-top:10px">${fotoHTML(p, "l")}${cadExtraHTML(p, "l")}</div></details>
         ${camposContatoHTML(p, "l")}
         <div class="duo"><div><label class="f" for="lTrat">Tratamento de interesse</label>${sel("lTrat", [""].concat(TRAT.map((t) => t.nome)), trat)}</div>
           <div><label class="f" for="lOrig">Origem</label>${sel("lOrig", ["Anúncio Meta", "Instagram orgânico", "Indicação", "Google", "WhatsApp (Kommo)", "WhatsApp (celular)", "Passou na frente", "Outro"].concat(p.origem && !["Anúncio Meta", "Instagram orgânico", "Indicação", "Google", "WhatsApp (Kommo)", "WhatsApp (celular)", "Passou na frente", "Outro"].includes(p.origem) ? [p.origem] : []), p.origem || "")}</div></div>
@@ -1764,9 +1833,9 @@
     </div></div>`;
     $("#veil").addEventListener("click", (e) => { if (e.target.id === "veil") fecharGaveta(); });
     $("#btnFechar").onclick = fecharGaveta;
-    ligarContato(p, "l");
+    ligarContato(p, "l"); ligarCadExtra(p, "l"); ligarFoto(p, "l", null);
     const ler = () => {
-      p.nome = $("#lNome").value.trim(); p.telefone = $("#lTel").value.trim(); p.email = $("#lEmail").value.trim(); lerContato(p, "l"); p.unidade = $("#lUni").value; p.origem = $("#lOrig").value; p.obs = $("#lObs").value.trim();
+      p.nome = $("#lNome").value.trim(); p.telefone = $("#lTel").value.trim(); p.email = $("#lEmail").value.trim(); lerContato(p, "l"); lerCadExtra(p, "l"); p.unidade = $("#lUni").value; p.origem = $("#lOrig").value; p.obs = $("#lObs").value.trim();
       const t = $("#lTrat").value; p.interesse = t; p.tratamento = t;
       const ag = $("#lAgenda").value; p.agendaPara = ag ? new Date(ag + "T12:00:00").toISOString() : undefined;
       const et = ETAPAS.find((e) => e.nome === $("#lEtapa").value);
@@ -1774,6 +1843,7 @@
     };
     $("#lSalvar").onclick = async () => {
       const et = ler(); if (!p.nome) { $("#lSt").textContent = "Informe o nome."; return; }
+      if (p.cpf && !cpfValido(p.cpf)) { $("#lSt").textContent = "Confira o CPF."; return; }
       if (et !== etapaDe(p) || novo) { if (novo) { p.etapa = et; if (et === "agendado") p.agendadoEm = new Date().toISOString(); await Store.salvar(p); } else await mover(p, et); }
       else await Store.salvar(p);
       if (p.agendaPara && !p.agendadoEm) { p.agendadoEm = new Date().toISOString(); if (p.etapa === "novo" || p.etapa === "contato") p.etapa = "agendado"; await Store.salvar(p); }
@@ -1888,7 +1958,7 @@
     CALC.dist = d;
     CALC.preset = (Object.entries(PRESETS).find(([, pr]) => pr.join() === d.join()) || [""])[0] || (CALC.minha && CALC.minha.join() === d.join() ? "minha" : "");
   }
-  $("#v-campanhas").addEventListener("input", (e) => {
+  $('.painel[data-grupo="mkt"][data-aba="camp"]').addEventListener("input", (e) => {
     if (e.target.dataset.fase != null) { definirFase(Number(e.target.dataset.fase), num(e.target.value)); ls.set("alinha.calc", CALC); renderCampanhas(); return; }
     const id = e.target.id || ""; if (!id.startsWith("k_")) return;
     const k = id.slice(2), v = num(e.target.value);
@@ -1984,7 +2054,7 @@
       ${linha("Leads", lp, c.entraram, MT.leads)}${linha("Agendamentos", ap, c.agendaram, null)}${linha("Comparecimentos", cp, c.compareceram, MT.comparecimentos)}${linha("Fechamentos", fp, c.fecharam, MT.fechamentos)}${linha("Faturamento", fp * CALC.ticket, c.valorFechado, MT.faturamento, true)}</tbody>`;
     rotularTabela($("#cmComp"));
   }
-  $("#v-campanhas").addEventListener("click", (e) => { const b = e.target.closest("[data-lista]"); if (!b) return; const L = numerosComercial(CM.mes, CM.unidade).listas[b.dataset.lista]; if (L) abrirListaPacientes(NOME_LISTA[b.dataset.lista] || b.dataset.lista, L, new Date(CM.mes + "-15").toLocaleDateString("pt-BR", { month: "long", year: "numeric" })); });
+  $('.painel[data-grupo="mkt"][data-aba="camp"]').addEventListener("click", (e) => { const b = e.target.closest("[data-lista]"); if (!b) return; const L = numerosComercial(CM.mes, CM.unidade).listas[b.dataset.lista]; if (L) abrirListaPacientes(NOME_LISTA[b.dataset.lista] || b.dataset.lista, L, new Date(CM.mes + "-15").toLocaleDateString("pt-BR", { month: "long", year: "numeric" })); });
   $("#kAutoCRM").addEventListener("change", (e) => { CALC.autoCRM = e.target.checked; ls.set("alinha.calc", CALC); renderCampanhas(); });
   $("#cmMes").addEventListener("change", (e) => { CM.mes = e.target.value || new Date().toISOString().slice(0, 7); renderCampReal(); });
   $("#cmUnidade").addEventListener("click", (e) => { const b = e.target.closest("[data-u]"); if (b) { CM.unidade = b.dataset.u; renderCampReal(); } });
@@ -2353,16 +2423,16 @@
       ${(p.prontuario || []).length > pront.length ? `<button class="btn sm" id="gProntTudo">Ver prontuário completo</button>` : ""}</div>`;
   }
   const dataHoraP = (iso) => new Date(iso).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", year: "2-digit", hour: "2-digit", minute: "2-digit" });
-  function ligarTimelinePaciente(p) {
+  function ligarTimelinePaciente(p, reabrir = abrirGaveta) {
     const n = $("#gNovoTrab"); if (n) n.onclick = () => novoTrabalho(p);
     $$("#drawerHost [data-gtrab]").forEach((b) => (b.onclick = () => { const t = (p.trabalhos || []).find((x) => x.id === b.dataset.gtrab); if (t) linhaDoTempo(p, t); }));
-    $$("#drawerHost [data-gfase]").forEach((b) => (b.onclick = async () => { const t = (p.trabalhos || []).find((x) => x.id === b.dataset.gt); if (!t) return; await clicarFase(p, t, b.dataset.gfase, b); if (!$("#aeSalvar")) abrirGaveta(p); }));
+    $$("#drawerHost [data-gfase]").forEach((b) => (b.onclick = async () => { const t = (p.trabalhos || []).find((x) => x.id === b.dataset.gt); if (!t) return; await clicarFase(p, t, b.dataset.gfase, b); if (!$("#aeSalvar")) reabrir(p); }));
     const tudo = $("#gProntTudo"); if (tudo) tudo.onclick = () => {
       $("#drawerHost").innerHTML = `<div class="veil" id="veil"><div class="drawer" role="dialog" aria-label="Prontuário"><div class="row"><h2 class="grow" style="font-size:21px">Prontuário · ${esc(p.nome)}</h2><button class="btn sm ghost" id="btnFechar" aria-label="Fechar">✕</button></div>
         <div class="card"><ul class="pront">${(p.prontuario || []).map((x) => `<li><b class="num">${x.data ? dataBR(x.data) : dataBR(x.em)}</b> ${esc(x.texto)}<span class="tiny dim"> · registrado ${dataHoraP(x.em)}${x.por ? " · " + esc(x.por) : ""}</span></li>`).join("")}</ul></div>
         <button class="btn" id="prVoltar">← Voltar à ficha</button></div></div>`;
       $("#veil").addEventListener("click", (e) => { if (e.target.id === "veil") fecharGaveta(); });
-      $("#btnFechar").onclick = fecharGaveta; $("#prVoltar").onclick = () => abrirGaveta(p);
+      $("#btnFechar").onclick = fecharGaveta; $("#prVoltar").onclick = () => reabrir(p);
     };
   }
 
@@ -2899,9 +2969,684 @@
   /* ------------------------------------------------------------ */
   /* Navegação e início                                            */
   /* ------------------------------------------------------------ */
-  let vista = "hoje";
+
+  /* ------------------------------------------------------------ */
+  /* Gráfico de colunas duplas (Painel e Marketing): passe o mouse   */
+  /* para ver os números; toque numa coluna para ver os nomes        */
+  /* ------------------------------------------------------------ */
+  function colunasDuplas(el, dados, rotA, rotB) {
+    if (!el) return;
+    const max = Math.max(1, ...dados.map((d) => Math.max(d.a, d.b)));
+    el._dados = dados;
+    el.innerHTML = `<div class="cd">${dados.map((d, i) => `<button class="cd-col" data-cd="${i}" aria-label="${esc(`${d.tit}: ${d.a} ${rotA}, ${d.b} ${rotB}`)}" data-dica="${esc(`${d.tit} · ${d.a} ${rotA} · ${d.b} ${rotB}${d.a + d.b ? " (toque para ver os nomes)" : ""}`)}">
+      <span class="cd-bars"><i class="a" style="height:${(d.a / max) * 100}%"></i><i class="b" style="height:${(d.b / max) * 100}%"></i></span><span class="cd-rot">${esc(d.rot)}</span></button>`).join("")}</div>`;
+  }
+  document.addEventListener("click", (e) => {
+    const b = e.target.closest("[data-cd]"); if (!b) return;
+    const el = b.closest(".pn-chart"); const d = el && el._dados && el._dados[Number(b.dataset.cd)]; if (!d) return;
+    const lista = [...new Set((d.la || []).concat(d.lb || []))];
+    abrirListaPacientes(d.tit, lista, `${d.a} ${d.ra || "leads"} · ${d.b} ${d.rb || "fechamentos"}`);
+  });
+  const mesmoDia = (iso, ref) => { if (!iso) return false; const a = new Date(iso), b = ref || new Date(); return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate(); };
+  const ddmm = (d) => d.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" });
+
+  /* ------------------------------------------------------------ */
+  /* Painel do dia                                                   */
+  /* ------------------------------------------------------------ */
+  const PN = { unidade: "", listas: {} };
+  const aniversariaHoje = (p) => { if (!p.nascimento) return false; const [, m, d] = String(p.nascimento).split("-").map(Number), h = new Date(); return m === h.getMonth() + 1 && d === h.getDate(); };
+  function renderPainel() {
+    const U = PN.unidade, base = PAC.filter((p) => !U || p.unidade === U);
+    $$("#pnUnidade button").forEach((b) => b.classList.toggle("on", b.dataset.u === U));
+    const h = new Date();
+    $("#pnData").textContent = h.toLocaleDateString("pt-BR", { weekday: "long", day: "2-digit", month: "long" });
+    $("#pnOla").textContent = eu() ? `Atendendo: ${eu()}` : "";
+    const fila = paraHoje().filter((o) => !U || o.p.unidade === U), atras = fila.filter((o) => o.x.atraso > 0);
+    const L = PN.listas = {
+      leadsHoje: base.filter((p) => mesmoDia(entrouEm(p))),
+      consultasHoje: base.filter((p) => mesmoDia(p.agendaPara)),
+      fechouMes: base.filter((p) => p.status === "fechado" && doMes(p.fechadoEm)),
+      fechouHoje: base.filter((p) => p.status === "fechado" && mesmoDia(p.fechadoEm)),
+      alta: altaChance().filter((p) => !U || p.unidade === U),
+      aniversario: base.filter(aniversariaHoje)
+    };
+    const fat = L.fechouMes.reduce((t, p) => t + Number(p.valorFechado || 0), 0), meta = Number((AJ.metas || {}).faturamento || 0);
+    const naoLidas = WA.conversas.filter(naoLida).length;
+    const tiles = [
+      ["leadsHoje", "Leads hoje", L.leadsHoje.length, "entraram hoje · ver nomes"],
+      ["consultasHoje", "Consultas hoje", L.consultasHoje.length, L.consultasHoje.length ? "agendadas para hoje" : "nenhuma agendada"],
+      ["seq:hoje", "Follow-up hoje", fila.length, fila.length ? "alinhar em sequência →" : "ninguém hoje"],
+      ["seq:atrasados", "Atrasados", atras.length, atras.length ? "comece por estes →" : "tudo em dia", atras.length ? "bad" : ""],
+      ["wa", "WhatsApp", naoLidas, naoLidas ? `conversa${naoLidas > 1 ? "s" : ""} sem resposta` : "tudo respondido", naoLidas ? "warn" : ""],
+      ["fechouMes", "Fechamentos no mês", L.fechouMes.length, `${brl(fat)} · hoje: ${L.fechouHoje.length}`, "hl"],
+      ["comercial", "Meta de faturamento", meta ? `${pct(fat, meta)}%` : "—", meta ? `${brl(fat)} de ${brl(meta)}` : "cadastre a meta em Ajustes", "", meta ? Math.min(100, pct(fat, meta)) : null],
+      ["alta", "Alta chance 🔥", L.alta.length, L.alta.length ? "quentes para fechar" : "classifique no CRM"]
+    ];
+    $("#pnKpis").innerHTML = tiles.map(([k, rot, val, sub, cls, barra]) => `<button class="kpi click ${cls || ""}" data-pn="${k}" aria-label="${esc(rot)}: ${esc(String(val))}"><div class="label">${esc(rot)}</div><b class="num">${esc(String(val))}</b><span>${esc(sub)}</span>${barra != null ? `<i class="kpi-barra"><b style="width:${barra}%"></b></i>` : ""}</button>`).join("");
+    // últimos 14 dias
+    const dias = Array.from({ length: 14 }, (_, i) => { const d = inicioDia(Date.now() - (13 - i) * DIA); return d; });
+    colunasDuplas($("#pnChart"), dias.map((d) => { const la = base.filter((p) => mesmoDia(entrouEm(p), d)), lb = base.filter((p) => p.status === "fechado" && mesmoDia(p.fechadoEm, d));
+      return { rot: d.getDate() === 1 || d.getDay() === 1 || mesmoDia(d) ? ddmm(d) : String(d.getDate()), tit: mesmoDia(d) ? `Hoje (${ddmm(d)})` : d.toLocaleDateString("pt-BR", { weekday: "short", day: "2-digit", month: "2-digit" }), a: la.length, b: lb.length, la, lb }; }), "leads", "fechamentos");
+    // agenda e avisos
+    const it = [];
+    L.consultasHoje.forEach((p) => it.push(`<div class="it" data-pid="${p.id}"><span class="ag-ic" aria-hidden="true">🗓</span><span class="grow"><b>${esc(p.nome)}</b><span class="tiny dim"> · consulta hoje${p.unidade ? " · " + esc(p.unidade) : ""}${p.drAvaliacao ? " · " + esc(p.drAvaliacao) : ""}</span></span></div>`));
+    L.aniversario.forEach((p) => { const tel = telIntl(p.telefone); it.push(`<div class="it" data-pid="${p.id}"><span class="ag-ic" aria-hidden="true">🎂</span><span class="grow"><b>${esc(p.nome)}</b><span class="tiny dim"> · faz aniversário hoje${idadeDe(p.nascimento) != null ? ` (${idadeDe(p.nascimento)} anos)` : ""}</span></span>${tel ? `<a class="btn sm" href="https://wa.me/${tel}?text=${encodeURIComponent(`Feliz aniversário, ${primeiro(p.nome)}! 🎉 Toda a equipe da Weiss Odontologia deseja um dia muito especial para você.`)}" target="_blank" rel="noopener">Parabéns</a>` : ""}</div>`); });
+    lembretesVencidos().filter(({ p }) => !U || p.unidade === U).slice(0, 4).forEach(({ p, l }) => it.push(`<div class="it" data-pid="${p.id}"><span class="ag-ic" aria-hidden="true">🔔</span><span class="grow"><b>${esc(p.nome)}</b><span class="tiny dim"> · ${esc(l.texto || "lembrete")}</span></span></div>`));
+    if (pode("tratamentos")) { const r = resumoLab(); if (r.atrasados || r.hoje || r.agendar) it.push(`<div class="it" data-irlab="1"><span class="ag-ic" aria-hidden="true">🧪</span><span class="grow"><b>Laboratório</b><span class="tiny dim"> · ${[r.atrasados ? r.atrasados + " atrasado(s)" : "", r.hoje ? r.hoje + " chega(m) hoje" : "", r.agendar ? r.agendar + " para agendar" : ""].filter(Boolean).join(" · ")}</span></span></div>`); }
+    $("#pnAgenda").innerHTML = it.length ? it.join("") : `<span class="small dim">Nada agendado para hoje. Bom momento para os follow-ups e para responder o WhatsApp.</span>`;
+    renderPnTarefas();
+  }
+  $("#pnUnidade").addEventListener("click", (e) => { const b = e.target.closest("[data-u]"); if (b) { PN.unidade = b.dataset.u; renderPainel(); } });
+  $("#pnKpis").addEventListener("click", (e) => {
+    const b = e.target.closest("[data-pn]"); if (!b) return; const k = b.dataset.pn;
+    if (k.startsWith("seq:")) { abrirSequencia(k.slice(4)); return; }
+    if (k === "wa") { mostrar("whatsapp"); return; }
+    if (k === "comercial") { mostrar("comercial"); return; }
+    if (k === "alta") { abrirAlerta(); return; }
+    const tit = { leadsHoje: "Leads que entraram hoje", consultasHoje: "Consultas agendadas para hoje", fechouMes: "Fechamentos do mês" }[k] || "Pacientes";
+    abrirListaPacientes(tit, PN.listas[k] || []);
+  });
+  $("#pnAgenda").addEventListener("click", (e) => {
+    if (e.target.closest("a")) return;
+    if (e.target.closest("[data-irlab]")) return; // tratado pelo aviso de laboratório
+    const it = e.target.closest("[data-pid]"); if (!it) return; const p = PAC.find((x) => x.id === it.dataset.pid); if (p) abrirFicha(p);
+  });
+  $("#v-painel").addEventListener("click", (e) => { const b = e.target.closest("[data-ir]"); if (b) mostrar(b.dataset.ir); const lb = e.target.closest("#pnAgenda [data-irlab]"); if (lb) { mostrar("tratamentos"); abrirAba("trat", "lab"); renderTratamentos(); } });
+
+  /* ------------------------------------------------------------ */
+  /* Check-list diário: Fazer · Fazendo · Feito, assinatura e nota  */
+  /* ------------------------------------------------------------ */
+  const CK_PADRAO = [
+    { id: "agenda", txt: "Conferir a agenda do dia e confirmar as consultas de amanhã" },
+    { id: "whats", txt: "Responder todas as conversas do WhatsApp" },
+    { id: "follow", txt: "Fazer os toques de follow-up de hoje" },
+    { id: "crm", txt: "Atualizar as etapas e o termômetro no CRM" },
+    { id: "faltas", txt: "Ligar para quem faltou e reagendar" },
+    { id: "orc", txt: "Registrar os orçamentos apresentados" },
+    { id: "lab", txt: "Conferir os trabalhos do laboratório" },
+    { id: "lemb", txt: "Resolver os lembretes do dia" }
+  ];
+  const CK_EST = [["fazer", "Fazer"], ["fazendo", "Fazendo"], ["feito", "Feito"]];
+  const CK = { dia: "", regs: {}, carregado: false, carregando: null, hist: null, periodo: 30 };
+  const diaLocal = (d = new Date()) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  const ckModelo = () => (Array.isArray(AJ.checklist) && AJ.checklist.length ? AJ.checklist : CK_PADRAO);
+  const ckLimite = () => AJ.checklistLimite || "18:00";
+  const ckOp = () => eu();
+  const setoresDe = (op) => setores().filter((x) => (x.pessoas || []).includes(op)).map((x) => x.id);
+  const tarefasPara = (op) => { const st = setoresDe(op); return ckModelo().filter((t) => !t.setor || st.includes(t.setor)); };
+  function ckReg(op) { if (!CK.regs[op]) CK.regs[op] = { operador: op, itens: {}, extras: [], tarefas: null, assinado: null }; return CK.regs[op]; }
+  const ckTarefas = (r) => (r.tarefas || tarefasPara(r.operador).map((t) => ({ id: t.id, txt: t.txt }))).concat((r.extras || []).map((x) => ({ id: x.id, txt: x.txt, extra: true })));
+  const ckEstado = (r, id) => (r.itens || {})[id] || "fazer";
+  const ckResumo = (r) => { const T = ckTarefas(r), f = T.filter((t) => ckEstado(r, t.id) === "feito").length; return { total: T.length, feitos: f, pend: T.filter((t) => ckEstado(r, t.id) !== "feito"), pct: T.length ? Math.round((f / T.length) * 100) : 0 }; };
+  function ckDemoBase() {
+    let H = ls.get("alinha.checklist", null); if (H) return H;
+    H = {}; const ops = ["Renata", "Joana", "Ana"], perfil = { Renata: [0.95, 0.9], Joana: [0.75, 0.6], Ana: [0.85, 0.8] };
+    let semente = 7; const rnd = () => { semente = (semente * 9301 + 49297) % 233280; return semente / 233280; };
+    for (let i = 31; i >= 1; i--) {
+      const d = new Date(Date.now() - i * DIA); if (d.getDay() === 0) continue; const dia = diaLocal(d); H[dia] = {};
+      ops.forEach((op) => { const [qual, assina] = perfil[op]; if (rnd() > 0.93) return;
+        const itens = {}; CK_PADRAO.forEach((t) => { const r = rnd(); itens[t.id] = r < qual ? "feito" : r < qual + 0.06 ? "fazendo" : "fazer"; });
+        const ass = rnd() < assina; const hr = rnd() < 0.8 ? 16 + Math.floor(rnd() * 2) : 18 + Math.floor(rnd() * 2);
+        H[dia][op] = { operador: op, itens, extras: [], tarefas: CK_PADRAO.map((t) => ({ id: t.id, txt: t.txt })), assinado: ass ? { em: new Date(d.getFullYear(), d.getMonth(), d.getDate(), hr, Math.floor(rnd() * 59)).toISOString(), nome: op } : null }; });
+    }
+    ls.set("alinha.checklist", H); return H;
+  }
+  async function ckCarregar(forcar) {
+    const dia = diaLocal();
+    if (CK.carregado && CK.dia === dia && !forcar) return;
+    if (CK.carregando) return CK.carregando;
+    CK.carregando = (async () => {
+      try {
+        if (PLAT) CK.regs = (await api("GET", "api/checklist?dia=" + dia)).registros || {};
+        else CK.regs = JSON.parse(JSON.stringify(ckDemoBase()[dia] || {}));
+        CK.dia = dia; CK.carregado = true;
+      } catch (e) { CK.regs = CK.regs || {}; }
+      CK.carregando = null;
+    })();
+    return CK.carregando;
+  }
+  async function ckSalvar(r) {
+    if (!r.tarefas) r.tarefas = tarefasPara(r.operador).map((t) => ({ id: t.id, txt: t.txt }));
+    if (PLAT) { try { const d = await api("POST", "api/checklist", { dia: CK.dia, operador: r.operador, registro: r }); if (d.registro) Object.assign(r, d.registro); } catch (e) { toast("Check-list: " + e.message); throw e; } }
+    else { const H = ckDemoBase(); (H[CK.dia] = H[CK.dia] || {})[r.operador] = r; ls.set("alinha.checklist", H); }
+    CK.hist = null; badgeChecklist();
+  }
+  function badgeChecklist() {
+    const b = $("#badgeCheck"); if (!b) return;
+    const op = ckOp(); if (!op || !CK.carregado) { b.classList.add("hide"); return; }
+    const r = CK.regs[op] || { operador: op, itens: {}, extras: [] }; const n = r.assinado ? 0 : ckResumo(r).pend.length;
+    b.textContent = n; b.classList.toggle("hide", !n);
+  }
+  const ckNomes = () => [...new Set(crcsCadastradas().map((x) => x.nome).concat(setores().flatMap((x) => x.pessoas || [])).concat(AJ.equipe || []))].filter(Boolean);
+  function renderChecklist() {
+    if (!CK.carregado || CK.dia !== diaLocal()) { ckCarregar().then(() => { if (vista === "checklist") renderChecklist(); }); }
+    const op = ckOp();
+    $("#ckData").textContent = new Date().toLocaleDateString("pt-BR", { weekday: "long", day: "2-digit", month: "long" }) + ` · assinar até ${ckLimite()}`;
+    $("#ckOperador").innerHTML = `<option value="">— escolha —</option>` + [...new Set(ckNomes().concat(op ? [op] : []))].map((n) => `<option${n === op ? " selected" : ""}>${esc(n)}</option>`).join("");
+    if (ABAS.ck === "aval") renderCkAval();
+    if (ABAS.ck === "modelo") renderCkModelo();
+    if (!op) {
+      $("#ckTitulo").textContent = "Tarefas";
+      $("#ckLista").innerHTML = `<div class="vazio">Escolha o operador no alto da tela para ver o check-list do dia.</div>`;
+      ["#ckPend", "#ckMeu"].forEach((s) => ($(s).innerHTML = "")); $("#ckPendQtd").textContent = "0"; $("#ckPct").textContent = "0%"; $("#ckBarra").style.width = "0%";
+      $("#ckAssinar").disabled = true; $("#ckAssinar").textContent = "✍ Assinar"; $("#ckAssinado").textContent = ""; $("#ckAdd").classList.add("hide"); return;
+    }
+    const r = CK.regs[op] || { operador: op, itens: {}, extras: [], assinado: null }, R = ckResumo(r), trava = !!r.assinado;
+    $("#ckTitulo").textContent = `Tarefas de ${op}`;
+    $("#ckPct").textContent = `${R.feitos}/${R.total} · ${R.pct}%`; $("#ckPct").className = "pill" + (R.pct === 100 ? " good" : "");
+    $("#ckBarra").style.width = R.pct + "%";
+    $("#ckLista").innerHTML = ckTarefas(r).map((t) => { const e = ckEstado(r, t.id);
+      return `<div class="ck-it e-${e}" data-ck="${esc(t.id)}"><span class="ck-txt">${esc(t.txt)}${t.extra ? ' <span class="tiny dim">· só hoje</span>' : ""}</span>
+        <div class="seg ck-seg" role="radiogroup" aria-label="Situação: ${esc(t.txt)}">${CK_EST.map(([k, n]) => `<button role="radio" aria-checked="${e === k}" class="${e === k ? "on " + k : ""}" data-est="${k}"${trava ? " disabled" : ""}>${n}</button>`).join("")}</div>
+        ${t.extra && !trava ? `<button class="btn sm ghost" data-ckdel="${esc(t.id)}" aria-label="Remover tarefa">✕</button>` : ""}</div>`; }).join("") || `<div class="vazio">Nenhuma tarefa para hoje.</div>`;
+    $("#ckAdd").classList.toggle("hide", trava);
+    $("#ckPendQtd").textContent = trava ? 0 : R.pend.length; $("#ckPendQtd").className = "pill" + (R.pend.length && !trava ? " warn" : " good");
+    $("#ckPend").innerHTML = trava ? `<span class="small">✓ Dia assinado.</span>` : R.pend.length ? R.pend.map((t) => `<div class="it"><span class="pill ${ckEstado(r, t.id) === "fazendo" ? "warn" : ""}">${ckEstado(r, t.id) === "fazendo" ? "Fazendo" : "Fazer"}</span><span class="grow">${esc(t.txt)}</span></div>`).join("") : `<span class="small">🎉 Nenhuma pendência. Agora é só assinar.</span>`;
+    const b = $("#ckAssinar"); b.disabled = trava; delete b.dataset.conf;
+    b.textContent = trava ? `✓ Assinado por ${r.assinado.nome}` : `✍ Assinar como ${op}`;
+    $("#ckAssinado").textContent = trava ? `em ${new Date(r.assinado.em).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}${horaDe(r.assinado.em) > ckLimite() ? " · depois do horário" : " · no horário"}` : R.pend.length ? `${R.pend.length} pendência${R.pend.length > 1 ? "s" : ""}` : "tudo feito";
+    ckHistorico().then((H) => { if (vista !== "checklist" || ckOp() !== op) return; const A = avaliar(H, op, 30); $("#ckMeu").innerHTML = notaHTML(A) + `<div class="ck-meu"><span><b class="num">${A.feitas}%</b> tarefas feitas</span><span><b class="num">${A.assinados}/${A.dias}</b> dias assinados</span><span><b class="num">${A.seq}</b> dia${A.seq === 1 ? "" : "s"} seguidos 100%</span></div><p class="tiny dim" style="margin:0">Últimos 30 dias.</p>`; });
+  }
+  const horaDe = (iso) => { const d = new Date(iso); return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`; };
+  $("#ckOperador").addEventListener("change", (e) => { ls.set("alinha.eu", e.target.value); renderEu(); renderChecklist(); badgeChecklist(); });
+  $("#ckLista").addEventListener("click", async (e) => {
+    const op = ckOp(); if (!op) return; const r = ckReg(op); if (r.assinado) return;
+    const del = e.target.closest("[data-ckdel]"); if (del) { r.extras = (r.extras || []).filter((x) => x.id !== del.dataset.ckdel); delete r.itens[del.dataset.ckdel]; renderChecklist(); await ckSalvar(r); return; }
+    const b = e.target.closest("[data-est]"); if (!b) return; const id = b.closest("[data-ck]").dataset.ck;
+    const antes = ckResumo(r).pct; r.itens[id] = b.dataset.est; if (!r.tarefas) r.tarefas = tarefasPara(op).map((t) => ({ id: t.id, txt: t.txt }));
+    renderChecklist(); const depois = ckResumo(r);
+    if (depois.pct === 100 && antes < 100) { comemorar(op); r.concluidoEm = new Date().toISOString(); }
+    try { await ckSalvar(r); } catch (er) { /* aviso já mostrado */ }
+  });
+  $("#ckAdd").addEventListener("submit", async (e) => {
+    e.preventDefault(); const op = ckOp(); const t = $("#ckNova").value.trim(); if (!op || !t) return;
+    const r = ckReg(op); if (r.assinado) return; r.extras = (r.extras || []).concat({ id: "x" + Date.now().toString(36), txt: t.slice(0, 200) }).slice(-30);
+    $("#ckNova").value = ""; renderChecklist(); await ckSalvar(r);
+  });
+  $("#ckAssinar").addEventListener("click", async (e) => {
+    const op = ckOp(); if (!op) return; const r = ckReg(op); if (r.assinado) return; const b = e.currentTarget, R = ckResumo(r);
+    if (R.pend.length && b.dataset.conf !== "1") { b.dataset.conf = "1"; b.textContent = `Assinar com ${R.pend.length} pendência${R.pend.length > 1 ? "s" : ""}? Toque de novo`; return; }
+    r.assinado = { em: new Date().toISOString(), nome: op };
+    try { await ckSalvar(r); toast(`Check-list assinado por ${op}`); } catch (er) { r.assinado = null; }
+    renderChecklist();
+  });
+  // histórico (avaliação)
+  async function ckHistorico() {
+    if (CK.hist) return CK.hist;
+    if (PLAT) { try { CK.hist = (await api("GET", "api/checklist/historico?dias=31")).dias || {}; } catch (e) { CK.hist = {}; } }
+    else CK.hist = JSON.parse(JSON.stringify(ckDemoBase()));
+    if (CK.carregado) CK.hist[CK.dia] = Object.assign({}, CK.hist[CK.dia] || {}, CK.regs);
+    return CK.hist;
+  }
+  function avaliar(H, op, n) {
+    const hoje = diaLocal(); let dias = 0, somaF = 0, ass = 0, prazo = 0, seq = 0, quebrou = false;
+    for (let i = 0; i < n; i++) {
+      const d = new Date(Date.now() - i * DIA), dia = diaLocal(d); if (d.getDay() === 0) continue;
+      const r = (H[dia] || {})[op];
+      if (dia === hoje && !(r && r.assinado)) continue; // o dia de hoje só conta depois de assinado
+      dias++;
+      if (!r) { quebrou = true; continue; }
+      const R = ckResumo(r); somaF += R.pct;
+      if (r.assinado) { ass++; if (horaDe(r.assinado.em) <= ckLimite()) prazo++; }
+      if (!quebrou && R.pct === 100) seq++; else quebrou = true;
+    }
+    const feitas = dias ? Math.round(somaF / dias) : 0;
+    const nota = dias ? Math.round((10 * (0.6 * (somaF / dias / 100) + 0.25 * (ass / dias) + 0.15 * (prazo / dias))) * 10) / 10 : null;
+    return { op, dias, feitas, assinados: ass, prazo, seq, nota };
+  }
+  const notaHTML = (A) => A.nota == null ? `<span class="small dim">Sem dias avaliados ainda.</span>` : `<div class="nota"><b class="num">${A.nota.toFixed(1).replace(".", ",")}</b><span class="estrelas" aria-label="${A.nota} de 10">${"★".repeat(Math.round(A.nota / 2))}<i>${"★".repeat(5 - Math.round(A.nota / 2))}</i></span><span class="pill ${A.nota >= 8 ? "good" : A.nota >= 6 ? "warn" : "bad"}">${A.nota >= 9 ? "Excelente" : A.nota >= 8 ? "Ótimo" : A.nota >= 6 ? "Bom" : "Precisa melhorar"}</span></div>`;
+  async function renderCkAval() {
+    const H = await ckHistorico(); const n = CK.periodo;
+    $$("#ckPeriodo button").forEach((b) => b.classList.toggle("on", Number(b.dataset.d) === n));
+    const nomes = [...new Set(ckNomes().concat(...Object.values(H).map((x) => Object.keys(x))))];
+    const linhas = nomes.map((op) => avaliar(H, op, n)).filter((A) => A.assinados || A.feitas || ckNomes().includes(A.op)).sort((a, b) => (b.nota ?? -1) - (a.nota ?? -1));
+    $("#ckAval").innerHTML = `<thead><tr><th>Operador</th><th class="n">Nota</th><th>Avaliação</th><th class="n">Tarefas feitas</th><th class="n">Dias assinados</th><th class="n">No horário</th><th class="n">Seguidos 100%</th></tr></thead><tbody>${linhas.map((A, i) => `<tr><td><b>${i === 0 && A.nota ? "🏆 " : ""}${esc(A.op)}</b></td><td class="n"><b class="num">${A.nota == null ? "—" : A.nota.toFixed(1).replace(".", ",")}</b></td><td>${A.nota == null ? "" : `<span class="estrelas">${"★".repeat(Math.round(A.nota / 2))}<i>${"★".repeat(5 - Math.round(A.nota / 2))}</i></span>`}</td><td class="n"><span class="mini-meta"><i style="width:${A.feitas}%"></i></span> ${A.feitas}%</td><td class="n">${A.assinados}/${A.dias}</td><td class="n">${A.prazo}/${A.dias}</td><td class="n">${A.seq ? "🔥 " + A.seq : "0"}</td></tr>`).join("") || `<tr><td colspan="7" class="dim">Nenhum operador ainda. Cadastre as CRCs e os setores em Ajustes.</td></tr>`}</tbody>`;
+    rotularTabela($("#ckAval"));
+  }
+  $('.abas[data-grupo="ck"]').addEventListener("click", () => setTimeout(() => { if (ABAS.ck === "aval") renderCkAval(); if (ABAS.ck === "modelo") renderCkModelo(); }, 0));
+  $("#ckPeriodo").addEventListener("click", (e) => { const b = e.target.closest("[data-d]"); if (b) { CK.periodo = Number(b.dataset.d); renderCkAval(); } });
+  // tarefas padrão (administrador)
+  const ckLinha = (t) => `<div class="setrow ckrow" data-id="${esc(t.id || "")}"><input class="in" data-c="t" value="${esc(t.txt || "")}" placeholder="Tarefa" aria-label="Tarefa"><select class="in" data-c="s" aria-label="Setor">${[["", "Todos os setores"]].concat(setores().map((x) => [x.id, x.nome])).map(([v, n]) => `<option value="${esc(v)}"${(t.setor || "") === v ? " selected" : ""}>${esc(n)}</option>`).join("")}</select><button class="btn sm ghost" data-ckmdel="1" aria-label="Remover tarefa">✕</button></div>`;
+  function renderCkModelo() { $("#ckModelo").innerHTML = ckModelo().map(ckLinha).join(""); $("#ckLimite").value = ckLimite(); }
+  $("#ckModeloBox").addEventListener("click", async (e) => {
+    if (e.target.closest("#ckModeloAdd")) { $("#ckModelo").insertAdjacentHTML("beforeend", ckLinha({})); $$("#ckModelo .ckrow").pop().querySelector("input").focus(); return; }
+    const d = e.target.closest("[data-ckmdel]"); if (d) { d.closest(".ckrow").remove(); return; }
+    if (e.target.closest("#ckModeloPadrao")) { $("#ckModelo").innerHTML = CK_PADRAO.map(ckLinha).join(""); $("#ckModeloSt").textContent = "Padrão restaurado: toque em Salvar."; return; }
+    if (e.target.closest("#ckModeloSalvar")) {
+      const usados = new Set();
+      const lista = $$("#ckModelo .ckrow").map((r) => { const txt = $("[data-c=t]", r).value.trim(); if (!txt) return null; let id = r.dataset.id || slugSetor(txt).slice(0, 24); while (usados.has(id)) id += "-2"; usados.add(id); return { id, txt: txt.slice(0, 200), setor: $("[data-c=s]", r).value }; }).filter(Boolean);
+      if (!lista.length) { $("#ckModeloSt").textContent = "Cadastre pelo menos uma tarefa."; return; }
+      try { await Store.ajustes({ checklist: lista, checklistLimite: $("#ckLimite").value || "18:00" }); $("#ckModeloSt").textContent = "✓ Salvo (vale a partir dos check-lists ainda não iniciados)"; renderCkModelo(); } catch (er) { $("#ckModeloSt").textContent = "Erro: " + er.message; }
+    }
+  });
+  // confetes ao concluir todas as tarefas
+  function comemorar(op) {
+    const msg = document.createElement("div"); msg.className = "parabens"; msg.setAttribute("role", "status");
+    msg.innerHTML = `<b>Parabéns, ${esc(op)}! 🎉</b><span>Todas as tarefas de hoje foram concluídas. Agora é só assinar.</span>`;
+    document.body.appendChild(msg); setTimeout(() => msg.remove(), 4200);
+    if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const cv = document.createElement("canvas"); cv.className = "confete"; cv.setAttribute("aria-hidden", "true"); document.body.appendChild(cv);
+    const ctx = cv.getContext("2d"), W = (cv.width = innerWidth), H = (cv.height = innerHeight);
+    const cores = ["#7C6CF6", "#4FD08F", "#F2B45A", "#FF7A72", "#A79BFF", "#2BB59A", "#F3EEFF"];
+    const P = Array.from({ length: 170 }, () => ({ x: W / 2 + (Math.random() - 0.5) * W * 0.3, y: H * 0.35, vx: (Math.random() - 0.5) * 14, vy: -Math.random() * 13 - 4, r: Math.random() * 6 + 4, c: cores[Math.floor(Math.random() * cores.length)], a: Math.random() * Math.PI, va: (Math.random() - 0.5) * 0.3 }));
+    const t0 = performance.now();
+    (function quadro(t) {
+      const dt = t - t0; ctx.clearRect(0, 0, W, H);
+      P.forEach((p) => { p.vy += 0.32; p.vx *= 0.99; p.x += p.vx; p.y += p.vy; p.a += p.va; ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.a); ctx.fillStyle = p.c; ctx.globalAlpha = Math.max(0, 1 - dt / 3200); ctx.fillRect(-p.r / 2, -p.r / 4, p.r, p.r / 2); ctx.restore(); });
+      if (dt < 3200) requestAnimationFrame(quadro); else cv.remove();
+    })(t0);
+  }
+  // Painel: minhas tarefas (troca o status com um toque)
+  function renderPnTarefas() {
+    const el = $("#pnTarefas"); if (!el) return;
+    if (!CK.carregado) { ckCarregar().then(() => { if (vista === "painel") renderPnTarefas(); badgeChecklist(); }); el.innerHTML = `<span class="small dim">Carregando…</span>`; return; }
+    const op = ckOp();
+    if (!op) { el.innerHTML = `<span class="small dim">Escolha quem está atendendo (rodapé do menu) para ver as suas tarefas.</span>`; return; }
+    const r = CK.regs[op] || { operador: op, itens: {}, extras: [] }, R = ckResumo(r);
+    el.innerHTML = `<div class="row"><div class="anel" style="--p:${R.pct}"><b class="num">${R.pct}%</b></div><div class="grow"><b>${R.feitos} de ${R.total} feitas</b><div class="small dim">${r.assinado ? `✓ assinado por ${esc(r.assinado.nome)} às ${horaDe(r.assinado.em)}` : R.pend.length ? `${R.pend.length} pendência${R.pend.length > 1 ? "s" : ""} · assinar até ${ckLimite()}` : "tudo feito: falta assinar"}</div></div></div>
+      <div class="lista-int pn-pend">${r.assinado ? "" : R.pend.slice(0, 5).map((t) => { const e = ckEstado(r, t.id); return `<button class="it" data-pnck="${esc(t.id)}" data-dica="Toque para passar para ${e === "fazer" ? "Fazendo" : "Feito"}"><span class="pill ${e === "fazendo" ? "warn" : ""}">${e === "fazendo" ? "Fazendo" : "Fazer"}</span><span class="grow">${esc(t.txt)}</span></button>`; }).join("")}${!r.assinado && R.pend.length > 5 ? `<span class="tiny dim">+ ${R.pend.length - 5} no check-list</span>` : ""}</div>`;
+  }
+  $("#pnTarefas").addEventListener("click", async (e) => {
+    const b = e.target.closest("[data-pnck]"); if (!b) return; const op = ckOp(); if (!op) return; const r = ckReg(op); if (r.assinado) return;
+    const id = b.dataset.pnck, antes = ckResumo(r).pct; r.itens[id] = ckEstado(r, id) === "fazer" ? "fazendo" : "feito";
+    if (!r.tarefas) r.tarefas = tarefasPara(op).map((t) => ({ id: t.id, txt: t.txt }));
+    renderPnTarefas(); if (ckResumo(r).pct === 100 && antes < 100) { comemorar(op); r.concluidoEm = new Date().toISOString(); }
+    try { await ckSalvar(r); } catch (er) { /* aviso já mostrado */ }
+  });
+
+  /* ------------------------------------------------------------ */
+  /* Marketing · visão geral                                         */
+  /* ------------------------------------------------------------ */
+  const MK = { mes: new Date().toISOString().slice(0, 7), unidade: "", listas: {} };
+  function renderMarketing() {
+    if (ABAS.mkt === "camp" && pode("campanhas")) renderCampanhas();
+    else if (ABAS.mkt === "res" && pode("resultados")) renderResultados();
+    else renderMkGeral();
+  }
+  function renderMkGeral() {
+    if (!$("#mkMes").value) $("#mkMes").value = MK.mes;
+    $$("#mkUnidade button").forEach((b) => b.classList.toggle("on", b.dataset.u === MK.unidade));
+    const { c, listas } = numerosComercial(MK.mes, MK.unidade); MK.listas = listas;
+    const inv = Number((CALC.real || {})[MK.mes] || 0), fat = c.valorFechado;
+    $("#mkInvInfo").innerHTML = inv ? `Investido no mês: <b>${brl(inv)}</b>` : `Informe o investimento em Campanhas › Resultado do mês para ver custo e retorno.`;
+    const L = listas;
+    const t = [
+      ["entraram", "Leads no mês", c.entraram, "toque para ver os nomes", "hl"],
+      ["agendaram", "Agendaram", `${pct(c.agendaram, c.entraram)}%`, `${c.agendaram} de ${c.entraram} leads`],
+      ["compareceram", "Compareceram", `${pct(c.compareceram, c.agendaram)}%`, `${c.compareceram} dos agendados`],
+      ["fecharam", "Fecharam", `${pct(c.fecharam, c.compareceram)}%`, `${c.fecharam} · ${brl(fat)}`],
+      [null, "Custo por lead", inv && c.entraram ? brl(inv / c.entraram) : "—", inv ? "investimento ÷ leads" : "sem investimento informado"],
+      [null, "Custo por fechamento", inv && c.fecharam ? brl(inv / c.fecharam) : "—", "investimento ÷ fechamentos"],
+      [null, "Retorno", inv ? `${(fat / inv).toFixed(1).replace(".", ",")}x` : "—", inv ? `${brl(fat)} para ${brl(inv)}` : "faturamento ÷ investimento"],
+      ["fecharam", "Ticket médio", c.fecharam ? brl(fat / c.fecharam) : "—", "valor fechado ÷ fechamentos"]
+    ];
+    $("#mkKpis").innerHTML = t.map(([k, rot, v, sub, cls]) => k ? `<button class="kpi click ${cls || ""}" data-mk="${k}" data-mktit="${esc(rot)}"><div class="label">${esc(rot)}</div><b class="num">${esc(String(v))}</b><span>${esc(sub)}</span></button>` : `<div class="kpi"><div class="label">${esc(rot)}</div><b class="num">${esc(String(v))}</b><span>${esc(sub)}</span></div>`).join("");
+    // origens
+    const barrasH = (grupos, prefixo, total) => { const max = Math.max(1, ...grupos.map((g) => g.lista.length));
+      return grupos.length ? grupos.map((g) => { const f = g.lista.filter((p) => etapaDe(p) === "fechado").length; MK.listas[prefixo + g.nome] = g.lista;
+        return `<button class="mk-lin" data-mk="${esc(prefixo + g.nome)}" data-mktit="${esc(g.nome)}" data-dica="${esc(`${g.nome}: ${g.lista.length} leads (${pct(g.lista.length, total)}%) · ${f} fecharam (${pct(f, g.lista.length)}%)`)}"><span class="mk-n">${esc(g.nome)}</span><span class="mk-b"><i style="width:${(g.lista.length / max) * 100}%"></i><i class="f" style="width:${(f / max) * 100}%"></i></span><span class="mk-v num">${g.lista.length}<small>${pct(g.lista.length, total)}%</small></span></button>`; }).join("") : `<span class="small dim">Nenhum lead neste mês.</span>`; };
+    const agrupar = (fn) => { const G = {}; L.entraram.forEach((p) => { const k = fn(p) || "Não informado"; (G[k] = G[k] || []).push(p); }); return Object.entries(G).map(([nome, lista]) => ({ nome, lista })).sort((a, b) => b.lista.length - a.lista.length); };
+    const og = agrupar((p) => p.origem); $("#mkOrigens").innerHTML = barrasH(og.slice(0, 7), "o:", c.entraram);
+    const tg = agrupar((p) => tratDoPaciente(p)); $("#mkTrat").innerHTML = barrasH(tg.slice(0, 6), "t:", c.entraram);
+    // semanas (8)
+    const base = PAC.filter((p) => !MK.unidade || p.unidade === MK.unidade), fimRef = (() => { const [a, m] = MK.mes.split("-").map(Number); const ult = new Date(a, m, 0); return ult < new Date() ? ult : new Date(); })();
+    const sem = Array.from({ length: 8 }, (_, i) => { const fim = inicioDia(fimRef.getTime() - (7 - i) * 7 * DIA + DIA), ini = new Date(fim.getTime() - 7 * DIA); return { ini, fim }; });
+    colunasDuplas($("#mkSemanas"), sem.map(({ ini, fim }) => { const dentro = (iso) => iso && new Date(iso) >= ini && new Date(iso) < fim; const la = base.filter((p) => dentro(entrouEm(p))), lb = base.filter((p) => p.status === "fechado" && dentro(p.fechadoEm));
+      return { rot: ddmm(ini), tit: `Semana de ${ddmm(ini)} a ${ddmm(new Date(fim.getTime() - DIA))}`, a: la.length, b: lb.length, la, lb }; }), "leads", "fecharam");
+  }
+  $("#mkMes").addEventListener("change", (e) => { MK.mes = e.target.value || MK.mes; renderMkGeral(); });
+  $("#mkUnidade").addEventListener("click", (e) => { const b = e.target.closest("[data-u]"); if (b) { MK.unidade = b.dataset.u; renderMkGeral(); } });
+  $('.painel[data-grupo="mkt"][data-aba="geral"]').addEventListener("click", (e) => { const b = e.target.closest("[data-mk]"); if (b) abrirListaPacientes(b.dataset.mktit, MK.listas[b.dataset.mk] || [], new Date(MK.mes + "-15").toLocaleDateString("pt-BR", { month: "long", year: "numeric" })); });
+  $('.abas[data-grupo="mkt"]').addEventListener("click", () => setTimeout(renderMarketing, 0));
+
+  /* ------------------------------------------------------------ */
+  /* Cadastro: foto, Instagram, CPF, telefones e nascimento          */
+  /* ------------------------------------------------------------ */
+  const soDig = (t) => String(t || "").replace(/\D/g, "");
+  const fmtCPF = (c) => { const d = soDig(c).slice(0, 11); return d.length > 9 ? `${d.slice(0, 3)}.${d.slice(3, 6)}.${d.slice(6, 9)}-${d.slice(9)}` : d.length > 6 ? `${d.slice(0, 3)}.${d.slice(3, 6)}.${d.slice(6)}` : d.length > 3 ? `${d.slice(0, 3)}.${d.slice(3)}` : d; };
+  function cpfValido(c) { c = soDig(c); if (c.length !== 11 || /^(\d)\1+$/.test(c)) return false; for (let t = 9; t < 11; t++) { let s = 0; for (let i = 0; i < t; i++) s += Number(c[i]) * (t + 1 - i); if (((s * 10) % 11) % 10 !== Number(c[t])) return false; } return true; }
+  function idadeDe(nasc) { if (!nasc) return null; const [a, m, d] = String(nasc).split("-").map(Number); if (!a) return null; const h = new Date(); let i = h.getFullYear() - a; if (h.getMonth() + 1 < m || (h.getMonth() + 1 === m && h.getDate() < d)) i--; return i >= 0 && i < 130 ? i : null; }
+  const instaDe = (t) => String(t || "").trim().replace(/^https?:\/\/(www\.)?instagram\.com\//i, "").replace(/[/?#].*$/, "").replace(/^@/, "");
+  const TEL_ROT = ["Celular", "WhatsApp", "Fixo", "Trabalho", "Recado"];
+  const telLinha = (t) => `<div class="telrow"><select class="in" data-t="r" aria-label="Tipo do telefone">${TEL_ROT.map((r) => `<option${r === (t.rotulo || "Celular") ? " selected" : ""}>${r}</option>`).join("")}</select><input class="in" data-t="n" inputmode="tel" value="${esc(t.numero || "")}" placeholder="(81) 9…" aria-label="Número"><button type="button" class="btn sm ghost" data-teldel="1" aria-label="Remover telefone">✕</button></div>`;
+  function cadExtraHTML(p, x) {
+    const idade = idadeDe(p.nascimento);
+    return `<div class="duo"><div><label class="f" for="${x}Insta">Instagram</label><div class="in-pre"><span aria-hidden="true">@</span><input class="in" id="${x}Insta" value="${esc(instaDe(p.instagram))}" placeholder="usuario" autocomplete="off" spellcheck="false"></div></div>
+        <div><label class="f" for="${x}Cpf">CPF</label><input class="in" id="${x}Cpf" inputmode="numeric" maxlength="14" value="${esc(fmtCPF(p.cpf || ""))}" placeholder="000.000.000-00" autocomplete="off"><span class="tiny" id="${x}CpfSt" aria-live="polite"></span></div></div>
+      <div class="duo"><div><label class="f" for="${x}Nasc">Data de nascimento</label><input class="in" type="date" id="${x}Nasc" value="${esc(p.nascimento || "")}" max="${diaLocal()}"><span class="tiny dim" id="${x}Idade">${idade != null ? idade + " anos" : ""}</span></div>
+        <div><span class="f">Outros telefones</span><div class="stack" id="${x}Tels" style="gap:6px">${(p.telefones || []).map(telLinha).join("")}</div><button type="button" class="btn sm" id="${x}TelAdd" style="margin-top:6px">+ Telefone</button></div></div>`;
+  }
+  function ligarCadExtra(p, x) {
+    const cpf = $(`#${x}Cpf`), st = $(`#${x}CpfSt`);
+    const conf = () => { const d = soDig(cpf.value); st.textContent = !d ? "" : d.length < 11 ? "" : cpfValido(d) ? "✓ CPF válido" : "CPF inválido: confira os números"; st.style.color = d.length === 11 && !cpfValido(d) ? "var(--bad)" : "var(--good)"; };
+    cpf.addEventListener("input", () => { const pos = cpf.value.length; cpf.value = fmtCPF(cpf.value); if (pos === cpf.value.length) cpf.setSelectionRange(pos, pos); conf(); }); conf();
+    $(`#${x}Nasc`).addEventListener("change", (e) => { const i = idadeDe(e.target.value); $(`#${x}Idade`).textContent = i != null ? i + " anos" : ""; });
+    $(`#${x}TelAdd`).addEventListener("click", () => { $(`#${x}Tels`).insertAdjacentHTML("beforeend", telLinha({})); $$(`#${x}Tels .telrow`).pop().querySelector("input").focus(); });
+    $(`#${x}Tels`).addEventListener("click", (e) => { const d = e.target.closest("[data-teldel]"); if (d) d.closest(".telrow").remove(); });
+  }
+  function lerCadExtra(p, x) {
+    p.instagram = instaDe($(`#${x}Insta`).value); p.cpf = soDig($(`#${x}Cpf`).value).slice(0, 11); p.nascimento = $(`#${x}Nasc`).value || "";
+    p.telefones = $$(`#${x}Tels .telrow`).map((r) => ({ rotulo: $("[data-t=r]", r).value, numero: $("[data-t=n]", r).value.trim() })).filter((t) => soDig(t.numero).length >= 8).slice(0, 8);
+    ["instagram", "cpf", "nascimento"].forEach((k) => { if (!p[k]) delete p[k]; }); if (!p.telefones.length) delete p.telefones;
+  }
+  // foto do paciente: do WhatsApp, de um arquivo ou tirada na hora
+  function fotoWhatsApp(p) {
+    if (p.leadId && WA.info[p.leadId] && WA.info[p.leadId].foto) return WA.info[p.leadId].foto;
+    const d = soDig(p.telefone).slice(-8); if (d.length < 8) return "";
+    const c = WA.conversas.find((c) => { const i = WA.info[c.lead] || {}; return (i.foto || c.foto) && (soDig(i.telefone).slice(-8) === d || soDig(c.lead).slice(-8) === d); });
+    return c ? (WA.info[c.lead] || {}).foto || c.foto || "" : "";
+  }
+  function fotoHTML(p, x) {
+    const wa = fotoWhatsApp(p);
+    return `<div class="foto-box" id="${x}FotoBox"><div class="foto-ava" id="${x}FotoAva">${avaHTML(p.nome || "+", p.foto, "grande")}</div><div class="stack" style="gap:6px"><span class="f" style="margin:0">Foto do paciente</span>
+      <div class="row" style="gap:6px"><button type="button" class="btn sm" data-foto="camera">📷 Tirar foto</button><button type="button" class="btn sm" data-foto="arquivo">🖼 Enviar foto</button>${wa ? `<button type="button" class="btn sm" data-foto="wa">Usar a do WhatsApp</button>` : ""}<button type="button" class="btn sm ghost${p.foto ? "" : " hide"}" data-foto="tirar">Remover</button></div>
+      <input type="file" accept="image/*" capture="user" class="hide" data-foto-arq="1" aria-label="Escolher foto"></div></div>`;
+  }
+  function reduzirImagem(src, lado = 320) {
+    return new Promise((ok, falha) => { const img = new Image(); img.onload = () => { const c = document.createElement("canvas"); c.width = c.height = lado; const m = Math.min(img.width, img.height); c.getContext("2d").drawImage(img, (img.width - m) / 2, (img.height - m) / 2, m, m, 0, 0, lado, lado); try { ok(c.toDataURL("image/jpeg", 0.82)); } catch (e) { falha(e); } }; img.onerror = () => falha(new Error("Imagem inválida")); img.src = src; });
+  }
+  function ligarFoto(p, x, aoMudar) {
+    const box = $(`#${x}FotoBox`); if (!box) return;
+    const aplicar = async (foto) => { p.foto = foto || undefined; if (!foto) delete p.foto; $(`#${x}FotoAva`).innerHTML = avaHTML(p.nome || "+", p.foto, "grande"); $('[data-foto="tirar"]', box).classList.toggle("hide", !p.foto); if (aoMudar) await aoMudar(); };
+    const arq = $("[data-foto-arq]", box);
+    arq.addEventListener("change", () => { const f = arq.files && arq.files[0]; if (!f) return; const rd = new FileReader(); rd.onload = async () => { try { await aplicar(await reduzirImagem(rd.result)); toast("Foto atualizada"); } catch (e) { toast("Não foi possível usar esta imagem"); } }; rd.readAsDataURL(f); arq.value = ""; });
+    box.addEventListener("click", async (e) => {
+      const b = e.target.closest("[data-foto]"); if (!b) return;
+      const k = b.dataset.foto;
+      if (k === "arquivo") { arq.removeAttribute("capture"); arq.click(); }
+      if (k === "wa") { await aplicar(fotoWhatsApp(p)); toast("Foto do WhatsApp aplicada"); }
+      if (k === "tirar") await aplicar(null);
+      if (k === "camera") { const f = await tirarFoto(); if (f === "arquivo") { arq.setAttribute("capture", "user"); arq.click(); } else if (f) { await aplicar(f); toast("Foto atualizada"); } }
+    });
+  }
+  function tirarFoto() {
+    return new Promise(async (ok) => {
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { ok("arquivo"); return; }
+      let stream, frente = true;
+      const host = document.createElement("div"); host.className = "pop-veil"; host.innerHTML = `<div class="pop cam" role="dialog" aria-modal="true" aria-label="Tirar foto"><b>Tirar foto do paciente</b><video autoplay playsinline muted></video><span class="small dim" id="camMsg">Centralize o rosto e toque em Capturar.</span><div class="row" style="justify-content:center"><button class="btn pri" data-c="ok">📷 Capturar</button><button class="btn" data-c="troca">↺ Trocar câmera</button><button class="btn ghost" data-c="sair">Cancelar</button></div></div>`;
+      document.body.appendChild(host); const v = $("video", host);
+      const parar = () => stream && stream.getTracks().forEach((t) => t.stop());
+      const abrir = async () => { parar(); try { stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: frente ? "user" : "environment", width: { ideal: 960 } } }); v.srcObject = stream; } catch (e) { $("#camMsg", host).textContent = "A câmera não foi liberada. Use Enviar foto ou permita a câmera no navegador."; } };
+      const fim = (r) => { parar(); host.remove(); ok(r); };
+      host.addEventListener("click", async (e) => { const b = e.target.closest("[data-c]"); if (e.target === host) return fim(null); if (!b) return;
+        if (b.dataset.c === "sair") fim(null);
+        if (b.dataset.c === "troca") { frente = !frente; abrir(); }
+        if (b.dataset.c === "ok") { if (!v.videoWidth) return; const c = document.createElement("canvas"); c.width = v.videoWidth; c.height = v.videoHeight; c.getContext("2d").drawImage(v, 0, 0); fim(await reduzirImagem(c.toDataURL("image/jpeg", 0.9))); } });
+      abrir();
+    });
+  }
+
+  /* ------------------------------------------------------------ */
+  /* Pacientes: lista + ficha de cadastro + linha do tempo           */
+  /* ------------------------------------------------------------ */
+  const PACF = { filtro: "todos", unidade: "", busca: "", pg: 0 };
+  const faseAtual = (t) => { const f = fasesDe(t).find((x) => !feita(t, x)); return f ? f.nome : "Finalizado"; };
+  const PAC_FILTROS = [["todos", "Todos"], ["leads", "Leads"], ["clientes", "Clientes"], ["tratamento", "Em tratamento"], ["aniv", "Aniversariantes do mês"]];
+  function filtraPac(k) {
+    const m = new Date().getMonth() + 1;
+    return PAC.filter((p) => (!PACF.unidade || p.unidade === PACF.unidade) && (k === "todos" || (k === "leads" && p.status === "lead") || (k === "clientes" && ehCliente(p)) || (k === "tratamento" && (p.trabalhos || []).some((t) => !concluido(t))) || (k === "aniv" && p.nascimento && Number(String(p.nascimento).split("-")[1]) === m)));
+  }
+  function renderPacientes() {
+    $("#pacFiltro").innerHTML = PAC_FILTROS.map(([k, n]) => `<button data-pf="${k}" class="${PACF.filtro === k ? "on" : ""}">${n} · ${filtraPac(k).length}</button>`).join("");
+    $$("#pacUnidade button").forEach((b) => b.classList.toggle("on", b.dataset.u === PACF.unidade));
+    const q = PACF.busca.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, ""), qd = soDig(PACF.busca);
+    const lista = filtraPac(PACF.filtro).filter((p) => !q || String(p.nome || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").includes(q) || (qd.length >= 3 && (soDig(p.telefone).includes(qd) || soDig(p.cpf).includes(qd) || (p.telefones || []).some((t) => soDig(t.numero).includes(qd)))) || (p.instagram && p.instagram.toLowerCase().includes(q.replace(/^@/, ""))))
+      .sort((a, b) => String(a.nome || "").localeCompare(String(b.nome || ""), "pt-BR"));
+    const tab = $("#pacTabela");
+    tab.innerHTML = `<thead><tr><th>Paciente</th><th>Contato</th><th class="n">Idade</th><th>Unidade</th><th>Situação</th><th>Tratamento</th><th>Atendimento</th></tr></thead><tbody>${lista.map((p) => {
+      const tr = (p.trabalhos || []).filter((t) => !concluido(t)), id = idadeDe(p.nascimento), e = etapaDe(p);
+      return `<tr data-pid="${p.id}"><td><button class="pac-nome" data-pacfich="${p.id}">${avaHTML(p.nome, p.foto)}<span><b>${esc(p.nome || "Sem nome")}</b>${aniversariaHoje(p) ? " 🎂" : ""}</span></button></td>
+        <td><span class="num">${esc(p.telefone || "—")}</span>${p.instagram ? `<div class="tiny dim">@${esc(p.instagram)}</div>` : ""}</td><td class="n">${id != null ? id : "—"}</td><td>${esc(p.unidade || "—")}</td>
+        <td><span class="pill ${e === "fechado" ? "good" : e === "perdido" || e === "nao_fechou" || e === "faltou" ? "bad" : ""}">${esc(ETAPA[e].nome)}</span></td>
+        <td>${tr.length ? `${esc(nomeTrab(tr[0]))}<div class="tiny dim">${esc(faseAtual(tr[0]))}${tr.length > 1 ? ` · +${tr.length - 1}` : ""}</div>` : esc(tratDoPaciente(p) === "Não informado" ? "—" : tratDoPaciente(p))}</td>
+        <td class="small">${esc([p.crc ? "CRC " + p.crc : "", (tr[0] && tr[0].dr) || p.drAvaliacao || ""].filter(Boolean).join(" · ") || "—")}</td></tr>`; }).join("") || `<tr><td colspan="7"><div class="vazio">Nenhum paciente encontrado.</div></td></tr>`}</tbody>`;
+    rotularTabela(tab);
+    paginarPac();
+  }
+  function paginarPac() {
+    const linhas = $$("#pacTabela tbody tr[data-pid]"), pg = $("#pacPager");
+    linhas.forEach((l) => l.classList.remove("fora"));
+    if (vista !== "pacientes" || linhas.length < 2) { pg.classList.add("hide"); return; }
+    const topo = $("#pacTabela tbody").getBoundingClientRect().top + window.scrollY;
+    const alt = Math.max(44, linhas[0].offsetHeight || 52);
+    const alt2 = Math.max(alt, ...linhas.slice(0, 12).map((l) => l.offsetHeight || 0));
+    const por = Math.max(3, Math.floor((window.innerHeight - topo - 84 - (window.innerWidth <= 860 ? 84 : 0)) / alt2));
+    const paginas = Math.ceil(linhas.length / por);
+    if (paginas <= 1) { pg.classList.add("hide"); return; }
+    PACF.pg = Math.max(0, Math.min(PACF.pg, paginas - 1));
+    linhas.forEach((l, i) => l.classList.toggle("fora", Math.floor(i / por) !== PACF.pg));
+    pg.classList.remove("hide"); $("#pacPg").textContent = `${PACF.pg + 1} de ${paginas} · ${linhas.length} pacientes`;
+    $('#pacPager [data-ppg="-1"]').disabled = PACF.pg === 0; $('#pacPager [data-ppg="1"]').disabled = PACF.pg >= paginas - 1;
+  }
+  $("#pacFiltro").addEventListener("click", (e) => { const b = e.target.closest("[data-pf]"); if (b) { PACF.filtro = b.dataset.pf; PACF.pg = 0; renderPacientes(); } });
+  $("#pacUnidade").addEventListener("click", (e) => { const b = e.target.closest("[data-u]"); if (b) { PACF.unidade = b.dataset.u; PACF.pg = 0; renderPacientes(); } });
+  $("#pacBusca").addEventListener("input", (e) => { PACF.busca = e.target.value; PACF.pg = 0; renderPacientes(); });
+  $("#pacPager").addEventListener("click", (e) => { const b = e.target.closest("[data-ppg]"); if (b) { PACF.pg += Number(b.dataset.ppg); paginarPac(); } });
+  $("#pacTabela").addEventListener("click", (e) => { const r = e.target.closest("tr[data-pid]"); if (!r) return; const p = PAC.find((x) => x.id === r.dataset.pid); if (p) abrirFicha(p); });
+  $("#btnNovoPac").addEventListener("click", () => abrirFicha(null));
+  window.addEventListener("resize", () => { if (vista === "pacientes") paginarPac(); });
+
+  function abrirFicha(p) {
+    const novo = !p;
+    p = p || { id: novoId(), status: "lead", etapa: "novo", entradaEm: new Date().toISOString(), origem: "Passou na frente", unidade: PACF.unidade || "", crc: eu() || "", toques: {} };
+    const tel = telIntl(p.telefone), e = etapaDe(p), sel = (id, ops, atual) => `<select class="in" id="${id}">${ops.map((o) => `<option${o === atual ? " selected" : ""}>${esc(o)}</option>`).join("")}</select>`;
+    const ORIG = ["Anúncio Meta", "Instagram orgânico", "Indicação", "Google", "WhatsApp (Kommo)", "WhatsApp (celular)", "Passou na frente", "Outro"];
+    const trat = tratDoPaciente(p) === "Não informado" ? "" : tratDoPaciente(p);
+    $("#drawerHost").innerHTML = `<div class="veil" id="veil"><div class="drawer larga" role="dialog" aria-label="Ficha de ${esc(p.nome || "novo paciente")}">
+      <div class="row"><div class="grow"><h2 style="font-size:22px">${novo ? "Novo paciente" : esc(p.nome)}</h2><div class="small dim">${novo ? "Ficha de cadastro" : `${esc(ETAPA[e].nome)} · entrou ${fmtData(entrouEm(p))}${p.unidade ? " · " + esc(p.unidade) : ""}${idadeDe(p.nascimento) != null ? ` · ${idadeDe(p.nascimento)} anos` : ""}`}</div></div>
+        ${novo ? "" : `<div class="row acoes-ficha">${tel ? `<a class="btn sm" href="https://wa.me/${tel}" target="_blank" rel="noopener">WhatsApp</a><button class="btn sm" id="fSms">SMS</button><a class="btn sm" href="tel:+${tel}">Ligar</a>` : ""}${p.email ? `<a class="btn sm" href="mailto:${esc(p.email)}">E-mail</a>` : ""}${p.instagram ? `<a class="btn sm" href="https://instagram.com/${encodeURIComponent(p.instagram)}" target="_blank" rel="noopener">Instagram</a>` : ""}</div>`}
+        <button class="btn sm ghost" id="btnFechar" aria-label="Fechar">✕</button></div>
+      <div class="ficha-grid">
+        <div class="stack">
+          <div class="card stack"><span class="label">Ficha de cadastro</span>
+            ${fotoHTML(p, "f")}
+            <div><label class="f" for="fNome">Nome completo</label><input class="in" id="fNome" value="${esc(p.nome || "")}"></div>
+            <div class="duo"><div><label class="f" for="fTel">WhatsApp (principal)</label><input class="in" id="fTel" inputmode="tel" value="${esc(p.telefone || "")}"></div>
+              <div><label class="f" for="fEmail">E-mail</label><input class="in" id="fEmail" type="email" value="${esc(p.email || "")}"></div></div>
+            ${cadExtraHTML(p, "f")}
+            <div class="duo"><div><label class="f" for="fUni">Unidade</label>${sel("fUni", ["", ...unidades()], p.unidade || "")}</div>
+              <div><label class="f" for="fOrig">Origem</label>${sel("fOrig", ORIG.concat(p.origem && !ORIG.includes(p.origem) ? [p.origem] : []), p.origem || "Outro")}</div></div>
+            <div class="duo"><div><label class="f" for="fTrat">Tratamento de interesse</label>${sel("fTrat", [""].concat(TRAT.map((t) => t.nome)), trat)}</div>
+              <div><label class="f" for="fObs">Observações</label><input class="in" id="fObs" value="${esc(p.obs || "")}"></div></div>
+            <details class="contato-det"${p.decisor || p.crc ? "" : " open"}><summary><span class="label">Decisor, melhor horário, CRC e doutor</span></summary><div class="stack" style="margin-top:10px">${camposContatoHTML(p, "f")}</div></details>
+            <div class="row"><button class="btn pri" id="fSalvar">${novo ? "Cadastrar paciente" : "Salvar ficha"}</button><span class="small dim" id="fSt"></span><span class="grow"></span>${novo ? "" : `<button class="btn sm" id="fCrm">${ehCliente(p) ? "Abrir no follow-up" : "Abrir no CRM"}</button>`}</div>
+          </div>
+        </div>
+        <div class="stack">${novo ? `<div class="card"><span class="small dim">A linha do tempo dos procedimentos aparece depois do cadastro.</span></div>` : timelinePacienteHTML(p)}</div>
+      </div></div></div>`;
+    $("#veil").addEventListener("click", (ev) => { if (ev.target.id === "veil") fecharGaveta(); });
+    $("#btnFechar").onclick = fecharGaveta;
+    ligarCadExtra(p, "f"); ligarContato(p, "f");
+    ligarFoto(p, "f", novo ? null : async () => { await Store.salvar(p); });
+    if (!novo) ligarTimelinePaciente(p, abrirFicha);
+    if ($("#fSms")) $("#fSms").onclick = () => abrirSMS(p);
+    if ($("#fCrm")) $("#fCrm").onclick = () => (ehCliente(p) ? abrirGaveta : abrirCard)(p);
+    $("#fSalvar").onclick = async () => {
+      const nome = $("#fNome").value.trim(); if (!nome) { $("#fSt").textContent = "Informe o nome."; $("#fNome").focus(); return; }
+      const cpf = soDig($("#fCpf").value); if (cpf && cpf.length === 11 && !cpfValido(cpf)) { $("#fSt").textContent = "Confira o CPF."; return; }
+      p.nome = nome; p.telefone = $("#fTel").value.trim(); p.email = $("#fEmail").value.trim(); p.unidade = $("#fUni").value; p.origem = $("#fOrig").value; p.obs = $("#fObs").value.trim();
+      const t = $("#fTrat").value; p.interesse = t; p.tratamento = t;
+      lerCadExtra(p, "f"); lerContato(p, "f");
+      if (!novo) prontuario(p, "Ficha de cadastro atualizada", null);
+      try { await Store.salvar(p); toast(novo ? "Paciente cadastrado" : "Ficha salva"); render(); abrirFicha(p); } catch (er) { $("#fSt").textContent = "Erro: " + er.message; }
+    };
+    if (novo) setTimeout(() => { const n = $("#fNome"); if (n) n.focus(); }, 50);
+  }
+
+  /* ------------------------------------------------------------ */
+  /* SMS: envio pela plataforma (Twilio ou Zenvia), pelo celular     */
+  /* (QR code) ou pelo app de mensagens do aparelho                  */
+  /* ------------------------------------------------------------ */
+  const smsHref = (tel, txt) => `sms:+${telIntl(tel)}?&body=${encodeURIComponent(txt)}`;
+  const ehCelular = () => window.matchMedia && window.matchMedia("(max-width: 860px), (pointer: coarse)").matches;
+  function abrirSMS(p) {
+    const tels = [p.telefone].concat((p.telefones || []).map((t) => t.numero)).filter((t) => soDig(t).length >= 8);
+    if (!tels.length) { toast("Cadastre um telefone para enviar SMS"); return; }
+    const u = BIB.unidades[p.unidade] || {};
+    const txt0 = `Olá, ${primeiro(p.nome)}! Aqui é ${eu() || "a equipe"} da Weiss Odontologia${p.unidade ? " " + p.unidade : ""}. `;
+    const plataforma = PLAT && PLAT.sms && pode("enviar_sms");
+    $("#drawerHost").innerHTML = `<div class="veil" id="veil"><div class="drawer pequeno" role="dialog" aria-label="Enviar SMS">
+      <div class="row"><div class="grow"><h2 style="font-size:21px">💬 SMS para ${esc(primeiro(p.nome))}</h2><div class="small dim">${plataforma ? "Enviado pela plataforma" : "Pelo celular: escaneie o QR code ou abra o app de mensagens"}</div></div><button class="btn sm ghost" id="btnFechar" aria-label="Fechar">✕</button></div>
+      <div class="card stack">
+        <div><label class="f" for="smsTel">Telefone</label><select class="in" id="smsTel">${tels.map((t) => `<option>${esc(t)}</option>`).join("")}</select></div>
+        <div><label class="f" for="smsTxt">Mensagem</label><textarea class="in" id="smsTxt" rows="4" maxlength="640">${esc(txt0)}</textarea><div class="row"><span class="tiny dim grow" id="smsCont"></span>${u.whatsapp ? `<span class="tiny dim">WhatsApp da unidade: ${esc(u.whatsapp)}</span>` : ""}</div></div>
+        <div class="row">${plataforma ? `<button class="btn pri" id="smsEnviar">Enviar SMS</button>` : ""}<a class="btn${plataforma ? "" : " pri"}" id="smsApp" href="#">Abrir no app de mensagens</a><button class="btn ghost" id="smsCopiar">Copiar texto</button><span class="small dim" id="smsSt" aria-live="polite"></span></div>
+      </div>
+      ${ehCelular() ? "" : `<div class="card stack sms-qr"><div class="row"><div id="smsQr" class="qr-sms" aria-label="QR code para enviar o SMS pelo celular"></div><div class="small"><b>Enviar pelo seu celular</b><br>Aponte a câmera do celular para o QR code: o app de mensagens abre com o número e o texto prontos. É só tocar em enviar.${plataforma ? "" : `<br><span class="tiny dim">Para enviar direto pelo computador, configure o Twilio ou a Zenvia na hospedagem (veja Ajustes › Sistema).</span>`}</div></div></div>`}
+    </div></div>`;
+    $("#veil").addEventListener("click", (e) => { if (e.target.id === "veil") fecharGaveta(); });
+    $("#btnFechar").onclick = fecharGaveta;
+    const atual = () => [$("#smsTel").value, $("#smsTxt").value.trim()];
+    const atualizar = () => { const [t, x] = atual(); const n = x.length, partes = Math.max(1, Math.ceil(n / 153)); $("#smsCont").textContent = `${n} caracteres · ${n <= 160 ? 1 : partes} SMS`; $("#smsApp").href = smsHref(t, x); if ($("#smsQr")) desenharQR("smsQr", smsHref(t, x), 150); };
+    $("#smsTxt").addEventListener("input", atualizar); $("#smsTel").addEventListener("change", atualizar); atualizar();
+    const registrar = async (como) => { const [t, x] = atual(); prontuario(p, `SMS ${como} para ${t}: “${x.slice(0, 120)}${x.length > 120 ? "…" : ""}”`, new Date().toISOString()); try { await Store.salvar(p); } catch (e) { /* fica na fila */ } };
+    $("#smsApp").addEventListener("click", () => { registrar("aberto no celular"); });
+    $("#smsCopiar").onclick = async () => { try { await navigator.clipboard.writeText(atual()[1]); $("#smsSt").textContent = "✓ Copiado"; } catch (e) { $("#smsSt").textContent = "Selecione e copie o texto"; } };
+    if ($("#smsEnviar")) $("#smsEnviar").onclick = async (e) => {
+      const [t, x] = atual(); if (!x) return; const b = e.currentTarget; b.disabled = true; b.textContent = "Enviando…";
+      try { await api("POST", "api/sms/enviar", { telefone: t, texto: x, paciente: p.id }); await registrar("enviado"); toast("SMS enviado"); fecharGaveta(); }
+      catch (er) { $("#smsSt").textContent = "Não foi possível enviar: " + er.message; b.disabled = false; b.textContent = "Enviar SMS"; }
+    };
+  }
+
+  /* ------------------------------------------------------------ */
+  /* Microfone: escolha do aparelho, teste e gravação da consulta    */
+  /* ------------------------------------------------------------ */
+  const micId = () => ls.get("alinha.mic", "");
+  const gravarAudio = () => ls.get("alinha.gravarAudio", false);
+  function erroMic(e) {
+    if (!window.isSecureContext) return "O microfone só funciona em endereço seguro (https://). Abra o Alinha pelo endereço com https.";
+    const n = e && e.name;
+    if (n === "NotAllowedError" || n === "SecurityError") return "O microfone foi bloqueado. Clique no cadeado ao lado do endereço › Microfone › Permitir e recarregue a página.";
+    if (n === "NotFoundError" || n === "OverconstrainedError") return "Nenhum microfone encontrado. Conecte um microfone (ou fone com microfone) e escolha-o em Ajustes › Voz.";
+    if (n === "NotReadableError") return "O microfone está sendo usado por outro programa (Zoom, Meet…). Feche-o e tente de novo.";
+    return "Não foi possível abrir o microfone: " + ((e && e.message) || "erro desconhecido");
+  }
+  async function abrirMicrofone() {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) throw Object.assign(new Error("Este navegador não dá acesso ao microfone"), { name: "NotSupported" });
+    const op = { echoCancellation: true, noiseSuppression: true };
+    if (micId()) { try { return await navigator.mediaDevices.getUserMedia({ audio: Object.assign({ deviceId: { exact: micId() } }, op) }); } catch (e) { if (e.name !== "OverconstrainedError" && e.name !== "NotFoundError") throw e; } }
+    return navigator.mediaDevices.getUserMedia({ audio: op });
+  }
+  function medidorNivel(stream, cb) {
+    const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return () => {};
+    const ctx = new AC(); if (ctx.state === "suspended") ctx.resume().catch(() => {}); const src = ctx.createMediaStreamSource(stream), an = ctx.createAnalyser(); an.fftSize = 512; src.connect(an);
+    const buf = new Float32Array(an.fftSize);
+    const id = setInterval(() => { an.getFloatTimeDomainData(buf); let s = 0; for (const v of buf) s += v * v; cb(Math.min(1, Math.sqrt(s / buf.length) * 6)); }, 90);
+    return () => { clearInterval(id); try { src.disconnect(); ctx.close(); } catch (e) { /* */ } };
+  }
+  async function renderMic() {
+    const el = $("#micEstado"); if (!el) return;
+    let estado = "não verificado";
+    try { if (navigator.permissions && navigator.permissions.query) { const q = await navigator.permissions.query({ name: "microphone" }); estado = { granted: "✓ liberado", denied: "bloqueado", prompt: "ainda não liberado" }[q.state] || q.state; } } catch (e) { /* navegador sem suporte */ }
+    if (!window.isSecureContext) estado = "precisa de https";
+    el.textContent = estado; el.className = "pill " + (estado.startsWith("✓") ? "good" : estado === "bloqueado" || estado === "precisa de https" ? "bad" : "warn");
+    try {
+      const devs = (await navigator.mediaDevices.enumerateDevices()).filter((d) => d.kind === "audioinput");
+      $("#micSel").innerHTML = `<option value="">Microfone padrão do aparelho</option>` + devs.filter((d) => d.deviceId && d.deviceId !== "default").map((d, i) => `<option value="${esc(d.deviceId)}"${d.deviceId === micId() ? " selected" : ""}>${esc(d.label || "Microfone " + (i + 1))}</option>`).join("");
+    } catch (e) { /* sem lista */ }
+    $("#micGravar").checked = gravarAudio();
+  }
+  let testeMic = null;
+  async function testarMic() {
+    const st = $("#micMsg"), barra = $("#micNivelAj");
+    if (testeMic) { testeMic(); testeMic = null; $("#btnMicTestar").textContent = "🎙 Testar microfone"; barra.style.width = "0%"; return; }
+    try {
+      const s = await abrirMicrofone(); let pico = 0;
+      const parar = medidorNivel(s, (n) => { barra.style.width = Math.round(n * 100) + "%"; pico = Math.max(pico, n); });
+      testeMic = () => { parar(); s.getTracks().forEach((t) => t.stop()); };
+      $("#btnMicTestar").textContent = "■ Parar teste"; st.textContent = "Fale algo: a barra deve se mover."; renderMic();
+      setTimeout(() => { if (!testeMic) return; testarMic(); st.textContent = pico > 0.08 ? "✓ Microfone funcionando." : "Quase nenhum som captado: confira o microfone escolhido e o volume de entrada."; }, 6000);
+    } catch (e) { st.textContent = erroMic(e); renderMic(); }
+  }
+  $("#btnMicTestar").addEventListener("click", testarMic);
+  $("#btnMicAtivar").addEventListener("click", async () => { try { const s = await abrirMicrofone(); s.getTracks().forEach((t) => t.stop()); $("#micMsg").textContent = "✓ Microfone liberado neste navegador."; } catch (e) { $("#micMsg").textContent = erroMic(e); } renderMic(); });
+  $("#micSel").addEventListener("change", (e) => { ls.set("alinha.mic", e.target.value); $("#micMsg").textContent = "Microfone escolhido. Toque em Testar para conferir."; });
+  $("#micGravar").addEventListener("change", (e) => { ls.set("alinha.gravarAudio", e.target.checked); });
+
+  /* ------------------------------------------------------------ */
+  /* Memória dos dados: cópia no aparelho + fila do que falta salvar */
+  /* ------------------------------------------------------------ */
+  const IDB = (() => {
+    let db = null;
+    const abrir = () => db || (db = new Promise((ok, falha) => { try { const r = indexedDB.open("alinha", 1); r.onupgradeneeded = () => r.result.createObjectStore("kv"); r.onsuccess = () => ok(r.result); r.onerror = () => falha(r.error); } catch (e) { falha(e); } }));
+    const op = async (modo, fn) => { const d = await abrir(); return new Promise((ok, falha) => { const t = d.transaction("kv", modo); const r = fn(t.objectStore("kv")); t.oncomplete = () => ok(r && r.result); t.onerror = () => falha(t.error); }); };
+    return { get: (k) => op("readonly", (s) => s.get(k)).catch(() => null), set: (k, v) => op("readwrite", (s) => s.put(v, k)).catch(() => null) };
+  })();
+  const MEM = { fila: [], enviando: false, timer: null, ultimo: null, offline: false };
+  function memInfo() {
+    const el = $("#salvoInfo"); if (!el) return;
+    if (!PLAT) { el.textContent = "✓ Salvo neste navegador"; el.className = "salvo ok"; return; }
+    if (MEM.fila.length) { el.textContent = MEM.offline ? `⚠ ${MEM.fila.length} alteraç${MEM.fila.length > 1 ? "ões" : "ão"} guardada${MEM.fila.length > 1 ? "s" : ""} no aparelho · enviando quando a conexão voltar` : "Salvando…"; el.className = "salvo " + (MEM.offline ? "pend" : ""); return; }
+    el.textContent = `✓ Tudo salvo${MEM.ultimo ? " às " + horaDe(MEM.ultimo) : ""}`; el.className = "salvo ok";
+  }
+  const espelhar = () => { if (PLAT) IDB.set("espelho", { em: new Date().toISOString(), pacientes: PAC, ajustes: AJ }); };
+  const guardarFila = () => IDB.set("fila", MEM.fila);
+  function enfileirar(op) {
+    if (op.tipo === "salvar") MEM.fila = MEM.fila.filter((o) => !(o.tipo === "salvar" && o.p.id === op.p.id));
+    if (op.tipo === "ajustes") { const a = MEM.fila.find((o) => o.tipo === "ajustes"); if (a) { Object.assign(a.novo, op.novo); guardarFila(); return; } }
+    MEM.fila.push(JSON.parse(JSON.stringify(op))); guardarFila(); memInfo();
+  }
+  async function enviarFila() {
+    if (MEM.enviando || !MEM.fila.length) return; MEM.enviando = true; clearTimeout(MEM.timer);
+    let erroFinal = null;
+    while (MEM.fila.length) {
+      const op = MEM.fila[0];
+      try {
+        if (op.tipo === "salvar") { const d = await apiCru("POST", "api/pacientes", op.p); const x = PAC.find((y) => y.id === op.p.id); if (x && d.paciente) Object.assign(x, d.paciente); }
+        else if (op.tipo === "remover") await apiCru("DELETE", "api/pacientes/" + encodeURIComponent(op.id));
+        else if (op.tipo === "ajustes") await apiCru("POST", "api/ajustes", op.novo);
+        MEM.fila.shift(); MEM.offline = false; MEM.ultimo = new Date().toISOString();
+      } catch (e) {
+        if (e.rede) { MEM.offline = true; MEM.timer = setTimeout(enviarFila, 15000); break; }
+        MEM.fila.shift(); erroFinal = e; // recusado pelo servidor (permissão ou dado inválido): não adianta tentar de novo
+      }
+    }
+    guardarFila(); espelhar(); MEM.enviando = false; memInfo();
+    if (erroFinal) throw erroFinal;
+  }
+  async function apiCru(metodo, rota, corpo) {
+    let r; try { r = await fetch(rota, { method: metodo, headers: corpo ? { "Content-Type": "application/json" } : {}, body: corpo ? JSON.stringify(corpo) : undefined }); }
+    catch (e) { throw Object.assign(new Error("Sem conexão com o servidor"), { rede: true }); }
+    if (r.status === 401) { location.href = "login"; throw new Error("Sessão expirada"); }
+    const d = await r.json().catch(() => ({}));
+    if (r.status >= 500 || r.status === 429) throw Object.assign(new Error(d.erro || "Servidor indisponível"), { rede: true });
+    if (!r.ok) throw new Error(d.erro || "Erro " + r.status);
+    return d;
+  }
+  async function memCarregarEspelho() {
+    const e = await IDB.get("espelho"); if (!e) return false;
+    PAC = e.pacientes || []; AJ = Object.assign(AJ, e.ajustes || {});
+    MEM.fila = (await IDB.get("fila")) || [];
+    MEM.fila.forEach((op) => { if (op.tipo === "salvar") { const i = PAC.findIndex((x) => x.id === op.p.id); if (i >= 0) PAC[i] = op.p; else PAC.push(op.p); } if (op.tipo === "remover") PAC = PAC.filter((x) => x.id !== op.id); if (op.tipo === "ajustes") Object.assign(AJ, op.novo); });
+    toast(`Sem conexão com o servidor: mostrando a cópia guardada neste aparelho (${new Date(e.em).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })})`);
+    return true;
+  }
+  window.addEventListener("online", () => enviarFila().catch(() => {}));
+  window.addEventListener("beforeunload", (e) => { if (PLAT && MEM.fila.length) { e.preventDefault(); e.returnValue = ""; } });
+  // Ajustes › Sistema › Memória dos dados (cópias automáticas no servidor)
+  async function renderMemoria() {
+    const el = $("#memBox"); if (!el) return;
+    if (!PLAT) { el.innerHTML = `<p class="small dim" style="margin:0">Na demonstração os dados ficam guardados neste navegador. Na plataforma, tudo fica no banco de dados, com cópia automática diária e uma cópia neste aparelho para quando a internet cair.</p>`; return; }
+    try {
+      const d = await api("GET", "api/memoria");
+      el.innerHTML = `<p class="small" style="margin:0">${d.persistente ? `✓ Banco de dados <b>${d.tipo === "redis" ? "Redis (permanente)" : "em arquivo no servidor"}</b>` : `⚠ <b>Banco temporário</b>: conecte o Upstash Redis na hospedagem para não perder dados`} · cópia automática todo dia${d.ultimaCopia ? ` (última: ${esc(d.ultimaCopia)})` : ""}.</p>
+        ${d.copias && d.copias.length ? `<div class="row"><select class="in grow" id="memCopia" aria-label="Cópias guardadas">${d.copias.map((c) => `<option value="${esc(c)}">${esc(c)}</option>`).join("")}</select><button class="btn sm" id="memRestaurar">Restaurar</button></div>` : ""}
+        <div class="row"><button class="btn sm" id="memAgora">Fazer cópia agora</button><span class="small dim" id="memSt"></span></div>`;
+    } catch (e) { el.innerHTML = `<p class="small dim" style="margin:0">${esc(e.message)}</p>`; }
+  }
+  $("#cardDados").addEventListener("click", async (e) => {
+    if (e.target.closest("#memAgora")) { try { const d = await api("POST", "api/memoria/copia", {}); $("#memSt").textContent = "✓ Cópia feita: " + (d.nome || ""); setTimeout(renderMemoria, 800); } catch (er) { $("#memSt").textContent = "Erro: " + er.message; } }
+    const r = e.target.closest("#memRestaurar"); if (r) {
+      if (r.dataset.c !== "1") { r.dataset.c = "1"; r.textContent = "Toque de novo para restaurar"; $("#memSt").textContent = "Os dados atuais serão trocados por esta cópia (uma cópia de agora é guardada antes)."; return; }
+      try { await api("POST", "api/memoria/restaurar", { nome: $("#memCopia").value }); toast("Cópia restaurada"); await Store.carregar(); render(); renderMemoria(); } catch (er) { $("#memSt").textContent = "Erro: " + er.message; }
+    }
+  });
+
+  let vista = "painel";
   function mostrar(v) {
-    if (!pode(v)) v = ["hoje", "whatsapp", "comercial", "consulta", "followup", "ajustes"].find((x) => pode(x)) || "ajustes";
+    if (v === "resultados" || v === "campanhas") { const aba = v === "resultados" ? "res" : "camp"; v = "marketing"; setTimeout(() => { abrirAba("mkt", aba); render(); }, 0); }
+    if (!pode(v)) v = ["painel", "hoje", "whatsapp", "comercial", "consulta", "followup", "ajustes"].find((x) => pode(x)) || "ajustes";
     vista = v;
     $$("#nav button").forEach((b) => b.classList.toggle("on", b.dataset.v === v));
     const atual = $(`#nav button[data-v="${v}"]`); $("#navMais").classList.toggle("on", !!atual && !atual.classList.contains("prim"));
@@ -2915,15 +3660,17 @@
   });
   function render() {
     if (!$("#bannerDemo").dataset.fixo) $("#bannerDemo").classList.toggle("hide", !PAC.some((p) => p.exemplo));
-    renderHoje();
+    renderHoje(); badgeChecklist();
     if (vista === "followup") renderFollowup();
     if (vista === "briefings") renderBriefings();
     if (vista === "ajustes") renderAjustes();
     if (vista === "whatsapp") renderWA();
-    if (vista === "resultados") renderResultados();
+    if (vista === "painel") renderPainel();
+    if (vista === "checklist") renderChecklist();
+    if (vista === "pacientes") renderPacientes();
+    if (vista === "marketing") renderMarketing();
     if (vista === "comercial") renderComercial();
     if (vista === "crm") renderPipeline();
-    if (vista === "campanhas") renderCampanhas();
     if (vista === "tratamentos") renderTratamentos();
     if (vista === "suporte") renderSuporte();
   }
@@ -2989,7 +3736,8 @@
     }
     $("#pillIA").textContent = PLAT && PLAT.ia ? "IA ouvindo + roteiro" : "Dicas do roteiro";
     try { await Store.carregar(); } catch (e) { toast("Não foi possível carregar os dados: " + e.message); }
-    aplicarUnidades(); renderAjustes(); mostrar(vista);
+    const tela0 = decodeURIComponent(location.hash.slice(1)); if (tela0 && document.getElementById("v-" + tela0)) vista = tela0; // link direto: …/#whatsapp
+    aplicarUnidades(); montarUnidades(); memInfo(); renderAjustes(); mostrar(vista);
     versiculoDoDia(); renderEu(); setTimeout(aoAbrirApp, 400);
   }
   iniciar();

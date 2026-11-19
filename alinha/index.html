@@ -647,6 +647,89 @@ label.row>input[type=checkbox]{flex:none;margin-top:4px;width:17px;height:17px}
 @media (min-width:861px) and (max-width:1340px){.abas[data-grupo="aj"] button{padding-left:9px;padding-right:9px;font-size:14px}}
 @media (min-width:861px) and (max-height:860px){#setBox>p.small,#chatBox .col-chat>.card:last-child>p.small{display:none}#setLista .in{padding-top:7px;padding-bottom:7px}}
 @media (prefers-reduced-motion:reduce){.pop-veil{animation:none}}
+
+/* v2.5: painel, check-list, pacientes, marketing, cadastro, SMS, microfone, memória */
+.salvo{font-size:13px;color:var(--faint);padding:2px 12px 0}.salvo.ok{color:var(--good)}.salvo.pend{color:var(--warn)}
+.pn-kpis{grid-template-columns:repeat(4,minmax(0,1fr))}
+.kpi.click.bad b.num{color:var(--bad)}.kpi.click.warn b.num{color:var(--warn)}
+.kpi-barra{display:block;height:6px;border-radius:4px;background:var(--surface-2);margin-top:6px;overflow:hidden}.kpi-barra b{display:block;height:100%;background:var(--good);border-radius:4px}
+.pn-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.25fr) minmax(0,1fr);gap:14px;align-items:stretch}
+.pn-grid>.card{min-height:0}
+.pn-agenda,.pn-pend{max-height:230px;overflow:auto}
+.pn-pend .it{cursor:pointer;text-align:left;width:100%;color:var(--fg)}
+.ag-ic{font-size:16px;width:22px;text-align:center}
+.anel{--p:0;width:64px;height:64px;border-radius:50%;background:conic-gradient(var(--good) calc(var(--p)*1%),var(--surface-2) 0);display:grid;place-items:center;flex:none}
+.anel b{width:50px;height:50px;border-radius:50%;background:var(--surface);display:grid;place-items:center;font-size:15px}
+.pn-chart{height:190px}
+.cd{display:flex;align-items:stretch;gap:4px;height:100%}
+.cd-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;border:0;background:none;padding:2px 0;border-radius:8px;min-width:0;cursor:pointer}
+.cd-col:hover,.cd-col:focus-visible{background:var(--surface-2)}
+.cd-bars{flex:1;width:100%;display:flex;align-items:flex-end;justify-content:center;gap:2px;border-bottom:1px solid var(--line-2)}
+.cd-bars i{width:min(12px,38%);border-radius:4px 4px 0 0;min-height:2px}
+.cd-bars i.a{background:var(--s-interesse)}.cd-bars i.b{background:var(--s-fechado)}
+.cd-rot{font-size:13px;color:var(--faint);white-space:nowrap}
+.mk-kpis{grid-template-columns:repeat(4,minmax(0,1fr))}
+.mk-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.mk-origens{display:flex;flex-direction:column;gap:6px}
+.mk-lin{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1.4fr) auto;gap:8px;align-items:center;border:0;background:none;padding:4px 6px;border-radius:8px;text-align:left;color:var(--fg);cursor:pointer}
+.mk-lin:hover,.mk-lin:focus-visible{background:var(--surface-2)}
+.mk-n{font-size:14px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mk-b{position:relative;height:14px;background:var(--surface-2);border-radius:4px;overflow:hidden}
+.mk-b i{position:absolute;left:0;top:0;bottom:0;background:var(--s-interesse);border-radius:4px}.mk-b i.f{background:var(--s-fechado);top:4px;bottom:4px}
+.mk-v{font-size:14px;font-weight:800;text-align:right}.mk-v small{display:block;font-size:13px;font-weight:600;color:var(--faint)}
+.ck-grid{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:14px;align-items:start}
+.ck-barra{height:8px;border-radius:5px;background:var(--surface-2);overflow:hidden}.ck-barra i{display:block;height:100%;width:0;background:var(--good);border-radius:5px;transition:width .3s}
+.ck-lista{display:flex;flex-direction:column;gap:6px;max-height:min(46vh,420px);overflow:auto}
+.ck-it{display:flex;gap:10px;align-items:center;border:1px solid var(--line);border-radius:10px;padding:6px 8px 6px 12px;background:var(--surface-2)}
+.ck-it .ck-txt{flex:1;font-size:14.5px;font-weight:600}
+.ck-it.e-feito .ck-txt{text-decoration:line-through;color:var(--faint)}
+.ck-seg{flex:none}.ck-seg button{padding:5px 10px;font-size:13px}
+.ck-seg button.on.fazer{background:var(--surface);color:var(--fg);box-shadow:inset 0 0 0 1px var(--line-2)}
+.ck-seg button.on.fazendo{background:var(--warn);color:#1b1206}
+.ck-seg button.on.feito{background:var(--good);color:#06180f}
+.ck-assina{border-top:1px solid var(--line);padding-top:10px}
+#ckPend{max-height:calc(100vh - 470px);min-height:90px;overflow:auto;gap:4px}#ckPend .it{padding:5px 8px;font-size:13.5px}#ckPend .pill{font-size:13px;padding:1px 8px}
+.ck-meu{display:flex;gap:14px;flex-wrap:wrap;font-size:14px;margin-top:6px}.ck-meu b{font-size:17px}
+.nota{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.nota>b{font-size:30px}
+.estrelas{color:var(--warn);letter-spacing:1px}.estrelas i{color:var(--line-2);font-style:normal}
+.ck-eu select{min-width:170px}
+.ckrow{grid-template-columns:minmax(0,1.8fr) minmax(140px,.8fr) auto}
+.parabens{position:fixed;left:50%;top:22%;transform:translateX(-50%);z-index:95;background:var(--surface);border:1px solid var(--line-2);border-radius:18px;padding:18px 26px;box-shadow:0 20px 60px rgba(0,0,0,.4);display:flex;flex-direction:column;align-items:center;gap:4px;text-align:center;animation:popIn .25s ease}
+.parabens b{font-size:22px}
+.confete{position:fixed;inset:0;z-index:94;pointer-events:none}
+.pac-card{padding:6px 10px}
+.tabela.pac{table-layout:auto;width:100%}.tabela.pac td{vertical-align:middle}.tabela.pac td:nth-child(6),.tabela.pac td:nth-child(7){white-space:normal}.tabela.pac td:nth-child(7){min-width:110px}.pac-card{overflow:hidden}
+.tabela tr.fora{display:none}
+.pac-nome{display:flex;gap:10px;align-items:center;border:0;background:none;color:var(--fg);text-align:left;padding:0;cursor:pointer;font:inherit}
+.pac-nome:hover b{color:var(--accent-2);text-decoration:underline}
+#pacTabela tbody tr[data-pid]{cursor:pointer}
+.drawer.larga{width:min(1040px,100%)}
+.ficha-grid{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:14px;align-items:start}
+@media (max-width:900px){.ficha-grid,.pn-grid,.mk-grid,.ck-grid{grid-template-columns:1fr}.pn-kpis,.mk-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.acoes-ficha{gap:6px}
+.foto-box{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.ava.grande{width:68px;height:68px;font-size:22px}
+.in-pre{display:flex;align-items:center;border:1px solid var(--line-2);border-radius:10px;background:var(--surface-2);overflow:hidden}
+.in-pre span{padding:0 4px 0 10px;color:var(--faint);font-weight:700}.in-pre .in{border:0;background:none;padding-left:2px}
+.telrow{display:grid;grid-template-columns:minmax(96px,.8fr) minmax(0,1.4fr) auto;gap:6px}
+.pop.cam{width:min(560px,100%)}.pop.cam video{width:100%;max-height:52vh;border-radius:14px;background:#000;transform:scaleX(-1)}
+.qr-sms{background:#fff;padding:6px;border-radius:10px;flex:none}.qr-sms svg{display:block}
+.sms-qr .row{align-items:center;flex-wrap:nowrap}
+.mic-nivel{height:8px;border-radius:5px;background:var(--surface-2);overflow:hidden}.mic-nivel i{display:block;height:100%;width:0;background:var(--good);transition:width .09s}
+.voz-grid{grid-template-columns:minmax(0,1fr) minmax(0,1.3fr)}
+.col-tit{display:flex;align-items:center;gap:8px;width:100%;border:0;background:none;color:inherit;font:inherit;padding:0;cursor:pointer;text-align:left}
+.col-tit:hover{color:var(--accent-2)}
+.barras .bar{border:0;background:none;padding:0;width:100%;cursor:pointer;color:inherit;font:inherit}
+.camada-a .qp{display:flex;align-items:baseline;gap:8px;justify-content:center}
+.camada-a .pc-amp{font-size:14px;font-weight:800;opacity:.9;background:rgba(255,255,255,.16);border-radius:999px;padding:1px 8px}
+.lado .pc-lado{font-size:13px;font-weight:700;color:var(--faint);margin:0 4px}
+@media (min-width:861px) and (max-height:860px){.nav button{padding:4px 12px;font-size:14.5px}.nav{gap:1px}.pn-chart{height:150px}.pn-agenda,.pn-pend{max-height:170px}.ck-lista{max-height:min(40vh,360px)}}
+
+
+@media (max-width:860px){.ck-it{flex-wrap:wrap}.ck-it .ck-txt{flex-basis:100%}.ck-seg{flex:1}#pacBusca{width:100%!important}#v-pacientes .head>.row{width:100%}.side .versiculo,.side .eu,.side .salvo{display:none!important}.head .avisos{order:3;flex:1 1 100%;justify-content:flex-start}.avisos button{white-space:nowrap}.pn-chart{height:160px}}
+
+@media (min-width:861px){.tabela.perm td,.tabela.perm th{padding-top:3px;padding-bottom:3px}.tabela.perm input{width:16px;height:16px}#cardDados .row .btn{padding-top:6px;padding-bottom:6px}}
+@media (min-width:861px) and (max-height:860px){#cardPermissoes>p.small{display:none}#cardAtualizacoes>p.small{display:none}}
 </style>
 </head>
 <body>
@@ -654,22 +737,25 @@ label.row>input[type=checkbox]{flex:none;margin-top:4px;width:17px;height:17px}
   <aside class="side">
     <div class="logo" aria-label="Alinha · Gestão Infinity"><svg class="marca" aria-hidden="true" viewBox="0 0 120 64"><defs><linearGradient id="mkA" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#B9A0EE"/><stop offset=".4" stop-color="#6A3FBF"/><stop offset="1" stop-color="#2A1150"/></linearGradient><linearGradient id="mkB" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#2A1150"/><stop offset=".55" stop-color="#5E35B1"/><stop offset="1" stop-color="#CDB9F7"/></linearGradient><linearGradient id="mkC" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#341869"/><stop offset=".5" stop-color="#7A50CF"/><stop offset="1" stop-color="#341869"/></linearGradient></defs><g fill="none" stroke-linecap="round"><path d="M60 32C50 18 39 9 27 9 14 9 6 19 6 32s8 23 21 23c12 0 23-9 33-23" stroke="url(#mkA)" stroke-width="10"/><path d="M60 32c10 14 21 23 33 23 13 0 21-10 21-23S106 9 93 9C81 9 70 18 60 32" stroke="url(#mkB)" stroke-width="10"/><path d="M47 18c5 4 9 9 13 14s8 10 13 14" stroke="url(#mkC)" stroke-width="10.5"/><path d="M14 22c3-6 8-8 13-8" stroke="#fff" stroke-opacity=".38" stroke-width="2"/><path d="M93 14c6 0 11 3 13 9" stroke="#fff" stroke-opacity=".38" stroke-width="2"/></g></svg><span class="nome">ALINHA</span><small class="lema">GESTÃO INFINITY</small></div>
     <nav class="nav" id="nav">
-      <button data-v="hoje" class="on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 12h4l3-8 4 16 3-8h4"/></svg>Hoje<span class="badge hide" id="badgeHoje"></span></button>
+      <button data-v="painel" class="on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>Painel</button>
+      <button data-v="hoje"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 12h4l3-8 4 16 3-8h4"/></svg>Hoje<span class="badge hide" id="badgeHoje"></span></button>
+      <button data-v="checklist"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 6h10M10 12h10M10 18h10"/><path d="m3.5 6 1.5 1.5L8 4.5M3.5 12l1.5 1.5L8 10.5M3.5 18l1.5 1.5L8 16.5"/></svg>Check-list<span class="badge hide" id="badgeCheck"></span></button>
       <button data-v="whatsapp"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.5 11.6a8.4 8.4 0 0 1-12.4 7.4L3.5 20.5l1.6-4.4A8.4 8.4 0 1 1 20.5 11.6z"/><path d="M9 9.5c.4 2 2.3 4 4.5 4.6"/></svg>WhatsApp<span class="badge hide" id="badgeWA"></span></button>
       <button data-v="crm"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="7" height="16" rx="1.5"/><rect x="14" y="4" width="7" height="10" rx="1.5"/></svg>CRM</button>
+      <button data-v="pacientes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><path d="M16 4.6a3.5 3.5 0 0 1 0 6.8M18 14.6a6.5 6.5 0 0 1 3.5 5.4"/></svg>Pacientes</button>
       <button data-v="comercial"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 4h18l-7 8v6l-4 2v-8z"/></svg>Comercial</button>
       <button data-v="tratamentos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M7 3c-2 0-3.5 1.6-3.5 4 0 3 1.4 5 2 8 .5 2.5 1 6 2.5 6s1.6-4 2.5-6c.4-.9.9-1.3 1.5-1.3s1.1.4 1.5 1.3c.9 2 1 6 2.5 6s2-3.5 2.5-6c.6-3 2-5 2-8 0-2.4-1.5-4-3.5-4-1.8 0-2.8 1-5 1S8.8 3 7 3z"/></svg>Tratamentos</button>
       <button data-v="consulta"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0M12 17v5"/></svg>Consulta</button>
       <button data-v="briefings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 2h9l5 5v15H6z"/><path d="M14 2v6h6M9 13h7M9 17h5"/></svg>Briefings</button>
       <button data-v="followup"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="5" height="16" rx="1.5"/><rect x="10" y="4" width="5" height="11" rx="1.5"/><rect x="17" y="4" width="4" height="7" rx="1.5"/></svg>Follow-up</button>
-      <button data-v="resultados"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Resultados</button>
-      <button data-v="campanhas"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 3 2 21h20z"/><path d="M6.5 13h11M9.5 8h5"/></svg>Campanhas</button>
+      <button data-v="marketing"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10v4h3l8 5V5L6 10z"/><path d="M17.5 9a4 4 0 0 1 0 6M20 6.5a7.5 7.5 0 0 1 0 11"/></svg>Marketing</button>
       <button data-v="suporte"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.2a2.6 2.6 0 0 1 5 .8c0 1.8-2.5 2.2-2.5 3.8M12 17.2v.1"/></svg>Suporte</button>
       <button data-v="ajustes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1.2l2-1.5-2-3.4-2.4 1a7 7 0 0 0-2-1.2L14 3h-4l-.5 2.6a7 7 0 0 0-2 1.2l-2.4-1-2 3.4 2 1.5A7 7 0 0 0 5 12c0 .4 0 .8.1 1.2l-2 1.5 2 3.4 2.4-1a7 7 0 0 0 2 1.2L10 21h4l.5-2.6a7 7 0 0 0 2-1.2l2.4 1 2-3.4-2-1.5c.1-.4.1-.8.1-1.2z"/></svg>Ajustes</button>
       <button id="navMais" aria-expanded="false" aria-label="Mais telas"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/></svg>Mais</button>
     </nav>
     <div class="versiculo" aria-label="Versículo do dia"></div>
     <label class="eu"><span>Atendendo:</span><select id="euSel" aria-label="Quem está atendendo"></select></label>
+    <div class="salvo" id="salvoInfo" aria-live="polite"></div>
     <div class="foot" id="modoInfo">Modo demonstração</div>
   </aside>
 
@@ -678,11 +764,59 @@ label.row>input[type=checkbox]{flex:none;margin-top:4px;width:17px;height:17px}
     <div class="banner hide" id="bannerDemo">Você está vendo dados de exemplo (pacientes fictícios). <button class="btn sm so-admin" id="btnLimparExemplos">Começar do zero</button></div>
 
     <!-- HOJE -->
-    <section class="view on" id="v-hoje">
+    <section class="view" id="v-hoje">
       <div class="head"><div><h1 class="titulo-forte">Quem alinhar hoje?</h1><p id="hojeData"></p><p class="versiculo so-celular"></p></div><div class="avisos hide grow" id="avisosLab"></div><button class="btn pri hide" id="btnSeqHoje" data-seq="hoje">▶ Alinhar em sequência</button></div>
       <div class="kpis" id="kpisHoje"></div>
       <div class="fila" id="fila"></div>
       <div class="pager hide" id="filaPager"><button class="btn sm" data-pg="-1" aria-label="Página anterior">‹ Anterior</button><span id="filaPg"></span><button class="btn sm" data-pg="1" aria-label="Próxima página">Próxima ›</button></div>
+    </section>
+
+    <!-- PAINEL -->
+    <section class="view on" id="v-painel">
+      <div class="head"><div><h1 class="titulo-forte">Painel do dia</h1><p id="pnData"></p></div>
+        <div class="row"><span class="small dim" id="pnOla"></span><div class="chips" id="pnUnidade" data-unidades="1"></div></div></div>
+      <div class="kpis pn-kpis" id="pnKpis"></div>
+      <div class="pn-grid">
+        <div class="card stack pn-tarefas"><div class="row"><h3 class="grow">Minhas tarefas de hoje</h3><button class="btn sm" data-ir="checklist">Abrir check-list</button></div>
+          <div id="pnTarefas" class="stack" style="gap:8px"></div></div>
+        <div class="card stack"><div class="row"><h3 class="grow">Últimos 14 dias</h3><div class="legenda"><span><i style="background:var(--s-interesse)"></i>Leads</span><span><i style="background:var(--s-fechado)"></i>Fechamentos</span></div></div>
+          <div class="pn-chart" id="pnChart" role="img" aria-label="Leads e fechamentos por dia nos últimos 14 dias"></div>
+          <p class="tiny dim" style="margin:0">Passe o mouse para ver os números; toque numa coluna para ver os nomes.</p></div>
+        <div class="card stack"><div class="row"><h3 class="grow">Agenda e avisos de hoje</h3></div><div class="lista-int pn-agenda" id="pnAgenda"></div></div>
+      </div>
+    </section>
+
+    <!-- CHECK-LIST -->
+    <section class="view" id="v-checklist">
+      <div class="head"><div><h1>Check-list do dia</h1><p id="ckData"></p></div>
+        <div class="row"><label class="eu ck-eu"><span>Operador:</span><select id="ckOperador" aria-label="Operador do check-list"></select></label></div></div>
+      <div class="row barra-abas"><div class="abas" data-grupo="ck" role="tablist"><button data-aba="dia">Meu dia</button><button data-aba="aval">Avaliação da equipe</button><button data-aba="modelo" class="so-admin">Tarefas padrão</button></div></div>
+      <div class="painel" data-grupo="ck" data-aba="dia">
+        <div class="ck-grid">
+          <div class="card stack ck-card">
+            <div class="row"><h3 class="grow" id="ckTitulo">Tarefas</h3><span class="pill" id="ckPct">0%</span></div>
+            <div class="ck-barra" aria-hidden="true"><i id="ckBarra"></i></div>
+            <div class="ck-lista" id="ckLista"></div>
+            <form class="row ck-add" id="ckAdd"><input class="in grow" id="ckNova" placeholder="Acrescentar uma tarefa só para hoje" aria-label="Nova tarefa para hoje"><button class="btn sm" type="submit">+ Tarefa</button></form>
+            <div class="row ck-assina"><button class="btn pri" id="ckAssinar">✍ Assinar</button><span class="small dim grow" id="ckAssinado"></span></div>
+          </div>
+          <div class="stack">
+            <div class="card stack"><div class="row"><h3 class="grow">Pendências</h3><span class="pill" id="ckPendQtd">0</span></div><div class="lista-int" id="ckPend"></div></div>
+            <div class="card stack"><h3>Meu desempenho</h3><div id="ckMeu"></div></div>
+          </div>
+        </div>
+      </div>
+      <div class="painel" data-grupo="ck" data-aba="aval">
+        <div class="card stack"><div class="row"><h3 class="grow">Avaliação dos operadores</h3><div class="chips" id="ckPeriodo"><button data-d="7">7 dias</button><button data-d="30" class="on">30 dias</button></div></div>
+          <p class="small dim" style="margin:0">Nota de 0 a 10: tarefas feitas (60%), dias com o check-list assinado (25%) e assinatura no horário (15%). Dias úteis (segunda a sábado) sem check-list contam como zero.</p>
+          <table class="tabela" id="ckAval"></table></div>
+      </div>
+      <div class="painel" data-grupo="ck" data-aba="modelo">
+        <div class="card stack" id="ckModeloBox"><div class="row"><h3 class="grow">Tarefas padrão do check-list</h3><button class="btn sm ghost" id="ckModeloPadrao">Restaurar padrão</button></div>
+          <p class="small dim" style="margin:0">Cada operador recebe estas tarefas todos os dias. Escolha o setor para mostrar a tarefa só para quem é daquele setor (Ajustes › Chat › Setores).</p>
+          <div class="stack" id="ckModelo" style="gap:6px"></div>
+          <div class="row"><button class="btn sm" id="ckModeloAdd">+ Tarefa</button><label class="f" for="ckLimite" style="margin:0 0 0 8px">Assinar até</label><input class="in" type="time" id="ckLimite" style="width:auto"><span class="grow"></span><button class="btn pri" id="ckModeloSalvar">Salvar tarefas</button><span class="small dim" id="ckModeloSt"></span></div></div>
+      </div>
     </section>
 
     <!-- WHATSAPP -->
@@ -704,11 +838,20 @@ label.row>input[type=checkbox]{flex:none;margin-top:4px;width:17px;height:17px}
         <span class="small dim grow" title="Para trocar de funil, solte o cartão sobre a aba do outro funil.">Arraste o cartão para mudar de etapa.</span>
         <button class="btn" id="btnCrmFiltro" aria-label="Filtrar">⚲ Filtrar <span class="pill acc hide" id="crmFiltroN"></span></button><button class="btn sm ghost hide" id="btnCrmLimpar">Limpar</button>
         <input class="in" id="comBusca" placeholder="Buscar nome, telefone ou e-mail" style="width:210px">
-        <div class="chips" id="crmUnidade"><button data-u="" class="on">Todas</button><button data-u="Caruaru">Caruaru</button><button data-u="Recife">Recife</button></div></div>
+        <div class="chips" id="crmUnidade" data-unidades="1"><button data-u="" class="on">Todas</button><button data-u="Caruaru">Caruaru</button><button data-u="Recife">Recife</button></div></div>
       <div id="pipeline" class="pipeline">
         <div class="painel" data-grupo="crm" data-aba="lead"><div class="pipe" id="pipeLead"></div></div>
         <div class="painel" data-grupo="crm" data-aba="cliente"><div class="pipe" id="pipeCliente"></div></div>
       </div>
+    </section>
+
+    <!-- PACIENTES -->
+    <section class="view" id="v-pacientes">
+      <div class="head"><div><h1>Pacientes</h1><p>Toque no nome para abrir a ficha de cadastro e a linha do tempo dos procedimentos.</p></div>
+        <div class="row"><input class="in" id="pacBusca" type="search" placeholder="Buscar nome, telefone, CPF ou @instagram" aria-label="Buscar paciente" style="width:300px"><button class="btn pri" id="btnNovoPac">+ Novo paciente</button></div></div>
+      <div class="row barra-abas"><div class="chips" id="pacFiltro"></div><span class="grow"></span><div class="chips" id="pacUnidade" data-unidades="1"></div></div>
+      <div class="card pac-card"><table class="tabela pac" id="pacTabela"></table></div>
+      <div class="pager hide" id="pacPager"><button class="btn sm" data-ppg="-1" aria-label="Página anterior">‹ Anterior</button><span id="pacPg"></span><button class="btn sm" data-ppg="1" aria-label="Próxima página">Próxima ›</button></div>
     </section>
 
     <!-- TRATAMENTOS -->
@@ -716,7 +859,7 @@ label.row>input[type=checkbox]{flex:none;margin-top:4px;width:17px;height:17px}
       <div class="head"><div><h1>Tratamentos</h1><p>A linha do tempo de cada paciente: em que etapa está, o que vem a seguir e os trabalhos no laboratório.</p></div><button class="btn pri" id="btnNovoTrab">+ Novo tratamento</button></div>
       <div class="row barra-abas"><div class="abas" data-grupo="trat" role="tablist"><button data-aba="and">Em andamento</button><button data-aba="lab">Laboratório <span class="pill" id="labCont"></span></button><button data-aba="fim">Concluídos</button></div><span class="grow"></span>
         <input class="in" id="tratBusca" placeholder="Buscar paciente" style="width:200px">
-        <div class="chips" id="tratUnidade"><button data-u="" class="on">Todas</button><button data-u="Caruaru">Caruaru</button><button data-u="Recife">Recife</button></div></div>
+        <div class="chips" id="tratUnidade" data-unidades="1"><button data-u="" class="on">Todas</button><button data-u="Caruaru">Caruaru</button><button data-u="Recife">Recife</button></div></div>
       <div class="painel" data-grupo="trat" data-aba="and"><div class="trabs" id="trabLista"></div><div class="pager hide" id="trabPager"><button class="btn sm" data-pg="-1">‹ Anterior</button><span id="trabPg"></span><button class="btn sm" data-pg="1">Próxima ›</button></div></div>
       <div class="painel" data-grupo="trat" data-aba="lab"><div class="labcols" id="labCols"></div></div>
       <div class="painel" data-grupo="trat" data-aba="fim"><div class="trabs" id="trabFim"></div></div>
@@ -776,7 +919,9 @@ label.row>input[type=checkbox]{flex:none;margin-top:4px;width:17px;height:17px}
             </div>
             <div class="row small"><span class="dim">Quem fala:</span>
               <div class="seg grow" id="segQuem"><button data-q="auto" class="hide" id="btnQuemAuto" title="Reconhece sua voz cadastrada">🎙 Automático</button><button data-q="paciente" class="on">Paciente</button><button data-q="profissional">Profissional</button></div></div>
+            <div class="mic-nivel hide" id="micNivelBox" title="Nível do microfone" aria-hidden="true"><i id="micNivel"></i></div>
             <p class="tiny dim" id="recHint" style="margin:0"></p>
+            <a class="btn sm hide" id="audioConsulta" href="#">⬇ Baixar áudio da consulta</a>
           </div>
           <div class="card">
             <span class="label">Transcrição</span>
@@ -804,40 +949,12 @@ label.row>input[type=checkbox]{flex:none;margin-top:4px;width:17px;height:17px}
       <div class="kanban" id="kanban"></div>
     </section>
 
-    <!-- RESULTADOS -->
-    <section class="view" id="v-resultados">
-      <div class="head"><div><h1>Resultados por tratamento</h1><p>Interesse e fechamento de cada tratamento.</p></div>
-        <div class="row"><div class="chips" id="resPeriodo"><button data-p="30">30 dias</button><button data-p="90">90 dias</button><button data-p="0" class="on">Tudo</button></div>
-        <div class="chips" id="resUnidade"><button data-u="" class="on">Todas</button><button data-u="Caruaru">Caruaru</button><button data-u="Recife">Recife</button></div></div></div>
-      <div class="kpis" id="kpisRes"></div>
-      <div class="abas" data-grupo="res" role="tablist" style="margin-bottom:14px"><button data-aba="graf">Gráfico</button><button data-aba="tab">Tabela</button><button data-aba="wa">WhatsApp</button></div>
-      <div class="painel" data-grupo="res" data-aba="graf">
-      <div class="card stack">
-        <div class="row"><h3 class="grow">Pacientes por tratamento</h3>
-          <div class="legenda"><span><i style="background:var(--s-interesse)"></i>Interesse</span><span><i style="background:var(--s-fechado)"></i>Fechados</span></div></div>
-        <div class="barras" id="resBarras"></div>
-      </div>
-      </div>
-      <div class="painel" data-grupo="res" data-aba="tab">
-      <div class="card stack">
-        <h3>Tabela por tratamento</h3>
-        <table class="tabela" id="resTabela"></table>
-      </div>
-      </div>
-      <div class="painel" data-grupo="res" data-aba="wa">
-      <div class="card stack">
-        <div class="row"><h3 class="grow">Interesse nas conversas de WhatsApp</h3><span class="small dim">tratamentos e assuntos detectados nas mensagens</span></div>
-        <div class="duo" id="resWA"></div>
-      </div>
-      </div>
-    </section>
-
     <!-- COMERCIAL -->
     <section class="view" id="v-comercial">
       <div class="head"><div><h1>Comercial</h1><p>Do lead que entrou ao tratamento fechado. Toque em qualquer número para ver os nomes.</p></div></div>
       <div class="row barra-abas"><div class="abas" data-grupo="com" role="tablist"><button data-aba="amp">Ampulheta do mês</button><button data-aba="equipe">Equipe (CRCs)</button></div><span class="grow"></span><button class="btn sm" id="btnIrCrm">Abrir o CRM ›</button>
         <input class="in" type="month" id="comMes" aria-label="Mês" style="width:auto">
-        <div class="chips" id="comUnidade"><button data-u="" class="on">Todas</button><button data-u="Caruaru">Caruaru</button><button data-u="Recife">Recife</button></div></div>
+        <div class="chips" id="comUnidade" data-unidades="1"><button data-u="" class="on">Todas</button><button data-u="Caruaru">Caruaru</button><button data-u="Recife">Recife</button></div></div>
       <div class="painel" data-grupo="com" data-aba="amp">
         <div class="com-grid">
           <div class="card stack"><div class="row"><h3 class="grow" id="comTitulo">Ampulheta do mês</h3><span class="tiny dim">dados do CRM, automáticos</span></div>
@@ -854,10 +971,21 @@ label.row>input[type=checkbox]{flex:none;margin-top:4px;width:17px;height:17px}
       </div>
     </section>
 
-    <!-- CAMPANHAS -->
-    <section class="view" id="v-campanhas">
-      <div class="head"><div><h1>Calculadora de campanhas</h1><p>Divida o investimento pela pirâmide (topo, meio e fundo), veja a cadência e o retorno previsto.</p></div><button class="btn ghost" id="kReset">Restaurar padrão</button></div>
-      <div class="abas" data-grupo="camp" role="tablist" style="margin-bottom:14px"><button data-aba="plan">Planejamento</button><button data-aba="proj">Projeção</button><button data-aba="cad">Cadência</button><button data-aba="real">Resultado do mês</button></div>
+    <!-- MARKETING -->
+    <section class="view" id="v-marketing">
+      <div class="head"><div><h1>Marketing</h1><p>Todas as métricas de marketing num só lugar. Toque nos números e nas barras para ver os nomes.</p></div>
+        <div class="abas" data-grupo="mkt" role="tablist"><button data-aba="geral">Visão geral</button><button data-aba="camp" data-perm="campanhas">Campanhas</button><button data-aba="res" data-perm="resultados">Por tratamento</button></div></div>
+      <div class="painel" data-grupo="mkt" data-aba="geral">
+        <div class="row barra-abas"><input class="in" type="month" id="mkMes" aria-label="Mês" style="width:auto"><div class="chips" id="mkUnidade" data-unidades="1"></div><span class="grow"></span><span class="small dim" id="mkInvInfo"></span></div>
+        <div class="kpis mk-kpis" id="mkKpis"></div>
+        <div class="mk-grid">
+          <div class="card stack"><div class="row"><h3 class="grow">Leads por origem</h3><span class="tiny dim">toque para ver os nomes</span></div><div class="mk-origens" id="mkOrigens"></div></div>
+          <div class="card stack"><div class="row"><h3 class="grow">Leads por semana</h3><div class="legenda"><span><i style="background:var(--s-interesse)"></i>Leads</span><span><i style="background:var(--s-fechado)"></i>Fecharam</span></div></div><div class="pn-chart" id="mkSemanas" role="img" aria-label="Leads e fechamentos por semana"></div></div>
+          <div class="card stack"><div class="row"><h3 class="grow">Tratamentos procurados</h3></div><div class="mk-origens" id="mkTrat"></div></div>
+        </div>
+      </div>
+      <div class="painel" data-grupo="mkt" data-aba="camp">
+            <div class="row barra-abas"><div class="abas" data-grupo="camp" role="tablist"><button data-aba="plan">Planejamento</button><button data-aba="proj">Projeção</button><button data-aba="cad">Cadência</button><button data-aba="real">Resultado do mês</button></div><span class="grow"></span><button class="btn sm ghost" id="kReset">Restaurar padrão</button></div>
       <div class="painel" data-grupo="camp" data-aba="plan">
       <div class="calc">
         <div class="card stack">
@@ -898,7 +1026,7 @@ label.row>input[type=checkbox]{flex:none;margin-top:4px;width:17px;height:17px}
       </div>
       <div class="painel" data-grupo="camp" data-aba="real">
         <div class="row" style="margin-bottom:10px"><input class="in" type="month" id="cmMes" aria-label="Mês" style="width:auto">
-          <div class="chips" id="cmUnidade"><button data-u="" class="on">Todas</button><button data-u="Caruaru">Caruaru</button><button data-u="Recife">Recife</button></div>
+          <div class="chips" id="cmUnidade" data-unidades="1"><button data-u="" class="on">Todas</button><button data-u="Caruaru">Caruaru</button><button data-u="Recife">Recife</button></div>
           <span class="grow"></span><label class="f" for="cmInvest" style="margin:0">Investido neste mês (R$)</label><input class="in num" id="cmInvest" inputmode="decimal" style="width:130px"></div>
         <div class="kpis" id="cmKpis"></div>
         <div class="kpis" id="cmKpis2"></div>
@@ -908,6 +1036,32 @@ label.row>input[type=checkbox]{flex:none;margin-top:4px;width:17px;height:17px}
         </div>
       </div>
 
+          </div>
+      <div class="painel" data-grupo="mkt" data-aba="res">
+        <div class="row barra-abas"><div class="row"><div class="chips" id="resPeriodo"><button data-p="30">30 dias</button><button data-p="90">90 dias</button><button data-p="0" class="on">Tudo</button></div>
+        <div class="chips" id="resUnidade" data-unidades="1"><button data-u="" class="on">Todas</button><button data-u="Caruaru">Caruaru</button><button data-u="Recife">Recife</button></div></div></div>
+      <div class="kpis" id="kpisRes"></div>
+      <div class="abas" data-grupo="res" role="tablist" style="margin-bottom:14px"><button data-aba="graf">Gráfico</button><button data-aba="tab">Tabela</button><button data-aba="wa">WhatsApp</button></div>
+      <div class="painel" data-grupo="res" data-aba="graf">
+      <div class="card stack">
+        <div class="row"><h3 class="grow">Pacientes por tratamento</h3>
+          <div class="legenda"><span><i style="background:var(--s-interesse)"></i>Interesse</span><span><i style="background:var(--s-fechado)"></i>Fechados</span></div></div>
+        <div class="barras" id="resBarras"></div>
+      </div>
+      </div>
+      <div class="painel" data-grupo="res" data-aba="tab">
+      <div class="card stack">
+        <h3>Tabela por tratamento</h3>
+        <table class="tabela" id="resTabela"></table>
+      </div>
+      </div>
+      <div class="painel" data-grupo="res" data-aba="wa">
+      <div class="card stack">
+        <div class="row"><h3 class="grow">Interesse nas conversas de WhatsApp</h3><span class="small dim">tratamentos e assuntos detectados nas mensagens</span></div>
+        <div class="duo" id="resWA"></div>
+      </div>
+      </div>
+          </div>
     </section>
 
     <!-- SUPORTE -->
@@ -963,7 +1117,7 @@ label.row>input[type=checkbox]{flex:none;margin-top:4px;width:17px;height:17px}
           <h3>Unidades</h3>
           <p class="small dim" style="margin:0">Usados nas mensagens (endereço e contato) e nos filtros por unidade.</p>
           <div class="unids" id="aUnidades"></div>
-          <div class="row"><button class="btn pri" id="btnSalvarUnid">Salvar unidades</button><span class="small dim" id="unidStatus"></span></div>
+          <div class="row"><input class="in" id="novaUnid" placeholder="Nome da nova unidade (ex.: Olinda)" aria-label="Nome da nova unidade" style="width:300px"><button class="btn" id="btnNovaUnid">+ Nova unidade</button><span class="grow"></span><button class="btn pri" id="btnSalvarUnid">Salvar unidades</button><span class="small dim" id="unidStatus"></span></div>
         </div>
       </div>
       <div class="painel" data-grupo="aj" data-aba="proc">
@@ -1063,7 +1217,14 @@ label.row>input[type=checkbox]{flex:none;margin-top:4px;width:17px;height:17px}
           <p class="small dim" style="margin:0">O perfil é compartilhado: todas as pessoas que usam o mesmo usuário precisam ter o código no celular. Se perder o celular, o administrador desativa para aquele perfil.</p>
           <div class="lista-int" id="segPerfis"></div></div>
       </div></div>
-      <div class="painel" data-grupo="aj" data-aba="voz">
+      <div class="painel" data-grupo="aj" data-aba="voz"><div class="ajgrid voz-grid">
+        <div class="card stack" id="cardMic"><div class="row"><h3 class="grow">Microfone</h3><span class="pill" id="micEstado">…</span></div>
+          <p class="small dim" style="margin:0">Libere o microfone uma vez neste navegador e escolha qual usar na consulta. A transcrição automática funciona no Google Chrome e no Edge.</p>
+          <div><label class="f" for="micSel">Microfone da consulta</label><select class="in" id="micSel"></select></div>
+          <div class="mic-nivel" aria-hidden="true"><i id="micNivelAj"></i></div>
+          <div class="row"><button class="btn pri" id="btnMicAtivar">Ativar microfone</button><button class="btn" id="btnMicTestar">🎙 Testar microfone</button></div>
+          <label class="row" style="gap:8px;font-weight:600"><input type="checkbox" id="micGravar"> Gravar o áudio da consulta (arquivo para baixar no fim, só com a autorização do paciente)</label>
+          <p class="small" id="micMsg" style="margin:0" aria-live="polite"></p></div>
         <div class="card stack" id="cardVoz">
           <h3>Reconhecimento de voz</h3>
           <p class="small dim" style="margin:0">Cadastre a voz do profissional uma vez. Na consulta, o Alinha passa a separar sozinho quem fala: <b>a sua voz = Profissional</b>, qualquer outra = Paciente. Não guarda áudio, só uma "impressão" numérica do timbre e do tom.</p>
@@ -1072,7 +1233,7 @@ label.row>input[type=checkbox]{flex:none;margin-top:4px;width:17px;height:17px}
           <div class="row"><button class="btn pri" id="btnVozGravar">● Gravar minha voz (20 s)</button><button class="btn" id="btnVozTestar">Testar reconhecimento</button><span class="small dim" id="vozStatus"></span></div>
           <div id="vozLista" class="small"></div>
         </div>
-      </div>
+      </div></div>
       <div class="painel" data-grupo="aj" data-aba="sis"><div class="ajgrid colunas">
         <div class="card stack" id="cardAtualizacoes">
           <h3>Atualizações</h3>
@@ -1081,9 +1242,11 @@ label.row>input[type=checkbox]{flex:none;margin-top:4px;width:17px;height:17px}
           <div class="row"><a class="btn sm hide" id="btnBackup" href="api/backup">Baixar cópia dos dados</a></div>
           <div><span class="label">Novidades</span><div id="atNovidades" style="margin-top:6px"></div></div>
         </div>
-        <div class="card stack so-admin">
-          <h3>Dados</h3>
+        <div class="card stack so-admin" id="cardDados">
+          <h3>Dados e memória</h3>
           <p class="small dim" style="margin:0" id="dadosInfo"></p>
+          <div class="stack" id="memBox" style="gap:8px"></div>
+          <p class="small dim" id="smsInfo" style="margin:0"></p>
           <div class="row"><button class="btn" id="btnExemplos">Carregar pacientes de exemplo</button><button class="btn" id="btnApagarTudo">Apagar todos os dados</button></div>
         </div>
         <div class="card stack">
