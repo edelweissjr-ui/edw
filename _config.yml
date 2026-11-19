@@ -1,0 +1,6 @@
+exclude:
+  - docs
+  - README.md
+  - apps
+  - alinha
+  - render.yaml

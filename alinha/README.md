@@ -124,19 +124,19 @@ Observações: o plano Hobby (gratuito) da Vercel é só para uso não comercial
 
 ## Domínio próprio (Registro.br)
 
-### Configuração da Weiss: `alinha.weissinfinity.com.br`
-O domínio **weissinfinity.com.br** reúne os sistemas da Weiss, cada um no seu subdomínio (`alinha.`, e os próximos sistemas com outros nomes). `www.weissinfinity.com.br` fica livre para a página principal ou um portal.
+### Configuração da Weiss: `alinha.weissodontologia.com.br`
+O site da clínica fica em `www.weissodontologia.com.br`; os sistemas internos ficam em subdomínios: `infinity.` (portal) e **`alinha.`** (este sistema). O DNS do domínio **weissodontologia.com.br já é da Vercel** (servidores `ns1/ns2.vercel-dns.com`), então não é preciso mexer no Registro.br.
 
-1. **Hospedagem:** adicione o domínio `alinha.weissinfinity.com.br` (Vercel: Settings › Domains; Render: já está no `render.yaml`).
-2. **Registro.br** › Domínios › **weissinfinity.com.br** › DNS › Editar zona › Nova entrada:
-   - Tipo **CNAME** · Nome **`alinha`** · Valor **`cname.vercel-dns.com`** (Vercel) ou **`alinha-weiss.onrender.com`** (Render).
-3. **Alinha:** variável `APP_URL` = `https://alinha.weissinfinity.com.br` (no Render já vem preenchida; na Vercel, adicione em Environment Variables).
-4. Aguarde a propagação e, em **Ajustes › Domínio e endereços**, toque em **Verificar apontamento**. Quando o DNS apontar, o estado muda para "domínio próprio ativo" e o endereço antigo passa a redirecionar sozinho.
+1. **Vercel** › Add New › Project › importe `edelweissjr-ui/edw` › **Root Directory: `alinha`** › Framework: Other › Deploy (branch de produção: `master`).
+2. **Storage** › Create Database › **Upstash (Redis)** › conecte ao projeto (entram `KV_REST_API_URL` e `KV_REST_API_TOKEN`).
+3. **Settings › Environment Variables**: `SENHA_ADMIN`, `SENHA_ACESSO`, `SENHA_CRC` (senhas que só a clínica conhece), `APP_URL` = `https://alinha.weissodontologia.com.br`, e os opcionais (`ANTHROPIC_API_KEY`, `KOMMO_*`, `EVOLUTION_*`, Twilio ou Zenvia).
+4. **Settings › Domains** › Add › `alinha.weissodontologia.com.br`. Como o DNS é da Vercel, o registro é criado sozinho e o HTTPS sai em minutos.
+5. **Deployments › Redeploy** (para valer as variáveis) e abra `https://alinha.weissodontologia.com.br/login`.
 
-Pode preencher o `APP_URL` antes do DNS: o redirecionamento **só liga depois que o domínio aponta**, então ninguém fica sem acesso. (Para forçar, use `APP_URL_FORCAR=1`.)
+Cada alteração no branch `master` publica sozinha. O portal `infinity.weissodontologia.com.br` já tem o cartão do Alinha (e o atalho `/alinha`).
 
 ### Outros domínios
-O Alinha funciona em qualquer domínio. Recomendado: um **subdomínio do site da clínica**, como `alinha.odontoweiss.com.br`, que não mexe no site. Também serve um domínio próprio, como `alinhaodonto.com.br`.
+O Alinha funciona em qualquer domínio. Recomendado: um **subdomínio do site da clínica**, como `alinha.weissodontologia.com.br`, que não mexe no site. Também serve um domínio próprio, como `alinhaodonto.com.br`.
 
 **1. Cadastre o domínio na hospedagem**
 - **Vercel:** projeto › **Settings › Domains › Add** › digite o domínio. A Vercel mostra o registro que você deve criar.

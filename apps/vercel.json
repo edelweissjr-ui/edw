@@ -1,0 +1,17 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "cleanUrls": true,
+  "trailingSlash": false,
+  "redirects": [
+    { "source": "/financeiro", "destination": "https://claude.ai/artifact/TDSgSEYY3CResmE3sj5i5N", "permanent": false },
+    { "source": "/contas", "destination": "https://claude.ai/artifact/TDSgSEYY3CResmE3sj5i5N", "permanent": false },
+    { "source": "/alinha", "destination": "https://alinha.weissodontologia.com.br", "permanent": false }
+  ],
+  "headers": [
+    { "source": "/(.*)", "headers": [
+      { "key": "X-Robots-Tag", "value": "noindex, nofollow" },
+      { "key": "X-Content-Type-Options", "value": "nosniff" },
+      { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" }
+    ] }
+  ]
+}

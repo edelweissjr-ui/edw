@@ -9,7 +9,7 @@ services:
     healthCheckPath: /saude
     autoDeploy: true         # cada nova versão enviada ao repositório é instalada sozinha (os dados ficam no disco)
     domains:
-      - alinha.weissinfinity.com.br   # Registro.br: CNAME "alinha" → alinha-weiss.onrender.com
+      - alinha.weissodontologia.com.br   # DNS (Vercel): CNAME "alinha" → alinha-weiss.onrender.com, se usar o Render
     plan: starter            # plano pago: sempre ligado e com disco para guardar os pacientes
     disk:
       name: dados
@@ -23,7 +23,7 @@ services:
       - key: SENHA_ADMIN
         sync: false          # senha do administrador (usuário: admin)
       - key: APP_URL
-        value: https://alinha.weissinfinity.com.br   # o redirecionamento só liga depois que o DNS apontar
+        value: https://alinha.weissodontologia.com.br   # o redirecionamento só liga depois que o DNS apontar
       - key: SEGREDO_SESSAO
         generateValue: true
       - key: PASTA_DADOS
