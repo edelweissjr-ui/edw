@@ -1,0 +1,1615 @@
+<title>Contas a Pagar OdontoWeiss</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
+<style>
+/* Layout: navy sidebar on the left (drawer on phones) + working area; forms open as a step-by-step side panel */
+:root{
+  --bg:#f1f4f9; --surface:#ffffff; --surface-2:#e9eef6; --line:#d2dbe8;
+  --fg:#0f1d33; --muted:#55647c; --accent:#1d4f91; --accent-ink:#ffffff; --accent-soft:#dfe8f5;
+  --nav:#0b1f3a; --nav-2:#132c51; --nav-fg:#e8eef8; --nav-muted:#9db0cc; --nav-hi:#6fb1ff;
+  --ok:#1f7a4d; --ok-soft:#dcefe4; --warn:#9a5b00; --warn-soft:#fbefd9; --bad:#b3261e; --bad-soft:#f9e1df;
+  --font-body:"Instrument Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --font-mono:"JetBrains Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
+  --s1:#2a78d6; --s2:#eb6834; --s3:#1baf7a; --s4:#eda100; --s5:#e87ba4; --s6:#008300; --s7:#6250d6; --s8:#e34948; --s-other:#8b93a1;
+  --r:12px; --side:252px;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#09121f; --surface:#101c2f; --surface-2:#16263e; --line:#233756;
+  --fg:#e6edf7; --muted:#9aabc5; --accent:#6ea8ff; --accent-ink:#071429; --accent-soft:#18304f;
+  --nav:#060e1a; --nav-2:#0e1d34; --nav-fg:#e6edf7; --nav-muted:#8ea2c0; --nav-hi:#6ea8ff;
+  --ok:#6fcf97; --ok-soft:#14321f; --warn:#f0b35a; --warn-soft:#382811; --bad:#f2867e; --bad-soft:#3b1b1a; --s1:#3987e5; --s2:#d95926; --s3:#199e70; --s4:#c98500; --s5:#d55181; --s6:#0ca30c; --s7:#9085e9; --s8:#e66767; --s-other:#6f7888; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#09121f; --surface:#101c2f; --surface-2:#16263e; --line:#233756;
+  --fg:#e6edf7; --muted:#9aabc5; --accent:#6ea8ff; --accent-ink:#071429; --accent-soft:#18304f;
+  --nav:#060e1a; --nav-2:#0e1d34; --nav-fg:#e6edf7; --nav-muted:#8ea2c0; --nav-hi:#6ea8ff;
+  --ok:#6fcf97; --ok-soft:#14321f; --warn:#f0b35a; --warn-soft:#382811; --bad:#f2867e; --bad-soft:#3b1b1a; --s1:#3987e5; --s2:#d95926; --s3:#199e70; --s4:#c98500; --s5:#d55181; --s6:#0ca30c; --s7:#9085e9; --s8:#e66767; --s-other:#6f7888; color-scheme:dark}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{min-height:100%}
+body{background:var(--bg);color:var(--fg);font-family:var(--font-body);font-size:15px;line-height:1.45}
+button,select,input,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--nav-hi);outline-offset:2px}
+.app{display:grid;grid-template-columns:var(--side) minmax(0,1fr);min-height:100vh}
+/* ---- sidebar ---- */
+.side{background:var(--nav);color:var(--nav-fg);display:flex;flex-direction:column;gap:18px;padding:22px 14px;padding-left:max(14px,env(safe-area-inset-left,0px));position:sticky;top:0;height:100vh;overflow-y:auto}
+.brandbox{display:flex;align-items:center;gap:10px;padding:0 6px}
+.mark{width:38px;height:38px;border-radius:10px;background:linear-gradient(160deg,#2a65b5,#123766);display:grid;place-items:center;font-weight:700;font-size:18px;color:#fff;flex:none}
+.brandbox b{display:block;font-size:16px;letter-spacing:.01em}
+.brandbox small{display:block;font-size:12px;color:var(--nav-muted)}
+.newbtn{background:var(--nav-hi);color:#071429;border:0;border-radius:10px;padding:11px 14px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:8px;justify-content:center}
+.newbtn:hover{filter:brightness(1.08)}
+.nav{display:flex;flex-direction:column;gap:4px}
+.nav .grp{font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--nav-muted);padding:12px 10px 4px;font-weight:700}
+.nav button{display:flex;align-items:center;gap:10px;width:100%;text-align:left;background:transparent;border:0;color:var(--nav-fg);padding:10px 10px;border-radius:9px;cursor:pointer;font-weight:600}
+.nav button svg{width:18px;height:18px;flex:none;opacity:.85}
+.nav button:hover{background:var(--nav-2)}
+.nav button[aria-current="page"]{background:var(--nav-2);box-shadow:inset 3px 0 0 var(--nav-hi)}
+.nav .badge{margin-left:auto;background:#d9443a;color:#fff;font-size:11px;font-weight:700;border-radius:99px;padding:1px 7px}
+.nav .badge.warn{background:#e0a030;color:#1b1203}
+.charts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.charts.one{grid-template-columns:minmax(0,1fr)}
+@media (max-width:980px){.charts{grid-template-columns:minmax(0,1fr)}}
+.chbox{position:relative;height:340px;max-width:100%}
+#gType{flex-wrap:nowrap}
+.gfilters{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px;align-items:end}
+.rolepill{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:2px 8px;border-radius:99px;background:var(--nav-2);color:var(--nav-hi);margin-top:4px}
+.team{display:flex;flex-direction:column;gap:8px}
+.pending{border:2px solid var(--accent)!important;background:var(--accent-soft)!important;color:var(--fg)!important}
+.thumbbtn{padding:0;border:0;background:none;cursor:zoom-in;border-radius:6px}
+.viewer{position:fixed;inset:0;z-index:80;background:rgba(5,12,24,.85);display:flex;flex-direction:column;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+.viewer header{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:12px max(16px,env(safe-area-inset-right,0px)) 12px max(16px,env(safe-area-inset-left,0px));background:var(--nav);color:var(--nav-fg)}
+.viewer header b{flex:1;min-width:0;overflow-wrap:anywhere}
+.viewer header .btn{color:var(--fg)}
+.viewer .vbody{flex:1;overflow:auto;display:flex;flex-direction:column;align-items:center;gap:14px;padding:16px}
+.viewer .vbody img,.viewer .vbody canvas{max-width:100%;height:auto;background:#fff;border-radius:6px;box-shadow:0 6px 24px rgba(0,0,0,.4)}
+.viewer .vmsg{color:#e8eef8;text-align:center;max-width:420px;margin-top:40px}
+.team .mem{display:flex;align-items:center;gap:12px;flex-wrap:wrap;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 14px}
+.team .mem b{flex:1;min-width:160px}
+.sidefoot{margin-top:auto;font-size:12px;color:var(--nav-muted);padding:0 8px;line-height:1.5}
+/* ---- main ---- */
+.main{min-width:0;display:flex;flex-direction:column}
+.topbar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding-block:18px 6px;padding-left:max(24px,env(safe-area-inset-left,0px));padding-right:max(24px,env(safe-area-inset-right,0px))}
+.menubtn{display:none;border:1px solid var(--line);background:var(--surface);border-radius:9px;width:42px;height:42px;cursor:pointer;place-items:center}
+.menubtn svg{width:20px;height:20px}
+.ttl{display:flex;flex-direction:column;gap:2px;min-width:0;flex:1}
+.ttl small{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:700}
+h1{font-size:24px;margin:0;font-weight:700;text-wrap:balance}
+.tactions{display:flex;gap:8px;flex-wrap:wrap}
+.view{display:flex;flex-direction:column;gap:16px;padding-block:10px 60px;padding-left:max(24px,env(safe-area-inset-left,0px));padding-right:max(24px,env(safe-area-inset-right,0px));max-width:1120px;width:100%}
+@media (max-width:900px){
+  .app{grid-template-columns:minmax(0,1fr)}
+  .side{position:fixed;inset:0 auto 0 0;width:min(280px,86vw);z-index:40;transform:translateX(-105%);transition:transform .2s ease;padding-top:max(22px,env(safe-area-inset-top,0px))}
+  .side.open{transform:none}
+  .menubtn{display:grid}
+  .ttl{flex:1 1 180px}
+  .tactions{width:100%}
+  .tactions .btn{flex:1;justify-content:center}
+  .topbar,.view{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+}
+.sidescrim{position:fixed;inset:0;background:rgba(5,12,24,.5);z-index:39}
+/* ---- controls ---- */
+.btn{border:1px solid var(--line);background:var(--surface);border-radius:9px;padding:8px 14px;cursor:pointer;font-weight:600;display:inline-flex;align-items:center;gap:6px;min-height:40px;text-decoration:none;color:var(--fg)}
+.btn:hover{border-color:var(--accent)}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.btn.ghost{background:transparent;border-color:transparent}
+.btn.small{min-height:32px;padding:5px 10px;font-size:13px}
+.btn.danger{color:var(--bad)}
+.btn[disabled]{opacity:.5;cursor:not-allowed}
+.help{flex:none;width:26px;height:26px;border-radius:50%;border:1.5px solid var(--accent);background:var(--surface);color:var(--accent);font-weight:700;font-size:13px;cursor:pointer;display:inline-grid;place-items:center;padding:0;line-height:1;vertical-align:middle}
+.help:hover,.help[aria-expanded="true"]{background:var(--accent);color:var(--accent-ink)}
+th .help{width:20px;height:20px;font-size:11px;margin-left:4px}
+.bubble{position:absolute;z-index:60;max-width:min(320px,calc(100vw - 32px));background:var(--nav);color:var(--nav-fg);border-radius:10px;padding:12px 14px;font-size:13.5px;line-height:1.5;box-shadow:0 10px 30px rgba(5,12,24,.3)}
+.bubble b{display:block;margin-bottom:4px;color:var(--nav-hi);font-size:12px;text-transform:uppercase;letter-spacing:.06em}
+.toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:10px}
+.weeknav{display:flex;align-items:center;gap:4px;flex-wrap:wrap}
+.weeklabel{font-weight:700;padding:0 8px;font-variant-numeric:tabular-nums}
+.spacer{flex:1}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:9px;overflow:hidden;flex-wrap:wrap}
+.seg button{border:0;background:transparent;padding:7px 12px;cursor:pointer;font-size:13px;font-weight:600;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
+.range{display:flex;gap:6px;align-items:center;flex-wrap:wrap;font-size:13px;color:var(--muted)}
+.range input,.toolbar select{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:6px 8px}
+.guide{background:var(--nav);color:var(--nav-fg);border-radius:var(--r);padding:16px 18px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr)) auto;gap:14px;align-items:start}
+.guide .st{display:flex;gap:10px;min-width:0}
+.guide .n{width:28px;height:28px;border-radius:50%;background:var(--nav-hi);color:#071429;font-weight:700;display:grid;place-items:center;flex:none}
+.guide p{margin:0;font-size:13.5px;color:var(--nav-muted)} .guide p b{color:var(--nav-fg);display:block;font-size:14px}
+.guide .x{background:transparent;border:0;color:var(--nav-muted);cursor:pointer;font-size:18px}
+@media (max-width:760px){.guide{grid-template-columns:minmax(0,1fr)}.guide .x{justify-self:end;grid-row:1}}
+.totals{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.tot{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px;display:flex;flex-direction:column;gap:2px;min-width:0}
+.tot span{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;font-weight:700}
+.tot b{font-size:21px;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.tot small{font-size:12px;color:var(--muted)}
+.tot.late b{color:var(--bad)} .tot.paid b{color:var(--ok)} .tot.main b{color:var(--accent)}
+@media (max-width:700px){.totals{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.alert{background:var(--bad-soft);color:var(--bad);border-radius:var(--r);padding:10px 14px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;font-weight:600}
+.alert.warn{background:var(--warn-soft);color:var(--warn)}
+.alert .btn{margin-left:auto}
+.day{display:flex;flex-direction:column;gap:6px}
+.day h2{font-size:13px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin:6px 2px 0;display:flex;justify-content:space-between;gap:8px;font-weight:700;flex-wrap:wrap}
+.day h2 .sum{font-variant-numeric:tabular-nums;text-transform:none;letter-spacing:0}
+.day h2.today{color:var(--accent)} .day.carry h2{color:var(--bad)}
+.bill{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.row{display:grid;grid-template-columns:auto minmax(0,1fr);align-items:center}
+.paytog{margin-left:12px;border-radius:99px;border:1.5px solid var(--warn);background:var(--warn-soft);color:var(--warn);font-size:12px;font-weight:700;padding:6px 10px;cursor:pointer;white-space:nowrap;min-height:34px}
+.paytog.late{border-color:var(--bad);background:var(--bad-soft);color:var(--bad)}
+.paytog.paid{border-color:var(--ok);background:var(--ok-soft);color:var(--ok)}
+.paytog[disabled]{cursor:default}
+.expand{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:center;padding:12px 14px;cursor:pointer;background:transparent;border:0;text-align:left;width:100%}
+.chip{font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding:3px 8px;border-radius:99px;white-space:nowrap}
+.chip.unit{background:var(--surface-2);color:var(--muted)}
+.chip.kind{background:var(--accent-soft);color:var(--accent)}
+.chip.nofile{background:var(--warn-soft);color:var(--warn)}
+.chip.file{background:var(--ok-soft);color:var(--ok)}
+.chip.lc{background:var(--surface-2);color:var(--accent);border:1px solid var(--accent-soft)}
+.chip.late{background:var(--bad-soft);color:var(--bad)}
+.mid{min-width:0;display:flex;flex-direction:column;gap:3px}
+.mid .t{font-weight:600;overflow-wrap:anywhere}
+.mid .meta{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:13px;color:var(--muted)}
+.amt{font-weight:700;font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
+.detail{border-top:1px solid var(--line);padding:14px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:16px;background:var(--surface-2)}
+@media (max-width:640px){.detail{grid-template-columns:minmax(0,1fr)}}
+.codebox{display:flex;flex-direction:column;gap:8px;min-width:0}
+.lbl{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;font-weight:700}
+.code{font-family:var(--font-mono);font-size:13px;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:10px;overflow-wrap:anywhere;user-select:all;line-height:1.6}
+.code.empty{font-family:var(--font-body);color:var(--muted);user-select:auto}
+.copyrow{display:flex;gap:8px;flex-wrap:wrap}
+.btn.copy{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);min-height:44px;padding:8px 18px}
+.btn.copy.done{background:var(--ok);border-color:var(--ok)}
+.visual{background:#fff;border-radius:8px;padding:10px;display:flex;align-items:center;justify-content:center;max-width:100%;overflow-x:auto}
+.visual svg{display:block;max-width:100%;height:auto}
+.visual.qr{width:200px;height:200px}
+.visual.qr img,.visual.qr canvas{width:180px;height:180px}
+.receipt{grid-column:1/-1;display:flex;flex-direction:column;gap:8px;border-top:1px dashed var(--line);padding-top:12px}
+.receipt .box{display:flex;gap:12px;align-items:center;flex-wrap:wrap;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:10px}
+.receipt img{max-height:120px;max-width:160px;border-radius:6px;border:1px solid var(--line);object-fit:cover}
+.receipt .box.missing{border-style:dashed;color:var(--muted)}
+.filebtn{position:relative;overflow:hidden}
+.filebtn input{position:absolute;inset:0;opacity:0;cursor:pointer}
+.note{font-size:13px;color:var(--muted)}
+.warnline{font-size:13px;color:var(--warn);font-weight:600}
+.actions{display:flex;gap:8px;flex-wrap:wrap;grid-column:1/-1;border-top:1px dashed var(--line);padding-top:12px}
+.confirm{display:flex;gap:8px;align-items:center;flex-wrap:wrap;color:var(--bad);font-weight:600;font-size:13px}
+.empty-state{background:var(--surface);border:1px dashed var(--line);border-radius:var(--r);padding:28px 20px;text-align:center;color:var(--muted);display:flex;flex-direction:column;gap:10px;align-items:center}
+.empty-state b{color:var(--fg);font-size:16px}
+.status-line{font-size:13px;color:var(--muted)}
+/* ---- fiscal ---- */
+.fgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+@media (max-width:980px){.fgrid{grid-template-columns:minmax(0,1fr)}}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.card h3{margin:0;font-size:13px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
+.card .big{font-size:26px;font-weight:700;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.card .big.ok{color:var(--ok)} .card .big.warn{color:var(--warn)} .card .big.bad{color:var(--bad)}
+.card p{margin:0;font-size:14px}
+.hero{border-width:2px} .hero.ok{border-color:var(--ok)} .hero.warn{border-color:var(--warn)} .hero.bad{border-color:var(--bad)}
+.bar{height:10px;background:var(--surface-2);border-radius:99px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--ok);border-radius:99px}
+.bar i.warn{background:var(--warn)} .bar i.bad{background:var(--bad)}
+.sech{font-size:17px;margin:10px 0 0;font-weight:700;display:flex;align-items:center;gap:8px}
+.tablewrap{overflow-x:auto;background:var(--surface);border:1px solid var(--line);border-radius:var(--r)}
+table.months{border-collapse:collapse;width:100%;min-width:900px;font-variant-numeric:tabular-nums;font-size:14px}
+table.months th,table.months td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
+table.months th:first-child,table.months td:first-child{text-align:left}
+table.months th{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);background:var(--surface-2)}
+table.months tr.cur td{background:var(--accent-soft)}
+table.months tfoot td{font-weight:700;background:var(--surface-2)}
+table.months input{width:120px;text-align:right;border:1px solid var(--line);background:var(--bg);border-radius:6px;padding:5px 7px;font-variant-numeric:tabular-nums}
+.pos{color:var(--ok);font-weight:600} .neg{color:var(--bad);font-weight:600}
+.params{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+@media (max-width:980px){.params{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:520px){.params{grid-template-columns:minmax(0,1fr)}}
+details.card summary{cursor:pointer;font-weight:700}
+.disclaimer{font-size:12px;color:var(--muted);line-height:1.5;max-width:80ch}
+.howto{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+@media (max-width:760px){.howto{grid-template-columns:minmax(0,1fr)}}
+.howto ol{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px;font-size:14px}
+/* ---- fields ---- */
+.field{display:flex;flex-direction:column;gap:5px;min-width:0}
+.field label,.field .flab{font-size:13.5px;font-weight:700}
+.field label em,.req{font-style:normal;color:var(--bad)}
+.frow{display:flex;gap:8px;align-items:center;min-width:0}
+.frow > input,.frow > select,.frow > textarea{flex:1;min-width:0}
+.field input,.field select,.field textarea{border:1.5px solid var(--line);background:var(--surface);border-radius:9px;padding:10px 11px;width:100%}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--accent);outline:none;box-shadow:0 0 0 3px var(--accent-soft)}
+.field.invalid input,.field.invalid select,.field.invalid textarea{border-color:var(--bad)}
+.field textarea{resize:vertical;min-height:92px;font-family:var(--font-mono);font-size:13px}
+.field .hint{font-size:12.5px;color:var(--muted)}
+.field .hint.ok{color:var(--ok);font-weight:600} .field .hint.bad{color:var(--warn);font-weight:600}
+.err{font-size:12.5px;color:var(--bad);font-weight:600}
+.err:empty{display:none}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media (max-width:460px){.two{grid-template-columns:1fr}}
+.check{display:flex;gap:10px;align-items:flex-start;font-size:14px;background:var(--accent-soft);border-radius:9px;padding:10px 12px;cursor:pointer;flex:1}
+.check input{margin-top:3px;width:18px!important;height:18px;accent-color:var(--accent);flex:none;padding:0}
+.choice{display:grid;grid-template-columns:1fr 1fr;gap:8px;flex:1}
+.choice label{border:1.5px solid var(--line);border-radius:9px;padding:10px;cursor:pointer;display:flex;gap:8px;align-items:center;font-weight:600;font-size:14px}
+.choice input{accent-color:var(--accent);width:18px!important;height:18px;flex:none;padding:0;margin:0}
+.choice label:has(input:checked){border-color:var(--accent);background:var(--accent-soft)}
+/* ---- wizard panel ---- */
+.scrim{position:fixed;inset:0;background:rgba(5,12,24,.5);z-index:20}
+.panel{position:fixed;top:0;right:0;bottom:0;width:min(520px,100%);background:var(--surface);z-index:21;display:flex;flex-direction:column;border-left:1px solid var(--line);padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);padding-right:env(safe-area-inset-right,0px)}
+.panel header{display:flex;justify-content:space-between;align-items:center;padding:14px 18px;background:var(--nav);color:var(--nav-fg)}
+.panel header h3{margin:0;font-size:17px}
+.panel header .btn{color:var(--nav-fg)}
+.stepper{list-style:none;margin:0;padding:12px 14px;display:flex;gap:4px;border-bottom:1px solid var(--line);overflow-x:auto;background:var(--surface-2)}
+.stepper button{border:0;background:transparent;display:flex;align-items:center;gap:6px;padding:6px 8px;border-radius:8px;font-size:12.5px;font-weight:700;color:var(--muted);cursor:pointer;white-space:nowrap}
+.stepper button[disabled]{cursor:default;opacity:.55}
+.stepper .n{width:22px;height:22px;border-radius:50%;border:1.5px solid currentColor;display:grid;place-items:center;font-size:11px}
+.stepper button.done{color:var(--ok)} .stepper button.done .n{background:var(--ok);border-color:var(--ok);color:#fff}
+.stepper button.cur{color:var(--accent);background:var(--surface)} .stepper button.cur .n{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.panel form{overflow-y:auto;padding:18px;flex:1}
+.panel fieldset{border:0;margin:0;padding:0;display:flex;flex-direction:column;gap:16px}
+.panel legend{font-size:19px;font-weight:700;padding:0;margin-bottom:2px}
+.panel .intro{margin:-8px 0 0;color:var(--muted);font-size:14px}
+.review{display:flex;flex-direction:column;gap:10px}
+.review .sec{border:1px solid var(--line);border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:4px}
+.review .sec header{display:flex;justify-content:space-between;align-items:center;background:none;color:var(--fg);padding:0;font-weight:700;font-size:13px;text-transform:uppercase;letter-spacing:.06em}
+.review .sec header .btn{color:var(--accent)}
+.review dl{display:grid;grid-template-columns:auto minmax(0,1fr);gap:4px 12px;margin:0;font-size:14px}
+.review dt{color:var(--muted)} .review dd{margin:0;overflow-wrap:anywhere;font-weight:600}
+.panel footer{display:flex;gap:10px;align-items:center;padding:12px 18px;border-top:1px solid var(--line)}
+.panel footer .prog{font-size:12.5px;color:var(--muted)}
+.formerr{color:var(--bad);font-size:13px;font-weight:600}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(20px + env(safe-area-inset-bottom,0px));background:var(--nav);color:var(--nav-fg);padding:11px 18px;border-radius:9px;font-weight:600;z-index:70;max-width:calc(100% - 32px);box-shadow:0 8px 24px rgba(5,12,24,.3)}
+@media (prefers-reduced-motion:no-preference){.panel{animation:slide .18s ease-out}@keyframes slide{from{transform:translateX(24px);opacity:.6}}}
+@media (prefers-reduced-motion:reduce){.side{transition:none}}
+</style>
+
+<div class="app">
+  <aside class="side" id="side" aria-label="Menu">
+    <div class="brandbox"><span class="mark" aria-hidden="true">W</span><span><b>Weiss Financeiro</b><small>Caruaru · Recife</small></span></div>
+    <button class="newbtn" type="button" data-act="new" id="sideNew"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2v12M2 8h12" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>Nova conta</button>
+    <nav class="nav">
+      <span class="grp">Clínica</span>
+      <button type="button" data-view="contas"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><rect x="3" y="4" width="14" height="13" rx="2"/><path d="M3 8h14M7 2v4M13 2v4"/></svg>Contas a pagar<span class="badge" id="bContas" hidden></span></button>
+      <button type="button" data-view="graficos" class="adminOnly" hidden><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M10 3a7 7 0 1 0 7 7h-7z"/><path d="M12.5 2.5a5 5 0 0 1 5 5h-5z"/></svg>Gráficos</button>
+      <button type="button" data-view="relatorios" class="adminOnly" hidden><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M5 3h7l3 3v11H5z"/><path d="M8 10h5M8 13h5M8 7h2"/></svg>Relatórios e Excel</button>
+      <span class="grp ownerOnly" hidden>Dr. Edelweiss · privado</span>
+      <button type="button" data-view="despesas" class="ownerOnly" hidden><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M4 5h12v11H4z"/><path d="M7 9h6M7 12h4M10 2v3"/></svg>Despesas PF e PJ<span class="badge warn" id="bDesp" hidden></span></button>
+      <button type="button" data-view="fiscal" class="ownerOnly" hidden><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M3 16h14M5 13V9M9 13V5M13 13v-3M17 13V7"/></svg>Receita Saúde × PJ</button>
+      <button type="button" data-view="equipe" class="ownerOnly" hidden><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="7.5" cy="7" r="3"/><path d="M2 17c.6-3 2.8-4.5 5.5-4.5S12.4 14 13 17"/><circle cx="14" cy="6.5" r="2.3"/><path d="M14 11c2.2 0 3.6 1.3 4 4"/></svg>Equipe e acessos</button>
+      <span class="grp">Suporte</span>
+      <button type="button" data-view="ajuda"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="10" cy="10" r="7.5"/><path d="M7.8 7.8a2.3 2.3 0 1 1 3.2 2.1c-.6.3-1 .8-1 1.5v.4M10 14.6v.1"/></svg>Como usar</button>
+    </nav>
+    <div class="sidefoot"><span id="sideFoot">Conectando…</span><br><span class="rolepill" id="rolePill" hidden></span></div>
+  </aside>
+  <div class="sidescrim" id="sideScrim" hidden></div>
+
+  <div class="main">
+    <header class="topbar">
+      <button class="menubtn" id="menuBtn" type="button" aria-label="Abrir menu" aria-controls="side"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 5h14M3 10h14M3 15h14"/></svg></button>
+      <div class="ttl"><small id="ttlSmall">OdontoWeiss</small><h1 id="ttl">Contas a pagar</h1></div>
+      <div class="tactions" id="tActions"></div>
+    </header>
+
+    <!-- CONTAS -->
+    <section class="view" id="v-contas">
+      <div class="guide" id="guide" hidden>
+        <div class="st"><span class="n">1</span><p><b>Lance as contas</b>Toque em “Nova conta” e siga os passos. O código de barras ou PIX preenche valor e data sozinho.</p></div>
+        <div class="st"><span class="n">2</span><p><b>Acompanhe a semana</b>As contas aparecem por dia de vencimento. As não pagas passam sozinhas para a semana seguinte.</p></div>
+        <div class="st"><span class="n">3</span><p><b>Pague e anexe</b>Copie o código, pague no banco, toque em “Não pago” para virar “Pago” e anexe o comprovante.</p></div>
+        <button class="x" type="button" data-act="hideGuide" aria-label="Fechar orientação">✕</button>
+      </div>
+      <div class="toolbar" role="group" aria-label="Filtros">
+        <div class="weeknav" id="weeknav">
+          <button class="btn small ghost" id="prevW" type="button" aria-label="Semana anterior">‹</button>
+          <span class="weeklabel" id="weekLabel">—</span>
+          <button class="btn small ghost" id="nextW" type="button" aria-label="Próxima semana">›</button>
+          <button class="btn small" id="thisW" type="button">Esta semana</button>
+        </div>
+        <div class="range" id="rangeBox" hidden>
+          <label for="fromD">De</label><input type="date" id="fromD">
+          <label for="toD">até</label><input type="date" id="toD">
+          <button class="btn small" type="button" id="rMonth">Este mês</button>
+          <button class="btn small" type="button" id="rYear">Este ano</button>
+        </div>
+        <div class="seg" id="modeSeg" aria-label="Período">
+          <button type="button" data-mode="week" aria-pressed="true">Semana</button>
+          <button type="button" data-mode="range" aria-pressed="false">Período</button>
+        </div>
+        <span class="spacer"></span>
+        <div class="seg" id="unitSeg" aria-label="Unidade">
+          <button type="button" data-unit="" aria-pressed="true">Todas</button>
+          <button type="button" data-unit="Caruaru" aria-pressed="false">Caruaru</button>
+          <button type="button" data-unit="Recife" aria-pressed="false">Recife</button>
+        </div>
+        <div class="seg" id="statusSeg" aria-label="Situação">
+          <button type="button" data-status="" aria-pressed="true">Todas</button>
+          <button type="button" data-status="pendente" aria-pressed="false">Não pagas</button>
+          <button type="button" data-status="pago" aria-pressed="false">Pagas</button>
+          <button type="button" data-status="semcomp" aria-pressed="false">Sem comprovante</button>
+        </div>
+      </div>
+      <div id="lateAlert" class="alert" hidden></div>
+      <div id="compAlert" class="alert warn" hidden></div>
+      <section class="totals" aria-label="Totais do período">
+        <div class="tot main"><span>Total do período</span><b id="tTotal">R$ 0,00</b></div>
+        <div class="tot"><span>Não pagas</span><b id="tOpen">R$ 0,00</b><small id="tCarry"></small></div>
+        <div class="tot late"><span>Vencidas</span><b id="tLate">R$ 0,00</b></div>
+        <div class="tot paid"><span>Pagas</span><b id="tPaid">R$ 0,00</b><small id="tComp"></small></div>
+      </section>
+      <div id="statusLine" class="status-line">Carregando contas…</div>
+      <main id="list" style="display:flex;flex-direction:column;gap:14px"></main>
+    </section>
+
+    <!-- RELATÓRIOS -->
+    <section class="view" id="v-relatorios" hidden>
+      <div class="card">
+        <h3>Gerar relatório</h3>
+        <p>Escolha o período e a unidade. A planilha sai com 5 abas: Resumo, Todas, Pagas, Não pagas e Pagas sem comprovante.</p>
+        <div class="params" style="margin-top:6px">
+          <div class="field"><label for="rFrom">Data inicial <em>*</em></label><div class="frow"><input type="date" id="rFrom"><button type="button" class="help" data-help="rFrom" aria-label="Ajuda">?</button></div><span class="err" id="e_rFrom"></span></div>
+          <div class="field"><label for="rTo">Data final <em>*</em></label><div class="frow"><input type="date" id="rTo"><button type="button" class="help" data-help="rTo" aria-label="Ajuda">?</button></div><span class="err" id="e_rTo"></span></div>
+          <div class="field"><label for="rUnit">Unidade</label><div class="frow"><select id="rUnit"><option value="">Todas</option><option>Caruaru</option><option>Recife</option></select><button type="button" class="help" data-help="rUnit" aria-label="Ajuda">?</button></div></div>
+        </div>
+        <div class="copyrow" style="margin-top:6px">
+          <button class="btn small" type="button" data-rq="semana">Esta semana</button>
+          <button class="btn small" type="button" data-rq="mes">Este mês</button>
+          <button class="btn small" type="button" data-rq="mesant">Mês passado</button>
+          <button class="btn small" type="button" data-rq="ano">Este ano</button>
+        </div>
+        <div id="rPreview" class="note"></div>
+        <div class="copyrow"><button class="btn primary" type="button" id="rExcel">Baixar planilha Excel</button><button class="btn primary" type="button" id="rPdf">Salvar em PDF</button><button class="btn" type="button" id="rPrint">Imprimir</button><button class="btn" type="button" id="rVer">Ver na lista de contas</button></div>
+        <p class="note">“Imprimir” gera um PDF pronto para impressão: ao abrir o arquivo, a janela da impressora aparece sozinha.</p>
+      </div>
+    </section>
+
+    <!-- GRÁFICOS -->
+    <section class="view" id="v-graficos" hidden>
+      <div class="card">
+        <div class="gfilters">
+          <div class="field"><label for="gPer">Período</label><div class="frow"><select id="gPer"><option value="semana">Esta semana</option><option value="mes" selected>Este mês</option><option value="mesant">Mês passado</option><option value="ano">Este ano</option><option value="custom">Escolher datas…</option></select><button type="button" class="help" data-help="gPer" aria-label="Ajuda">?</button></div></div>
+          <div class="field" id="gCustom" hidden><label for="gFrom">De / até</label><div class="frow"><input type="date" id="gFrom"><input type="date" id="gTo"></div></div>
+          <div class="field"><label for="gUnit">Unidade</label><div class="frow"><select id="gUnit"><option value="">Todas</option><option>Caruaru</option><option>Recife</option></select><button type="button" class="help" data-help="gUnit" aria-label="Ajuda">?</button></div></div>
+          <div class="field"><label for="gSit">Situação</label><div class="frow"><select id="gSit"><option value="">Todas</option><option value="pago">Pagas</option><option value="pendente">Não pagas</option></select><button type="button" class="help" data-help="gSit" aria-label="Ajuda">?</button></div></div>
+          <div class="field"><label for="gBy">Agrupar por</label><div class="frow"><select id="gBy"><option value="categoria">Categoria</option><option value="unidade">Unidade</option><option value="situacao">Situação</option><option value="mes">Mês de vencimento</option><option value="fornecedor">Fornecedor</option><option value="tipo">Forma de pagamento</option></select><button type="button" class="help" data-help="gBy" aria-label="Ajuda">?</button></div></div>
+          <div class="field"><span class="flab">Tipo de gráfico</span><div class="frow"><div class="seg" id="gType"><button type="button" data-gt="pie" aria-pressed="false">Pizza</button><button type="button" data-gt="bar" aria-pressed="false">Torre</button><button type="button" data-gt="both" aria-pressed="true">Ambos</button></div><button type="button" class="help" data-help="gType" aria-label="Ajuda">?</button></div></div>
+        </div>
+      </div>
+      <div class="status-line" id="gInfo"></div>
+      <div class="charts" id="chWrap">
+        <div class="card" id="cardPie"><h3 id="pieTitle">Pizza</h3><div class="chbox"><canvas id="chPie" role="img" aria-label="Gráfico de pizza"></canvas></div><p class="note" id="pieNote" hidden></p></div>
+        <div class="card" id="cardBar"><h3 id="barTitle">Torre</h3><div class="chbox"><canvas id="chBar" role="img" aria-label="Gráfico de torre"></canvas></div></div>
+      </div>
+      <div class="card"><h3>Tabela dos valores</h3><div class="tablewrap"><table class="months" id="chTable" style="min-width:480px"></table></div></div>
+      <div class="copyrow"><button class="btn primary" type="button" id="gPdf">Salvar gráficos em PDF</button><button class="btn" type="button" id="gPrint">Imprimir gráficos</button></div>
+    </section>
+
+    <!-- EQUIPE -->
+    <section class="view" id="v-equipe" hidden>
+      <div class="card">
+        <h3>Quem acessa o sistema</h3>
+        <p><b>Administrador</b> vê o painel de gestão: totais, marcar como pago, comprovantes, relatórios, gráficos e edição de qualquer conta. <b>Funcionário</b> só lança contas e acompanha se estão pagas ou não (pode corrigir as que ele mesmo lançou enquanto não forem pagas).</p>
+        <p class="note">A pessoa aparece aqui depois de abrir o sistema pela primeira vez. Para dar acesso, use o botão Compartilhar do Claude e convide o e-mail como Editor. A área fiscal (Receita Saúde × PJ e Despesas PF e PJ) continua só sua.</p>
+      </div>
+      <div class="team" id="teamList"></div>
+    </section>
+
+    <!-- DESPESAS PF -->
+    <section class="view" id="v-despesas" hidden>
+      <div class="toolbar">
+        <label for="dMes" style="font-weight:700">Mês</label>
+        <select id="dMes"></select>
+        <button type="button" class="help" data-help="dMes" aria-label="Ajuda">?</button>
+        <div class="seg" id="dSeg" aria-label="Pessoa"><button type="button" data-dp="todas" aria-pressed="true">Todas</button><button type="button" data-dp="PF" aria-pressed="false">Pessoa física</button><button type="button" data-dp="PJ" aria-pressed="false">Pessoa jurídica</button></div>
+        <span class="spacer"></span>
+      </div>
+      <section class="totals" id="dTotals" style="grid-template-columns:repeat(auto-fill,minmax(200px,1fr))"></section>
+      <div class="toolbar" hidden>
+        <span id="pfDespInfo" class="note"></span>
+      </div>
+      <div id="pfDespList" style="display:flex;flex-direction:column;gap:8px"></div>
+    </section>
+
+    <!-- FISCAL -->
+    <section class="view" id="v-fiscal" hidden>
+      <div class="toolbar">
+        <label for="fMes" style="font-weight:700">Mês de referência</label>
+        <select id="fMes"></select>
+        <button type="button" class="help" data-help="fMes" aria-label="Ajuda">?</button>
+        <span class="spacer"></span>
+        <span class="note" id="fSave">Visível só para o titular</span>
+      </div>
+      <div class="fgrid">
+        <div class="card hero" id="cMes"></div>
+        <div class="card" id="cAno"></div>
+        <div class="card" id="cPJ"></div>
+      </div>
+      <div class="card" id="cCompare"></div>
+      <h2 class="sech">Pessoa física · Receita Saúde e carnê-leão <button type="button" class="help" data-help="secPF" aria-label="Ajuda">?</button></h2>
+      <div class="tablewrap"><table class="months" id="tPF"></table></div>
+      <h2 class="sech">Pessoa jurídica · NFS-e e Simples Nacional <button type="button" class="help" data-help="secPJ" aria-label="Ajuda">?</button></h2>
+      <div class="tablewrap"><table class="months" id="tPJ"></table></div>
+      <h2 class="sech">Equilíbrio fiscal · PF + PJ <button type="button" class="help" data-help="secEq" aria-label="Ajuda">?</button></h2>
+      <div class="card hero ok" id="cEq"></div>
+      <div class="tablewrap"><table class="months" id="tEq"></table></div>
+      <details class="card" id="paramsBox">
+        <summary>Parâmetros do cálculo (INSS, dependentes, pró-labore, Simples Nacional)</summary>
+        <div class="params" style="margin-top:10px">
+          <div class="field"><label for="p_inss">INSS pago como autônomo, por mês (R$)</label><div class="frow"><input id="p_inss" inputmode="decimal" placeholder="0,00"><button type="button" class="help" data-help="p_inss" aria-label="Ajuda">?</button></div></div>
+          <div class="field"><label for="p_dep">Dependentes</label><div class="frow"><input id="p_dep" type="number" min="0" step="1" value="0"><button type="button" class="help" data-help="p_dep" aria-label="Ajuda">?</button></div></div>
+          <div class="field"><label for="p_outros">Pró-labore e outros rendimentos por mês (R$)</label><div class="frow"><input id="p_outros" inputmode="decimal" placeholder="0,00"><button type="button" class="help" data-help="p_outros" aria-label="Ajuda">?</button></div></div>
+          <div class="field"><label for="p_anexo">Anexo do Simples Nacional</label><div class="frow"><select id="p_anexo"><option value="III">Anexo III (Fator R ≥ 28%)</option><option value="V">Anexo V (Fator R &lt; 28%)</option></select><button type="button" class="help" data-help="p_anexo" aria-label="Ajuda">?</button></div></div>
+          <div class="field"><label for="p_rbt">Receita bruta da PJ nos últimos 12 meses (R$)</label><div class="frow"><input id="p_rbt" inputmode="decimal" placeholder="Vazio = soma da tabela"><button type="button" class="help" data-help="p_rbt" aria-label="Ajuda">?</button></div></div>
+        </div>
+      </details>
+      <p class="disclaimer">Cálculo estimado com a tabela progressiva mensal vigente desde maio/2025 e o redutor da Lei 15.270/2025 (imposto zerado para rendimentos de até R$ 5.000/mês, redução parcial até R$ 7.350). O sistema usa a dedução mais vantajosa entre o desconto simplificado (R$ 607,20) e as deduções legais (livro-caixa do mês, INSS e dependentes). Despesas do livro-caixa contam no mês do pagamento; o que sobrar além da receita do mês passa para os meses seguintes do mesmo ano. O redutor é aplicado sobre o rendimento bruto do mês, como indica a maioria das orientações publicadas. Confirme sempre com seu contador antes de decidir.</p>
+    </section>
+
+    <!-- AJUDA -->
+    <section class="view" id="v-ajuda" hidden>
+      <div class="howto">
+        <div class="card"><h3>Para a equipe: lançar as contas da semana</h3><ol>
+          <li>Toda segunda-feira, toque em <b>Nova conta</b> no menu.</li>
+          <li><b>Passo 1:</b> cole o código de barras ou o PIX. Se não houver código, toque em Próximo.</li>
+          <li><b>Passo 2:</b> confira a descrição, o valor e o vencimento.</li>
+          <li><b>Passo 3:</b> escolha a unidade, a forma de pagamento e a categoria.</li>
+          <li><b>Passo 4:</b> informe se já está paga. Revise e salve.</li>
+          <li>Na dúvida, toque no <b>?</b> ao lado de cada campo.</li></ol></div>
+        <div class="card"><h3>Para o Dr.: pagar e conferir</h3><ol>
+          <li>Abra <b>Contas a pagar</b>. A semana atual aparece primeiro, com as contas atrasadas no topo.</li>
+          <li>Toque na conta e em <b>Copiar código</b>. Cole no app do banco.</li>
+          <li>Toque em <b>Não pago</b> para virar <b>Pago</b>, ou anexe o comprovante (a conta vira paga sozinha).</li>
+          <li>Use <b>Relatórios e Excel</b> para baixar a planilha de qualquer período.</li></ol></div>
+        <div class="card ownerOnly" hidden><h3>Receita Saúde × PJ</h3><ol>
+          <li>Em <b>Despesas PF e PJ</b>, lance as despesas pagas pelo CPF (livro-caixa) ou pelo CNPJ e anexe os comprovantes.</li>
+          <li>Em <b>Receita Saúde × PJ</b>, digite quanto emitiu em cada mês no Receita Saúde e em NFS-e.</li>
+          <li>O cartão do mês mostra quanto ainda cabe no Receita Saúde sem imposto. Ao atingir o teto, emita pela PJ.</li>
+          <li>O equilíbrio fiscal no fim da página mostra a carga total e a economia possível.</li></ol></div>
+        <div class="card"><h3>Status das cores</h3><ol>
+          <li><b style="color:var(--warn)">Não pago</b>: dentro do prazo.</li>
+          <li><b style="color:var(--bad)">Não pago · vencida</b>: passou do vencimento e foi para a semana seguinte.</li>
+          <li><b style="color:var(--ok)">Pago</b>: quitada. Etiqueta amarela “Sem comprovante” indica que falta anexar o arquivo.</li></ol></div>
+      </div>
+    </section>
+  </div>
+</div>
+
+<!-- WIZARD -->
+<div id="scrim" class="scrim" hidden></div>
+<aside id="panel" class="panel" hidden aria-labelledby="panelTitle" role="dialog">
+  <header><h3 id="panelTitle">Nova conta</h3><button class="btn ghost small" id="closePanel" type="button" aria-label="Fechar">✕</button></header>
+  <ol class="stepper" id="stepper"></ol>
+  <form id="form" novalidate>
+    <fieldset data-step="0">
+      <legend>Código de pagamento</legend>
+      <p class="intro">Cole o código do boleto ou do PIX. Se a conta não tiver código, toque em Próximo.</p>
+      <div class="field" id="w_f_codigo">
+        <label for="f_codigo">Linha digitável ou PIX copia e cola</label>
+        <div class="frow"><textarea id="f_codigo" placeholder="Ex.: 23793.38128 60000.000003 ..."></textarea><button type="button" class="help" data-help="f_codigo" aria-label="Ajuda">?</button></div>
+        <span class="hint" id="codeHint">O sistema reconhece o tipo e preenche valor e vencimento quando possível.</span>
+        <span class="err" id="e_f_codigo"></span>
+      </div>
+    </fieldset>
+    <fieldset data-step="1" hidden>
+      <legend>Dados da conta</legend>
+      <div class="field" id="w_f_desc"><label for="f_desc">Descrição <em>*</em></label><div class="frow"><input id="f_desc" type="text" placeholder="Ex.: Aluguel sala 1614 – novembro"><button type="button" class="help" data-help="f_desc" aria-label="Ajuda">?</button></div><span class="err" id="e_f_desc"></span></div>
+      <div class="field" id="w_f_forn"><label for="f_forn">Fornecedor / beneficiário</label><div class="frow"><input id="f_forn" type="text" placeholder="Opcional"><button type="button" class="help" data-help="f_forn" aria-label="Ajuda">?</button></div></div>
+      <div class="two">
+        <div class="field" id="w_f_valor"><label for="f_valor">Valor (R$) <em>*</em></label><div class="frow"><input id="f_valor" type="text" inputmode="decimal" placeholder="0,00"><button type="button" class="help" data-help="f_valor" aria-label="Ajuda">?</button></div><span class="err" id="e_f_valor"></span></div>
+        <div class="field" id="w_f_venc"><label for="f_venc">Vencimento <em>*</em></label><div class="frow"><input id="f_venc" type="date"><button type="button" class="help" data-help="f_venc" aria-label="Ajuda">?</button></div><span class="err" id="e_f_venc"></span></div>
+      </div>
+    </fieldset>
+    <fieldset data-step="2" hidden>
+      <legend>Classificação</legend>
+      <div class="field" id="w_f_unid"><span class="flab">Unidade <em class="req">*</em></span><div class="frow"><div class="choice" role="radiogroup" aria-label="Unidade"><label><input type="radio" name="f_unid" value="Caruaru">Caruaru</label><label><input type="radio" name="f_unid" value="Recife">Recife</label></div><button type="button" class="help" data-help="f_unid" aria-label="Ajuda">?</button></div><span class="err" id="e_f_unid"></span></div>
+      <div class="field" id="w_f_tipo"><label for="f_tipo">Forma de pagamento <em>*</em></label><div class="frow"><select id="f_tipo"><option value="">Selecione…</option><option value="boleto">Boleto</option><option value="pix">PIX</option><option value="outro">Outro (transferência, débito, cartão…)</option></select><button type="button" class="help" data-help="f_tipo" aria-label="Ajuda">?</button></div><span class="err" id="e_f_tipo"></span></div>
+      <div class="field" id="w_f_cat"><label for="f_cat">Categoria <em>*</em></label><div class="frow"><select id="f_cat"><option value="">Selecione…</option>
+        <option>Aluguel e condomínio</option><option>Laboratório</option><option>Material odontológico</option>
+        <option>Alinhadores / Invisalign</option><option>Equipamentos e manutenção</option><option>Folha e pró-labore</option>
+        <option>Impostos e taxas</option><option>Água, luz, internet e telefone</option><option>Marketing</option>
+        <option>Contabilidade e serviços</option><option>Outros</option></select><button type="button" class="help" data-help="f_cat" aria-label="Ajuda">?</button></div><span class="err" id="e_f_cat"></span></div>
+      <div class="field" id="lcBox"><span class="flab">Pago por <em class="req">*</em></span><div class="frow"><div class="choice" role="radiogroup" aria-label="Pago por"><label><input type="radio" name="f_pessoa" value="PF">Pessoa física (CPF)</label><label><input type="radio" name="f_pessoa" value="PJ">Pessoa jurídica (CNPJ)</label></div><button type="button" class="help" data-help="f_pessoa" aria-label="Ajuda">?</button></div><span class="err" id="e_f_pessoa"></span></div>
+    </fieldset>
+    <fieldset data-step="3" hidden>
+      <legend>Pagamento</legend>
+      <div class="field" id="w_f_status"><span class="flab">Situação <em class="req">*</em></span><div class="frow"><div class="choice" role="radiogroup" aria-label="Situação"><label><input type="radio" name="f_status" value="pendente">Não paga</label><label><input type="radio" name="f_status" value="pago">Já paga</label></div><button type="button" class="help" data-help="f_status" aria-label="Ajuda">?</button></div><span class="err" id="e_f_status"></span></div>
+      <div class="field" id="w_f_pagoEm" hidden><label for="f_pagoEm">Data do pagamento <em>*</em></label><div class="frow"><input id="f_pagoEm" type="date"><button type="button" class="help" data-help="f_pagoEm" aria-label="Ajuda">?</button></div><span class="err" id="e_f_pagoEm"></span></div>
+      <div class="field" id="w_f_obs"><label for="f_obs">Observação</label><div class="frow"><input id="f_obs" type="text" placeholder="Ex.: parcela 3/10, NF 1234"><button type="button" class="help" data-help="f_obs" aria-label="Ajuda">?</button></div></div>
+      <p class="note" id="compNote">Depois de salvar, abra a conta para anexar o comprovante de pagamento.</p>
+    </fieldset>
+    <fieldset data-step="4" hidden>
+      <legend>Revise e salve</legend>
+      <p class="intro">Confira os dados. Toque em “Alterar” para corrigir uma parte.</p>
+      <div class="review" id="review"></div>
+      <div class="formerr" id="formErr" hidden></div>
+    </fieldset>
+  </form>
+  <footer>
+    <button class="btn" id="wBack" type="button">Voltar</button>
+    <span class="prog" id="wProg"></span>
+    <span class="spacer"></span>
+    <button class="btn primary" id="wNext" type="button">Próximo</button>
+  </footer>
+</aside>
+<div id="viewer" class="viewer" hidden role="dialog" aria-label="Comprovante">
+  <header><b id="vTitle">Comprovante</b><button class="btn small" type="button" id="vPrint">Imprimir comprovante</button><button class="btn small" type="button" id="vSave">Baixar arquivo</button><button class="btn small" type="button" id="vClose">Fechar ✕</button></header>
+  <div class="vbody" id="vBody"></div>
+</div>
+<div id="bubble" class="bubble" hidden role="tooltip"></div>
+<div id="toast" class="toast" hidden role="status"></div>
+
+<script>
+(function(){
+"use strict";
+// ---------- helpers ----------
+const $ = s => document.querySelector(s);
+const BRL = new Intl.NumberFormat("pt-BR",{style:"currency",currency:"BRL"});
+const money = v => BRL.format(Number(v)||0);
+const pct = v => (v*100).toLocaleString("pt-BR",{minimumFractionDigits:1,maximumFractionDigits:2})+"%";
+const pad = n => String(n).padStart(2,"0");
+const iso = d => d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate());
+const parseISO = s => { const [y,m,d]=s.split("-").map(Number); return new Date(y,m-1,d); };
+const addDays = (d,n) => { const x=new Date(d); x.setDate(x.getDate()+n); return x; };
+const mondayOf = d => { const x=new Date(d.getFullYear(),d.getMonth(),d.getDate()); return addDays(x,-((x.getDay()+6)%7)); };
+const todayISO = () => iso(new Date());
+const DOW = ["domingo","segunda-feira","terça-feira","quarta-feira","quinta-feira","sexta-feira","sábado"];
+const MESES = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
+const fmtShort = d => pad(d.getDate())+"/"+pad(d.getMonth()+1);
+const fmtFull = s => { if(!s) return ""; const d=parseISO(s); return pad(d.getDate())+"/"+pad(d.getMonth()+1)+"/"+d.getFullYear(); };
+const esc = s => String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const parseMoney = s => { s=String(s??"").trim().replace(/[R$\s]/g,""); if(!s) return NaN; if(s.includes(",")) s=s.replace(/\./g,"").replace(",","."); return Math.round(parseFloat(s)*100)/100; };
+const num0 = s => { const v=parseMoney(s); return isNaN(v)?0:v; };
+const toInputMoney = v => (Number(v)||0).toFixed(2).replace(".",",");
+function toast(msg){ const t=$("#toast"); t.textContent=msg; t.hidden=false; clearTimeout(toast._t); toast._t=setTimeout(()=>t.hidden=true,2600); }
+function store(k,v){ try{ if(v===undefined) return localStorage.getItem(k); localStorage.setItem(k,v);}catch(e){return null;} }
+
+// ---------- boleto / pix ----------
+function mod10(num){ let s=0,w=2; for(let i=num.length-1;i>=0;i--){ let p=Number(num[i])*w; if(p>9)p=Math.floor(p/10)+p%10; s+=p; w=w===2?1:2;} return (10-s%10)%10; }
+function mod11conv(num){ let s=0,w=2; for(let i=num.length-1;i>=0;i--){ s+=Number(num[i])*w; w=w===9?2:w+1;} const dv=11-(s%11); return dv>=10?0:dv; }
+function fatorToDate(f){
+  if(!f) return null;
+  const a=addDays(new Date(1997,9,7),f), b=addDays(new Date(2025,1,22),f-1000), now=new Date();
+  return iso((f>=1000 && Math.abs(b-now)<Math.abs(a-now)) ? b : a);
+}
+function analyzeCode(raw){
+  const txt=String(raw||"").trim();
+  if(!txt) return {kind:"none"};
+  if(/^000201/.test(txt.replace(/\s/g,""))) return analyzePix(txt.replace(/\s/g,""));
+  const d=txt.replace(/\D/g,"");
+  if(d.length===47 && d[0]!=="8"){
+    const ok = mod10(d.slice(0,9))==+d[9] && mod10(d.slice(10,20))==+d[20] && mod10(d.slice(21,31))==+d[31];
+    const bar=d.slice(0,4)+d[32]+d.slice(33,47)+d.slice(4,9)+d.slice(10,20)+d.slice(21,31);
+    return {kind:"boleto",digits:d,barcode:bar,valid:ok,valor:(+d.slice(37,47)/100)||null,venc:fatorToDate(+d.slice(33,37)),
+      pretty:d.slice(0,5)+"."+d.slice(5,10)+" "+d.slice(10,15)+"."+d.slice(15,21)+" "+d.slice(21,26)+"."+d.slice(26,32)+" "+d[32]+" "+d.slice(33)};
+  }
+  if(d.length===48 && d[0]==="8"){
+    const useMod10 = d[2]==="6"||d[2]==="7"; let ok=true, bar="";
+    for(let i=0;i<4;i++){ const blk=d.slice(i*12,i*12+11), dv=+d[i*12+11]; bar+=blk; if((useMod10?mod10(blk):mod11conv(blk))!==dv) ok=false; }
+    const real = d[2]==="6"||d[2]==="8";
+    return {kind:"boleto",convenio:true,digits:d,barcode:bar,valid:ok,valor:real?(+bar.slice(4,15)/100||null):null,venc:null,
+      pretty:[0,1,2,3].map(i=>d.slice(i*12,i*12+11)+"-"+d[i*12+11]).join(" ")};
+  }
+  if(d.length===44){
+    const conv=d[0]==="8";
+    return {kind:"boleto",convenio:conv,digits:d,barcode:d,valid:true,valor:conv?(+d.slice(4,15)/100||null):(+d.slice(9,19)/100||null),venc:conv?null:fatorToDate(+d.slice(5,9)),pretty:d};
+  }
+  if(d.length>=40 && d.length===txt.replace(/[\s.\-]/g,"").length) return {kind:"boleto",digits:d,valid:false,partial:true,pretty:d};
+  return {kind:"outro",text:txt};
+}
+function analyzePix(s){
+  const out={kind:"pix",text:s,valor:null,nome:null}; let i=0;
+  while(i+4<=s.length){ const id=s.slice(i,i+2), len=parseInt(s.slice(i+2,i+4),10); if(isNaN(len)) break; const v=s.slice(i+4,i+4+len);
+    if(id==="54") out.valor=parseFloat(v)||null; if(id==="59") out.nome=v.trim(); i+=4+len; }
+  out.valid=/6304[0-9A-F]{4}$/i.test(s); return out;
+}
+function itfSVG(code){
+  const P=["nnwwn","wnnnw","nwnnw","wwnnn","nnwnw","wnwnn","nwwnn","nnnww","wnnwn","nwnwn"], N=1, W=3, seq=[];
+  [N,N,N,N].forEach((w,i)=>seq.push([w,i%2===0]));
+  for(let i=0;i<code.length;i+=2){ const a=P[+code[i]],b=P[+code[i+1]]; for(let k=0;k<5;k++){ seq.push([a[k]==="w"?W:N,true]); seq.push([b[k]==="w"?W:N,false]); } }
+  seq.push([W,true],[N,false],[N,true]);
+  let x=10, rects=""; seq.forEach(([w,bar])=>{ if(bar) rects+='<rect x="'+x+'" y="0" width="'+w+'" height="50" fill="#000"/>'; x+=w; });
+  return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+(x+10)+' 50" width="'+((x+10)*1.4)+'" height="70" role="img" aria-label="Código de barras"><rect width="100%" height="100%" fill="#fff"/>'+rects+'</svg>';
+}
+async function copyText(text, btn){
+  let ok=false;
+  try{ await navigator.clipboard.writeText(text); ok=true; }catch(e){
+    try{ const ta=document.createElement("textarea"); ta.value=text; ta.style.position="fixed"; ta.style.opacity="0"; document.body.appendChild(ta); ta.select(); ok=document.execCommand("copy"); ta.remove(); }catch(_){}
+  }
+  if(btn){ const old=btn.textContent; if(ok){ btn.textContent="Copiado ✓"; btn.classList.add("done"); } else btn.textContent="Selecione e copie";
+    setTimeout(()=>{btn.textContent=old;btn.classList.remove("done");},1800); }
+  if(!ok) toast("Não foi possível copiar automaticamente. Selecione o texto e copie.");
+  return ok;
+}
+
+// ---------- IR / Simples ----------
+const IR = { faixas:[[2428.80,0,0],[2826.65,.075,182.16],[3751.05,.15,394.16],[4664.68,.225,675.49],[Infinity,.275,908.73]],
+  simplificado:607.20, dep:189.59, redMax:312.89, redA:978.62, redB:0.133145, redLim1:5000, redLim2:7350 };
+function irTabela(base){ for(const [lim,a,d] of IR.faixas){ if(base<=lim) return Math.max(0,base*a-d); } return 0; }
+function irMensal(R,p){
+  if(R<=0) return 0;
+  const legal = Math.min(R,p.livro||0) + (p.inss||0) + (p.dep||0)*IR.dep;
+  const ded = Math.max(IR.simplificado, legal);
+  const t = irTabela(Math.max(0,R-ded));
+  let red = R<=IR.redLim1 ? IR.redMax : R<=IR.redLim2 ? Math.max(0,IR.redA-IR.redB*R) : 0;
+  return Math.max(0, Math.round((t-Math.min(red,t))*100)/100);
+}
+function limiteSemImposto(p){ let lo=0,hi=100000; for(let i=0;i<60;i++){ const m=(lo+hi)/2; if(irMensal(m,p)<=0.009) lo=m; else hi=m; } return Math.floor(lo); }
+const SIMPLES = {
+  III:[[180000,.06,0],[360000,.112,9360],[720000,.135,17640],[1800000,.16,35640],[3600000,.21,125640],[4800000,.33,648000]],
+  V:[[180000,.155,0],[360000,.18,4500],[720000,.195,9900],[1800000,.205,17100],[3600000,.23,62100],[4800000,.305,540000]]
+};
+function simplesEfetiva(rbt,anexo){
+  const tab=SIMPLES[anexo]||SIMPLES.III;
+  for(let i=0;i<tab.length;i++){ const [lim,a,d]=tab[i]; if(rbt<=lim){ return {ef: rbt>0 ? (rbt*a-d)/rbt : a, nominal:a, faixa:i+1, prox: i<tab.length-1 ? lim : null}; } }
+  return {ef:null,faixa:7,nominal:null,prox:null};
+}
+
+// ---------- state ----------
+const state = {
+  bills: [], loaded:false, canWrite:true, db:null, col:null, uid:null, assets:null, downloads:null, isOwner:false,
+  view: "contas", mode:"week", weekStart: mondayOf(new Date()), from:null, to:null,
+  unit: store("cp_unit")||"", status:"", open:new Set(), confirmDel:null, editing:null, uploading:null,
+  fiscal:null, fiscalRef:null, fMes:new Date().getMonth(), pfDesp:[], pfCol:null, pending:{}, dPessoa:"todas", newPessoa:"", admins:[], team:[], gType:"both", editSrc:"contas", step:0, maxStep:0
+};
+if(!["","Caruaru","Recife"].includes(state.unit)) state.unit="";
+const ANO = new Date().getFullYear();
+
+function period(){
+  if(state.mode==="week") return [iso(state.weekStart), iso(addDays(state.weekStart,6))];
+  const f=state.from||iso(state.weekStart), t=state.to||iso(addDays(state.weekStart,6));
+  return f<=t?[f,t]:[t,f];
+}
+const isLate = b => b.status!=="pago" && b.vencimento < todayISO();
+const semComp = b => b.status==="pago" && !b.comprovante;
+const sum = arr => arr.reduce((s,b)=>s+(Number(b.valor)||0),0);
+const findBill = id => state.bills.find(x=>x.id===id) || state.pfDesp.find(x=>x.id===id);
+const colOf = b => (b && b._src==="pf") ? state.pfCol : state.col;
+const isAdmin = () => state.isOwner || (!!state.uid && (state.admins||[]).includes(state.uid));
+const canManage = () => state.canWrite && isAdmin();
+const canEditBill = b => state.canWrite && (isAdmin() || (b._src!=="pf" && !!state.uid && b.criadoPor===state.uid && b.status!=="pago"));
+function mapDoc(d,src){ const x=d.data()||{}; return {id:d.id,_src:src,_raw:x,descricao:String(x.descricao||"(sem descrição)"),fornecedor:x.fornecedor||"",valor:Number(x.valor)||0,
+  vencimento:/^\d{4}-\d{2}-\d{2}$/.test(x.vencimento||"")?x.vencimento:todayISO(),unidade:x.unidade||"",tipo:x.tipo||"outro",categoria:x.categoria||"",
+  codigo:String(x.codigo||""),observacao:x.observacao||"",status:x.status==="pago"?"pago":"pendente",pagoEm:x.pagoEm||null,
+  criadoPor:x.criadoPor||null,comprovante:(x.comprovante&&x.comprovante.url)?x.comprovante:null,livroCaixa:src==="pf"?(x.pessoa!=="PJ"):!!x.livroCaixa, pessoa:src==="pf"?(x.pessoa==="PJ"?"PJ":"PF"):(x.livroCaixa?"PF":"PJ")}; }
+function renderQR(root){
+  root.querySelectorAll("[data-qr]").forEach(el=>{
+    const b=findBill(el.dataset.qr);
+    if(b && window.QRCode){ try{ new QRCode(el,{text:b.codigo.replace(/\s/g,""),width:180,height:180,correctLevel:QRCode.CorrectLevel.M}); }catch(e){ el.outerHTML='<span class="note">QR indisponível para este código.</span>'; } }
+    else el.hidden=true;
+  });
+}
+// week view: unpaid bills from earlier weeks roll forward automatically into the week being viewed
+function carried(){ if(state.mode!=="week") return []; const [f]=period(); return state.bills.filter(b=>b.status!=="pago" && b.vencimento<f && (!state.unit||b.unidade===state.unit)); }
+function inPeriod(){ const [f,t]=period(); return state.bills.filter(b=>b.vencimento>=f && b.vencimento<=t && (!state.unit||b.unidade===state.unit)).concat(carried()); }
+function filtered(){
+  return inPeriod().filter(b=> !state.status || (state.status==="semcomp" ? semComp(b) : b.status===state.status))
+    .sort((a,b)=>a.vencimento.localeCompare(b.vencimento)||(a.status==="pago")-(b.status==="pago")||a.descricao.localeCompare(b.descricao));
+}
+
+function receiptHTML(b){
+  const c=b.comprovante, pend=state.pending[b.id], can=canManage()&&state.assets;
+  if(pend){
+    const isImg=/^image\//.test(pend.file.type||"");
+    return '<div class="receipt"><span class="lbl">Comprovante selecionado · ainda não salvo</span><div class="box pending">'+
+      (isImg?'<img src="'+pend.url+'" alt="Prévia do comprovante">':'<span style="font-size:28px" aria-hidden="true">📄</span>')+
+      '<div style="display:flex;flex-direction:column;gap:6px;min-width:0"><span style="overflow-wrap:anywhere;font-weight:600">'+esc(pend.file.name||"comprovante")+'</span>'+
+      '<span class="note">'+(Math.round(pend.file.size/1024))+' KB · confira e toque em Salvar'+(b.status!=="pago"?'. A conta será marcada como paga.':'.')+'</span>'+
+      (state.uploading===b.id?'<span class="note"><b>Salvando…</b></span>':'<div class="copyrow"><button class="btn small primary" type="button" data-act="savecomp" data-id="'+b.id+'">Salvar comprovante</button><button class="btn small" type="button" data-act="cancelcomp" data-id="'+b.id+'">Cancelar</button></div>')+
+      '</div></div></div>';
+  }
+  if(c){
+    const isImg=/^image\//.test(c.tipo||"");
+    return '<div class="receipt"><span class="lbl">Comprovante de pagamento</span><div class="box">'+
+      (isImg?'<button class="thumbbtn" type="button" data-act="viewcomp" data-id="'+b.id+'" aria-label="Abrir comprovante"><img src="'+esc(c.url)+'" alt="Comprovante"></button>':'')+
+      '<div style="display:flex;flex-direction:column;gap:6px;min-width:0"><span style="overflow-wrap:anywhere;font-weight:600">'+esc(c.nome||"comprovante")+'</span>'+
+      '<span class="note">Anexado em '+fmtFull((c.enviadoEm||"").slice(0,10))+'</span>'+
+      '<div class="copyrow"><button class="btn small primary" type="button" data-act="viewcomp" data-id="'+b.id+'">Abrir comprovante</button><button class="btn small" type="button" data-act="printcomp" data-id="'+b.id+'">Imprimir comprovante</button>'+
+      (can?'<span class="btn small filebtn">Trocar<input type="file" accept="image/*,application/pdf" data-upload="'+b.id+'" aria-label="Trocar comprovante"></span>'+
+        (state.confirmDel==="c:"+b.id?'<span class="confirm">Remover? <button class="btn small danger" type="button" data-act="rmcomp-yes" data-id="'+b.id+'">Sim</button><button class="btn small" type="button" data-act="del-no">Não</button></span>':'<button class="btn small danger" type="button" data-act="rmcomp" data-id="'+b.id+'">Remover</button>'):'')+
+      '</div></div></div></div>';
+  }
+  return '<div class="receipt"><span class="lbl">Comprovante de pagamento</span><div class="box missing">'+
+    (can?'<span class="btn small primary filebtn">Escolher comprovante (foto ou PDF)<input type="file" accept="image/*,application/pdf" data-upload="'+b.id+'" aria-label="Escolher comprovante"></span><span class="note">Depois de escolher, confira e toque em Salvar.</span>'
+        :'<span>Nenhum comprovante anexado.'+(canManage()?' Envio de arquivos indisponível neste acesso.':'')+'</span>')+
+    '</div></div>';
+}
+function billHTML(b){
+  const late=isLate(b), open=state.open.has(b.id);
+  const tCls = b.status==="pago"?"paid":late?"late":"";
+  const tTxt = b.status==="pago"?"✓ Pago":late?"Não pago · vencida":"Não pago";
+  const kind = {boleto:"Boleto",pix:"PIX",outro:"Outro"}[b.tipo]||"Outro";
+  let detail="";
+  if(open){
+    const a=analyzeCode(b.codigo);
+    let codeBlock;
+    if(!b.codigo) codeBlock='<div class="code empty">Nenhum código informado.</div>';
+    else if(a.kind==="boleto") codeBlock='<div class="code">'+esc(a.pretty)+'</div>'+(a.valid?'':'<div class="warnline">Atenção: a linha digitável não confere. Verifique com o boleto original.</div>');
+    else codeBlock='<div class="code">'+esc(b.codigo)+'</div>';
+    const copyVal = a.kind==="boleto" ? a.digits : a.kind==="pix" ? b.codigo.replace(/\s/g,"") : b.codigo.trim();
+    let visual="";
+    if(a.kind==="boleto" && a.barcode && a.barcode.length===44) visual='<div class="visual" title="Aponte o app do banco para ler">'+itfSVG(a.barcode)+'</div>';
+    if(a.kind==="pix") visual='<div class="visual qr" data-qr="'+esc(b.id)+'"></div>';
+    const delConfirm = state.confirmDel===b.id
+      ? '<span class="confirm">Excluir esta conta? <button class="btn small danger" type="button" data-act="del-yes" data-id="'+b.id+'">Sim, excluir</button><button class="btn small" type="button" data-act="del-no">Não</button></span>'
+      : '<button class="btn small danger" type="button" data-act="del" data-id="'+b.id+'">Excluir</button>';
+    detail='<div class="detail"><div class="codebox"><span class="lbl">'+(a.kind==="pix"?"PIX copia e cola":a.kind==="boleto"?"Linha digitável":"Código / dados de pagamento")+'</span>'+codeBlock+
+      (b.codigo?'<div class="copyrow"><button class="btn copy" type="button" data-act="copy" data-val="'+esc(copyVal)+'">Copiar código</button></div>':'')+
+      (b.observacao?'<div class="note">Obs.: '+esc(b.observacao)+'</div>':'')+
+      '<div class="note">Categoria: '+esc(b.categoria||"—")+' · Vencimento '+fmtFull(b.vencimento)+(b.status==="pago"&&b.pagoEm?' · Paga em '+fmtFull(b.pagoEm):'')+'</div></div>'+
+      (visual?'<div>'+visual+'</div>':'')+ receiptHTML(b)+
+      (canEditBill(b)?'<div class="actions"><button class="btn small" type="button" data-act="edit" data-id="'+b.id+'">Editar</button>'+delConfirm+'</div>':'')+'</div>';
+  }
+  return '<article class="bill"><div class="row">'+
+    '<button class="paytog '+tCls+'" type="button" data-act="togglepay" data-id="'+b.id+'" '+(canManage()?'':'disabled')+' title="'+(canManage()?'Tocar para alternar pago / não pago':'Somente o administrador marca como pago')+'">'+tTxt+'</button>'+
+    '<button class="expand" type="button" aria-expanded="'+open+'" data-act="toggle" data-id="'+b.id+'"><span class="mid"><span class="t">'+esc(b.descricao)+'</span><span class="meta">'+(b.fornecedor?esc(b.fornecedor)+' · ':'')+'<span class="chip unit">'+esc(b.unidade||"—")+'</span><span class="chip kind">'+kind+'</span>'+(b.livroCaixa?'<span class="chip lc">PF · livro-caixa</span>':(b._src==="pf"?'<span class="chip kind">PJ</span>':''))+
+    (late?'<span class="chip late">Venceu '+fmtShort(parseISO(b.vencimento))+' · há '+Math.round((parseISO(todayISO())-parseISO(b.vencimento))/864e5)+(Math.round((parseISO(todayISO())-parseISO(b.vencimento))/864e5)===1?' dia':' dias')+'</span>':'')+
+    (b.comprovante?'<span class="chip file">Comprovante ✓</span>':b.status==="pago"?'<span class="chip nofile">Sem comprovante</span>':'')+'</span></span>'+
+    '<span class="amt">'+money(b.valor)+'</span></button></div>'+detail+'</article>';
+}
+
+// ---------- render: fiscal ----------
+function fparams(){ const p=(state.fiscal&&state.fiscal.params)||{}; return {livro:+p.livro||0,inss:+p.inss||0,dep:+p.dep||0,outros:+p.outros||0,anexo:p.anexo||"III",rbt:p.rbt===""||p.rbt==null?null:+p.rbt}; }
+function farrN(k){ const a=(state.fiscal&&state.fiscal[k])||[]; return Array.from({length:12},(_,i)=>(a[i]===null||a[i]===undefined||a[i]==="")?null:+a[i]); }
+function farr(k){ const a=(state.fiscal&&state.fiscal[k])||[]; return Array.from({length:12},(_,i)=>+a[i]||0); }
+function livroAuto(){
+  const a=Array(12).fill(0);
+  state.bills.concat(state.pfDesp).forEach(b=>{ if(b.livroCaixa && b.status==="pago" && b.pagoEm && b.pagoEm.slice(0,4)===String(ANO)) a[+b.pagoEm.slice(5,7)-1]+=Number(b.valor)||0; });
+  return a.map(v=>Math.round(v*100)/100);
+}
+// month-by-month plan: livro-caixa available (own month + carry-over of unused expenses within the year)
+function planoAno(p,pf){
+  const auto=livroAuto(), man=farr("lc"), out=[]; let carry=0;
+  for(let i=0;i<12;i++){
+    const desp=auto[i]+man[i], disp=desp+carry;
+    const pm={livro:disp,inss:p.inss,dep:p.dep};
+    const lim=limiteSemImposto(pm), limAj=Math.max(0,lim-p.outros);
+    const ir=irMensal(pf[i],pm);
+    const sens=limiteSemImposto({livro:disp+100,inss:p.inss,dep:p.dep})-lim;
+    out.push({auto:auto[i],man:man[i],desp,carry,disp,lim,limAj,ir,sens});
+    carry=Math.max(0,disp-pf[i]);
+  }
+  return out;
+}
+function renderFiscal(){
+  const sel=$("#fMes");
+  if(!sel.options.length) sel.innerHTML=MESES.map((m,i)=>'<option value="'+i+'">'+m+' '+ANO+'</option>').join("");
+  sel.value=state.fMes;
+  if(!state.fiscalRef){ $("#cMes").innerHTML='<p>Carregando dados fiscais…</p>'; return; }
+  const p=fparams(), pf=farr("pf"), pj=farr("pj"), m=state.fMes, plano=planoAno(p,pf), M=plano[m];
+  const limAj=M.limAj, emit=pf[m], resta=limAj-emit;
+  const usado = limAj>0 ? emit/limAj : (emit>0?2:0);
+  const cls = resta<0 ? "bad" : usado>=0.8 ? "warn" : "ok";
+  $("#cMes").className="card hero "+cls;
+  $("#cMes").innerHTML='<h3>'+MESES[m]+' · Receita Saúde (PF)</h3>'+
+    (resta>=0
+      ? '<div class="big '+cls+'">'+money(resta)+'</div><p>ainda podem ser emitidos no Receita Saúde <b>sem imposto</b> neste mês.</p>'
+      : '<div class="big bad">Teto atingido</div><p><b>Emita as próximas notas pela PJ (NFS-e no Emissor Nacional).</b> O excedente de '+money(-resta)+' no Receita Saúde gera IR estimado de '+money(M.ir)+' no carnê-leão'+(p.outros>0?' (mais o efeito do pró-labore no ajuste anual)':'')+'.</p>')+
+    '<div class="bar" aria-hidden="true"><i class="'+(cls==="ok"?"":cls)+'" style="width:'+Math.min(100,usado*100).toFixed(1)+'%"></i></div>'+
+    '<p class="note">Emitido: '+money(emit)+' de '+money(limAj)+' de limite neste mês'+(p.outros>0?' (já descontado o pró-labore)':'')+'.</p>'+
+    '<p class="note"><b>Despesas no livro-caixa: '+money(M.disp)+'</b> = '+money(M.auto)+' de contas pagas marcadas como PF + '+money(M.man)+' lançadas à mão'+(M.carry>0?' + '+money(M.carry)+' de saldo de meses anteriores':'')+'. '+
+    'Cada R$ 100 a mais de despesa PF paga neste mês libera cerca de <b>'+money(M.sens)+'</b> a mais de emissão sem imposto.</p>';
+  const mesAtual = new Date().getFullYear()===ANO ? new Date().getMonth() : 11;
+  let saldoAnt=0; for(let i=0;i<m;i++) saldoAnt += plano[i].limAj - pf[i];
+  const totPF=pf.reduce((a,b)=>a+b,0), limAno=plano.reduce((a,x)=>a+x.limAj,0), saldoAno=limAno-totPF;
+  const podeMes = Math.max(0, resta + Math.max(0,saldoAnt));
+  $("#cAno").innerHTML='<h3>Saldo do ano '+ANO+' (retroativo)</h3>'+
+    '<div class="big '+(saldoAno<0?"bad":"ok")+'">'+money(saldoAno)+'</div>'+
+    '<p>de espaço no ano inteiro para o Receita Saúde sem imposto (limite estimado de '+money(limAno)+', com as despesas lançadas até agora).</p>'+
+    '<p class="note">Saldo não usado de janeiro até '+(m>0?MESES[m-1].toLowerCase():"o mês anterior")+': <b class="'+(saldoAnt<0?"neg":"pos")+'">'+money(saldoAnt)+'</b>. '+
+    (saldoAnt>0?'Usando esse saldo, dá para emitir até '+money(podeMes)+' em '+MESES[m].toLowerCase()+'. O que passar de '+money(Math.max(0,resta))+' gera carnê-leão no mês (DARF), que tende a ser devolvido no ajuste anual se o total do ano ficar dentro do limite.':'Não há saldo acumulado de meses anteriores.')+'</p>'+
+    '<p class="note">Meses futuros ainda sem despesas lançadas aparecem com o limite mínimo; o limite sobe conforme as despesas PF forem pagas.</p>';
+  const rbtCalc = p.rbt!=null ? p.rbt : pj.reduce((a,b)=>a+b,0);
+  const s=simplesEfetiva(rbtCalc,p.anexo);
+  $("#cPJ").innerHTML='<h3>PJ · Simples Nacional (Anexo '+esc(p.anexo)+')</h3>'+
+    (s.ef!=null?'<div class="big">'+pct(s.ef)+'</div><p>alíquota efetiva estimada sobre as NFS-e (faixa '+s.faixa+').</p>':'<div class="big bad">Acima do teto</div><p>A receita passou de R$ 4,8 milhões, limite do Simples Nacional.</p>')+
+    '<p class="note">Receita bruta 12 meses: '+money(rbtCalc)+(p.rbt==null?' (soma da tabela abaixo; informe o RBT12 real nos parâmetros)':'')+'.'+
+    (s.prox?' Próxima faixa do Simples a partir de '+money(s.prox)+' (faltam '+money(Math.max(0,s.prox-rbtCalc))+').':'')+'</p>'+
+    '<div class="bar" aria-hidden="true"><i style="width:'+Math.min(100,rbtCalc/4800000*100).toFixed(2)+'%"></i></div><p class="note">'+pct(Math.min(1,rbtCalc/4800000))+' do teto de R$ 4,8 milhões.</p>'+
+    (()=>{ const dp=despPJAuto(), fol=dp.folha.reduce((a,b)=>a+b,0), rec=pj.reduce((a,b)=>a+b,0); if(!rec) return ''; const fr=fol/rec;
+      return '<p class="note"><b>Fator R estimado no ano: '+pct(fr)+'</b> (folha e pró-labore '+money(fol)+' ÷ NFS-e '+money(rec)+'). '+(fr>=0.28?'Indica Anexo III (≥ 28%).':'Abaixo de 28%: indica Anexo V. Confirme com o contador.')+'</p>'; })();
+  const pm={livro:M.disp,inss:p.inss,dep:p.dep}, base=Math.max(emit,M.lim), marg=(irMensal(base+1000,pm)-irMensal(base,pm))/1000;
+  const pjEf = s.ef!=null ? s.ef : 0;
+  const pjAlM = farrN("pjAliq")[m], pjM = pjAlM!=null ? pjAlM/100 : pjEf;
+  $("#cCompare").innerHTML='<h3>Quando migrar para a nota fiscal da PJ</h3>'+
+    '<p>Em '+MESES[m].toLowerCase()+', com '+money(M.disp)+' de despesas no livro-caixa, o Receita Saúde fica <b>sem imposto até '+money(M.lim)+'</b>'+(p.outros>0?' (ou '+money(limAj)+' somando o pró-labore de '+money(p.outros)+')':'')+'. '+
+    'Acima disso, cada R$ 1.000 a mais no PF paga cerca de <b>'+money(marg*1000)+'</b> de IR ('+pct(marg)+'), enquanto na PJ o Simples custa cerca de <b>'+money(pjM*1000)+'</b> ('+pct(pjM)+(pjAlM!=null?', alíquota informada para o mês':'')+').</p>'+
+    '<p><b>Regra prática:</b> emita no Receita Saúde até o limite do mês, que sobe conforme as despesas PF são pagas; a partir daí, emita NFS-e pela PJ no Emissor Nacional.</p>';
+  // ---- tabela PF ----
+  const pfIRinf=farrN("pfIR"), pjAl=farrN("pjAliq");
+  const aliqMes = i => pjAl[i]!=null ? pjAl[i]/100 : pjEf;
+  const irPF = i => pfIRinf[i]!=null ? pfIRinf[i] : plano[i].ir;
+  let rows="", tPF=0,tIR=0,tD=0;
+  for(let i=0;i<12;i++){
+    const x=plano[i], r=x.limAj-pf[i]; tPF+=pf[i]; tIR+=irPF(i); tD+=x.desp;
+    rows+='<tr class="'+(i===m?"cur":"")+'"><td>'+MESES[i]+(i===mesAtual&&ANO===new Date().getFullYear()?' · atual':'')+'</td>'+
+      '<td>'+money(x.auto)+'</td>'+
+      '<td><input data-f="lc" data-i="'+i+'" value="'+(x.man?toInputMoney(x.man):"")+'" inputmode="decimal" placeholder="0,00" aria-label="Outras despesas livro-caixa '+MESES[i]+'"></td>'+
+      '<td><input data-f="pf" data-i="'+i+'" value="'+(pf[i]?toInputMoney(pf[i]):"")+'" inputmode="decimal" placeholder="0,00" aria-label="Receita Saúde '+MESES[i]+'"></td>'+
+      '<td>'+money(x.limAj)+'</td><td class="'+(r<0?"neg":"pos")+'">'+(r<0?"excedeu "+money(-r):money(r))+'</td><td>'+money(x.ir)+'</td>'+
+      '<td><input data-f="pfIR" data-null="1" data-i="'+i+'" value="'+(pfIRinf[i]!=null?toInputMoney(pfIRinf[i]):"")+'" inputmode="decimal" placeholder="auto" aria-label="IR pago no mês '+MESES[i]+'"></td></tr>';
+  }
+  $("#tPF").innerHTML='<thead><tr><th>Mês</th><th>Despesas PF pagas (lançadas)</th><th>Outros ajustes '+H('col_lc')+'</th><th>Receita Saúde emitido '+H('col_pf')+'</th><th>Limite s/ imposto</th><th>Saldo do mês</th><th>IR estimado</th><th>IR pago (DARF) '+H('col_pfIR')+'</th></tr></thead><tbody>'+rows+
+    '</tbody><tfoot><tr><td>Total '+ANO+'</td><td colspan="2">'+money(tD)+'</td><td>'+money(tPF)+'</td><td>'+money(limAno)+'</td><td class="'+(saldoAno<0?"neg":"pos")+'">'+money(saldoAno)+'</td><td colspan="2">'+money(tIR)+'</td></tr></tfoot>';
+  // ---- tabela PJ ----
+  const dPJ=despPJAuto();
+  rows=""; let tPJ=0,tSN=0,tDP=0,tRes=0;
+  for(let i=0;i<12;i++){
+    const a=aliqMes(i), imp=pj[i]*a, dp=dPJ.total[i], res=pj[i]-imp-dp; tPJ+=pj[i]; tSN+=imp; tDP+=dp; tRes+=res;
+    rows+='<tr class="'+(i===m?"cur":"")+'"><td>'+MESES[i]+'</td>'+
+      '<td><input data-f="pj" data-i="'+i+'" value="'+(pj[i]?toInputMoney(pj[i]):"")+'" inputmode="decimal" placeholder="0,00" aria-label="NFS-e PJ '+MESES[i]+'"></td>'+
+      '<td>'+pct(pjEf)+'</td>'+
+      '<td><input data-f="pjAliq" data-null="1" data-i="'+i+'" value="'+(pjAl[i]!=null?String(pjAl[i]).replace(".",","):"")+'" inputmode="decimal" placeholder="auto" style="width:80px" aria-label="Alíquota PJ % '+MESES[i]+'"> %</td>'+
+      '<td>'+pct(a)+(pjAl[i]!=null?' <span class="chip unit">informada</span>':'')+'</td><td>'+money(imp)+'</td><td>'+money(dp)+'</td><td class="'+(res<0?"neg":"")+'">'+(pj[i]||dp?money(res):'—')+'</td></tr>';
+  }
+  $("#tPJ").innerHTML='<thead><tr><th>Mês</th><th>NFS-e emitida '+H('col_pj')+'</th><th>Alíquota automática</th><th>Alíquota do mês (DAS) '+H('col_aliq')+'</th><th>Alíquota usada</th><th>Simples a pagar</th><th>Despesas PJ pagas '+H('col_dpj')+'</th><th>Resultado PJ '+H('col_res')+'</th></tr></thead><tbody>'+rows+
+    '</tbody><tfoot><tr><td>Total '+ANO+'</td><td>'+money(tPJ)+'</td><td colspan="3">'+(tPJ>0?'média '+pct(tSN/tPJ):'')+'</td><td>'+money(tSN)+'</td><td>'+money(tDP)+'</td><td class="'+(tRes<0?"neg":"")+'">'+money(tRes)+'</td></tr></tfoot>';
+  // ---- equilíbrio fiscal ----
+  rows=""; let gT=0,gPF=0,gPJ=0,gIdeal=0;
+  for(let i=0;i<12;i++){
+    const T=pf[i]+pj[i], a=aliqMes(i), iPF=irPF(i), iPJ=pj[i]*a, tot=iPF+iPJ;
+    const pfIdeal=Math.min(T,plano[i].limAj), pm={livro:plano[i].disp,inss:p.inss,dep:p.dep};
+    const ideal=irMensal(pfIdeal,pm)+(T-pfIdeal)*a, econ=Math.max(0,tot-ideal);
+    gT+=T; gPF+=iPF; gPJ+=iPJ; gIdeal+=Math.min(ideal,tot);
+    rows+='<tr class="'+(i===m?"cur":"")+'"><td>'+MESES[i]+'</td><td>'+money(T)+'</td><td>'+(T>0?pct(pf[i]/T)+' / '+pct(pj[i]/T):'—')+'</td>'+
+      '<td>'+money(iPF)+'</td><td>'+money(iPJ)+'</td><td><b>'+money(tot)+'</b></td><td>'+(T>0?pct(tot/T):'—')+'</td>'+
+      '<td>'+(T>0?money(pfIdeal)+' PF + '+money(T-pfIdeal)+' PJ':'—')+'</td><td class="'+(econ>0.5?"neg":"pos")+'">'+(T>0?(econ>0.5?money(econ):'equilibrado ✓'):'—')+'</td></tr>';
+  }
+  const gTot=gPF+gPJ, gEcon=Math.max(0,gTot-gIdeal);
+  const despPFano=plano.reduce((a,x)=>a+x.auto,0), despPJano=dPJ.total.reduce((a,b)=>a+b,0), liq=gT-gTot-despPFano-despPJano;
+  $("#tEq").innerHTML='<thead><tr><th>Mês</th><th>Faturamento total</th><th>PF / PJ</th><th>Imposto PF</th><th>Imposto PJ</th><th>Imposto total</th><th>Carga efetiva</th><th>Divisão ideal</th><th>Economia possível</th></tr></thead><tbody>'+rows+
+    '</tbody><tfoot><tr><td>Total '+ANO+'</td><td>'+money(gT)+'</td><td>'+(gT>0?pct(tPF/gT)+' / '+pct(tPJ/gT):'—')+'</td><td>'+money(gPF)+'</td><td>'+money(gPJ)+'</td><td>'+money(gTot)+'</td><td>'+(gT>0?pct(gTot/gT):'—')+'</td><td>'+money(gIdeal)+' de imposto</td><td class="'+(gEcon>0.5?"neg":"pos")+'">'+(gEcon>0.5?money(gEcon):'equilibrado ✓')+'</td></tr></tfoot>';
+  $("#cEq").className='card hero '+(gEcon>0.5?'warn':'ok');
+  $("#cEq").innerHTML='<h3>Equilíbrio fiscal '+ANO+'</h3><div class="big">'+(gT>0?pct(gTot/gT):'—')+'</div><p>de carga tributária total sobre '+money(gT)+' faturados (PF + PJ): '+money(gPF)+' de IR na pessoa física e '+money(gPJ)+' de Simples na PJ.</p>'+
+    '<p>Despesas pagas no ano: '+money(despPFano)+' na PF e '+money(despPJano)+' na PJ. <b>Resultado após impostos e despesas: '+money(liq)+'</b>.</p>'+
+    (gEcon>0.5?'<p class="warnline">Com a divisão ideal (Receita Saúde até o limite de cada mês e o restante pela PJ), o imposto do ano seria '+money(gIdeal)+', uma economia de '+money(gEcon)+'.</p>':(gT>0?'<p class="pos">A divisão entre PF e PJ está equilibrada: não há economia possível remanejando as emissões.</p>':''));
+  // params (only fill when not focused)
+  const setv=(id,v)=>{ const el=$(id); if(document.activeElement!==el) el.value=v; };
+  setv("#p_inss",p.inss?toInputMoney(p.inss):""); setv("#p_dep",p.dep||0);
+  setv("#p_outros",p.outros?toInputMoney(p.outros):""); setv("#p_anexo",p.anexo); setv("#p_rbt",p.rbt!=null?toInputMoney(p.rbt):"");
+}
+let fSaveChain=Promise.resolve();
+function saveFiscal(patch){
+  if(!state.fiscalRef) return;
+  const cur=JSON.parse(JSON.stringify(state.fiscal||{}));
+  const next=Object.assign(cur,patch,{atualizadoEm:new Date().toISOString()});
+  state.fiscal=next; renderFiscal();
+  $("#fSave").textContent="Salvando…";
+  fSaveChain=fSaveChain.then(()=>state.fiscalRef.set(next)).then(()=>{$("#fSave").textContent="Salvo ✓ · visível só para o titular";},()=>{$("#fSave").textContent="Não foi possível salvar. Tente de novo.";});
+}
+
+// ---------- actions ----------
+async function togglePay(id){
+  const b=findBill(id); if(!b||!colOf(b)||!canManage()) return;
+  const paid=b.status!=="pago";
+  try{ await colOf(b).doc(id).update({status:paid?"pago":"pendente",pagoEm:paid?todayISO():null,pagoPor:paid?(state.uid||null):null});
+    toast(paid?(b.comprovante?"Marcada como paga":"Marcada como paga. Anexe o comprovante quando puder."):"Marcada como não paga"); }
+  catch(e){ toast(writeErr(e)); }
+}
+function pickReceipt(id,file){
+  if(!file) return;
+  if(!/^image\//.test(file.type||"") && file.type!=="application/pdf" && !/\.pdf$/i.test(file.name||"")){ toast("Formato não aceito. Escolha uma foto (JPG/PNG) ou um PDF."); return; }
+  if(file.size>20*1024*1024){ toast("Arquivo maior que 20 MB. Escolha uma foto ou PDF menor."); return; }
+  cancelPending(id);
+  state.pending[id]={file,url:URL.createObjectURL(file)}; state.open.add(id); render();
+}
+function cancelPending(id){ const p=state.pending[id]; if(p){ try{URL.revokeObjectURL(p.url);}catch(_){} delete state.pending[id]; } }
+async function uploadReceipt(id){
+  const pend=state.pending[id]; const file=pend&&pend.file;
+  if(!file||!state.assets) return;
+  const b=findBill(id); if(!b||!colOf(b)) return; const old=b.comprovante;
+  state.uploading=id; state.open.add(id); render();
+  try{
+    const r=await state.assets.upload(file);
+    const patch={comprovante:{id:r.id,url:r.url,nome:file.name||"comprovante",tipo:r.contentType||file.type||"",tamanho:r.sizeBytes,enviadoEm:new Date().toISOString(),enviadoPor:state.uid||null}};
+    if(b&&b.status!=="pago"){ patch.status="pago"; patch.pagoEm=todayISO(); patch.pagoPor=state.uid||null; }
+    await colOf(b).doc(id).update(patch);
+    if(old&&old.id){ try{ await state.assets.delete(old.id); }catch(_){} }
+    cancelPending(id);
+    toast(patch.status?"Comprovante salvo e conta marcada como paga":"Comprovante salvo");
+  }catch(e){
+    const c=e&&e.code;
+    toast(c==="too_large"?"Arquivo grande demais (máx. 20 MB).":c==="unsupported_type"?"Formato não aceito. Envie foto (JPG/PNG) ou PDF.":c==="quota_or_state"?"Espaço de arquivos esgotado. Remova comprovantes antigos.":c==="not_uploader"||c==="not_granted"?"Seu acesso não permite enviar arquivos. Peça para ser convidada como Editor.":"Não foi possível enviar o arquivo. Tente de novo.");
+  }finally{ state.uploading=null; render(); }
+}
+async function removeReceipt(id){
+  const b=findBill(id); if(!b||!b.comprovante) return;
+  try{ await colOf(b).doc(id).update({comprovante:null}); if(b.comprovante.id&&state.assets){ try{ await state.assets.delete(b.comprovante.id);}catch(_){} } state.confirmDel=null; toast("Comprovante removido"); }
+  catch(e){ toast(writeErr(e)); }
+}
+
+// ---------- export / summary ----------
+function buildSummary(){
+  const [f,t]=period(), rows=filtered().filter(b=>b.status!=="pago");
+  let s="*Contas a pagar "+fmtFull(f)+" a "+fmtFull(t)+"*"+(state.unit?" · "+state.unit:"")+"\n"; let cur="";
+  rows.forEach(b=>{ if(b.vencimento!==cur){ cur=b.vencimento; const d=parseISO(cur); s+="\n_"+DOW[d.getDay()]+", "+fmtShort(d)+"_\n"; }
+    s+="• "+b.descricao+(b.fornecedor?" ("+b.fornecedor+")":"")+" — "+money(b.valor)+" · "+(b.unidade||"")+(isLate(b)?" · VENCIDA":"")+"\n"; });
+  s+="\nTotal não pago: "+money(sum(rows));
+  return rows.length?s:"Nenhuma conta não paga entre "+fmtFull(f)+" e "+fmtFull(t)+".";
+}
+async function exportExcel(opts){
+  if(!window.XLSX){ toast("O gerador de Excel não carregou. Recarregue a página."); return; }
+  if(!state.downloads){ toast("Download indisponível nesta visualização. Abra a página no claude.ai."); return; }
+  const f=opts.from, t=opts.to, U=opts.unit||"";
+  const all=state.bills.filter(b=>b.vencimento>=f&&b.vencimento<=t&&(!U||b.unidade===U)).sort((a,b)=>a.vencimento.localeCompare(b.vencimento));
+  const head=["Vencimento","Descrição","Fornecedor","Unidade","Categoria","Forma","Valor (R$)","Situação","Pago em","Comprovante","Código de pagamento","Observação","Livro-caixa PF"];
+  const toRow=b=>[parseISO(b.vencimento),b.descricao,b.fornecedor,b.unidade,b.categoria,{boleto:"Boleto",pix:"PIX",outro:"Outro"}[b.tipo]||"Outro",Number(b.valor)||0,
+    b.status==="pago"?"Paga":isLate(b)?"Não paga (vencida)":"Não paga",b.pagoEm?parseISO(b.pagoEm):"",b.comprovante?"Sim":(b.status==="pago"?"Não":"—"),b.codigo,b.observacao,b.livroCaixa?"Sim":"Não"];
+  const sheet=(rows)=>{
+    const aoa=[head].concat(rows.map(toRow)); aoa.push([]); aoa.push(["Total","","","","","",sum(rows)]);
+    const ws=XLSX.utils.aoa_to_sheet(aoa,{cellDates:true});
+    const range=XLSX.utils.decode_range(ws["!ref"]);
+    for(let r=1;r<=range.e.r;r++){ ["A","I"].forEach(c=>{ const cell=ws[c+(r+1)]; if(cell&&cell.t==="d") cell.z="dd/mm/yyyy"; }); const v=ws["G"+(r+1)]; if(v&&v.t==="n") v.z='"R$" #,##0.00'; }
+    ws["!cols"]=[{wch:11},{wch:34},{wch:24},{wch:10},{wch:24},{wch:8},{wch:13},{wch:18},{wch:11},{wch:12},{wch:50},{wch:30},{wch:13}];
+    return ws;
+  };
+  const pagas=all.filter(b=>b.status==="pago"), abertas=all.filter(b=>b.status!=="pago"), semc=all.filter(semComp);
+  const resumo=[["Relatório de contas a pagar · OdontoWeiss"],["Período",fmtFull(f)+" a "+fmtFull(t)],["Unidade",U||"Todas"],["Gerado em",new Date().toLocaleString("pt-BR")],[],
+    ["","Quantidade","Valor (R$)"],["Todas",all.length,sum(all)],["Pagas",pagas.length,sum(pagas)],["Não pagas",abertas.length,sum(abertas)],["  das quais vencidas",abertas.filter(isLate).length,sum(abertas.filter(isLate))],["Pagas sem comprovante",semc.length,sum(semc)]];
+  const wsR=XLSX.utils.aoa_to_sheet(resumo); ["C7","C8","C9","C10","C11"].forEach(k=>{ if(wsR[k]) wsR[k].z='"R$" #,##0.00'; }); wsR["!cols"]=[{wch:26},{wch:24},{wch:16}];
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,wsR,"Resumo");
+  XLSX.utils.book_append_sheet(wb,sheet(all),"Todas");
+  XLSX.utils.book_append_sheet(wb,sheet(pagas),"Pagas");
+  XLSX.utils.book_append_sheet(wb,sheet(abertas),"Não pagas");
+  XLSX.utils.book_append_sheet(wb,sheet(semc),"Pagas sem comprovante");
+  const buf=XLSX.write(wb,{bookType:"xlsx",type:"array"});
+  const name="contas-a-pagar_"+f+"_a_"+t+(U?"_"+U.toLowerCase():"")+".xlsx";
+  try{ await state.downloads.save({filename:name,data:buf}); toast("Planilha salva"); }
+  catch(e){ if(e&&e.code==="declined") return; toast(e&&e.code==="rate_limited"?"Já há um download aguardando confirmação.":"Não foi possível gerar o download."); }
+}
+
+// ---------- help texts ----------
+const HELP = {
+  f_codigo:["Código de pagamento","Cole a linha digitável do boleto (47 ou 48 números) ou o código PIX copia e cola (começa com 000201). O sistema confere os números e preenche valor, vencimento e recebedor. Sem código (transferência, débito automático)? Deixe em branco e escolha a forma “Outro” no passo 3."],
+  f_desc:["Descrição","Nome curto que identifique a conta na lista. Ex.: “Aluguel sala 1614 – novembro”, “Laboratório Dental X – OS 1234”. Mínimo de 3 letras."],
+  f_forn:["Fornecedor","Quem recebe o pagamento: empresa ou pessoa. Opcional, mas ajuda a encontrar a conta e aparece no Excel."],
+  f_valor:["Valor","Valor a pagar em reais, com vírgula nos centavos. Ex.: 1.250,00. Para boleto, o valor do código é preenchido sozinho."],
+  f_venc:["Vencimento","Data de vencimento impressa no boleto ou combinada com o fornecedor. É ela que define em qual semana a conta aparece. Se não for paga, ela passa para a semana seguinte."],
+  f_unid:["Unidade","Clínica responsável pela despesa: Caruaru ou Recife. Permite filtrar e gerar relatórios por unidade."],
+  f_tipo:["Forma de pagamento","Boleto e PIX exigem o código no passo 1, para o Dr. copiar e pagar. Use “Outro” para transferência, débito automático ou cartão."],
+  f_cat:["Categoria","Tipo de despesa. Separa os gastos nos relatórios e na planilha Excel."],
+  f_pessoa:["Pago por","Pessoa física (CPF): despesa paga pelo CPF do Dr., que entra no livro-caixa do carnê-leão e aumenta o limite do Receita Saúde no mês do pagamento. Pessoa jurídica (CNPJ): despesa da clínica/empresa, paga pela PJ; entra no resultado da PJ e, se for folha ou pró-labore, no Fator R."],
+  f_lc:["Livro-caixa (PF)","Marque somente se a conta é paga pelo CPF do Dr. e entra no carnê-leão (ex.: aluguel do consultório em nome dele). Contas pagas pelo CNPJ da clínica ficam desmarcadas. Contas marcadas aumentam o limite do Receita Saúde no mês em que forem pagas."],
+  f_status:["Situação","“Já paga” se a conta foi quitada; “Não paga” se ainda vai ser paga. Contas não pagas passam sozinhas para a semana seguinte até serem pagas."],
+  f_pagoEm:["Data do pagamento","Dia em que o pagamento foi feito. Obrigatório para contas pagas e não pode ser uma data futura."],
+  f_obs:["Observação","Informação extra: número da parcela, nota fiscal, combinado com o fornecedor. Opcional."],
+  gPer:["Período","Intervalo de vencimentos usado nos gráficos. Escolha “Escolher datas…” para um período livre."],
+  gUnit:["Unidade","Mostre uma unidade ou as duas juntas."],
+  gSit:["Situação","Todas as contas, só as pagas ou só as não pagas."],
+  gBy:["Agrupar por","Como as contas são somadas: por categoria de despesa, unidade, situação, mês, fornecedor ou forma de pagamento."],
+  gType:["Tipo de gráfico","Pizza mostra a participação de cada parte no total. Torre (barras) compara valores lado a lado. “Ambos” mostra os dois."],
+  rFrom:["Data inicial","Primeiro dia do relatório. Entram as contas com vencimento a partir desta data."],
+  rTo:["Data final","Último dia do relatório. Entram as contas com vencimento até esta data."],
+  rUnit:["Unidade","Gere o relatório de uma unidade ou das duas juntas."],
+  dMes:["Mês","Mostra as despesas da pessoa física com vencimento ou pagamento neste mês. Só as pagas entram no livro-caixa e aumentam o limite do Receita Saúde."],
+  fMes:["Mês de referência","Mês usado nos cartões do topo. A tabela abaixo mostra o ano inteiro."],
+  secPF:["Pessoa física","Despesas do livro-caixa, recibos emitidos no Receita Saúde, limite sem imposto e IR de cada mês. Os campos em branco aceitam digitação."],
+  secPJ:["Pessoa jurídica","Notas fiscais (NFS-e) emitidas pela PJ e o Simples Nacional de cada mês. A alíquota pode ser automática ou a do seu DAS."],
+  secEq:["Equilíbrio fiscal","Soma PF + PJ: quanto foi faturado, quanto foi pago de imposto e qual seria a divisão ideal (Receita Saúde até o limite e o resto pela PJ)."],
+  col_lc:["Outros ajustes","Valor extra de despesas do livro-caixa que não foi lançado em Despesas PF. Normalmente fica em branco."],
+  col_pf:["Receita Saúde emitido","Total de recibos emitidos no app Receita Saúde neste mês, em reais."],
+  col_pfIR:["IR pago (DARF)","Vazio: o sistema usa o IR estimado. Digite o valor real do DARF do carnê-leão se já pagou."],
+  col_pj:["NFS-e emitida","Total das notas fiscais emitidas pela PJ no Emissor Nacional neste mês."],
+  col_dpj:["Despesas PJ pagas","Despesas lançadas como PJ em “Despesas PF e PJ” mais as contas da clínica (Contas a pagar) que não foram marcadas como pessoa física, pelo mês do pagamento."],
+  col_res:["Resultado PJ","NFS-e emitidas menos o Simples a pagar menos as despesas PJ pagas no mês. Uma visão simples do caixa da empresa, não substitui o balanço do contador."],
+  col_aliq:["Alíquota do mês","Vazio: usa a alíquota automática pela faixa do Simples. Digite a alíquota efetiva do DAS do mês (ex.: 6,54) para usar o valor real."],
+  p_inss:["INSS","Contribuição ao INSS paga como autônomo (carnê ou GPS) por mês. Entra como dedução no carnê-leão."],
+  p_dep:["Dependentes","Número de dependentes declarados. Cada um deduz R$ 189,59 por mês."],
+  p_outros:["Pró-labore","Pró-labore da PJ e outros rendimentos tributáveis mensais. Eles somam com o Receita Saúde no ajuste anual, por isso reduzem o espaço sem imposto."],
+  p_anexo:["Anexo do Simples","Anexo III quando a folha (inclusive pró-labore) é pelo menos 28% do faturamento (Fator R). Abaixo disso, Anexo V. Seu contador informa qual vale."],
+  p_rbt:["RBT12","Receita bruta da PJ nos 12 meses anteriores. Define a faixa do Simples. Está no PGDAS ou com o contador. Vazio: o sistema soma a tabela."]
+};
+const H = k => '<button type="button" class="help" data-help="'+k+'" aria-label="Ajuda">?</button>';
+let bubbleFor=null;
+function showHelp(btn){
+  const b=$("#bubble"), h=HELP[btn.dataset.help]; if(!h) return;
+  if(bubbleFor===btn){ hideHelp(); return; }
+  hideHelp();
+  b.innerHTML='<b>'+esc(h[0])+'</b>'+esc(h[1]); b.hidden=false; bubbleFor=btn; btn.setAttribute("aria-expanded","true");
+  const r=btn.getBoundingClientRect(), bw=b.offsetWidth, bh=b.offsetHeight, vw=document.documentElement.clientWidth;
+  let left=r.right+window.scrollX-bw; if(left<window.scrollX+16) left=window.scrollX+16; if(left+bw>window.scrollX+vw-16) left=window.scrollX+vw-16-bw;
+  let top=r.bottom+window.scrollY+8; if(r.bottom+bh+16>window.innerHeight && r.top>bh+16) top=r.top+window.scrollY-bh-8;
+  b.style.left=left+"px"; b.style.top=top+"px";
+}
+function hideHelp(){ $("#bubble").hidden=true; if(bubbleFor) bubbleFor.setAttribute("aria-expanded","false"); bubbleFor=null; }
+
+// ---------- views ----------
+const VIEWS = {
+  contas:{t:"Contas a pagar",s:"Semana a semana"}, relatorios:{t:"Relatórios e Excel",s:"Qualquer período"},
+  despesas:{t:"Despesas PF e PJ",s:"Pessoa física e jurídica · privado"}, fiscal:{t:"Receita Saúde × PJ",s:"Planejamento fiscal · privado"},
+  graficos:{t:"Gráficos",s:"Painel de gestão"}, equipe:{t:"Equipe e acessos",s:"Administração"},
+  ajuda:{t:"Como usar",s:"Passo a passo"}
+};
+function allowedView(v){ if(v==="despesas"||v==="fiscal"||v==="equipe") return state.isOwner; if(v==="relatorios"||v==="graficos") return isAdmin(); return !!VIEWS[v]; }
+function go(v){ if(!allowedView(v)) v="contas"; state.view=v; store("cp_view",v); closeSide(); render(); window.scrollTo(0,0); }
+function openSide(){ $("#side").classList.add("open"); $("#sideScrim").hidden=false; }
+function closeSide(){ $("#side").classList.remove("open"); $("#sideScrim").hidden=true; }
+function renderFilters(){
+  const [f,t]=period();
+  $("#weekLabel").textContent = fmtShort(parseISO(f))+" a "+fmtShort(parseISO(t))+"/"+parseISO(t).getFullYear();
+  $("#weeknav").hidden = state.mode!=="week";
+  $("#rangeBox").hidden = state.mode!=="range";
+  document.querySelectorAll("#modeSeg button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.mode===state.mode));
+  document.querySelectorAll("#unitSeg button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.unit===state.unit));
+  document.querySelectorAll("#statusSeg button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.status===state.status));
+}
+function renderChrome(){
+  const v=state.view;
+  Object.keys(VIEWS).forEach(k=>{ $("#v-"+k).hidden = k!==v; });
+  document.querySelectorAll(".nav button[data-view]").forEach(b=>{ if(b.dataset.view===v) b.setAttribute("aria-current","page"); else b.removeAttribute("aria-current"); });
+  if(!allowedView(state.view)){ state.view="contas"; }
+  document.querySelectorAll(".ownerOnly").forEach(el=>el.hidden=!state.isOwner);
+  document.querySelectorAll(".adminOnly").forEach(el=>el.hidden=!isAdmin());
+  const rp=$("#rolePill"); rp.hidden=!state.uid; rp.textContent = state.isOwner?"Titular · administrador":isAdmin()?"Administrador":"Funcionário";
+  $("#ttl").textContent=VIEWS[v].t; $("#ttlSmall").textContent="OdontoWeiss · "+VIEWS[v].s;
+  $("#sideNew").hidden=!state.canWrite;
+  const ta=$("#tActions");
+  ta.innerHTML = v==="contas" ? (isAdmin()?'<button class="btn" type="button" data-act="summary">Copiar resumo</button>':'')+(state.canWrite?'<button class="btn primary" type="button" data-act="new">+ Nova conta</button>':'')
+    : v==="despesas" ? '<button class="btn primary" type="button" data-act="newpf" data-p="PF">+ Despesa PF</button><button class="btn primary" type="button" data-act="newpf" data-p="PJ">+ Despesa PJ</button>' : '';
+  const late=state.bills.filter(isLate).length, nc=state.pfDesp.filter(semComp).length;
+  const bc=$("#bContas"); bc.hidden=!late; bc.textContent=late; bc.title=late+" vencidas";
+  const bd=$("#bDesp"); bd.hidden=!nc; bd.textContent=nc; bd.title=nc+" sem comprovante";
+}
+function render(){
+  renderChrome();
+  if(state.view==="fiscal"){ renderFiscal(); return; }
+  if(state.view==="despesas"){ renderDespesas(); return; }
+  if(state.view==="relatorios"){ renderRelatorio(); return; }
+  if(state.view==="graficos"){ renderGraficos(); return; }
+  if(state.view==="equipe"){ renderEquipe(); return; }
+  if(state.view!=="contas") return;
+  $("#guide").hidden = store("cp_guide")==="off";
+  document.querySelector("#guide .st:nth-child(3) p").innerHTML = isAdmin() ? "<b>Pague e anexe</b>Copie o código, pague no banco, toque em “Não pago” para virar “Pago” e anexe o comprovante." : "<b>Acompanhe</b>Veja na lista quais contas já foram pagas. O administrador marca o pagamento e anexa o comprovante.";
+  document.querySelector("#v-contas .totals").hidden = !isAdmin();
+  renderFilters();
+  const list=$("#list"), all=inPeriod(), rows=filtered();
+  $("#tTotal").textContent=money(sum(all));
+  $("#tOpen").textContent=money(sum(all.filter(b=>b.status!=="pago")));
+  const car=carried(); $("#tCarry").textContent = car.length ? "inclui "+money(sum(car))+" de semanas anteriores" : "";
+  $("#tLate").textContent=money(sum(all.filter(isLate)));
+  $("#tPaid").textContent=money(sum(all.filter(b=>b.status==="pago")));
+  const nc=all.filter(semComp).length;
+  $("#tComp").textContent = nc ? nc+" sem comprovante" : (all.some(b=>b.status==="pago")?"todas com comprovante":"");
+  const [f]=period();
+  const lateBefore=state.bills.filter(b=>isLate(b) && b.vencimento<f && (!state.unit||b.unidade===state.unit));
+  const al=$("#lateAlert");
+  if(lateBefore.length && state.mode!=="week"){ al.hidden=false; al.innerHTML='<span>'+lateBefore.length+(lateBefore.length>1?" contas não pagas e vencidas":" conta não paga e vencida")+' antes deste período, somando '+money(sum(lateBefore))+'.</span><button class="btn small" type="button" data-act="seeLate">Ver vencidas</button>'; }
+  else al.hidden=true;
+  const ca=$("#compAlert"), allNoComp=state.bills.filter(b=>semComp(b)&&(!state.unit||b.unidade===state.unit));
+  if(allNoComp.length && state.status!=="semcomp"){ ca.hidden=false; ca.innerHTML='<span>'+allNoComp.length+(allNoComp.length>1?" contas pagas estão":" conta paga está")+' sem comprovante anexado.</span><button class="btn small" type="button" data-act="seeNoComp">Ver lista</button>'; }
+  else ca.hidden=true;
+  if(!isAdmin()){ $("#lateAlert").hidden=true; $("#compAlert").hidden=true; }
+  if(!state.loaded) return;
+  if(!rows.length){
+    const msg = state.status==="semcomp" ? "Nenhuma conta paga sem comprovante neste período." : "Nenhuma conta neste período";
+    list.innerHTML='<div class="empty-state"><b>'+msg+'</b><span>'+(state.canWrite?'Toque em “Nova conta” e siga os passos. O vencimento define em qual semana a conta aparece.':'Quando as contas forem lançadas, elas aparecem aqui agrupadas por dia de vencimento.')+'</span>'+(state.canWrite&&state.status!=="semcomp"?'<button class="btn primary" type="button" data-act="new">+ Nova conta</button>':'')+'</div>';
+    return;
+  }
+  const [pf0]=period(), today=todayISO();
+  const prev=rows.filter(b=>b.vencimento<pf0), groups={};
+  rows.filter(b=>b.vencimento>=pf0).forEach(b=>(groups[b.vencimento]=groups[b.vencimento]||[]).push(b));
+  const prevHTML = prev.length ? '<section class="day carry"><h2><span>Transferidas de semanas anteriores · não pagas</span><span class="sum">'+money(sum(prev))+' não pago</span></h2>'+prev.map(billHTML).join("")+'</section>' : '';
+  list.innerHTML=prevHTML+Object.keys(groups).sort().map(day=>{
+    const d=parseISO(day), items=groups[day];
+    return '<section class="day"><h2 class="'+(day===today?"today":"")+'"><span>'+DOW[d.getDay()]+', '+fmtShort(d)+"/"+d.getFullYear()+(day===today?" · hoje":"")+'</span><span class="sum">'+money(sum(items.filter(b=>b.status!=="pago")))+' não pago</span></h2>'+items.map(billHTML).join("")+'</section>';
+  }).join("");
+  renderQR(list);
+}
+function monthOptions(sel){ if(!sel.options.length) sel.innerHTML=MESES.map((m,i)=>'<option value="'+i+'">'+m+' '+ANO+'</option>').join(""); sel.value=state.fMes; }
+// PJ expenses: items launched as PJ + clinic bills (contas) not marked as PF
+function despPJAuto(){
+  const a=Array(12).fill(0), folha=Array(12).fill(0);
+  state.pfDesp.filter(b=>b.pessoa==="PJ").concat(state.bills.filter(b=>!b.livroCaixa)).forEach(b=>{ if(b.status==="pago" && b.pagoEm && b.pagoEm.slice(0,4)===String(ANO)){ const i=+b.pagoEm.slice(5,7)-1, v=Number(b.valor)||0; a[i]+=v; if(b.categoria==="Folha e pró-labore") folha[i]+=v; } });
+  return {total:a.map(v=>Math.round(v*100)/100), folha:folha.map(v=>Math.round(v*100)/100)};
+}
+function renderDespesas(){
+  monthOptions($("#dMes"));
+  document.querySelectorAll("#dSeg button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.dp===state.dPessoa));
+  const m=state.fMes, mStart=ANO+"-"+pad(m+1)+"-01";
+  const inMes = d => d && d.slice(0,4)===String(ANO) && +d.slice(5,7)-1===m;
+  const inScope = b => inMes(b.vencimento)||inMes(b.pagoEm)||(b.status!=="pago"&&b.vencimento<mStart&&b._src==="pf");
+  const pfItens = state.bills.filter(b=>b.livroCaixa).concat(state.pfDesp.filter(b=>b.pessoa==="PF")).filter(inScope);
+  const pjItens = state.pfDesp.filter(b=>b.pessoa==="PJ").filter(inScope);
+  const clinPJ = state.bills.filter(b=>!b.livroCaixa && b.status==="pago" && inMes(b.pagoEm));
+  const ord=(a,b)=>a.vencimento.localeCompare(b.vencimento)||a.descricao.localeCompare(b.descricao);
+  const paid=list=>list.filter(b=>b.status==="pago"&&inMes(b.pagoEm));
+  const tile=(lbl,val,sub,cls)=>'<div class="tot '+(cls||"")+'"><span>'+lbl+'</span><b>'+money(val)+'</b><small>'+sub+'</small></div>';
+  const show=state.dPessoa;
+  let t="";
+  if(show!=="PJ") t+=tile("PF pagas no mês",sum(paid(pfItens)),"entram no livro-caixa do carnê-leão","paid")+tile("PF não pagas",sum(pfItens.filter(b=>b.status!=="pago")),pfItens.filter(semComp).length+" pagas sem comprovante");
+  if(show!=="PF") t+=tile("PJ pagas no mês",sum(paid(pjItens))+sum(clinPJ),"inclui "+money(sum(clinPJ))+" de contas da clínica","main")+tile("PJ não pagas",sum(pjItens.filter(b=>b.status!=="pago")),pjItens.filter(semComp).length+" pagas sem comprovante");
+  $("#dTotals").innerHTML=t;
+  const sec=(title,items,p,empty)=>'<section class="day"><h2><span>'+title+'</span><span class="sum">'+money(sum(items.filter(b=>b.status!=="pago")))+' não pago</span></h2>'+
+    (items.length?items.sort(ord).map(billHTML).join(""):'<div class="empty-state"><b>Nenhuma despesa '+p+' em '+MESES[m].toLowerCase()+'</b><span>'+empty+'</span><button class="btn primary" type="button" data-act="newpf" data-p="'+p+'">+ Despesa '+p+'</button></div>')+'</section>';
+  const pl=$("#pfDespList");
+  pl.innerHTML=(show!=="PJ"?sec("Pessoa física (CPF) · livro-caixa",pfItens,"PF","Despesas pagas pelo CPF, como aluguel do consultório, material ou laboratório. Só as pagas aumentam o limite do Receita Saúde."):"")+
+    (show!=="PF"?sec("Pessoa jurídica (CNPJ)",pjItens,"PJ","Despesas da empresa pagas pelo CNPJ, como contador, sistemas, folha e pró-labore. As contas da clínica lançadas em Contas a pagar já entram no total da PJ."):"");
+  renderQR(pl);
+}
+function renderRelatorio(){
+  if(!$("#rFrom").value){ const n=new Date(); $("#rFrom").value=iso(new Date(n.getFullYear(),n.getMonth(),1)); $("#rTo").value=iso(new Date(n.getFullYear(),n.getMonth()+1,0)); }
+  const f=$("#rFrom").value, t=$("#rTo").value, u=$("#rUnit").value;
+  $("#e_rFrom").textContent = f?"":"Escolha a data inicial.";
+  $("#e_rTo").textContent = !t?"Escolha a data final.":(f&&t<f?"A data final deve ser depois da inicial.":"");
+  if(!f||!t||t<f){ $("#rPreview").textContent=""; return; }
+  const rows=state.bills.filter(b=>b.vencimento>=f&&b.vencimento<=t&&(!u||b.unidade===u));
+  const pagas=rows.filter(b=>b.status==="pago"), abertas=rows.filter(b=>b.status!=="pago"), semc=rows.filter(semComp);
+  $("#rPreview").innerHTML='<b>'+rows.length+' contas</b> de '+fmtFull(f)+' a '+fmtFull(t)+(u?' · '+u:'')+': '+money(sum(rows))+' no total · '+money(sum(pagas))+' pagas · '+money(sum(abertas))+' não pagas · '+semc.length+' pagas sem comprovante.';
+}
+
+// ---------- gráficos ----------
+const CATS=["Aluguel e condomínio","Laboratório","Material odontológico","Alinhadores / Invisalign","Equipamentos e manutenção","Folha e pró-labore","Impostos e taxas","Água, luz, internet e telefone","Marketing","Contabilidade e serviços","Outros"];
+const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const SERIES = () => [1,2,3,4,5,6,7,8].map(i=>css("--s"+i));
+let chPie=null, chBar=null;
+function gRange(){
+  const n=new Date(), y=n.getFullYear(), mo=n.getMonth(), per=$("#gPer").value;
+  $("#gCustom").hidden = per!=="custom";
+  if(per==="semana"){ const w=mondayOf(n); return [iso(w),iso(addDays(w,6)),"Esta semana"]; }
+  if(per==="mesant") return [iso(new Date(y,mo-1,1)),iso(new Date(y,mo,0)),MESES[(mo+11)%12]+" "+(mo?y:y-1)];
+  if(per==="ano") return [y+"-01-01",y+"-12-31","Ano "+y];
+  if(per==="custom"){ if(!$("#gFrom").value){ $("#gFrom").value=iso(new Date(y,mo,1)); $("#gTo").value=iso(new Date(y,mo+1,0)); } const f=$("#gFrom").value,t=$("#gTo").value; return f<=t?[f,t,fmtFull(f)+" a "+fmtFull(t)]:[t,f,fmtFull(t)+" a "+fmtFull(f)]; }
+  return [iso(new Date(y,mo,1)),iso(new Date(y,mo+1,0)),MESES[mo]+" "+y];
+}
+function gData(){
+  const [f,t,label]=gRange(), u=$("#gUnit").value, sit=$("#gSit").value, by=$("#gBy").value;
+  const rows=state.bills.filter(b=>b.vencimento>=f&&b.vencimento<=t&&(!u||b.unidade===u)&&(!sit||b.status===sit));
+  const keyOf={categoria:b=>b.categoria||"Outros",unidade:b=>b.unidade||"Sem unidade",situacao:b=>b.status==="pago"?"Paga":isLate(b)?"Vencida":"Não paga",
+    mes:b=>b.vencimento.slice(0,7),fornecedor:b=>b.fornecedor||"Sem fornecedor",tipo:b=>({boleto:"Boleto",pix:"PIX",outro:"Outro"}[b.tipo]||"Outro")}[by];
+  const agg={}; rows.forEach(b=>{ const k=keyOf(b); agg[k]=agg[k]||{v:0,n:0}; agg[k].v+=Number(b.valor)||0; agg[k].n++; });
+  let groups=Object.keys(agg).map(k=>({k,label:k,v:Math.round(agg[k].v*100)/100,n:agg[k].n}));
+  const S=SERIES(), other=css("--s-other");
+  if(by==="mes"){ groups.sort((a,b)=>a.k.localeCompare(b.k)); groups.forEach(g=>{ const [yy,mm]=g.k.split("-"); g.label=MESES[+mm-1].slice(0,3)+"/"+yy.slice(2); g.c=S[0]; }); }
+  else if(by==="situacao"){ const ord={"Paga":0,"Não paga":1,"Vencida":2}, col={"Paga":css("--ok"),"Não paga":css("--warn"),"Vencida":css("--bad")}; groups.sort((a,b)=>ord[a.k]-ord[b.k]); groups.forEach(g=>g.c=col[g.k]); }
+  else {
+    groups.sort((a,b)=>b.v-a.v);
+    if(groups.length>8){ const keep=groups.slice(0,7), rest=groups.slice(7); keep.push({k:"__o",label:"Outros ("+rest.length+")",v:rest.reduce((a,g)=>a+g.v,0),n:rest.reduce((a,g)=>a+g.n,0),c:other}); groups=keep; }
+    const fixed = by==="categoria" ? CATS : by==="unidade" ? ["Caruaru","Recife"] : by==="tipo" ? ["Boleto","PIX","Outro"] : null;
+    groups.forEach((g,i)=>{ if(g.c) return; if(fixed){ const ix=fixed.indexOf(g.k); g.c = ix>=0&&ix<8 ? S[ix] : other; } else g.c=S[i%8]; });
+  }
+  const total=groups.reduce((a,g)=>a+g.v,0);
+  return {f,t,label,u,sit,by,rows,groups,total};
+}
+const BY_LABEL={categoria:"categoria",unidade:"unidade",situacao:"situação",mes:"mês",fornecedor:"fornecedor",tipo:"forma de pagamento"};
+function renderGraficos(){
+  document.querySelectorAll("#gType button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.gt===state.gType));
+  const d=gData(), ty=state.gType;
+  const showPie = ty!=="bar", showBar = ty!=="pie";
+  $("#cardPie").hidden=!showPie; $("#cardBar").hidden=!showBar; $("#chWrap").classList.toggle("one",!(showPie&&showBar));
+  $("#gInfo").textContent = d.rows.length ? d.rows.length+" contas · "+money(d.total)+" · "+d.label+(d.u?" · "+d.u:"")+(d.sit?(d.sit==="pago"?" · pagas":" · não pagas"):"") : "Nenhuma conta neste filtro. Mude o período ou a situação.";
+  $("#pieTitle").textContent="Participação por "+BY_LABEL[d.by]; $("#barTitle").textContent="Valor por "+BY_LABEL[d.by];
+  const fg=css("--fg"), muted=css("--muted"), line=css("--line"), surf=css("--surface");
+  if(!window.Chart){ $("#gInfo").textContent="Não foi possível carregar os gráficos. Recarregue a página."; return; }
+  Chart.defaults.font.family=css("--font-body")||"system-ui"; Chart.defaults.color=muted;
+  const tip={backgroundColor:css("--nav"),titleColor:css("--nav-fg"),bodyColor:css("--nav-fg"),padding:10,callbacks:{label:c=>{ const v=c.parsed.y??c.parsed; return " "+money(v)+" · "+(d.total?(v/d.total*100).toFixed(1).replace(".",","):"0")+"%"; }}};
+  if(chPie){ chPie.destroy(); chPie=null; } if(chBar){ chBar.destroy(); chBar=null; }
+  const labels=d.groups.map(g=>g.label), vals=d.groups.map(g=>g.v), cols=d.groups.map(g=>g.c);
+  if(showPie && d.groups.length){
+    chPie=new Chart($("#chPie"),{type:"pie",data:{labels,datasets:[{data:vals,backgroundColor:cols,borderColor:surf,borderWidth:2,hoverOffset:6}]},
+      options:{responsive:true,maintainAspectRatio:false,animation:{duration:window.matchMedia("(prefers-reduced-motion:reduce)").matches?0:400},
+        plugins:{legend:{position:"bottom",labels:{color:fg,boxWidth:12,boxHeight:12,padding:12,generateLabels:ch=>ch.data.labels.map((l,i)=>({text:l+" · "+(d.total?(vals[i]/d.total*100).toFixed(0):0)+"%",fillStyle:cols[i],strokeStyle:cols[i],fontColor:fg,index:i,hidden:!ch.getDataVisibility(i)}))}},tooltip:tip}}});
+  }
+  $("#pieNote").hidden=true;
+  if(showBar && d.groups.length){
+    chBar=new Chart($("#chBar"),{type:"bar",data:{labels,datasets:[{data:vals,backgroundColor:cols,borderRadius:{topLeft:4,topRight:4},borderSkipped:"bottom",maxBarThickness:56,categoryPercentage:.8,barPercentage:.9}]},
+      options:{responsive:true,maintainAspectRatio:false,animation:{duration:window.matchMedia("(prefers-reduced-motion:reduce)").matches?0:400},
+        plugins:{legend:{display:false},tooltip:tip},
+        scales:{x:{grid:{display:false},ticks:{color:fg,maxRotation:40,autoSkip:false}},y:{beginAtZero:true,grid:{color:line},border:{display:false},ticks:{color:muted,callback:v=>"R$ "+Number(v).toLocaleString("pt-BR",{maximumFractionDigits:0})}}}}});
+  }
+  $("#chTable").innerHTML='<thead><tr><th>'+BY_LABEL[d.by][0].toUpperCase()+BY_LABEL[d.by].slice(1)+'</th><th>Contas</th><th>Valor</th><th>% do total</th></tr></thead><tbody>'+
+    (d.groups.length?d.groups.map(g=>'<tr><td><span style="display:inline-block;width:10px;height:10px;border-radius:3px;background:'+g.c+';margin-right:8px"></span>'+esc(g.label)+'</td><td>'+g.n+'</td><td>'+money(g.v)+'</td><td>'+(d.total?(g.v/d.total*100).toFixed(1).replace(".",","):"0")+'%</td></tr>').join(""):'<tr><td colspan="4">Sem dados</td></tr>')+
+    '</tbody><tfoot><tr><td>Total</td><td>'+d.rows.length+'</td><td>'+money(d.total)+'</td><td>100%</td></tr></tfoot>';
+}
+
+// ---------- PDF / impressão ----------
+function newPDF(title,sub){
+  const { jsPDF } = window.jspdf; const doc=new jsPDF({orientation:"landscape",unit:"mm",format:"a4"});
+  doc.setFillColor(11,31,58); doc.rect(0,0,297,22,"F");
+  doc.setTextColor(255,255,255); doc.setFont("helvetica","bold"); doc.setFontSize(15); doc.text(title,12,13);
+  doc.setFont("helvetica","normal"); doc.setFontSize(9); doc.text("Weiss Odontologia · Caruaru e Recife · gerado em "+new Date().toLocaleString("pt-BR"),12,18.5);
+  doc.setTextColor(15,29,51); doc.setFontSize(11); doc.text(sub,12,31);
+  return doc;
+}
+async function savePDF(doc,name,print){
+  if(!state.downloads){ toast("Download indisponível nesta visualização. Abra o sistema pelo navegador."); return; }
+  if(print) doc.autoPrint();
+  try{ await state.downloads.save({filename:name,data:doc.output("arraybuffer")}); toast(print?"PDF para impressão salvo. Abra o arquivo: a janela da impressora aparece sozinha.":"PDF salvo"); }
+  catch(e){ if(e&&e.code==="declined") return; toast(e&&e.code==="rate_limited"?"Já há um download aguardando confirmação.":"Não foi possível gerar o PDF."); }
+}
+async function reportPDF(opts,print){
+  if(!window.jspdf){ toast("O gerador de PDF não carregou. Recarregue a página."); return; }
+  const f=opts.from,t=opts.to,U=opts.unit||"";
+  const rows=state.bills.filter(b=>b.vencimento>=f&&b.vencimento<=t&&(!U||b.unidade===U)).sort((a,b)=>a.vencimento.localeCompare(b.vencimento));
+  const pagas=rows.filter(b=>b.status==="pago"), abertas=rows.filter(b=>b.status!=="pago"), semc=rows.filter(semComp);
+  const doc=newPDF("Relatório de contas a pagar","Período: "+fmtFull(f)+" a "+fmtFull(t)+" · Unidade: "+(U||"Todas"));
+  doc.autoTable({startY:36,theme:"grid",styles:{fontSize:9},headStyles:{fillColor:[29,79,145]},
+    head:[["","Contas","Valor"]],body:[["Todas",rows.length,money(sum(rows))],["Pagas",pagas.length,money(sum(pagas))],["Não pagas",abertas.length,money(sum(abertas))],["  das quais vencidas",abertas.filter(isLate).length,money(sum(abertas.filter(isLate)))],["Pagas sem comprovante",semc.length,money(sum(semc))]],
+    tableWidth:120,columnStyles:{1:{halign:"right"},2:{halign:"right"}}});
+  doc.autoTable({startY:doc.lastAutoTable.finalY+8,theme:"striped",styles:{fontSize:8.5,cellPadding:1.8},headStyles:{fillColor:[11,31,58]},
+    head:[["Vencimento","Descrição","Fornecedor","Unidade","Categoria","Forma","Valor","Situação","Pago em","Comprov."]],
+    body:rows.map(b=>[fmtFull(b.vencimento),b.descricao,b.fornecedor||"",b.unidade||"",b.categoria||"",{boleto:"Boleto",pix:"PIX",outro:"Outro"}[b.tipo]||"Outro",money(b.valor),b.status==="pago"?"Paga":isLate(b)?"Vencida":"Não paga",b.pagoEm?fmtFull(b.pagoEm):"",b.comprovante?"Sim":(b.status==="pago"?"Não":"—")]),
+    foot:[["","Total","","","","",money(sum(rows)),"","",""]],footStyles:{fillColor:[233,238,246],textColor:[15,29,51]},
+    columnStyles:{6:{halign:"right"}},
+    didDrawPage:()=>{ doc.setFontSize(8); doc.setTextColor(120); doc.text("Página "+doc.internal.getNumberOfPages(),285,205,{align:"right"}); }});
+  await savePDF(doc,"relatorio-contas_"+f+"_a_"+t+(U?"_"+U.toLowerCase():"")+(print?"_imprimir":"")+".pdf",print);
+}
+async function chartsPDF(print){
+  if(!window.jspdf){ toast("O gerador de PDF não carregou. Recarregue a página."); return; }
+  const d=gData();
+  const doc=newPDF("Gráficos de contas a pagar",d.label+(d.u?" · "+d.u:" · Todas as unidades")+(d.sit?(d.sit==="pago"?" · pagas":" · não pagas"):"")+" · por "+BY_LABEL[d.by]+" · total "+money(d.total));
+  const imgs=[]; [[chPie,"Participação"],[chBar,"Valor"]].forEach(([c,t])=>{ if(c){ const cv=c.canvas, tmp=document.createElement("canvas"); tmp.width=cv.width; tmp.height=cv.height; const x=tmp.getContext("2d"); x.fillStyle="#ffffff"; x.fillRect(0,0,tmp.width,tmp.height); x.drawImage(cv,0,0); imgs.push({u:tmp.toDataURL("image/png"),r:cv.height/cv.width}); } });
+  const w = imgs.length===2 ? 132 : 200; let x=12;
+  imgs.forEach(im=>{ const h=Math.min(110,w*im.r); doc.addImage(im.u,"PNG",x,36,w,h); x+=w+9; });
+  doc.autoTable({startY:150,theme:"grid",styles:{fontSize:9},headStyles:{fillColor:[29,79,145]},
+    head:[[BY_LABEL[d.by],"Contas","Valor","% do total"]],body:d.groups.map(g=>[g.label,g.n,money(g.v),(d.total?(g.v/d.total*100).toFixed(1).replace(".",","):"0")+"%"]),
+    foot:[["Total",d.rows.length,money(d.total),"100%"]],footStyles:{fillColor:[233,238,246],textColor:[15,29,51]},columnStyles:{1:{halign:"right"},2:{halign:"right"},3:{halign:"right"}}});
+  await savePDF(doc,"graficos-contas_"+d.f+"_a_"+d.t+(print?"_imprimir":"")+".pdf",print);
+}
+
+// ---------- comprovante: abrir / imprimir ----------
+let viewerBill=null, viewerBlob=null;
+function loadScript(src){ return new Promise((ok,ko)=>{ if(document.querySelector('script[src="'+src+'"]')) return ok(); const sc=document.createElement("script"); sc.src=src; sc.onload=ok; sc.onerror=ko; document.head.appendChild(sc); }); }
+async function getPdfjs(){
+  if(!window.pdfjsWorker) await loadScript("https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js");
+  if(!window.pdfjsLib) await loadScript("https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js");
+  return window.pdfjsLib;
+}
+async function fetchReceipt(c){ const r=await fetch(c.url); if(!r.ok) throw new Error("http "+r.status); return await r.blob(); }
+const isPdfRec = c => /pdf/i.test(c.tipo||"") || /\.pdf$/i.test(c.nome||"");
+async function renderPdfPages(blob,scale){
+  const lib=await getPdfjs(); const pdf=await lib.getDocument({data:new Uint8Array(await blob.arrayBuffer())}).promise; const out=[];
+  for(let i=1;i<=Math.min(pdf.numPages,20);i++){ const pg=await pdf.getPage(i); const vp=pg.getViewport({scale}); const cv=document.createElement("canvas"); cv.width=vp.width; cv.height=vp.height; await pg.render({canvasContext:cv.getContext("2d"),viewport:vp}).promise; out.push(cv); }
+  return out;
+}
+async function openViewer(id){
+  const b=findBill(id); if(!b||!b.comprovante) return; const c=b.comprovante;
+  viewerBill=b; viewerBlob=null; $("#vTitle").textContent=(c.nome||"Comprovante")+" · "+b.descricao;
+  const body=$("#vBody"); body.innerHTML='<p class="vmsg">Abrindo comprovante…</p>'; $("#viewer").hidden=false; $("#vClose").focus();
+  try{
+    viewerBlob=await fetchReceipt(c);
+    if(isPdfRec(c)){ const pages=await renderPdfPages(viewerBlob,1.6); body.innerHTML=""; pages.forEach(cv=>body.appendChild(cv)); }
+    else { const im=new Image(); im.alt="Comprovante"; im.src=URL.createObjectURL(viewerBlob); body.innerHTML=""; body.appendChild(im); }
+  }catch(e){
+    if(!isPdfRec(c)){ body.innerHTML='<img src="'+esc(c.url)+'" alt="Comprovante">'; return; }
+    body.innerHTML='<p class="vmsg">Não foi possível mostrar o PDF aqui. Toque em “Baixar arquivo” para abrir no seu computador ou celular.</p>';
+  }
+}
+function closeViewer(){ $("#viewer").hidden=true; $("#vBody").innerHTML=""; viewerBill=null; viewerBlob=null; }
+async function printReceipt(id){
+  const b=findBill(id); if(!b||!b.comprovante) return; const c=b.comprovante;
+  if(!window.jspdf){ toast("O gerador de PDF não carregou. Recarregue a página."); return; }
+  if(!state.downloads){ toast("Download indisponível nesta visualização. Abra o sistema pelo navegador."); return; }
+  toast("Preparando o comprovante para impressão…");
+  try{
+    const blob = (viewerBill&&viewerBill.id===id&&viewerBlob) || await fetchReceipt(c).catch(()=>null);
+    if(!blob && isPdfRec(c)) throw new Error("fetch");
+    let imgs=[];
+    if(isPdfRec(c)){ imgs=(await renderPdfPages(blob,2)).map(cv=>({u:cv.toDataURL("image/jpeg",.92),w:cv.width,h:cv.height})); }
+    else { const url=blob?URL.createObjectURL(blob):c.url; const im=await new Promise((ok,ko)=>{ const i=new Image(); i.onload=()=>ok(i); i.onerror=ko; i.src=url; });
+      const cv=document.createElement("canvas"); cv.width=im.naturalWidth; cv.height=im.naturalHeight; const x=cv.getContext("2d"); x.fillStyle="#fff"; x.fillRect(0,0,cv.width,cv.height); x.drawImage(im,0,0);
+      imgs=[{u:cv.toDataURL("image/jpeg",.92),w:cv.width,h:cv.height}]; }
+    const { jsPDF } = window.jspdf; const doc=new jsPDF({unit:"mm",format:"a4"});
+    imgs.forEach((im,i)=>{ if(i) doc.addPage(); const top=i?10:24, maxW=190, maxH=287-top-10; let w=maxW, h=w*im.h/im.w; if(h>maxH){ h=maxH; w=h*im.w/im.h; }
+      if(!i){ doc.setFontSize(10); doc.setTextColor(15,29,51); doc.text("Comprovante · "+b.descricao+" · "+money(b.valor)+" · venc. "+fmtFull(b.vencimento)+(b.pagoEm?" · pago em "+fmtFull(b.pagoEm):""),10,14); }
+      doc.addImage(im.u,"JPEG",(210-w)/2,top,w,h); });
+    doc.autoPrint();
+    await state.downloads.save({filename:"comprovante_"+(b.descricao||"conta").replace(/[^a-z0-9]+/gi,"-").toLowerCase().slice(0,40)+"_imprimir.pdf",data:doc.output("arraybuffer")});
+    toast("PDF de impressão salvo. Abra o arquivo: a janela da impressora aparece sozinha.");
+  }catch(e){ if(e&&e.code==="declined") return; toast("Não foi possível preparar a impressão. Use “Baixar arquivo” e imprima pelo seu computador."); }
+}
+async function downloadReceipt(){
+  const b=viewerBill; if(!b||!b.comprovante) return;
+  if(!state.downloads){ toast("Download indisponível nesta visualização."); return; }
+  try{ const blob=viewerBlob||await fetchReceipt(b.comprovante); let nm=b.comprovante.nome||"comprovante"; if(!/\.(pdf|png|jpe?g|webp|gif)$/i.test(nm)) nm+= isPdfRec(b.comprovante)?".pdf":".jpg"; nm=nm.replace(/\.jpeg$/i,".jpg").replace(/\.heic$/i,".jpg");
+    await state.downloads.save({filename:nm,data:blob}); toast("Arquivo salvo"); }
+  catch(e){ if(e&&e.code==="declined") return; toast(e&&e.code==="rejected_extension"?"Este formato não pode ser baixado aqui.":"Não foi possível baixar o arquivo."); }
+}
+
+// ---------- equipe ----------
+async function renderEquipe(){
+  const el=$("#teamList");
+  const ids=state.team.map(m=>m.id).filter(id=>id!==state.uid);
+  if(!ids.length){ el.innerHTML='<div class="empty-state"><b>Ninguém da equipe acessou ainda</b><span>Convide pelo botão Compartilhar do Claude (como Editor). Quando a pessoa abrir o sistema, ela aparece aqui e você escolhe se é administrador ou funcionário.</span></div>'; return; }
+  let profs={}; try{ if(state.user && state.user.profiles) profs=await state.user.profiles(ids)||{}; }catch(e){}
+  el.innerHTML=ids.map(id=>{ const m=state.team.find(x=>x.id===id)||{}, adm=state.admins.includes(id), nm=(profs[id]&&profs[id].name)||"Pessoa da equipe";
+    return '<div class="mem"><b>'+esc(nm)+'</b><span class="note">Último acesso: '+(m.visto?fmtFull(m.visto):"—")+'</span>'+
+      '<div class="seg"><button type="button" data-role="staff" data-uid="'+esc(id)+'" aria-pressed="'+(!adm)+'">Funcionário</button><button type="button" data-role="admin" data-uid="'+esc(id)+'" aria-pressed="'+adm+'">Administrador</button></div></div>'; }).join("");
+}
+async function setRole(uid,role){
+  if(!state.isOwner||!state.db) return;
+  const next=state.admins.filter(x=>x!==uid); if(role==="admin") next.push(uid);
+  try{ await state.db.doc("config/acesso").set({admins:next,atualizadoEm:new Date().toISOString()}); toast(role==="admin"?"Agora é administrador":"Agora é funcionário"); }
+  catch(e){ toast("Não foi possível alterar o acesso."); }
+}
+
+// ---------- avanço automático entre campos ----------
+function stepFields(){ const fs=document.querySelector('#form fieldset[data-step="'+state.step+'"]'); if(!fs) return [];
+  const out=[]; fs.querySelectorAll("textarea,input,select").forEach(el=>{ if(el.closest("[hidden]")) return; if(el.type==="radio"){ if(!out.some(o=>o.name&&o.name===el.name)) out.push(el); } else out.push(el); }); return out; }
+function advanceFrom(el){
+  if($("#panel").hidden) return;
+  const list=stepFields(), key=el.type==="radio"?el.name:el.id;
+  const ix=list.findIndex(o=>(o.type==="radio"?o.name:o.id)===key);
+  for(let k=ix+1;k<list.length;k++){ const n=list[k];
+    const filled = n.type==="radio" ? !!document.querySelector('input[name="'+n.name+'"]:checked') : n.type==="checkbox" ? false : !!n.value;
+    if(!filled || n.type==="checkbox"){ setTimeout(()=>{ (n.type==="radio"?document.querySelector('input[name="'+n.name+'"]'):n).focus(); },60); return; } }
+  if(validateStep(state.step,true)) setTimeout(()=>wNext(),250); else validateStep(state.step);
+}
+let codeTimer=null;
+document.addEventListener("change",ev=>{ const el=ev.target; if($("#panel").hidden || !el.closest("#form")) return;
+  if(el.id==="f_codigo") return;
+  if(el.type==="date" && (!/^\d{4}-\d{2}-\d{2}$/.test(el.value) || +el.value.slice(0,4)<2000)) return;
+  if(el.tagName==="SELECT" || el.type==="radio" || el.type==="date") advanceFrom(el); });
+
+// ---------- wizard ----------
+const STEPS=["Código","Dados","Classificação","Pagamento","Revisar"];
+const radio = n => { const el=document.querySelector('input[name="'+n+'"]:checked'); return el?el.value:""; };
+const setRadio = (n,v) => document.querySelectorAll('input[name="'+n+'"]').forEach(el=>el.checked=el.value===v);
+function setErr(id,msg){ const e=$("#e_"+id); if(e) e.textContent=msg||""; const w=$("#w_"+id); if(w) w.classList.toggle("invalid",!!msg); }
+function clearErrs(){ document.querySelectorAll("#form .err").forEach(e=>e.textContent=""); document.querySelectorAll("#form .invalid").forEach(e=>e.classList.remove("invalid")); }
+function openForm(bill,src){
+  hideHelp();
+  state.editing = bill ? bill.id : null;
+  state.editSrc = bill ? (bill._src||"contas") : (src||"contas");
+  const isPF = state.editSrc==="pf";
+  const pes = bill ? bill.pessoa : (isPF ? (state.newPessoa||"") : "PJ");
+  $("#panelTitle").textContent = isPF ? (bill?"Editar despesa "+(bill.pessoa||""):(pes?"Nova despesa "+(pes==="PF"?"da pessoa física":"da pessoa jurídica"):"Nova despesa")) : (bill ? "Editar conta" : "Nova conta");
+  $("#lcBox").hidden = false;
+  $("#f_codigo").value = bill?.codigo||"";
+  $("#f_desc").value = bill?.descricao||"";
+  $("#f_forn").value = bill?.fornecedor||"";
+  $("#f_valor").value = bill ? toInputMoney(bill.valor) : "";
+  $("#f_venc").value = bill?.vencimento||"";
+  setRadio("f_unid", bill?.unidade || state.unit || store("cp_lastunit") || "");
+  $("#f_tipo").value = bill?.tipo||"";
+  $("#f_cat").value = bill?.categoria||"";
+  setRadio("f_status", bill?.status||"");
+  $("#f_pagoEm").value = bill?.pagoEm||"";
+  $("#f_obs").value = bill?.observacao||"";
+  setRadio("f_pessoa", pes);
+  if(isPF && !bill && state.fMes!==new Date().getMonth()) $("#f_venc").value=ANO+"-"+pad(state.fMes+1)+"-01";
+  if(!isAdmin()){ setRadio("f_status","pendente"); $("#f_pagoEm").value=""; }
+  $("#w_f_status").hidden=!isAdmin(); $("#compNote").hidden=!isAdmin(); if(!state.isOwner) $("#lcBox").hidden=true;
+  $("#formErr").hidden=true; clearErrs(); updateCodeHint(false); syncPago();
+  state.step = bill ? 4 : 0; state.maxStep = bill ? 4 : 0;
+  $("#scrim").hidden=false; $("#panel").hidden=false;
+  showStep();
+}
+function closeForm(){ hideHelp(); $("#scrim").hidden=true; $("#panel").hidden=true; state.editing=null; }
+function syncPago(){ const pago=radio("f_status")==="pago"; $("#w_f_pagoEm").hidden=!pago; if(pago && !$("#f_pagoEm").value) $("#f_pagoEm").value=todayISO(); }
+function showStep(){
+  const s=state.step;
+  document.querySelectorAll("#form fieldset").forEach(fs=>fs.hidden=+fs.dataset.step!==s);
+  $("#stepper").innerHTML=STEPS.map((t,i)=>'<li><button type="button" data-step="'+i+'" class="'+(i===s?"cur":i<s||i<=state.maxStep&&i!==s&&validateStep(i,true)?"done":"")+'" '+(i>state.maxStep?"disabled":"")+'><span class="n">'+(i<s?"✓":i+1)+'</span>'+t+'</button></li>').join("");
+  $("#wBack").hidden = s===0;
+  $("#wNext").textContent = s===4 ? (state.editSrc==="pf"?"Salvar despesa":"Salvar conta") : s===3 ? "Revisar" : (s===0 && !$("#f_codigo").value.trim() ? "Pular (sem código)" : "Próximo");
+  $("#wProg").textContent = "Passo "+(s+1)+" de 5";
+  if(s===4) buildReview();
+  setTimeout(()=>{ const fs=document.querySelector('#form fieldset[data-step="'+s+'"]'); const el=fs&&fs.querySelector("textarea,input:not([type=radio]):not([type=checkbox]),select"); if(el && window.matchMedia("(min-width:700px)").matches) el.focus(); $("#form").scrollTop=0; },40);
+}
+function validateStep(i,quiet){
+  const errs={};
+  if(i===0){
+    const a=analyzeCode($("#f_codigo").value);
+    if(a.kind==="boleto" && a.partial) errs.f_codigo="Código incompleto ("+a.digits.length+" dígitos). Boletos têm 47 ou 48 números. Corrija ou apague.";
+    if(a.kind==="pix" && !a.valid) errs.f_codigo="O código PIX parece cortado. Copie o código inteiro de novo.";
+  }
+  if(i===1){
+    if($("#f_desc").value.trim().length<3) errs.f_desc="Escreva uma descrição (mínimo de 3 letras).";
+    if(!(parseMoney($("#f_valor").value)>0)) errs.f_valor="Informe um valor maior que zero. Ex.: 1.250,00";
+    if(!/^\d{4}-\d{2}-\d{2}$/.test($("#f_venc").value)) errs.f_venc="Escolha a data de vencimento.";
+  }
+  if(i===2){
+    if(state.editSrc!=="pf" && !radio("f_unid")) errs.f_unid="Escolha a unidade.";
+    if(state.editSrc==="pf" && !radio("f_pessoa")) errs.f_pessoa="Escolha se a despesa é da pessoa física ou jurídica.";
+    const t=$("#f_tipo").value;
+    if(!t) errs.f_tipo="Escolha a forma de pagamento.";
+    else if((t==="boleto"||t==="pix") && !$("#f_codigo").value.trim()) errs.f_tipo="Para "+(t==="pix"?"PIX":"boleto")+", volte ao passo 1 e cole o código. Sem código? Escolha “Outro”.";
+    if(!$("#f_cat").value) errs.f_cat="Escolha a categoria.";
+  }
+  if(i===3){
+    const st=radio("f_status");
+    if(!st) errs.f_status="Informe se a conta já foi paga.";
+    if(st==="pago"){ const d=$("#f_pagoEm").value; if(!/^\d{4}-\d{2}-\d{2}$/.test(d)) errs.f_pagoEm="Informe a data do pagamento."; else if(d>todayISO()) errs.f_pagoEm="A data do pagamento não pode ser no futuro."; }
+  }
+  if(i===4){ for(let k=0;k<4;k++) if(!validateStep(k,true)) return false; return true; }
+  if(!quiet){
+    ({0:["f_codigo"],1:["f_desc","f_valor","f_venc"],2:["f_unid","f_tipo","f_cat","f_pessoa"],3:["f_status","f_pagoEm"]}[i]||[]).forEach(id=>setErr(id,errs[id]));
+    const first=Object.keys(errs)[0]; if(first){ const el=$("#"+first)||document.querySelector('input[name="'+first+'"]'); if(el) el.focus(); }
+  }
+  return !Object.keys(errs).length;
+}
+function wNext(){
+  const s=state.step;
+  if(s===4){ saveForm(); return; }
+  if(!validateStep(s)) return;
+  state.step=s+1; state.maxStep=Math.max(state.maxStep,state.step); showStep();
+}
+function wBack(){ if(state.step>0){ state.step--; showStep(); } }
+function gotoStep(i){ if(i>state.maxStep) return; if(i>state.step){ for(let k=state.step;k<i;k++){ if(!validateStep(k)){ state.step=k; showStep(); validateStep(k); return; } } } state.step=i; showStep(); }
+function buildReview(){
+  const a=analyzeCode($("#f_codigo").value), t={boleto:"Boleto",pix:"PIX",outro:"Outro"}[$("#f_tipo").value]||"—";
+  const sec=(title,step,rows)=>'<div class="sec"><header><span>'+title+'</span><button class="btn ghost small" type="button" data-step="'+step+'">Alterar</button></header><dl>'+rows.map(r=>'<dt>'+r[0]+'</dt><dd>'+esc(r[1]||"—")+'</dd>').join("")+'</dl></div>';
+  const st=radio("f_status");
+  $("#review").innerHTML=
+    sec("Código de pagamento",0,[["Código",a.kind==="none"?"Sem código":a.kind==="boleto"?a.pretty:$("#f_codigo").value.trim().slice(0,60)+($("#f_codigo").value.trim().length>60?"…":"")]])+
+    sec("Dados da conta",1,[["Descrição",$("#f_desc").value.trim()],["Fornecedor",$("#f_forn").value.trim()],["Valor",money(parseMoney($("#f_valor").value))],["Vencimento",fmtFull($("#f_venc").value)]])+
+    sec("Classificação",2,[["Unidade",radio("f_unid")],["Forma",t],["Categoria",$("#f_cat").value]].concat(state.isOwner?[["Pago por",radio("f_pessoa")==="PF"?"Pessoa física (CPF) · livro-caixa":radio("f_pessoa")==="PJ"?"Pessoa jurídica (CNPJ)":"—"]]:[]))+
+    sec("Pagamento",3,[["Situação",st==="pago"?"Paga em "+fmtFull($("#f_pagoEm").value):"Não paga"],["Observação",$("#f_obs").value.trim()]]);
+}
+function updateCodeHint(fill){
+  const a=analyzeCode($("#f_codigo").value), h=$("#codeHint");
+  h.className="hint"; setErr("f_codigo","");
+  if(a.kind==="none"){ h.textContent="O sistema reconhece o tipo e preenche valor e vencimento quando possível."; }
+  else if(a.kind==="boleto"){
+    if(a.partial){ h.className="hint bad"; h.textContent="Número incompleto ("+a.digits.length+" dígitos). Boletos têm 47 ou 48 dígitos."; }
+    else if(!a.valid){ h.className="hint bad"; h.textContent="Boleto reconhecido, mas algum dígito não confere. Confira com o papel."; }
+    else { h.className="hint ok"; h.textContent="✓ Boleto "+(a.convenio?"de concessionária/tributo":"bancário")+" reconhecido"+(a.valor?" · "+money(a.valor):"")+(a.venc?" · vence "+fmtFull(a.venc):"")+"."; }
+    if(!a.partial) $("#f_tipo").value="boleto";
+  } else if(a.kind==="pix"){
+    h.className = a.valid?"hint ok":"hint bad";
+    h.textContent = a.valid ? "✓ PIX copia e cola reconhecido"+(a.nome?" · "+a.nome:"")+(a.valor?" · "+money(a.valor):"")+"." : "Parece um PIX, mas o código está cortado.";
+    $("#f_tipo").value="pix";
+  } else { h.textContent="Texto livre (chave PIX, dados bancários etc.). Será copiado exatamente como está."; if(!$("#f_tipo").value) $("#f_tipo").value="outro"; }
+  if(fill){
+    if(a.valor && !$("#f_valor").value) $("#f_valor").value=toInputMoney(a.valor);
+    if(a.venc && !$("#f_venc").value) $("#f_venc").value=a.venc;
+    if(a.nome && !$("#f_forn").value) $("#f_forn").value=a.nome;
+  }
+  if(state.step===0 && !$("#panel").hidden) $("#wNext").textContent = $("#f_codigo").value.trim() ? "Próximo" : "Pular (sem código)";
+}
+function writeErr(e){
+  return e&&e.code==="invalid_argument" ? "Seu acesso permite apenas visualizar. Peça ao titular para te convidar como Editor." : e&&e.code==="quota_exceeded" ? "O limite de registros foi atingido. Exclua contas antigas para liberar espaço." : "Não foi possível salvar agora. Tente de novo em instantes.";
+}
+async function saveForm(){
+  const err=$("#formErr");
+  if(!validateStep(4,true)){ for(let k=0;k<4;k++){ if(!validateStep(k,true)){ state.step=k; showStep(); validateStep(k); return; } } }
+  const status=radio("f_status");
+  const data={
+    descricao:$("#f_desc").value.trim(), fornecedor:$("#f_forn").value.trim(),
+    valor:parseMoney($("#f_valor").value), vencimento:$("#f_venc").value,
+    unidade:radio("f_unid"), tipo:$("#f_tipo").value, categoria:$("#f_cat").value,
+    codigo:$("#f_codigo").value.trim(), observacao:$("#f_obs").value.trim(),
+    livroCaixa: state.isOwner ? radio("f_pessoa")==="PF" : (state.editSrc==="pf"),
+    pessoa: state.isOwner ? (radio("f_pessoa")||"PJ") : (state.editSrc==="pf"?"PF":"PJ"),
+    status, pagoEm: status==="pago" ? $("#f_pagoEm").value : null
+  };
+  const col = state.editSrc==="pf" ? state.pfCol : state.col;
+  if(!col){ err.hidden=false; err.textContent="Sem conexão com o banco de dados. Abra a página conectado à sua conta Claude."; return; }
+  const btn=$("#wNext"); btn.disabled=true;
+  try{
+    if(state.editing){
+      const prev=findBill(state.editing)||{};
+      await col.doc(state.editing).set(Object.assign({},prev._raw||{},data,{atualizadoEm:new Date().toISOString()}));
+      toast(state.editSrc==="pf"?"Despesa atualizada":"Conta atualizada");
+    } else {
+      await col.add(Object.assign(data,{comprovante:null,criadoEm:new Date().toISOString(),criadoPor:state.uid||null}));
+      toast((state.editSrc==="pf"?"Despesa "+data.pessoa+" salva":"Conta salva")+(status==="pago"?". Abra para anexar o comprovante.":""));
+      if(state.editSrc!=="pf" && state.mode==="week") state.weekStart=mondayOf(parseISO(data.vencimento));
+    }
+    if(data.unidade) store("cp_lastunit",data.unidade);
+    closeForm(); render();
+  }catch(e){
+    err.hidden=false; err.textContent=writeErr(e);
+    if(e&&e.code==="invalid_argument"){ state.canWrite=false; render(); }
+  }finally{ btn.disabled=false; }
+}
+
+// ---------- events ----------
+document.addEventListener("click",async ev=>{
+  const hb=ev.target.closest(".help"); if(hb){ ev.preventDefault(); ev.stopPropagation(); showHelp(hb); return; }
+  if(!ev.target.closest("#bubble")) hideHelp();
+  const st=ev.target.closest("[data-step]"); if(st && st.closest("#panel")){ gotoStep(+st.dataset.step); return; }
+  const dp=ev.target.closest("[data-dp]"); if(dp){ state.dPessoa=dp.dataset.dp; renderDespesas(); return; }
+  const gt=ev.target.closest("[data-gt]"); if(gt){ state.gType=gt.dataset.gt; renderGraficos(); return; }
+  const ro=ev.target.closest("[data-role]"); if(ro){ setRole(ro.dataset.uid,ro.dataset.role); return; }
+  const rq=ev.target.closest("[data-rq]"); if(rq){ const n=new Date(), y=n.getFullYear(), mo=n.getMonth(); let f,t;
+    if(rq.dataset.rq==="semana"){ const w=mondayOf(n); f=iso(w); t=iso(addDays(w,6)); }
+    else if(rq.dataset.rq==="mes"){ f=iso(new Date(y,mo,1)); t=iso(new Date(y,mo+1,0)); }
+    else if(rq.dataset.rq==="mesant"){ f=iso(new Date(y,mo-1,1)); t=iso(new Date(y,mo,0)); }
+    else { f=y+"-01-01"; t=y+"-12-31"; }
+    $("#rFrom").value=f; $("#rTo").value=t; renderRelatorio(); return; }
+  const el=ev.target.closest("[data-act],[data-mode],[data-unit],[data-status],[data-view]"); if(!el) return;
+  if(el.dataset.view){ go(el.dataset.view); return; }
+  if(el.dataset.mode){ state.mode=el.dataset.mode; if(state.mode==="range"){ state.from=state.from||iso(state.weekStart); state.to=state.to||iso(addDays(state.weekStart,6)); $("#fromD").value=state.from; $("#toD").value=state.to; } render(); return; }
+  if(el.dataset.unit!==undefined && el.closest("#unitSeg")){ state.unit=el.dataset.unit; store("cp_unit",state.unit); render(); return; }
+  if(el.dataset.status!==undefined && el.closest("#statusSeg")){ state.status=el.dataset.status; render(); return; }
+  const act=el.dataset.act, id=el.dataset.id;
+  if(act==="seeLate"){ const lb=state.bills.filter(isLate).map(b=>b.vencimento).sort(); setRange(lb[0],todayISO()); state.status="pendente"; render(); }
+  else if(act==="seeNoComp"){ const lb=state.bills.filter(semComp).map(b=>b.vencimento).sort(); setRange(lb[0],lb[lb.length-1]); state.status="semcomp"; render(); }
+  else if(act==="hideGuide"){ store("cp_guide","off"); render(); }
+  else if(act==="toggle"){ state.open.has(id)?state.open.delete(id):state.open.add(id); state.confirmDel=null; render(); }
+  else if(act==="togglepay") togglePay(id);
+  else if(act==="copy") copyText(el.dataset.val, el);
+  else if(act==="summary") copyText(buildSummary(), el);
+  else if(act==="edit") openForm(findBill(id));
+  else if(act==="new"){ closeSide(); openForm(null,"contas"); }
+  else if(act==="newpf"){ state.newPessoa=el.dataset.p||(state.dPessoa!=="todas"?state.dPessoa:""); openForm(null,"pf"); }
+  else if(act==="del"){ state.confirmDel=id; render(); }
+  else if(act==="rmcomp"){ state.confirmDel="c:"+id; render(); }
+  else if(act==="del-no"){ state.confirmDel=null; render(); }
+  else if(act==="rmcomp-yes") removeReceipt(id);
+  else if(act==="savecomp") uploadReceipt(id);
+  else if(act==="cancelcomp"){ cancelPending(id); render(); }
+  else if(act==="viewcomp") openViewer(id);
+  else if(act==="printcomp") printReceipt(id);
+  else if(act==="del-yes"){ try{ const b=findBill(id); await colOf(b).doc(id).delete(); if(b&&b.comprovante&&b.comprovante.id&&state.assets){ try{await state.assets.delete(b.comprovante.id);}catch(_){} } state.open.delete(id); state.confirmDel=null; toast(b&&b._src==="pf"?"Despesa excluída":"Conta excluída"); }catch(e){ toast("Não foi possível excluir."); } }
+});
+document.addEventListener("change",ev=>{
+  const up=ev.target.closest("[data-upload]"); if(up){ pickReceipt(up.dataset.upload, up.files&&up.files[0]); up.value=""; return; }
+  const fi=ev.target.closest("[data-f]");
+  if(fi){ const k=fi.dataset.f; if(fi.dataset.null){ const arr=farrN(k), v=parseMoney(fi.value); arr[+fi.dataset.i]=isNaN(v)?null:v; saveFiscal({[k]:arr}); } else { const arr=farr(k); arr[+fi.dataset.i]=num0(fi.value); saveFiscal({[k]:arr}); } return; }
+  const pmap={p_inss:"inss",p_outros:"outros"};
+  if(pmap[ev.target.id]){ saveFiscal({params:Object.assign({},fparams(),{[pmap[ev.target.id]]:num0(ev.target.value)})}); return; }
+  if(ev.target.id==="p_dep"){ saveFiscal({params:Object.assign({},fparams(),{dep:Math.max(0,parseInt(ev.target.value,10)||0)})}); return; }
+  if(ev.target.id==="p_anexo"){ saveFiscal({params:Object.assign({},fparams(),{anexo:ev.target.value})}); return; }
+  if(ev.target.id==="p_rbt"){ const v=parseMoney(ev.target.value); saveFiscal({params:Object.assign({},fparams(),{rbt:isNaN(v)?null:v})}); return; }
+  if(ev.target.id==="fMes"||ev.target.id==="dMes"){ state.fMes=+ev.target.value; render(); return; }
+  if(ev.target.name==="f_status"){ syncPago(); setErr("f_status",""); return; }
+  if(ev.target.name==="f_unid"){ setErr("f_unid",""); return; }
+  if(ev.target.name==="f_pessoa"){ setErr("f_pessoa",""); return; }
+  if(["rFrom","rTo","rUnit"].includes(ev.target.id)){ renderRelatorio(); return; }
+  if(["gPer","gFrom","gTo","gUnit","gSit","gBy"].includes(ev.target.id)){ renderGraficos(); return; }
+});
+document.addEventListener("input",ev=>{ const id=ev.target.id; if(id&&id.startsWith("f_")&&id!=="f_codigo") setErr(id,""); });
+document.addEventListener("keydown",ev=>{
+  if(ev.key==="Escape"){ if(!$("#bubble").hidden){ hideHelp(); return; } if(!$("#viewer").hidden){ closeViewer(); return; } if(!$("#panel").hidden) closeForm(); else closeSide(); }
+  if(ev.key==="Enter" && !$("#panel").hidden && ev.target.tagName==="INPUT" && ev.target.type!=="checkbox" && ev.target.type!=="radio"){ ev.preventDefault(); advanceFrom(ev.target); }
+  if(ev.key==="Enter" && ev.target.matches && ev.target.matches("input[data-f]")){ ev.preventDefault(); ev.target.blur(); const nx=document.querySelector('input[data-f="'+ev.target.dataset.f+'"][data-i="'+(+ev.target.dataset.i+1)+'"]'); if(nx){ nx.focus(); nx.select(); } }
+});
+window.addEventListener("resize",hideHelp);
+function setRange(f,t){ state.mode="range"; state.from=f||todayISO(); state.to=t||todayISO(); $("#fromD").value=state.from; $("#toD").value=state.to; }
+$("#prevW").onclick=()=>{ state.weekStart=addDays(state.weekStart,-7); render(); };
+$("#nextW").onclick=()=>{ state.weekStart=addDays(state.weekStart,7); render(); };
+$("#thisW").onclick=()=>{ state.weekStart=mondayOf(new Date()); render(); };
+$("#rMonth").onclick=()=>{ const n=new Date(); setRange(iso(new Date(n.getFullYear(),n.getMonth(),1)),iso(new Date(n.getFullYear(),n.getMonth()+1,0))); render(); };
+$("#rYear").onclick=()=>{ const y=new Date().getFullYear(); setRange(y+"-01-01",y+"-12-31"); render(); };
+$("#fromD").onchange=e=>{ state.from=e.target.value; render(); };
+$("#toD").onchange=e=>{ state.to=e.target.value; render(); };
+$("#menuBtn").onclick=openSide; $("#sideScrim").onclick=closeSide;
+$("#closePanel").onclick=closeForm; $("#scrim").onclick=closeForm;
+$("#wNext").onclick=wNext; $("#wBack").onclick=wBack;
+$("#form").addEventListener("submit",e=>{e.preventDefault();wNext();});
+$("#f_codigo").addEventListener("input",()=>{ updateCodeHint(true); clearTimeout(codeTimer);
+  const a=analyzeCode($("#f_codigo").value);
+  if(state.step===0 && ((a.kind==="boleto"&&!a.partial&&a.valid)||(a.kind==="pix"&&a.valid))) codeTimer=setTimeout(()=>{ if(state.step===0 && !$("#panel").hidden){ wNext(); setTimeout(()=>{ const f=["f_desc","f_valor","f_venc"].find(id=>!$("#"+id).value); if(f) $("#"+f).focus(); },120); } },700); });
+$("#rExcel").onclick=()=>{ const f=$("#rFrom").value,t=$("#rTo").value; if(!f||!t||t<f){ renderRelatorio(); toast("Corrija as datas do relatório."); return; } exportExcel({from:f,to:t,unit:$("#rUnit").value}); };
+const rOpts=()=>{ const f=$("#rFrom").value,t=$("#rTo").value; if(!f||!t||t<f){ renderRelatorio(); toast("Corrija as datas do relatório."); return null; } return {from:f,to:t,unit:$("#rUnit").value}; };
+$("#rPdf").onclick=()=>{ const o=rOpts(); if(o) reportPDF(o,false); };
+$("#rPrint").onclick=()=>{ const o=rOpts(); if(o) reportPDF(o,true); };
+$("#gPdf").onclick=()=>chartsPDF(false);
+$("#vClose").onclick=closeViewer; $("#vPrint").onclick=()=>{ if(viewerBill) printReceipt(viewerBill.id); }; $("#vSave").onclick=downloadReceipt;
+$("#gPrint").onclick=()=>chartsPDF(true);
+$("#rVer").onclick=()=>{ const f=$("#rFrom").value,t=$("#rTo").value; if(!f||!t||t<f){ renderRelatorio(); return; } setRange(f,t); state.unit=$("#rUnit").value; state.status=""; go("contas"); };
+
+render();
+
+// ---------- data ----------
+(async function boot(){
+  const sl=$("#statusLine");
+  const timer=setTimeout(()=>{ if(!state.loaded) sl.textContent="Não consegui conectar ao banco de dados ainda. Verifique a internet; a página tenta de novo sozinha."; },10000);
+  const use=n=>Promise.resolve(window.claude?.use(n)).catch(()=>null);
+  const [db,user,assets,downloads]=await Promise.all([use("db"),use("user"),use("assets"),use("downloads")]);
+  state.assets=assets; state.downloads=downloads;
+  if(user){ try{ state.uid=await user.id(); }catch(e){} try{ if((await user.can("data.write"))===false) state.canWrite=false; }catch(e){} try{ state.isOwner=!!(await user.isOwner()); }catch(e){} }
+  state.user=user;
+  const sv=store("cp_view"); if(sv && VIEWS[sv]) state.view=sv;
+  const foot=()=>{ $("#sideFoot").textContent = !db ? "Entre com sua conta Claude para usar." : state.isOwner ? "Você vê tudo, inclusive a área fiscal." : isAdmin() ? "Painel de gestão das contas." : state.canWrite ? "Lançar contas e acompanhar pagamentos." : "Acesso somente leitura."; }; foot(); state.foot=foot;
+  if(!db){ clearTimeout(timer); state.canWrite=false; sl.textContent="Entre com sua conta Claude para ver e lançar as contas."; render(); return; }
+  state.db=db; state.col=db.collection("contas");
+  db.doc("config/acesso").onSnapshot(sn=>{ const d=sn.exists?sn.data():{}; state.admins=Array.isArray(d.admins)?d.admins.slice():[]; state.foot&&state.foot(); render(); }, ()=>{});
+  if(state.uid && state.canWrite){ (async()=>{ try{ const me=db.doc("equipe/"+state.uid); const cur=await me.get(); const hoje=todayISO(); if(!cur.exists || (cur.data()||{}).visto!==hoje) await me.set({visto:hoje, primeiro:(cur.exists&&(cur.data()||{}).primeiro)||hoje}); }catch(e){} })(); }
+  state.col.onSnapshot(snap=>{
+    state.bills=snap.docs.map(d=>mapDoc(d,"contas"));
+    state.loaded=true;
+    if(!snap.metadata.fromCache){ clearTimeout(timer); sl.textContent=state.bills.length+(state.bills.length===1?" conta cadastrada no total.":" contas cadastradas no total."); }
+    render();
+  }, e=>{ clearTimeout(timer); state.loaded=true; sl.textContent = e.code==="revoked"?"Seu acesso a esta página mudou.":"A conexão com o banco de dados caiu. Recarregue a página."; render(); });
+  if(state.isOwner){
+    db.collection("equipe").onSnapshot(sn=>{ state.team=sn.docs.map(d=>Object.assign({id:d.id},d.data()||{})); if(state.view==="equipe") renderEquipe(); }, ()=>{});
+    state.fiscalRef=db.doc("fiscal/ano-"+ANO);
+    state.pfCol=db.collection("fiscal/pf/despesas");
+    state.pfCol.onSnapshot(snap=>{ state.pfDesp=snap.docs.map(d=>mapDoc(d,"pf")); render(); }, ()=>{});
+    state.fiscalRef.onSnapshot(s=>{ if(!s.metadata.hasPendingWrites){ state.fiscal=s.exists?JSON.parse(JSON.stringify(s.data())):{}; if(state.view==="fiscal") renderFiscal(); } }, ()=>{});
+  }
+  render();
+})();
+
+})();
+</script>
