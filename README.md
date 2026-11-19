@@ -12,7 +12,7 @@ Site de página única, animado, da Weiss Odontologia (Caruaru e Recife).
 - Telefones/WhatsApp: busque por `wa.me/55` no arquivo.
 
 ## Weiss Infinity — portal dos apps internos (Vercel)
-- Endereço: **https://www.weissinfinity.com.br** (domínio próprio, separado do site da clínica).
+- Endereço: **https://infinity.weissodontologia.com.br** (subdomínio do site; o site continua em www.weissodontologia.com.br).
 - A pasta `apps/` é o projeto publicado na Vercel. `apps/index.html` é o portal com a lista de sistemas; `apps/vercel.json` define os atalhos: `/financeiro` (e `/contas`) abre o Weiss Financeiro.
 - O Weiss Financeiro roda no Claude (https://claude.ai/artifact/TDSgSEYY3CResmE3sj5i5N): dados, comprovantes e login ficam lá, só para quem foi convidado. Perfis: titular/administrador (painel de gestão) e funcionário (lança contas e vê se estão pagas). Nada sensível fica neste repositório.
 - `docs/apps/contas-a-pagar.html` é uma cópia do código do Financeiro, para histórico de versões.
@@ -21,9 +21,8 @@ Site de página única, animado, da Weiss Odontologia (Caruaru e Recife).
 ### Configurar na Vercel (uma vez)
 1. Vercel → Add New → Project → importar o repositório `edelweissjr-ui/edw`.
 2. Root Directory: `apps` · Framework Preset: Other · sem comando de build → Deploy.
-3. Settings → Domains → adicionar `weissinfinity.com.br` e `www.weissinfinity.com.br` (deixar o `www` como principal).
-4. registro.br → domínio weissinfinity.com.br → DNS → Editar zona (modo avançado) e criar:
-   - tipo **A**, nome em branco (raiz), valor **76.76.21.21**
-   - tipo **CNAME**, nome **www**, valor **cname.vercel-dns.com**
-   (Se a Vercel mostrar outros valores na tela de Domains, use os dela.)
-5. Em até algumas horas o domínio fica ativo, com cadeado (HTTPS) automático. Cada alteração aprovada no branch principal publica sozinha.
+3. Settings → Domains → adicionar `infinity.weissodontologia.com.br`.
+4. registro.br → domínio weissodontologia.com.br → DNS → Editar zona e criar:
+   - tipo **CNAME**, nome **infinity**, valor **cname.vercel-dns.com** (ou o valor que a Vercel mostrar em Domains)
+   Não mexa nos registros que já existem: eles mantêm o site www no ar.
+5. Em pouco tempo o subdomínio fica ativo, com HTTPS automático. Cada alteração no branch `master` publica sozinha.
