@@ -271,7 +271,7 @@ details.card summary{cursor:pointer;font-weight:700}
       <button type="button" data-view="graficos" class="adminOnly" hidden><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M10 3a7 7 0 1 0 7 7h-7z"/><path d="M12.5 2.5a5 5 0 0 1 5 5h-5z"/></svg>Gráficos</button>
       <button type="button" data-view="relatorios" class="adminOnly" hidden><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M5 3h7l3 3v11H5z"/><path d="M8 10h5M8 13h5M8 7h2"/></svg>Relatórios e Excel</button>
       <span class="grp ownerOnly" hidden>Dr. Edelweiss · privado</span>
-      <button type="button" data-view="despesas" class="ownerOnly" hidden><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M4 5h12v11H4z"/><path d="M7 9h6M7 12h4M10 2v3"/></svg>Despesas PF<span class="badge warn" id="bDesp" hidden></span></button>
+      <button type="button" data-view="despesas" class="ownerOnly" hidden><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M4 5h12v11H4z"/><path d="M7 9h6M7 12h4M10 2v3"/></svg>Despesas PF e PJ<span class="badge warn" id="bDesp" hidden></span></button>
       <button type="button" data-view="fiscal" class="ownerOnly" hidden><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M3 16h14M5 13V9M9 13V5M13 13v-3M17 13V7"/></svg>Receita Saúde × PJ</button>
       <button type="button" data-view="equipe" class="ownerOnly" hidden><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="7.5" cy="7" r="3"/><path d="M2 17c.6-3 2.8-4.5 5.5-4.5S12.4 14 13 17"/><circle cx="14" cy="6.5" r="2.3"/><path d="M14 11c2.2 0 3.6 1.3 4 4"/></svg>Equipe e acessos</button>
       <span class="grp">Suporte</span>
@@ -386,7 +386,7 @@ details.card summary{cursor:pointer;font-weight:700}
       <div class="card">
         <h3>Quem acessa o sistema</h3>
         <p><b>Administrador</b> vê o painel de gestão: totais, marcar como pago, comprovantes, relatórios, gráficos e edição de qualquer conta. <b>Funcionário</b> só lança contas e acompanha se estão pagas ou não (pode corrigir as que ele mesmo lançou enquanto não forem pagas).</p>
-        <p class="note">A pessoa aparece aqui depois de abrir o sistema pela primeira vez. Para dar acesso, use o botão Compartilhar do Claude e convide o e-mail como Editor. A área fiscal (Receita Saúde × PJ e Despesas PF) continua só sua.</p>
+        <p class="note">A pessoa aparece aqui depois de abrir o sistema pela primeira vez. Para dar acesso, use o botão Compartilhar do Claude e convide o e-mail como Editor. A área fiscal (Receita Saúde × PJ e Despesas PF e PJ) continua só sua.</p>
       </div>
       <div class="team" id="teamList"></div>
     </section>
@@ -397,7 +397,11 @@ details.card summary{cursor:pointer;font-weight:700}
         <label for="dMes" style="font-weight:700">Mês</label>
         <select id="dMes"></select>
         <button type="button" class="help" data-help="dMes" aria-label="Ajuda">?</button>
+        <div class="seg" id="dSeg" aria-label="Pessoa"><button type="button" data-dp="todas" aria-pressed="true">Todas</button><button type="button" data-dp="PF" aria-pressed="false">Pessoa física</button><button type="button" data-dp="PJ" aria-pressed="false">Pessoa jurídica</button></div>
         <span class="spacer"></span>
+      </div>
+      <section class="totals" id="dTotals" style="grid-template-columns:repeat(auto-fill,minmax(200px,1fr))"></section>
+      <div class="toolbar" hidden>
         <span id="pfDespInfo" class="note"></span>
       </div>
       <div id="pfDespList" style="display:flex;flex-direction:column;gap:8px"></div>
@@ -454,7 +458,7 @@ details.card summary{cursor:pointer;font-weight:700}
           <li>Toque em <b>Não pago</b> para virar <b>Pago</b>, ou anexe o comprovante (a conta vira paga sozinha).</li>
           <li>Use <b>Relatórios e Excel</b> para baixar a planilha de qualquer período.</li></ol></div>
         <div class="card ownerOnly" hidden><h3>Receita Saúde × PJ</h3><ol>
-          <li>Em <b>Despesas PF</b>, lance as despesas pagas pelo CPF (livro-caixa) e anexe os comprovantes.</li>
+          <li>Em <b>Despesas PF e PJ</b>, lance as despesas pagas pelo CPF (livro-caixa) ou pelo CNPJ e anexe os comprovantes.</li>
           <li>Em <b>Receita Saúde × PJ</b>, digite quanto emitiu em cada mês no Receita Saúde e em NFS-e.</li>
           <li>O cartão do mês mostra quanto ainda cabe no Receita Saúde sem imposto. Ao atingir o teto, emita pela PJ.</li>
           <li>O equilíbrio fiscal no fim da página mostra a carga total e a economia possível.</li></ol></div>
@@ -501,7 +505,7 @@ details.card summary{cursor:pointer;font-weight:700}
         <option>Alinhadores / Invisalign</option><option>Equipamentos e manutenção</option><option>Folha e pró-labore</option>
         <option>Impostos e taxas</option><option>Água, luz, internet e telefone</option><option>Marketing</option>
         <option>Contabilidade e serviços</option><option>Outros</option></select><button type="button" class="help" data-help="f_cat" aria-label="Ajuda">?</button></div><span class="err" id="e_f_cat"></span></div>
-      <div class="field" id="lcBox"><div class="frow"><label class="check" for="f_lc"><input type="checkbox" id="f_lc"><span><b>Despesa da pessoa física (livro-caixa)</b><br><span class="note">Paga pelo CPF e lançada no carnê-leão.</span></span></label><button type="button" class="help" data-help="f_lc" aria-label="Ajuda">?</button></div></div>
+      <div class="field" id="lcBox"><span class="flab">Pago por <em class="req">*</em></span><div class="frow"><div class="choice" role="radiogroup" aria-label="Pago por"><label><input type="radio" name="f_pessoa" value="PF">Pessoa física (CPF)</label><label><input type="radio" name="f_pessoa" value="PJ">Pessoa jurídica (CNPJ)</label></div><button type="button" class="help" data-help="f_pessoa" aria-label="Ajuda">?</button></div><span class="err" id="e_f_pessoa"></span></div>
     </fieldset>
     <fieldset data-step="3" hidden>
       <legend>Pagamento</legend>
@@ -642,7 +646,7 @@ const state = {
   bills: [], loaded:false, canWrite:true, db:null, col:null, uid:null, assets:null, downloads:null, isOwner:false,
   view: "contas", mode:"week", weekStart: mondayOf(new Date()), from:null, to:null,
   unit: store("cp_unit")||"", status:"", open:new Set(), confirmDel:null, editing:null, uploading:null,
-  fiscal:null, fiscalRef:null, fMes:new Date().getMonth(), pfDesp:[], pfCol:null, pending:{}, admins:[], team:[], gType:"both", editSrc:"contas", step:0, maxStep:0
+  fiscal:null, fiscalRef:null, fMes:new Date().getMonth(), pfDesp:[], pfCol:null, pending:{}, dPessoa:"todas", newPessoa:"", admins:[], team:[], gType:"both", editSrc:"contas", step:0, maxStep:0
 };
 if(!["","Caruaru","Recife"].includes(state.unit)) state.unit="";
 const ANO = new Date().getFullYear();
@@ -663,7 +667,7 @@ const canEditBill = b => state.canWrite && (isAdmin() || (b._src!=="pf" && !!sta
 function mapDoc(d,src){ const x=d.data()||{}; return {id:d.id,_src:src,_raw:x,descricao:String(x.descricao||"(sem descrição)"),fornecedor:x.fornecedor||"",valor:Number(x.valor)||0,
   vencimento:/^\d{4}-\d{2}-\d{2}$/.test(x.vencimento||"")?x.vencimento:todayISO(),unidade:x.unidade||"",tipo:x.tipo||"outro",categoria:x.categoria||"",
   codigo:String(x.codigo||""),observacao:x.observacao||"",status:x.status==="pago"?"pago":"pendente",pagoEm:x.pagoEm||null,
-  criadoPor:x.criadoPor||null,comprovante:(x.comprovante&&x.comprovante.url)?x.comprovante:null,livroCaixa:src==="pf"?true:!!x.livroCaixa}; }
+  criadoPor:x.criadoPor||null,comprovante:(x.comprovante&&x.comprovante.url)?x.comprovante:null,livroCaixa:src==="pf"?(x.pessoa!=="PJ"):!!x.livroCaixa, pessoa:src==="pf"?(x.pessoa==="PJ"?"PJ":"PF"):(x.livroCaixa?"PF":"PJ")}; }
 function renderQR(root){
   root.querySelectorAll("[data-qr]").forEach(el=>{
     const b=findBill(el.dataset.qr);
@@ -734,7 +738,7 @@ function billHTML(b){
   }
   return '<article class="bill"><div class="row">'+
     '<button class="paytog '+tCls+'" type="button" data-act="togglepay" data-id="'+b.id+'" '+(canManage()?'':'disabled')+' title="'+(canManage()?'Tocar para alternar pago / não pago':'Somente o administrador marca como pago')+'">'+tTxt+'</button>'+
-    '<button class="expand" type="button" aria-expanded="'+open+'" data-act="toggle" data-id="'+b.id+'"><span class="mid"><span class="t">'+esc(b.descricao)+'</span><span class="meta">'+(b.fornecedor?esc(b.fornecedor)+' · ':'')+'<span class="chip unit">'+esc(b.unidade||"—")+'</span><span class="chip kind">'+kind+'</span>'+(b.livroCaixa?'<span class="chip lc">Livro-caixa PF</span>':'')+
+    '<button class="expand" type="button" aria-expanded="'+open+'" data-act="toggle" data-id="'+b.id+'"><span class="mid"><span class="t">'+esc(b.descricao)+'</span><span class="meta">'+(b.fornecedor?esc(b.fornecedor)+' · ':'')+'<span class="chip unit">'+esc(b.unidade||"—")+'</span><span class="chip kind">'+kind+'</span>'+(b.livroCaixa?'<span class="chip lc">PF · livro-caixa</span>':(b._src==="pf"?'<span class="chip kind">PJ</span>':''))+
     (late?'<span class="chip late">Venceu '+fmtShort(parseISO(b.vencimento))+' · há '+Math.round((parseISO(todayISO())-parseISO(b.vencimento))/864e5)+(Math.round((parseISO(todayISO())-parseISO(b.vencimento))/864e5)===1?' dia':' dias')+'</span>':'')+
     (b.comprovante?'<span class="chip file">Comprovante ✓</span>':b.status==="pago"?'<span class="chip nofile">Sem comprovante</span>':'')+'</span></span>'+
     '<span class="amt">'+money(b.valor)+'</span></button></div>'+detail+'</article>';
@@ -797,7 +801,9 @@ function renderFiscal(){
     (s.ef!=null?'<div class="big">'+pct(s.ef)+'</div><p>alíquota efetiva estimada sobre as NFS-e (faixa '+s.faixa+').</p>':'<div class="big bad">Acima do teto</div><p>A receita passou de R$ 4,8 milhões, limite do Simples Nacional.</p>')+
     '<p class="note">Receita bruta 12 meses: '+money(rbtCalc)+(p.rbt==null?' (soma da tabela abaixo; informe o RBT12 real nos parâmetros)':'')+'.'+
     (s.prox?' Próxima faixa do Simples a partir de '+money(s.prox)+' (faltam '+money(Math.max(0,s.prox-rbtCalc))+').':'')+'</p>'+
-    '<div class="bar" aria-hidden="true"><i style="width:'+Math.min(100,rbtCalc/4800000*100).toFixed(2)+'%"></i></div><p class="note">'+pct(Math.min(1,rbtCalc/4800000))+' do teto de R$ 4,8 milhões.</p>';
+    '<div class="bar" aria-hidden="true"><i style="width:'+Math.min(100,rbtCalc/4800000*100).toFixed(2)+'%"></i></div><p class="note">'+pct(Math.min(1,rbtCalc/4800000))+' do teto de R$ 4,8 milhões.</p>'+
+    (()=>{ const dp=despPJAuto(), fol=dp.folha.reduce((a,b)=>a+b,0), rec=pj.reduce((a,b)=>a+b,0); if(!rec) return ''; const fr=fol/rec;
+      return '<p class="note"><b>Fator R estimado no ano: '+pct(fr)+'</b> (folha e pró-labore '+money(fol)+' ÷ NFS-e '+money(rec)+'). '+(fr>=0.28?'Indica Anexo III (≥ 28%).':'Abaixo de 28%: indica Anexo V. Confirme com o contador.')+'</p>'; })();
   const pm={livro:M.disp,inss:p.inss,dep:p.dep}, base=Math.max(emit,M.lim), marg=(irMensal(base+1000,pm)-irMensal(base,pm))/1000;
   const pjEf = s.ef!=null ? s.ef : 0;
   const pjAlM = farrN("pjAliq")[m], pjM = pjAlM!=null ? pjAlM/100 : pjEf;
@@ -822,17 +828,18 @@ function renderFiscal(){
   $("#tPF").innerHTML='<thead><tr><th>Mês</th><th>Despesas PF pagas (lançadas)</th><th>Outros ajustes '+H('col_lc')+'</th><th>Receita Saúde emitido '+H('col_pf')+'</th><th>Limite s/ imposto</th><th>Saldo do mês</th><th>IR estimado</th><th>IR pago (DARF) '+H('col_pfIR')+'</th></tr></thead><tbody>'+rows+
     '</tbody><tfoot><tr><td>Total '+ANO+'</td><td colspan="2">'+money(tD)+'</td><td>'+money(tPF)+'</td><td>'+money(limAno)+'</td><td class="'+(saldoAno<0?"neg":"pos")+'">'+money(saldoAno)+'</td><td colspan="2">'+money(tIR)+'</td></tr></tfoot>';
   // ---- tabela PJ ----
-  rows=""; let tPJ=0,tSN=0;
+  const dPJ=despPJAuto();
+  rows=""; let tPJ=0,tSN=0,tDP=0,tRes=0;
   for(let i=0;i<12;i++){
-    const a=aliqMes(i), imp=pj[i]*a; tPJ+=pj[i]; tSN+=imp;
+    const a=aliqMes(i), imp=pj[i]*a, dp=dPJ.total[i], res=pj[i]-imp-dp; tPJ+=pj[i]; tSN+=imp; tDP+=dp; tRes+=res;
     rows+='<tr class="'+(i===m?"cur":"")+'"><td>'+MESES[i]+'</td>'+
       '<td><input data-f="pj" data-i="'+i+'" value="'+(pj[i]?toInputMoney(pj[i]):"")+'" inputmode="decimal" placeholder="0,00" aria-label="NFS-e PJ '+MESES[i]+'"></td>'+
       '<td>'+pct(pjEf)+'</td>'+
       '<td><input data-f="pjAliq" data-null="1" data-i="'+i+'" value="'+(pjAl[i]!=null?String(pjAl[i]).replace(".",","):"")+'" inputmode="decimal" placeholder="auto" style="width:80px" aria-label="Alíquota PJ % '+MESES[i]+'"> %</td>'+
-      '<td>'+pct(a)+(pjAl[i]!=null?' <span class="chip unit">informada</span>':'')+'</td><td>'+money(imp)+'</td></tr>';
+      '<td>'+pct(a)+(pjAl[i]!=null?' <span class="chip unit">informada</span>':'')+'</td><td>'+money(imp)+'</td><td>'+money(dp)+'</td><td class="'+(res<0?"neg":"")+'">'+(pj[i]||dp?money(res):'—')+'</td></tr>';
   }
-  $("#tPJ").innerHTML='<thead><tr><th>Mês</th><th>NFS-e emitida '+H('col_pj')+'</th><th>Alíquota automática</th><th>Alíquota do mês (DAS) '+H('col_aliq')+'</th><th>Alíquota usada</th><th>Simples a pagar</th></tr></thead><tbody>'+rows+
-    '</tbody><tfoot><tr><td>Total '+ANO+'</td><td>'+money(tPJ)+'</td><td colspan="3">'+(tPJ>0?'média '+pct(tSN/tPJ):'')+'</td><td>'+money(tSN)+'</td></tr></tfoot>';
+  $("#tPJ").innerHTML='<thead><tr><th>Mês</th><th>NFS-e emitida '+H('col_pj')+'</th><th>Alíquota automática</th><th>Alíquota do mês (DAS) '+H('col_aliq')+'</th><th>Alíquota usada</th><th>Simples a pagar</th><th>Despesas PJ pagas '+H('col_dpj')+'</th><th>Resultado PJ '+H('col_res')+'</th></tr></thead><tbody>'+rows+
+    '</tbody><tfoot><tr><td>Total '+ANO+'</td><td>'+money(tPJ)+'</td><td colspan="3">'+(tPJ>0?'média '+pct(tSN/tPJ):'')+'</td><td>'+money(tSN)+'</td><td>'+money(tDP)+'</td><td class="'+(tRes<0?"neg":"")+'">'+money(tRes)+'</td></tr></tfoot>';
   // ---- equilíbrio fiscal ----
   rows=""; let gT=0,gPF=0,gPJ=0,gIdeal=0;
   for(let i=0;i<12;i++){
@@ -845,10 +852,12 @@ function renderFiscal(){
       '<td>'+(T>0?money(pfIdeal)+' PF + '+money(T-pfIdeal)+' PJ':'—')+'</td><td class="'+(econ>0.5?"neg":"pos")+'">'+(T>0?(econ>0.5?money(econ):'equilibrado ✓'):'—')+'</td></tr>';
   }
   const gTot=gPF+gPJ, gEcon=Math.max(0,gTot-gIdeal);
+  const despPFano=plano.reduce((a,x)=>a+x.auto,0), despPJano=dPJ.total.reduce((a,b)=>a+b,0), liq=gT-gTot-despPFano-despPJano;
   $("#tEq").innerHTML='<thead><tr><th>Mês</th><th>Faturamento total</th><th>PF / PJ</th><th>Imposto PF</th><th>Imposto PJ</th><th>Imposto total</th><th>Carga efetiva</th><th>Divisão ideal</th><th>Economia possível</th></tr></thead><tbody>'+rows+
     '</tbody><tfoot><tr><td>Total '+ANO+'</td><td>'+money(gT)+'</td><td>'+(gT>0?pct(tPF/gT)+' / '+pct(tPJ/gT):'—')+'</td><td>'+money(gPF)+'</td><td>'+money(gPJ)+'</td><td>'+money(gTot)+'</td><td>'+(gT>0?pct(gTot/gT):'—')+'</td><td>'+money(gIdeal)+' de imposto</td><td class="'+(gEcon>0.5?"neg":"pos")+'">'+(gEcon>0.5?money(gEcon):'equilibrado ✓')+'</td></tr></tfoot>';
   $("#cEq").className='card hero '+(gEcon>0.5?'warn':'ok');
   $("#cEq").innerHTML='<h3>Equilíbrio fiscal '+ANO+'</h3><div class="big">'+(gT>0?pct(gTot/gT):'—')+'</div><p>de carga tributária total sobre '+money(gT)+' faturados (PF + PJ): '+money(gPF)+' de IR na pessoa física e '+money(gPJ)+' de Simples na PJ.</p>'+
+    '<p>Despesas pagas no ano: '+money(despPFano)+' na PF e '+money(despPJano)+' na PJ. <b>Resultado após impostos e despesas: '+money(liq)+'</b>.</p>'+
     (gEcon>0.5?'<p class="warnline">Com a divisão ideal (Receita Saúde até o limite de cada mês e o restante pela PJ), o imposto do ano seria '+money(gIdeal)+', uma economia de '+money(gEcon)+'.</p>':(gT>0?'<p class="pos">A divisão entre PF e PJ está equilibrada: não há economia possível remanejando as emissões.</p>':''));
   // params (only fill when not focused)
   const setv=(id,v)=>{ const el=$(id); if(document.activeElement!==el) el.value=v; };
@@ -956,6 +965,7 @@ const HELP = {
   f_unid:["Unidade","Clínica responsável pela despesa: Caruaru ou Recife. Permite filtrar e gerar relatórios por unidade."],
   f_tipo:["Forma de pagamento","Boleto e PIX exigem o código no passo 1, para o Dr. copiar e pagar. Use “Outro” para transferência, débito automático ou cartão."],
   f_cat:["Categoria","Tipo de despesa. Separa os gastos nos relatórios e na planilha Excel."],
+  f_pessoa:["Pago por","Pessoa física (CPF): despesa paga pelo CPF do Dr., que entra no livro-caixa do carnê-leão e aumenta o limite do Receita Saúde no mês do pagamento. Pessoa jurídica (CNPJ): despesa da clínica/empresa, paga pela PJ; entra no resultado da PJ e, se for folha ou pró-labore, no Fator R."],
   f_lc:["Livro-caixa (PF)","Marque somente se a conta é paga pelo CPF do Dr. e entra no carnê-leão (ex.: aluguel do consultório em nome dele). Contas pagas pelo CNPJ da clínica ficam desmarcadas. Contas marcadas aumentam o limite do Receita Saúde no mês em que forem pagas."],
   f_status:["Situação","“Já paga” se a conta foi quitada; “Não paga” se ainda vai ser paga. Contas não pagas passam sozinhas para a semana seguinte até serem pagas."],
   f_pagoEm:["Data do pagamento","Dia em que o pagamento foi feito. Obrigatório para contas pagas e não pode ser uma data futura."],
@@ -977,6 +987,8 @@ const HELP = {
   col_pf:["Receita Saúde emitido","Total de recibos emitidos no app Receita Saúde neste mês, em reais."],
   col_pfIR:["IR pago (DARF)","Vazio: o sistema usa o IR estimado. Digite o valor real do DARF do carnê-leão se já pagou."],
   col_pj:["NFS-e emitida","Total das notas fiscais emitidas pela PJ no Emissor Nacional neste mês."],
+  col_dpj:["Despesas PJ pagas","Despesas lançadas como PJ em “Despesas PF e PJ” mais as contas da clínica (Contas a pagar) que não foram marcadas como pessoa física, pelo mês do pagamento."],
+  col_res:["Resultado PJ","NFS-e emitidas menos o Simples a pagar menos as despesas PJ pagas no mês. Uma visão simples do caixa da empresa, não substitui o balanço do contador."],
   col_aliq:["Alíquota do mês","Vazio: usa a alíquota automática pela faixa do Simples. Digite a alíquota efetiva do DAS do mês (ex.: 6,54) para usar o valor real."],
   p_inss:["INSS","Contribuição ao INSS paga como autônomo (carnê ou GPS) por mês. Entra como dedução no carnê-leão."],
   p_dep:["Dependentes","Número de dependentes declarados. Cada um deduz R$ 189,59 por mês."],
@@ -1001,7 +1013,7 @@ function hideHelp(){ $("#bubble").hidden=true; if(bubbleFor) bubbleFor.setAttrib
 // ---------- views ----------
 const VIEWS = {
   contas:{t:"Contas a pagar",s:"Semana a semana"}, relatorios:{t:"Relatórios e Excel",s:"Qualquer período"},
-  despesas:{t:"Despesas da pessoa física",s:"Livro-caixa · privado"}, fiscal:{t:"Receita Saúde × PJ",s:"Planejamento fiscal · privado"},
+  despesas:{t:"Despesas PF e PJ",s:"Pessoa física e jurídica · privado"}, fiscal:{t:"Receita Saúde × PJ",s:"Planejamento fiscal · privado"},
   graficos:{t:"Gráficos",s:"Painel de gestão"}, equipe:{t:"Equipe e acessos",s:"Administração"},
   ajuda:{t:"Como usar",s:"Passo a passo"}
 };
@@ -1030,7 +1042,7 @@ function renderChrome(){
   $("#sideNew").hidden=!state.canWrite;
   const ta=$("#tActions");
   ta.innerHTML = v==="contas" ? (isAdmin()?'<button class="btn" type="button" data-act="summary">Copiar resumo</button>':'')+(state.canWrite?'<button class="btn primary" type="button" data-act="new">+ Nova conta</button>':'')
-    : v==="despesas" ? '<button class="btn primary" type="button" data-act="newpf">+ Nova despesa PF</button>' : '';
+    : v==="despesas" ? '<button class="btn primary" type="button" data-act="newpf" data-p="PF">+ Despesa PF</button><button class="btn primary" type="button" data-act="newpf" data-p="PJ">+ Despesa PJ</button>' : '';
   const late=state.bills.filter(isLate).length, nc=state.pfDesp.filter(semComp).length;
   const bc=$("#bContas"); bc.hidden=!late; bc.textContent=late; bc.title=late+" vencidas";
   const bd=$("#bDesp"); bd.hidden=!nc; bd.textContent=nc; bd.title=nc+" sem comprovante";
@@ -1081,19 +1093,34 @@ function render(){
   renderQR(list);
 }
 function monthOptions(sel){ if(!sel.options.length) sel.innerHTML=MESES.map((m,i)=>'<option value="'+i+'">'+m+' '+ANO+'</option>').join(""); sel.value=state.fMes; }
+// PJ expenses: items launched as PJ + clinic bills (contas) not marked as PF
+function despPJAuto(){
+  const a=Array(12).fill(0), folha=Array(12).fill(0);
+  state.pfDesp.filter(b=>b.pessoa==="PJ").concat(state.bills.filter(b=>!b.livroCaixa)).forEach(b=>{ if(b.status==="pago" && b.pagoEm && b.pagoEm.slice(0,4)===String(ANO)){ const i=+b.pagoEm.slice(5,7)-1, v=Number(b.valor)||0; a[i]+=v; if(b.categoria==="Folha e pró-labore") folha[i]+=v; } });
+  return {total:a.map(v=>Math.round(v*100)/100), folha:folha.map(v=>Math.round(v*100)/100)};
+}
 function renderDespesas(){
   monthOptions($("#dMes"));
-  const m=state.fMes;
+  document.querySelectorAll("#dSeg button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.dp===state.dPessoa));
+  const m=state.fMes, mStart=ANO+"-"+pad(m+1)+"-01";
   const inMes = d => d && d.slice(0,4)===String(ANO) && +d.slice(5,7)-1===m;
-  const itens = state.bills.filter(b=>b.livroCaixa).concat(state.pfDesp).filter(b=>inMes(b.vencimento)||inMes(b.pagoEm)||(b.status!=="pago"&&b.vencimento<ANO+"-"+pad(m+1)+"-01"&&b._src==="pf"))
-    .sort((a,b)=>a.vencimento.localeCompare(b.vencimento)||a.descricao.localeCompare(b.descricao));
-  const pagasM=itens.filter(b=>b.status==="pago"&&inMes(b.pagoEm)), abertas=itens.filter(b=>b.status!=="pago"), semc=itens.filter(semComp);
-  $("#pfDespInfo").innerHTML = itens.length
-    ? '<b>'+money(sum(pagasM))+'</b> pagas (entram no livro-caixa) · '+money(sum(abertas))+' não pagas'+(semc.length?' · <span class="warnline">'+semc.length+' sem comprovante</span>':'')
-    : '';
+  const inScope = b => inMes(b.vencimento)||inMes(b.pagoEm)||(b.status!=="pago"&&b.vencimento<mStart&&b._src==="pf");
+  const pfItens = state.bills.filter(b=>b.livroCaixa).concat(state.pfDesp.filter(b=>b.pessoa==="PF")).filter(inScope);
+  const pjItens = state.pfDesp.filter(b=>b.pessoa==="PJ").filter(inScope);
+  const clinPJ = state.bills.filter(b=>!b.livroCaixa && b.status==="pago" && inMes(b.pagoEm));
+  const ord=(a,b)=>a.vencimento.localeCompare(b.vencimento)||a.descricao.localeCompare(b.descricao);
+  const paid=list=>list.filter(b=>b.status==="pago"&&inMes(b.pagoEm));
+  const tile=(lbl,val,sub,cls)=>'<div class="tot '+(cls||"")+'"><span>'+lbl+'</span><b>'+money(val)+'</b><small>'+sub+'</small></div>';
+  const show=state.dPessoa;
+  let t="";
+  if(show!=="PJ") t+=tile("PF pagas no mês",sum(paid(pfItens)),"entram no livro-caixa do carnê-leão","paid")+tile("PF não pagas",sum(pfItens.filter(b=>b.status!=="pago")),pfItens.filter(semComp).length+" pagas sem comprovante");
+  if(show!=="PF") t+=tile("PJ pagas no mês",sum(paid(pjItens))+sum(clinPJ),"inclui "+money(sum(clinPJ))+" de contas da clínica","main")+tile("PJ não pagas",sum(pjItens.filter(b=>b.status!=="pago")),pjItens.filter(semComp).length+" pagas sem comprovante");
+  $("#dTotals").innerHTML=t;
+  const sec=(title,items,p,empty)=>'<section class="day"><h2><span>'+title+'</span><span class="sum">'+money(sum(items.filter(b=>b.status!=="pago")))+' não pago</span></h2>'+
+    (items.length?items.sort(ord).map(billHTML).join(""):'<div class="empty-state"><b>Nenhuma despesa '+p+' em '+MESES[m].toLowerCase()+'</b><span>'+empty+'</span><button class="btn primary" type="button" data-act="newpf" data-p="'+p+'">+ Despesa '+p+'</button></div>')+'</section>';
   const pl=$("#pfDespList");
-  pl.innerHTML = itens.length ? itens.map(billHTML).join("")
-    : '<div class="empty-state"><b>Nenhuma despesa da pessoa física em '+MESES[m].toLowerCase()+'</b><span>Toque em “+ Nova despesa PF” para lançar despesas pagas pelo CPF, como aluguel do consultório, material ou laboratório. Só as pagas aumentam o limite do Receita Saúde.</span><button class="btn primary" type="button" data-act="newpf">+ Nova despesa PF</button></div>';
+  pl.innerHTML=(show!=="PJ"?sec("Pessoa física (CPF) · livro-caixa",pfItens,"PF","Despesas pagas pelo CPF, como aluguel do consultório, material ou laboratório. Só as pagas aumentam o limite do Receita Saúde."):"")+
+    (show!=="PF"?sec("Pessoa jurídica (CNPJ)",pjItens,"PJ","Despesas da empresa pagas pelo CNPJ, como contador, sistemas, folha e pró-labore. As contas da clínica lançadas em Contas a pagar já entram no total da PJ."):"");
   renderQR(pl);
 }
 function renderRelatorio(){
@@ -1321,8 +1348,9 @@ function openForm(bill,src){
   state.editing = bill ? bill.id : null;
   state.editSrc = bill ? (bill._src||"contas") : (src||"contas");
   const isPF = state.editSrc==="pf";
-  $("#panelTitle").textContent = isPF ? (bill?"Editar despesa PF":"Nova despesa da pessoa física") : (bill ? "Editar conta" : "Nova conta");
-  $("#lcBox").hidden = isPF;
+  const pes = bill ? bill.pessoa : (isPF ? (state.newPessoa||"") : "PJ");
+  $("#panelTitle").textContent = isPF ? (bill?"Editar despesa "+(bill.pessoa||""):(pes?"Nova despesa "+(pes==="PF"?"da pessoa física":"da pessoa jurídica"):"Nova despesa")) : (bill ? "Editar conta" : "Nova conta");
+  $("#lcBox").hidden = false;
   $("#f_codigo").value = bill?.codigo||"";
   $("#f_desc").value = bill?.descricao||"";
   $("#f_forn").value = bill?.fornecedor||"";
@@ -1334,10 +1362,10 @@ function openForm(bill,src){
   setRadio("f_status", bill?.status||"");
   $("#f_pagoEm").value = bill?.pagoEm||"";
   $("#f_obs").value = bill?.observacao||"";
-  $("#f_lc").checked = isPF || !!bill?.livroCaixa;
+  setRadio("f_pessoa", pes);
   if(isPF && !bill && state.fMes!==new Date().getMonth()) $("#f_venc").value=ANO+"-"+pad(state.fMes+1)+"-01";
   if(!isAdmin()){ setRadio("f_status","pendente"); $("#f_pagoEm").value=""; }
-  $("#w_f_status").hidden=!isAdmin(); $("#compNote").hidden=!isAdmin(); if(!state.isOwner && !isPF) $("#lcBox").hidden=true;
+  $("#w_f_status").hidden=!isAdmin(); $("#compNote").hidden=!isAdmin(); if(!state.isOwner) $("#lcBox").hidden=true;
   $("#formErr").hidden=true; clearErrs(); updateCodeHint(false); syncPago();
   state.step = bill ? 4 : 0; state.maxStep = bill ? 4 : 0;
   $("#scrim").hidden=false; $("#panel").hidden=false;
@@ -1369,6 +1397,7 @@ function validateStep(i,quiet){
   }
   if(i===2){
     if(state.editSrc!=="pf" && !radio("f_unid")) errs.f_unid="Escolha a unidade.";
+    if(state.editSrc==="pf" && !radio("f_pessoa")) errs.f_pessoa="Escolha se a despesa é da pessoa física ou jurídica.";
     const t=$("#f_tipo").value;
     if(!t) errs.f_tipo="Escolha a forma de pagamento.";
     else if((t==="boleto"||t==="pix") && !$("#f_codigo").value.trim()) errs.f_tipo="Para "+(t==="pix"?"PIX":"boleto")+", volte ao passo 1 e cole o código. Sem código? Escolha “Outro”.";
@@ -1381,7 +1410,7 @@ function validateStep(i,quiet){
   }
   if(i===4){ for(let k=0;k<4;k++) if(!validateStep(k,true)) return false; return true; }
   if(!quiet){
-    ({0:["f_codigo"],1:["f_desc","f_valor","f_venc"],2:["f_unid","f_tipo","f_cat"],3:["f_status","f_pagoEm"]}[i]||[]).forEach(id=>setErr(id,errs[id]));
+    ({0:["f_codigo"],1:["f_desc","f_valor","f_venc"],2:["f_unid","f_tipo","f_cat","f_pessoa"],3:["f_status","f_pagoEm"]}[i]||[]).forEach(id=>setErr(id,errs[id]));
     const first=Object.keys(errs)[0]; if(first){ const el=$("#"+first)||document.querySelector('input[name="'+first+'"]'); if(el) el.focus(); }
   }
   return !Object.keys(errs).length;
@@ -1401,7 +1430,7 @@ function buildReview(){
   $("#review").innerHTML=
     sec("Código de pagamento",0,[["Código",a.kind==="none"?"Sem código":a.kind==="boleto"?a.pretty:$("#f_codigo").value.trim().slice(0,60)+($("#f_codigo").value.trim().length>60?"…":"")]])+
     sec("Dados da conta",1,[["Descrição",$("#f_desc").value.trim()],["Fornecedor",$("#f_forn").value.trim()],["Valor",money(parseMoney($("#f_valor").value))],["Vencimento",fmtFull($("#f_venc").value)]])+
-    sec("Classificação",2,[["Unidade",radio("f_unid")],["Forma",t],["Categoria",$("#f_cat").value]].concat(state.editSrc==="pf"?[]:[["Livro-caixa PF",$("#f_lc").checked?"Sim":"Não"]]))+
+    sec("Classificação",2,[["Unidade",radio("f_unid")],["Forma",t],["Categoria",$("#f_cat").value]].concat(state.isOwner?[["Pago por",radio("f_pessoa")==="PF"?"Pessoa física (CPF) · livro-caixa":radio("f_pessoa")==="PJ"?"Pessoa jurídica (CNPJ)":"—"]]:[]))+
     sec("Pagamento",3,[["Situação",st==="pago"?"Paga em "+fmtFull($("#f_pagoEm").value):"Não paga"],["Observação",$("#f_obs").value.trim()]]);
 }
 function updateCodeHint(fill){
@@ -1437,7 +1466,8 @@ async function saveForm(){
     valor:parseMoney($("#f_valor").value), vencimento:$("#f_venc").value,
     unidade:radio("f_unid"), tipo:$("#f_tipo").value, categoria:$("#f_cat").value,
     codigo:$("#f_codigo").value.trim(), observacao:$("#f_obs").value.trim(),
-    livroCaixa: state.editSrc==="pf" ? true : $("#f_lc").checked,
+    livroCaixa: state.isOwner ? radio("f_pessoa")==="PF" : (state.editSrc==="pf"),
+    pessoa: state.isOwner ? (radio("f_pessoa")||"PJ") : (state.editSrc==="pf"?"PF":"PJ"),
     status, pagoEm: status==="pago" ? $("#f_pagoEm").value : null
   };
   const col = state.editSrc==="pf" ? state.pfCol : state.col;
@@ -1450,7 +1480,7 @@ async function saveForm(){
       toast(state.editSrc==="pf"?"Despesa atualizada":"Conta atualizada");
     } else {
       await col.add(Object.assign(data,{comprovante:null,criadoEm:new Date().toISOString(),criadoPor:state.uid||null}));
-      toast((state.editSrc==="pf"?"Despesa salva":"Conta salva")+(status==="pago"?". Abra para anexar o comprovante.":""));
+      toast((state.editSrc==="pf"?"Despesa "+data.pessoa+" salva":"Conta salva")+(status==="pago"?". Abra para anexar o comprovante.":""));
       if(state.editSrc!=="pf" && state.mode==="week") state.weekStart=mondayOf(parseISO(data.vencimento));
     }
     if(data.unidade) store("cp_lastunit",data.unidade);
@@ -1466,6 +1496,7 @@ document.addEventListener("click",async ev=>{
   const hb=ev.target.closest(".help"); if(hb){ ev.preventDefault(); ev.stopPropagation(); showHelp(hb); return; }
   if(!ev.target.closest("#bubble")) hideHelp();
   const st=ev.target.closest("[data-step]"); if(st && st.closest("#panel")){ gotoStep(+st.dataset.step); return; }
+  const dp=ev.target.closest("[data-dp]"); if(dp){ state.dPessoa=dp.dataset.dp; renderDespesas(); return; }
   const gt=ev.target.closest("[data-gt]"); if(gt){ state.gType=gt.dataset.gt; renderGraficos(); return; }
   const ro=ev.target.closest("[data-role]"); if(ro){ setRole(ro.dataset.uid,ro.dataset.role); return; }
   const rq=ev.target.closest("[data-rq]"); if(rq){ const n=new Date(), y=n.getFullYear(), mo=n.getMonth(); let f,t;
@@ -1489,7 +1520,7 @@ document.addEventListener("click",async ev=>{
   else if(act==="summary") copyText(buildSummary(), el);
   else if(act==="edit") openForm(findBill(id));
   else if(act==="new"){ closeSide(); openForm(null,"contas"); }
-  else if(act==="newpf") openForm(null,"pf");
+  else if(act==="newpf"){ state.newPessoa=el.dataset.p||(state.dPessoa!=="todas"?state.dPessoa:""); openForm(null,"pf"); }
   else if(act==="del"){ state.confirmDel=id; render(); }
   else if(act==="rmcomp"){ state.confirmDel="c:"+id; render(); }
   else if(act==="del-no"){ state.confirmDel=null; render(); }
@@ -1512,6 +1543,7 @@ document.addEventListener("change",ev=>{
   if(ev.target.id==="fMes"||ev.target.id==="dMes"){ state.fMes=+ev.target.value; render(); return; }
   if(ev.target.name==="f_status"){ syncPago(); setErr("f_status",""); return; }
   if(ev.target.name==="f_unid"){ setErr("f_unid",""); return; }
+  if(ev.target.name==="f_pessoa"){ setErr("f_pessoa",""); return; }
   if(["rFrom","rTo","rUnit"].includes(ev.target.id)){ renderRelatorio(); return; }
   if(["gPer","gFrom","gTo","gUnit","gSit","gBy"].includes(ev.target.id)){ renderGraficos(); return; }
 });
