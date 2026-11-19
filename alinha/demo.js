@@ -71,7 +71,12 @@ window.ALINHA_DEMO = (function () {
     ex13: { temp: "morno" }, ex15: { lembretes: [{ id: "lbx1", quando: diasAtras(0, 15), texto: "Ligar para confirmar a consulta", feito: false }] }, ex17: { temp: "frio" },
     ex6: { lembretes: [{ id: "lbx2", quando: diasAtras(-2, 10), texto: "Enviar a simulação do sorriso", feito: false }] }
   };
-  const pacientes = () => clientes().map((p) => (trabalhos[p.id] ? Object.assign(p, { trabalhos: JSON.parse(JSON.stringify(trabalhos[p.id])) }) : p)).map((p) => Object.assign({ entradaEm: new Date(new Date(p.consultaEm).getTime() - 4 * 864e5).toISOString(), agendadoEm: new Date(new Date(p.consultaEm).getTime() - 3 * 864e5).toISOString(), compareceuEm: p.consultaEm }, p)).concat(leads()).map((p) => (extras[p.id] ? Object.assign(p, JSON.parse(JSON.stringify(extras[p.id]))) : p));
+  const crcs = [{ nome: "Renata", metas: { agendamentos: 10, comparecimentos: 7, fechamentos: 3, faturamento: 30000 } }, { nome: "Joana", metas: { agendamentos: 8, comparecimentos: 6, fechamentos: 2, faturamento: 20000 } }];
+  const doutores = ["Dr. Edelweiss", "Dra. Paula"];
+  const atendimento = { ex11: "Renata", ex12: "Joana", ex13: "Renata", ex14: "Joana", ex15: "Renata", ex16: "Joana", ex17: "Renata", ex18: "Joana", ex19: "Renata" };
+  const decisores = { ex3: { decisorRel: "Noivo(a)", decisor: "Thiago", decisorTel: "(81) 90000-3003", melhorHorario: "Noite (18h–21h)" }, ex1: { decisorRel: "Pai ou mãe", decisor: "Sr. Menezes (pai)", decisorTel: "(81) 90000-3001", melhorHorario: "Almoço (12h–14h)" }, ex5: { decisorRel: "Cônjuge", decisor: "Cláudia (esposa)", melhorHorario: "Tarde (14h–18h)" } };
+  const pacientes = () => clientes().map((p) => (trabalhos[p.id] ? Object.assign(p, { trabalhos: JSON.parse(JSON.stringify(trabalhos[p.id])) }) : p)).map((p) => Object.assign({ entradaEm: new Date(new Date(p.consultaEm).getTime() - 4 * 864e5).toISOString(), agendadoEm: new Date(new Date(p.consultaEm).getTime() - 3 * 864e5).toISOString(), compareceuEm: p.consultaEm }, p)).concat(leads()).map((p) => (extras[p.id] ? Object.assign(p, JSON.parse(JSON.stringify(extras[p.id]))) : p))
+    .map((p) => Object.assign(p, { crc: p.crc || atendimento[p.id] || (/^dr/i.test(p.responsavel || "") ? "" : p.responsavel) || "", drAvaliacao: p.drAvaliacao || p.profissional || "" }, decisores[p.id] || {}, { trabalhos: (p.trabalhos || []).map((t) => Object.assign({ dr: p.profissional || "Dr. Edelweiss" }, t)) }));
 
   // Consulta simulada (≈ 2 minutos, acelerada)
   const consulta = {
@@ -122,8 +127,10 @@ window.ALINHA_DEMO = (function () {
 
   // Conversas de WhatsApp (fictícias). "novas" chegam aos poucos quando a conversa está aberta.
   const minAtras = (n) => new Date(Date.now() - n * 60000).toISOString();
+  // fotos ilustrativas (silhuetas) — no uso real vem a foto do perfil do WhatsApp do paciente
+  const foto = (fundo, pele, cabelo) => "data:image/svg+xml," + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" fill="${fundo}"/><circle cx="32" cy="27" r="13" fill="${pele}"/><path d="M19 24c0-9 6-14 13-14s13 5 13 14c-3-5-8-7-13-7s-10 2-13 7z" fill="${cabelo}"/><path d="M10 64c2-14 11-20 22-20s20 6 22 20z" fill="${pele}"/></svg>`);
   const whatsapp = () => [
-    { lead: "9001", nome: "Juliana Rocha", telefone: "(81) 90000-2001", unidade: "Recife", origem: "Anúncio Meta", lista: [
+    { lead: "9001", nome: "Juliana Rocha", foto: foto("#C9B6F7", "#E8B98F", "#4A2B1A"), telefone: "(81) 90000-2001", unidade: "Recife", origem: "Anúncio Meta", lista: [
       { id: "j1", ts: minAtras(42), autor: "cliente", texto: "Oi! Vi o anúncio do aparelho invisível 😊" },
       { id: "j2", ts: minAtras(41), autor: "clinica", ia: true, texto: "Olá, Juliana! Aqui é da Weiss Odontologia, unidade Recife. Que bom que você nos chamou! O que mais te incomoda hoje no seu sorriso?" },
       { id: "j3", ts: minAtras(38), autor: "cliente", texto: "Meus dentes da frente são tortos, aparece muito nas fotos. Quanto custa o tratamento?" },
@@ -133,12 +140,12 @@ window.ALINHA_DEMO = (function () {
       { autor: "cliente", texto: "E também preciso ver com meu marido antes de marcar qualquer coisa" },
       { autor: "cliente", texto: "Mas eu queria muito, vou casar em março 😅 vocês atendem sábado?" }
     ] },
-    { lead: "9002", nome: "Patrícia Gomes", telefone: "(81) 90000-2002", unidade: "Caruaru", origem: "Anúncio Meta", lista: [
+    { lead: "9002", nome: "Patrícia Gomes", foto: foto("#A9E3D2", "#C68A62", "#1E1410"), telefone: "(81) 90000-2002", unidade: "Caruaru", origem: "Anúncio Meta", lista: [
       { id: "p1", ts: minAtras(180), autor: "cliente", texto: "Boa tarde! Fiz o check-up digital semana passada e adorei a simulação" },
       { id: "p2", ts: minAtras(170), autor: "clinica", texto: "Que alegria, Patrícia! Ficou alguma dúvida sobre o plano?" },
       { id: "p3", ts: minAtras(12), autor: "cliente", texto: "Quando posso começar? Dá pra parcelar no cartão?" }
     ] },
-    { lead: "tel-5581900002004", nome: "Renata Alves", telefone: "+55 81 90000-2004", unidade: "", origem: "celular", lista: [
+    { lead: "tel-5581900002004", nome: "Renata Alves", foto: foto("#F7D3A8", "#F1C9A5", "#8A5A2B"), telefone: "+55 81 90000-2004", unidade: "", origem: "celular", lista: [
       { id: "r1", ts: minAtras(25), autor: "cliente", texto: "Oi doutor! Aqui é a Renata, indicada pela Patrícia. Vocês fazem aquele escaneamento 3D?" },
       { id: "r2", ts: minAtras(20), autor: "cliente", texto: "Tenho medo de doer, já usei aparelho quando era criança e foi horrível" }
     ] },
@@ -149,5 +156,5 @@ window.ALINHA_DEMO = (function () {
     ] }
   ];
 
-  return { pacientes, consulta, whatsapp };
+  return { pacientes, consulta, whatsapp, crcs, doutores };
 })();

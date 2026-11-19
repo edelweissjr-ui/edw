@@ -30,6 +30,19 @@
   --f:"Plus Jakarta Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
   --r:16px; color-scheme:dark;
 }
+:root[data-paleta="esmeralda"]{
+  --bg:#06130F; --surface:#0C1F1A; --surface-2:#112A23; --line:rgba(120,220,190,.13); --line-2:rgba(120,220,190,.24);
+  --fg:#F2FBF8; --dim:#C9E6DD; --faint:#9CC7BA;
+  --accent:#1E9E85; --accent-ink:#FFFFFF; --accent-soft:rgba(43,181,154,.18); --accent-2:#5FD9BE;
+  --tip-bg:#0E2E27; --tip-fg:#F0FBF8; --tip-dim:#BDE9DD;
+  --glow:radial-gradient(1200px 600px at 70% -10%,rgba(43,181,154,.18),transparent 60%),radial-gradient(900px 500px at 0% 100%,rgba(20,120,100,.16),transparent 60%);
+}
+:root[data-theme="light"][data-paleta="perola"]{
+  --bg:#FAF6F0; --surface:#FFFFFF; --surface-2:#F4EDE3; --line:rgba(90,60,30,.12); --line-2:rgba(90,60,30,.22);
+  --fg:#2A1F15; --dim:#5B4A3A; --faint:#76624F;
+  --accent:#A3541A; --accent-ink:#FFFFFF; --accent-soft:#F6E5D5; --accent-2:#C2733A;
+  --glow:radial-gradient(1200px 600px at 70% -10%,rgba(163,84,26,.08),transparent 60%);
+}
 :root[data-theme="light"]{
   --bg:#F5F4FF; --surface:#FFFFFF; --surface-2:#F0EEFF; --line:rgba(40,30,110,.12); --line-2:rgba(40,30,110,.22);
   --fg:#120F33; --dim:#3A366C; --faint:#585482;
@@ -256,7 +269,9 @@ button.kpi.hl .go{color:#fff}
   .head h1.titulo-forte{font-size:27px}
   .col .sub{display:none}
   .termo .mot{display:none}
-  .avisos button{font-size:13px;padding:4px 10px}
+  .avisos button{font-size:13px;padding:4px 9px}
+  .avisos{gap:5px}
+  #crcBox>p.small,#cardMetas>p.small{display:none}
 }
 .veil.center{justify-content:center;align-items:flex-start;padding:max(24px,env(safe-area-inset-top,0px)) 12px 24px;overflow:auto}
 .seq{width:min(640px,100%);background:var(--bg);border:1px solid var(--line-2);border-radius:20px;padding:20px;display:flex;flex-direction:column;gap:14px;box-shadow:var(--shadow)}
@@ -349,6 +364,24 @@ html,body{overflow-x:hidden}
 .unids fieldset{border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin:0;display:flex;flex-direction:column;gap:8px}
 .unids legend{font-weight:800;padding:0 4px}
 #cmFunil{gap:5px}#cmFunil .trilho{height:14px}#cmFunil .val strong{font-size:17px}
+.clin-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);gap:14px;align-items:start}
+@media (max-width:1000px){.clin-grid{grid-template-columns:1fr}}
+.quad{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+@media (max-width:640px){.quad{grid-template-columns:1fr 1fr}}
+.perm-grid{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(240px,1fr);column-gap:18px;row-gap:10px;align-items:start}
+.perm-grid>h3{grid-column:1/-1}.perm-grid>table{grid-column:1;grid-row:2/span 4}.perm-grid>p,.perm-grid>label,.perm-grid>.row{grid-column:2}
+@media (max-width:900px){.perm-grid{grid-template-columns:1fr}.perm-grid>*{grid-column:1!important;grid-row:auto!important}}
+.tabela.perm td,.tabela.perm th{padding:4px 10px;font-size:14px}
+.perm-grid>table{width:100%;table-layout:fixed}.tabela.perm td:first-child,.tabela.perm th:first-child{white-space:normal;width:auto}.tabela.perm td:not(:first-child),.tabela.perm th:not(:first-child){width:122px;white-space:nowrap}
+#chatBox{grid-template-columns:minmax(0,1.5fr) minmax(0,1fr)}
+@media (max-width:1000px){#chatBox{grid-template-columns:1fr}}
+#negLista{display:grid;grid-template-columns:1fr 1fr;gap:6px 12px}
+@media (max-width:640px){#negLista{grid-template-columns:1fr}}
+.negrow .in,.faserow .in,.crcrow .in{padding:4px 8px;font-size:13.5px}
+.fases{gap:4px}
+.ajgrid.colunas{display:block;columns:2 420px;column-gap:14px}
+.ajgrid.colunas>.card{break-inside:avoid;margin-bottom:14px}
+.abas[data-grupo="aj"] button{padding:7px 11px}
 .ajgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,440px),1fr));gap:14px;align-items:start}
 .cadgrid{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:14px;align-items:start}
 @media (max-width:1100px){.cadgrid{grid-template-columns:1fr}}
@@ -418,6 +451,64 @@ html,body{overflow-x:hidden}
 @media (max-width:860px){.chatsup,.manualbox{height:auto;min-height:0}.supmsgs{max-height:55vh}.manual{max-height:none}}
 label.row{flex-wrap:nowrap;align-items:flex-start}
 label.row>input[type=checkbox]{flex:none;margin-top:4px;width:17px;height:17px}
+/* temas e rodapé */
+.amostra{display:inline-block;width:11px;height:11px;border-radius:50%;margin-right:6px;vertical-align:-1px}
+.versiculo{font-size:13px;line-height:1.4;color:var(--faint);padding:8px 10px;border-left:2px solid var(--accent-2);margin:6px 0;font-style:italic}
+.versiculo b{display:block;font-style:normal;font-weight:700;color:var(--dim);margin-top:2px}
+.side .versiculo{margin-top:auto}
+.side .versiculo + .eu{margin-top:6px}
+.side .foot{margin-top:4px}
+.eu{display:flex;align-items:center;gap:6px;padding:0 10px;font-size:13px;color:var(--faint)}
+.eu select{flex:1;min-width:0;background:var(--surface-2);border:1px solid var(--line);border-radius:8px;padding:3px 6px;font-size:13px;color:var(--fg)}
+.so-celular{display:none}
+@media (max-width:860px){.so-celular{display:block}.head .versiculo{margin:8px 0 0;max-width:520px}}
+.side{overflow-y:auto;overflow-x:hidden}
+.side .versiculo span{display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden}
+@media (min-width:861px) and (max-height:860px){.nav button{padding:6px 12px}.logo{padding-bottom:6px}.logo .marca{width:52px;height:28px}.logo .nome{font-size:23px}.versiculo{padding:4px 8px;margin:4px 0}.side .versiculo span{-webkit-line-clamp:2}}
+/* ampulheta (Comercial) */
+.com-grid{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:14px;align-items:start}
+@media (max-width:1100px){.com-grid{grid-template-columns:1fr}}
+.amp-wrap{display:grid;grid-template-columns:minmax(0,1fr) 150px;gap:12px;align-items:center}
+@media (max-width:560px){.amp-wrap{grid-template-columns:1fr}}
+.ampulheta{display:flex;flex-direction:column;align-items:center;gap:4px}
+.amp-rot{font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--faint)}
+.camada-a{width:var(--w);min-height:54px;border:0;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.15;cursor:pointer;padding:6px 14%;font:inherit}
+.camada-a .num{font-size:21px;font-weight:800}
+.camada-a small{font-size:13px;font-weight:700}
+.camada-a em{font-style:normal;font-size:13px;opacity:.92}
+.camada-a.topo{clip-path:polygon(0 0,100% 0,88% 100%,12% 100%)}
+.camada-a.base{clip-path:polygon(12% 0,88% 0,100% 100%,0 100%)}
+.camada-a.topo:nth-of-type(1){background:#4B3CC9}.camada-a.topo:nth-of-type(2){background:#5A49DC}.camada-a.topo:nth-of-type(3){background:#6C5BE8}
+.camada-a.base{background:#14806A}.camada-a.base:last-of-type{background:#0E6B58}
+.camada-a:hover,.camada-a:focus-visible{filter:brightness(1.15)}
+.amp-gargalo{font-size:13px;font-weight:700;color:var(--good);padding:2px 0}
+.amp-lados{display:flex;flex-direction:column;gap:8px}
+.amp-lados .lado{border:1px solid var(--line-2);background:var(--surface-2);border-radius:12px;padding:8px 10px;text-align:left;font-weight:600;font-size:14px;cursor:pointer}
+.amp-lados .lado b{font-size:18px;margin-right:4px}
+.amp-lados .lado.bad b{color:var(--bad)}
+.kpis.k2{grid-template-columns:repeat(2,minmax(0,1fr));margin-bottom:0}
+.meta-l{display:grid;grid-template-columns:130px minmax(0,1fr) auto;gap:10px;align-items:center;font-size:14px}
+.meta-l i{height:10px;border-radius:6px;background:var(--surface-2);overflow:hidden}.meta-l i b{display:block;height:100%;background:var(--s-fechado)}
+.lk{border:0;background:none;color:var(--fg);font:inherit;font-weight:700;text-decoration:underline;text-decoration-color:var(--line-2);cursor:pointer;padding:0}
+.mini-meta{height:5px;border-radius:4px;background:var(--surface-2);overflow:hidden;margin:3px 0 1px auto;max-width:90px}.mini-meta b{display:block;height:100%;background:var(--s-fechado)}
+.indice{padding:2px 8px;border-radius:999px}.indice.ok{background:var(--good-bg);color:var(--good)}.indice.med{background:var(--warn-bg);color:var(--warn)}.indice.baixo{background:var(--bad-bg);color:var(--bad)}
+.evo{display:inline-flex;align-items:flex-end;gap:3px;height:28px}.evo i{width:8px;border-radius:2px;background:var(--accent-2)}
+/* ficha: decisor, contato e responsáveis */
+.decisor{background:var(--accent-soft);border-radius:12px;padding:10px 12px;font-size:14.5px;line-height:1.7}
+.contato-det summary{cursor:pointer}
+.crcrow{display:grid;grid-template-columns:minmax(0,1.4fr) repeat(4,minmax(0,.7fr)) auto;gap:6px;align-items:center}
+.crcrow .in{padding:6px 8px;font-size:14px}
+.crcrow.cab{font-size:13px;font-weight:700;color:var(--faint)}
+.negrow{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr) auto;gap:6px;align-items:center}
+.negrow .in{padding:6px 8px;font-size:14px}
+/* chat: avisos de palavras e correção */
+.wa-avisos{display:flex;flex-direction:column;gap:6px}
+.aviso-neg,.aviso-corr{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:13.5px;border-radius:10px;padding:6px 10px}
+.aviso-neg{background:var(--bad-bg);color:var(--fg)}.aviso-corr{background:var(--accent-soft)}
+.chipx{border:1px solid var(--line-2);background:var(--surface);border-radius:999px;padding:3px 9px;font-size:13px;cursor:pointer;color:var(--fg)}
+.chipx s{color:var(--bad)}
+.ava.foto{padding:0;overflow:hidden;background:var(--surface-2)}
+.ava.foto img{width:100%;height:100%;object-fit:cover;border-radius:50%;display:block}
 /* CRM: cartões compactos */
 .pc.mini{gap:3px;padding:8px 10px;cursor:grab}
 .pc.mini b{font-size:15px;line-height:1.25}
@@ -551,6 +642,8 @@ label.row>input[type=checkbox]{flex:none;margin-top:4px;width:17px;height:17px}
       <button data-v="ajustes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1.2l2-1.5-2-3.4-2.4 1a7 7 0 0 0-2-1.2L14 3h-4l-.5 2.6a7 7 0 0 0-2 1.2l-2.4-1-2 3.4 2 1.5A7 7 0 0 0 5 12c0 .4 0 .8.1 1.2l-2 1.5 2 3.4 2.4-1a7 7 0 0 0 2 1.2L10 21h4l.5-2.6a7 7 0 0 0 2-1.2l2.4 1 2-3.4-2-1.5c.1-.4.1-.8.1-1.2z"/></svg>Ajustes</button>
       <button id="navMais" aria-expanded="false" aria-label="Mais telas"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/></svg>Mais</button>
     </nav>
+    <div class="versiculo" aria-label="Versículo do dia"></div>
+    <label class="eu"><span>Atendendo:</span><select id="euSel" aria-label="Quem está atendendo"></select></label>
     <div class="foot" id="modoInfo">Modo demonstração</div>
   </aside>
 
@@ -560,7 +653,7 @@ label.row>input[type=checkbox]{flex:none;margin-top:4px;width:17px;height:17px}
 
     <!-- HOJE -->
     <section class="view on" id="v-hoje">
-      <div class="head"><div><h1 class="titulo-forte">Quem alinhar hoje?</h1><p id="hojeData"></p></div><div class="avisos hide grow" id="avisosLab"></div><button class="btn pri hide" id="btnSeqHoje" data-seq="hoje">▶ Alinhar em sequência</button></div>
+      <div class="head"><div><h1 class="titulo-forte">Quem alinhar hoje?</h1><p id="hojeData"></p><p class="versiculo so-celular"></p></div><div class="avisos hide grow" id="avisosLab"></div><button class="btn pri hide" id="btnSeqHoje" data-seq="hoje">▶ Alinhar em sequência</button></div>
       <div class="kpis" id="kpisHoje"></div>
       <div class="fila" id="fila"></div>
       <div class="pager hide" id="filaPager"><button class="btn sm" data-pg="-1" aria-label="Página anterior">‹ Anterior</button><span id="filaPg"></span><button class="btn sm" data-pg="1" aria-label="Próxima página">Próxima ›</button></div>
@@ -715,18 +808,23 @@ label.row>input[type=checkbox]{flex:none;margin-top:4px;width:17px;height:17px}
 
     <!-- COMERCIAL -->
     <section class="view" id="v-comercial">
-      <div class="head"><div><h1>Comercial</h1><p>Do lead que entrou ao tratamento fechado. Quem comparece na clínica passa a ser cliente.</p></div></div>
-      <div class="row barra-abas"><h3 class="grow" style="font-size:17px">Funil do mês</h3><button class="btn sm" id="btnIrCrm">Abrir o CRM ›</button>
+      <div class="head"><div><h1>Comercial</h1><p>Do lead que entrou ao tratamento fechado. Toque em qualquer número para ver os nomes.</p></div></div>
+      <div class="row barra-abas"><div class="abas" data-grupo="com" role="tablist"><button data-aba="amp">Ampulheta do mês</button><button data-aba="equipe">Equipe (CRCs)</button></div><span class="grow"></span><button class="btn sm" id="btnIrCrm">Abrir o CRM ›</button>
         <input class="in" type="month" id="comMes" aria-label="Mês" style="width:auto">
         <div class="chips" id="comUnidade"><button data-u="" class="on">Todas</button><button data-u="Caruaru">Caruaru</button><button data-u="Recife">Recife</button></div></div>
-      <div>
-      <div class="card stack">
-        <div class="row"><h3 class="grow" id="comTitulo">Leads do mês</h3><span class="small dim" id="comMeta">de quem entrou no mês, até onde cada um chegou</span></div>
-        <div class="funil" id="comFunil"></div>
+      <div class="painel" data-grupo="com" data-aba="amp">
+        <div class="com-grid">
+          <div class="card stack"><div class="row"><h3 class="grow" id="comTitulo">Ampulheta do mês</h3><span class="tiny dim">dados do CRM, automáticos</span></div>
+            <div class="amp-wrap"><div class="ampulheta" id="ampulheta"></div><div class="amp-lados" id="ampLados"></div></div></div>
+          <div class="stack">
+            <div><div class="row" style="margin-bottom:8px"><h3 class="grow">Orçamentos do mês</h3><span class="tiny dim">clientes que compareceram no mês</span></div><div class="kpis k2" id="comOrc"></div></div>
+            <div class="card stack"><h3>Metas do mês</h3><div id="comMetas" class="stack" style="gap:8px"></div></div>
+          </div>
+        </div>
       </div>
-      <div class="kpis" id="comKpis" style="margin-top:14px"></div>
-      <div class="row" style="margin:6px 0 10px"><h3 class="grow">Follow-up de orçamento no mês</h3><span class="small dim">clientes que compareceram no mês</span></div>
-      <div class="kpis" id="comOrc"></div>
+      <div class="painel" data-grupo="com" data-aba="equipe">
+        <div class="card stack"><div class="row"><h3 class="grow">Desempenho por CRC</h3><span class="tiny dim">leads que entraram no mês, por CRC que atendeu · toque nos números para ver os nomes</span></div>
+          <table class="tabela" id="equipeTabela"></table></div>
       </div>
     </section>
 
@@ -759,6 +857,7 @@ label.row>input[type=checkbox]{flex:none;margin-top:4px;width:17px;height:17px}
           <h3>Taxas do funil</h3>
           <div class="duo"><div><label class="f" for="k_cpl">Custo por lead (R$)</label><input class="in num" id="k_cpl" inputmode="decimal"></div><div><label class="f" for="k_ticket">Ticket médio (R$)</label><input class="in num" id="k_ticket" inputmode="decimal"></div></div>
           <div class="trio"><div><label class="f" for="k_agend">Agendamento (%)</label><input class="in num" id="k_agend" inputmode="numeric"></div><div><label class="f" for="k_comp">Comparecimento (%)</label><input class="in num" id="k_comp" inputmode="numeric"></div><div><label class="f" for="k_fech">Fechamento (%)</label><input class="in num" id="k_fech" inputmode="numeric"></div></div>
+          <label class="row" style="gap:8px;font-weight:600"><input type="checkbox" id="kAutoCRM" checked> Usar as taxas do CRM automaticamente</label><p class="small dim" id="kAutoInfo" style="margin:-4px 0 0"></p>
           <div class="duo"><div><label class="f" for="k_meta">Meta de fechamentos no período</label><input class="in num" id="k_meta" inputmode="numeric"></div><div></div></div>
           <p class="small dim" id="kReais" style="margin:0"></p>
         </div>
@@ -805,20 +904,32 @@ label.row>input[type=checkbox]{flex:none;margin-top:4px;width:17px;height:17px}
     <!-- AJUSTES -->
     <section class="view" id="v-ajustes">
       <div class="head"><div><h1>Ajustes</h1></div>
-        <div class="abas" data-grupo="aj" role="tablist"><button data-aba="clinica" class="so-admin">Clínica e metas</button><button data-aba="unid" class="so-admin">Unidades</button><button data-aba="proc" class="so-admin">Procedimentos</button><button data-aba="perm" class="so-admin">Permissões</button><button data-aba="cel">Celular e acesso</button><button data-aba="api" class="so-admin">API e webhooks</button><button data-aba="kommo" class="so-admin">Kommo</button><button data-aba="dom" class="so-admin">Domínio</button><button data-aba="voz">Voz</button><button data-aba="sis">Sistema</button></div></div>
-      <div class="painel" data-grupo="aj" data-aba="clinica"><div class="ajgrid">
+        <div class="abas" data-grupo="aj" role="tablist"><button data-aba="clinica" class="so-admin">Clínica e metas</button><button data-aba="unid" class="so-admin">Unidades</button><button data-aba="proc" class="so-admin">Procedimentos</button><button data-aba="perm" class="so-admin">Permissões</button><button data-aba="cel">Celular</button><button data-aba="api" class="so-admin">API</button><button data-aba="kommo" class="so-admin">Kommo</button><button data-aba="dom" class="so-admin">Domínio</button><button data-aba="chat" class="so-admin">Chat</button><button data-aba="seg">Segurança</button><button data-aba="voz">Voz</button><button data-aba="sis">Sistema</button></div></div>
+      <div class="painel" data-grupo="aj" data-aba="clinica"><div class="clin-grid">
+        <div class="stack">
         <div class="card stack so-admin">
           <h3>Equipe</h3>
           <div><label class="f" for="aEquipe">Nomes (separados por vírgula)</label><input class="in" id="aEquipe"></div>
+          <div><label class="f" for="aDoutores">Doutores (separados por vírgula)</label><input class="in" id="aDoutores" placeholder="Dr. Edelweiss, Dra. Paula"></div>
           <div><label class="f" for="aCondicao">Condição especial vigente (só se for real)</label><input class="in" id="aCondicao" placeholder="ex.: check-up digital abatido no tratamento até 30/11"></div>
           <div class="row"><button class="btn pri" id="btnSalvarAjustes">Salvar</button><span class="small dim" id="ajStatus"></span></div>
+        </div>
+        </div>
+        <div class="stack">
+        <div class="card stack so-admin" id="crcBox">
+          <h3>CRCs e metas individuais</h3>
+          <p class="small dim" style="margin:0">Quem atende os leads e os clientes. As metas do mês (agendamentos, comparecimentos, fechamentos e faturamento) alimentam o índice de cada CRC no Comercial › Equipe.</p>
+          <div class="crcrow cab"><span>Nome</span><span>Agend.</span><span>Compar.</span><span>Fech.</span><span>R$</span><span></span></div>
+          <div class="fases" id="crcLista"></div><button class="btn sm" id="btnCrcAdd">+ Adicionar CRC</button>
+          <div class="row"><button class="btn pri" id="btnCrcSalvar">Salvar CRCs</button><span class="small dim" id="crcStatus"></span></div>
         </div>
         <div class="card stack so-admin" id="cardMetas">
           <h3>Metas do mês</h3>
           <p class="small dim" style="margin:0">Aparecem no Comercial e no Resultado do mês das Campanhas. Deixe em branco o que não quiser acompanhar.</p>
-          <div class="duo"><div><label class="f" for="mLeads">Leads</label><input class="in num" id="mLeads" inputmode="numeric"></div><div><label class="f" for="mComp">Comparecimentos</label><input class="in num" id="mComp" inputmode="numeric"></div></div>
-          <div class="duo"><div><label class="f" for="mFech">Fechamentos</label><input class="in num" id="mFech" inputmode="numeric"></div><div><label class="f" for="mFat">Faturamento (R$)</label><input class="in num" id="mFat" inputmode="decimal"></div></div>
+          <div class="quad"><div><label class="f" for="mLeads">Leads</label><input class="in num" id="mLeads" inputmode="numeric"></div><div><label class="f" for="mComp">Comparec.</label><input class="in num" id="mComp" inputmode="numeric"></div>
+          <div><label class="f" for="mFech">Fecham.</label><input class="in num" id="mFech" inputmode="numeric"></div><div><label class="f" for="mFat">Fatur. (R$)</label><input class="in num" id="mFat" inputmode="decimal"></div></div>
           <div class="row"><button class="btn pri" id="btnSalvarMetas">Salvar metas</button><span class="small dim" id="metaStatus"></span></div>
+        </div>
         </div>
       </div></div>
       <div class="painel" data-grupo="aj" data-aba="unid">
@@ -835,12 +946,11 @@ label.row>input[type=checkbox]{flex:none;margin-top:4px;width:17px;height:17px}
           <div class="chips" id="procLista"></div>
           <div class="row"><span class="label grow">Fases de <span id="procNome"></span></span><button class="btn sm ghost" id="btnProcRemover">Remover procedimento</button></div>
           <div class="fases" id="procFases"></div>
-          <div class="row"><button class="btn sm" data-fadd>+ Adicionar fase</button><span class="grow"></span><input class="in" id="procNovoNome" placeholder="Novo procedimento (ex.: Lente de contato)" style="width:260px"><button class="btn sm" id="btnProcNovo">+ Procedimento</button></div>
-          <div class="row"><button class="btn pri" id="btnProcSalvar">Salvar procedimentos</button><button class="btn ghost" id="btnProcPadrao">Restaurar padrão</button><span class="small dim" id="procStatus"></span></div>
+          <div class="row"><button class="btn sm" data-fadd>+ Adicionar fase</button><button class="btn pri" id="btnProcSalvar">Salvar procedimentos</button><button class="btn ghost" id="btnProcPadrao">Restaurar padrão</button><span class="small dim" id="procStatus"></span><span class="grow"></span><input class="in" id="procNovoNome" placeholder="Novo procedimento (ex.: Lente de contato)" style="width:250px"><button class="btn sm" id="btnProcNovo">+ Procedimento</button></div>
         </div>
       </div>
       <div class="painel" data-grupo="aj" data-aba="perm">
-        <div class="card stack so-admin" id="cardPermissoes">
+        <div class="card so-admin perm-grid" id="cardPermissoes">
           <h3>Permissões</h3>
           <p class="small dim" style="margin:0">Cada perfil entra com o seu usuário: <b>admin</b>, <b>operacional</b> ou <b>crc</b> (as senhas ficam na hospedagem). Marque o que cada perfil pode ver e fazer.</p>
           <table class="tabela perm" id="permTabela"></table>
@@ -904,6 +1014,23 @@ label.row>input[type=checkbox]{flex:none;margin-top:4px;width:17px;height:17px}
           <p class="small dim" style="margin:0">Para usar um domínio do Registro.br, cadastre-o na hospedagem (Vercel ou Render), crie o registro no DNS do Registro.br e preencha <b>APP_URL</b> com o endereço completo. O passo a passo está no manual.</p>
         </div>
       </div>
+      <div class="painel" data-grupo="aj" data-aba="chat"><div class="ajgrid" id="chatBox">
+        <div class="card stack"><div class="row"><h3 class="grow">Palavras negativadas no chat</h3><button class="btn sm ghost" id="btnNegPadrao">Restaurar padrão</button></div>
+          <p class="small dim" style="margin:0">Quando o atendente digitar uma destas palavras no WhatsApp, o Alinha avisa e sugere a troca antes de enviar.</p>
+          <div class="fases" id="negLista"></div><button class="btn sm" id="btnNegAdd">+ Adicionar palavra</button></div>
+        <div class="card stack"><h3>Correção ortográfica ao digitar</h3>
+          <div class="chips" id="corrModo"><button data-m="auto">Automática</button><button data-m="sugerir">Sugerir (editável)</button><button data-m="off">Desligada</button></div>
+          <p class="small dim" style="margin:0">Automática troca a palavra ao terminar de digitá-la (com “desfazer”). Sugerir mostra as correções para aplicar com um toque. O corretor do navegador também sublinha erros.</p>
+          <label class="f" for="corrExtras">Correções da clínica (uma por linha: errado = certo)</label><textarea class="in" id="corrExtras" rows="4" placeholder="invisaling = Invisalign&#10;itero = iTero"></textarea>
+          <div class="row"><button class="btn pri" id="btnChatSalvar">Salvar</button><span class="small dim" id="chatStatus"></span></div></div>
+      </div></div>
+      <div class="painel" data-grupo="aj" data-aba="seg"><div class="ajgrid" id="segBox">
+        <div class="card stack"><div class="row"><h3 class="grow">Verificação em duas etapas</h3><span class="pill" id="segEstado">…</span></div>
+          <div class="stack" id="seg2fa" style="gap:10px"></div></div>
+        <div class="card stack"><h3>Como funciona</h3><p class="small" style="margin:0">O acesso é sempre por usuário e senha. Depois do primeiro acesso, cada perfil pode ativar o código de 6 números do <b>Google Authenticator</b>: a cada login, além da senha, o Alinha pede o código que aparece no celular (muda a cada 30 segundos).</p>
+          <p class="small dim" style="margin:0">O perfil é compartilhado: todas as pessoas que usam o mesmo usuário precisam ter o código no celular. Se perder o celular, o administrador desativa para aquele perfil.</p>
+          <div class="lista-int" id="segPerfis"></div></div>
+      </div></div>
       <div class="painel" data-grupo="aj" data-aba="voz">
         <div class="card stack" id="cardVoz">
           <h3>Reconhecimento de voz</h3>
@@ -914,7 +1041,7 @@ label.row>input[type=checkbox]{flex:none;margin-top:4px;width:17px;height:17px}
           <div id="vozLista" class="small"></div>
         </div>
       </div>
-      <div class="painel" data-grupo="aj" data-aba="sis"><div class="ajgrid">
+      <div class="painel" data-grupo="aj" data-aba="sis"><div class="ajgrid colunas">
         <div class="card stack" id="cardAtualizacoes">
           <h3>Atualizações</h3>
           <div class="row"><span class="grow">Versão instalada: <b id="atVersao"></b></span><button class="btn" id="btnVerificarAt">Verificar atualizações</button></div>
@@ -929,7 +1056,8 @@ label.row>input[type=checkbox]{flex:none;margin-top:4px;width:17px;height:17px}
         </div>
         <div class="card stack">
           <h3>Tema</h3>
-          <div class="chips" id="tema"><button data-t="auto" class="on">Escuro (padrão)</button><button data-t="light">Claro</button></div>
+          <div class="chips" id="tema"><button data-t="auto" class="on">Escuro (padrão)</button><button data-t="light">Claro</button><button data-t="esmeralda"><i class="amostra" style="background:#2BB59A"></i>Esmeralda</button><button data-t="perola"><i class="amostra" style="background:#A3541A"></i>Pérola</button></div>
+          <p class="small dim" style="margin:0">A logomarca mantém as cores originais em todos os temas.</p>
         </div>
       </div></div>
     </section>

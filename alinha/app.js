@@ -8,8 +8,9 @@
   const BIB = window.ROTEIRO, DEMO = window.ALINHA_DEMO;
   /* Versão: na plataforma, vem do servidor (package.json) no momento em que a tela abriu.
      Ao publicar uma atualização, aumente a versão em package.json e registre em NOVIDADES. */
-  let VERSAO = "2.2.0";
+  let VERSAO = "2.3.0";
   const NOVIDADES = [
+    { v: "2.3.0", data: "nov/2026", itens: ["Login com código de 6 números do Google Authenticator (opcional, em Ajustes › Segurança)", "Temas Esmeralda e Pérola, sem mudar a logomarca", "Foto do paciente do WhatsApp no círculo; palavras negativadas e correção ortográfica no chat", "Comercial em ampulheta (Funil Lead e Funil Cliente) com todos os números clicáveis; desempenho por CRC com metas", "Alerta do dia com os pacientes de maior chance; versículo diário; decisor, melhor horário, CRC e doutor na ficha"] },
     { v: "2.2.0", data: "nov/2026", itens: ["Nova logomarca Alinha · Gestão Infinity", "Linha do tempo com Finalizado e o fluxo completo do Invisalign (consulta, orçamento, pagamento, escaneamento, fotografias, radiografias, ClinCheck, alinhadores, agendamento, instalação)", "Marcar e desmarcar qualquer fase, com a data ao passar o mouse e o registro no prontuário", "Procedimentos e fases cadastráveis; ao aprovar o orçamento, a linha do tempo é criada e pode ser personalizada", "Cartões do CRM compactos com e-mail, WhatsApp, SMS, lembrete e termômetro; filtros completos no CRM"] },
     { v: "2.1.0", data: "nov/2026", itens: ["CRM em tela própria com dois funis: Funil Lead (lead novo, em contato, agendou, faltou, perdido) e Funil Cliente (compareceu, fechou, não fechou)", "Etapa do CRM direto na conversa do WhatsApp", "API aberta com tokens (ler e gravar ou só leitura) para conectar n8n, Kommo, site e outros apps", "Webhooks assinados: o Alinha avisa outros apps quando um lead entra, muda de etapa, comparece, fecha ou avança no tratamento", "Kommo: leads novos entram no Funil Lead, a mudança para o funil de clientes passa para o Funil Cliente e o card pode ser movido no Kommo quando o paciente comparece"] },
     { v: "2.0.0", data: "nov/2026", itens: ["Tratamentos: linha do tempo de cada tratamento, com a etapa atual e a próxima (coroa em porcelana, prótese e coroa sobre implante, Invisalign, aparelho fixo)", "Laboratório: trabalhos enviados com a data de entrega combinada, aviso de atraso, recebidos para agendar e colocações marcadas; avisos no Hoje", "Linha do tempo completa do paciente na ficha (comercial e tratamentos)", "Suporte: chat com IA e manual de ajuda pesquisável para tirar dúvidas sobre o sistema", "Letras mais nítidas: fonte carregada antes, mínimo de 13 px e mais contraste"] },
@@ -62,7 +63,7 @@
       } else {
         PAC = ls.get("alinha.pacientes", null);
         if (!PAC) { PAC = DEMO.pacientes(); ls.set("alinha.pacientes", PAC); }
-        AJ = Object.assign(AJ, ls.get("alinha.ajustes", {}));
+        AJ = Object.assign(AJ, { crcs: DEMO.crcs, doutores: DEMO.doutores }, ls.get("alinha.ajustes", {})); // demonstração: CRCs e doutores de exemplo
       }
     },
     async salvar(p) {
@@ -318,7 +319,7 @@
   }
   function renderHoje() {
     const N = numeros();
-    const bs = $("#btnSeqHoje"); if (bs) { bs.classList.toggle("hide", !N.hoje); bs.textContent = `▶ Alinhar em sequência (${N.hoje})`; }
+    const bs = $("#btnSeqHoje"); if (bs) { bs.classList.toggle("hide", !N.hoje); bs.textContent = `▶ Em sequência (${N.hoje})`; bs.title = "Alinhar um paciente por vez, em sequência"; }
     $("#hojeData").textContent = new Date().toLocaleDateString("pt-BR", { weekday: "long", day: "2-digit", month: "long" });
     kpis("#kpisHoje", [
       ["Valor em aberto", brl(N.emAberto), `${N.nAbertos} pacientes em follow-up`],
@@ -366,6 +367,8 @@
       <div class="row"><div class="ava">${esc(iniciais(p.nome))}</div><div class="grow"><h2 style="font-size:22px">${esc(p.nome)}</h2><div class="small dim">${esc(p.tratamento || "")} · ${esc(p.unidade || "")} · consulta em ${fmtData(p.consultaEm)} com ${esc(p.profissional || "—")}</div></div><button class="btn sm ghost" id="btnFechar" aria-label="Fechar">✕</button></div>
       <div class="row">${p.status === "fechado" ? `<span class="pill good">Fechou ${brl(p.valorFechado)}</span>` : p.status === "perdido" ? `<span class="pill bad">Não fechou</span>` : `<span class="pill acc">Em follow-up · ${brl(p.valorApresentado)}</span>`}${(p.objecoes || []).map((o) => `<span class="pill warn">${esc(OBJ_NOME[o] || o)}</span>`).join("")}</div>
       ${p.oQueTravou || p.dor ? `<div class="card small stack" style="gap:6px">${p.dor ? `<div><span class="label">Dor</span><br>${esc(p.dor)}</div>` : ""}${p.oQueTravou ? `<div><span class="label">O que travou</span><br>${esc(p.oQueTravou)}</div>` : ""}${(p.palavras || []).length ? `<div><span class="label">Palavras do paciente</span><br>${p.palavras.map((w) => "“" + esc(w) + "”").join(" · ")}</div>` : ""}</div>` : ""}
+      <div id="gDecisor">${decisorResumo(p)}</div>
+      <details class="card contato-det"${p.decisor || p.crc ? "" : " open"}><summary><span class="label">Decisor, melhor horário, CRC e doutor</span></summary><div class="stack" style="margin-top:10px">${camposContatoHTML(p, "g")}</div></details>
       ${p.disc && p.disc.n ? `<div class="card stack"><span class="label">Perfil DISC</span>${discHTML(p.disc)}</div>` : ""}
       ${x && !x.fim ? cardMensagem(p, x) : ""}
       <div class="card stack"><span class="label">Resultado</span>
@@ -380,6 +383,7 @@
     </div></div>`;
     if (x && !x.fim) garantirMensagemIA(p, x.dia);
     ligarTimelinePaciente(p);
+    ligarContato(p, "g", async () => { lerContato(p, "g"); await Store.salvar(p); $("#gDecisor").innerHTML = decisorResumo(p); toast("Ficha atualizada"); });
     $("#veil").addEventListener("click", (e) => { if (e.target.id === "veil") fecharGaveta(); });
     $("#btnFechar").onclick = fecharGaveta;
     $("#gEmail").onchange = async (e) => { p.email = e.target.value.trim(); await Store.salvar(p); toast("E-mail salvo"); };
@@ -804,7 +808,8 @@
     $("#cProf").innerHTML = profs.map((n) => `<option${n === atual ? " selected" : ""}>${esc(n)}</option>`).join("");
     renderVozes(); atualizarAuto();
     estadoCelular(); renderAbrirCelular(); renderDominio(false);
-    if (ehAdminFront()) { renderPermissoes(); renderUnidadesMetas(); renderProcedimentos(); if (["api", "kommo"].includes(ABAS.aj)) { if (INTEG) renderIntegracoes(); else carregarIntegracoes(); } }
+    renderEu(); if (ABAS.aj === "seg") renderSeguranca();
+    if (ehAdminFront()) { renderPermissoes(); renderUnidadesMetas(); renderProcedimentos(); renderCrcsAjustes(); renderChatAjustes(); if (["api", "kommo"].includes(ABAS.aj)) { if (INTEG) renderIntegracoes(); else carregarIntegracoes(); } }
   }
   function ehAdminFront() { return !PLAT || PLAT.papel === "admin"; }
   /* ------------------------------------------------------------ */
@@ -952,7 +957,7 @@
   });
   $("#btnSalvarAjustes").addEventListener("click", async () => {
     try {
-      await Store.ajustes({ equipe: $("#aEquipe").value.split(",").map((s) => s.trim()).filter(Boolean), condicao: $("#aCondicao").value.trim() });
+      await Store.ajustes({ equipe: $("#aEquipe").value.split(",").map((s) => s.trim()).filter(Boolean), condicao: $("#aCondicao").value.trim(), doutores: $("#aDoutores").value.split(",").map((s) => s.trim()).filter(Boolean) });
       $("#ajStatus").textContent = "✓ Salvo"; render();
     } catch (e) { $("#ajStatus").textContent = "Erro: " + e.message; }
   });
@@ -961,7 +966,9 @@
     const t = b.dataset.t; ls.set("alinha.tema", t); aplicarTema(t);
   });
   function aplicarTema(t) {
-    if (t === "auto") document.documentElement.removeAttribute("data-theme"); else document.documentElement.setAttribute("data-theme", t);
+    const H = document.documentElement, claro = ["light", "perola"].includes(t), paleta = ["esmeralda", "perola"].includes(t) ? t : "";
+    if (claro) H.setAttribute("data-theme", "light"); else H.removeAttribute("data-theme");
+    if (paleta) H.setAttribute("data-paleta", paleta); else H.removeAttribute("data-paleta");
     $$("#tema button").forEach((x) => x.classList.toggle("on", x.dataset.t === t));
   }
   async function trocarExemplos(carregar) {
@@ -1036,9 +1043,9 @@
       let d; try { d = await api("GET", "api/whatsapp/conversas" + (WA.ver != null ? "?ver=" + WA.ver : "")); } catch (e) { return false; }
       if (d.mudou === false) return false; // nada novo desde a última busca
       WA.ver = d.ver; WA.conversas = d.conversas || [];
-      WA.conversas.forEach((c) => { WA.info[c.lead] = Object.assign({ nome: c.nome, unidade: c.unidade }, WA.info[c.lead] || {}); });
+      WA.conversas.forEach((c) => { WA.info[c.lead] = Object.assign({ nome: c.nome, unidade: c.unidade }, WA.info[c.lead] || {}); if (c.foto) WA.info[c.lead].foto = c.foto; });
     } else {
-      if (!WA.demo) { WA.demo = DEMO.whatsapp(); WA.demo.forEach((c) => { WA.msgs[c.lead] = c.lista.slice(); WA.info[c.lead] = { nome: c.nome, telefone: c.telefone, unidade: c.unidade, origem: c.origem }; recalcularTemp(c.lead); }); }
+      if (!WA.demo) { WA.demo = DEMO.whatsapp(); WA.demo.forEach((c) => { WA.msgs[c.lead] = c.lista.slice(); WA.info[c.lead] = { nome: c.nome, telefone: c.telefone, unidade: c.unidade, foto: c.foto, origem: c.origem }; recalcularTemp(c.lead); }); }
       WA.conversas = WA.demo.map((c) => { const l = WA.msgs[c.lead], u = l[l.length - 1]; return { lead: c.lead, nome: c.nome, unidade: c.unidade, ultima: u.texto, autor: u.autor, ts: u.ts }; }).sort((a, b) => (a.ts < b.ts ? 1 : -1));
     }
     badgeWA(); return true;
@@ -1171,7 +1178,7 @@
     renderAssuntosFiltro();
     const lista = WA.conversas.filter((c) => { if (!WA.filtro) return true; const msgs = WA.msgs[c.lead]; return (msgs ? assuntosDe(msgs) : (c.assuntos || [])).includes(WA.filtro); });
     $("#waLista").innerHTML = lista.length ? lista.map((c) => { const i = WA.info[c.lead] || {}; const msgs = WA.msgs[c.lead]; const ass = (msgs ? assuntosDe(msgs) : (c.assuntos || [])).slice(0, 3);
-      return `<button data-wa="${esc(c.lead)}" class="${c.lead === WA.sel ? "on" : ""}"><div class="ava">${esc(iniciais(i.nome || c.nome || "?"))}</div><div class="t"><b>${esc(i.nome || c.nome || "Lead " + c.lead)}${naoLida(c) ? '<span class="nova" title="nova mensagem"></span>' : ""}</b><span class="u">${c.autor === "clinica" ? "Você: " : ""}${esc(c.ultima)}</span>${ass.length ? `<span class="ass">${ass.map((a) => `<span>${esc(ASS_NOME[a])}</span>`).join("")}</span>` : ""}</div><span class="h">${c.ts ? hora(c.ts) : ""}</span></button>`; }).join("")
+      return `<button data-wa="${esc(c.lead)}" class="${c.lead === WA.sel ? "on" : ""}">${avaHTML(i.nome || c.nome, i.foto || c.foto)}<div class="t"><b>${esc(i.nome || c.nome || "Lead " + c.lead)}${naoLida(c) ? '<span class="nova" title="nova mensagem"></span>' : ""}</b><span class="u">${c.autor === "clinica" ? "Você: " : ""}${esc(c.ultima)}</span>${ass.length ? `<span class="ass">${ass.map((a) => `<span>${esc(ASS_NOME[a])}</span>`).join("")}</span>` : ""}</div><span class="h">${c.ts ? hora(c.ts) : ""}</span></button>`; }).join("")
       : `<div class="vazio">${WA.filtro ? "Nenhuma conversa com esse assunto." : PLAT ? "Nenhuma conversa ainda. Conecte o celular (Ajustes) ou configure o webhook do Kommo e as mensagens aparecem aqui." : "Sem conversas."}</div>`;
     renderChat();
   }
@@ -1187,7 +1194,7 @@
     const rasc = WA.rascunho[lead] || "";
     const wa = linkWA(i, rasc);
     const podeEnviar = (doCelular && pode("enviar_whatsapp")) || !PLAT; // celular conectado envia direto; na demonstração simula
-    el.innerHTML = `<div class="card wahead"><button class="btn sm ghost voltar" id="waVoltar">← Conversas</button><div class="ava">${esc(iniciais(i.nome || "?"))}</div>
+    el.innerHTML = `<div class="card wahead"><button class="btn sm ghost voltar" id="waVoltar">← Conversas</button>${avaHTML(i.nome, i.foto)}
         <div class="grow"><b style="font-size:17px">${esc(i.nome || "Lead " + lead)}</b><div class="small dim">${esc([i.unidade, i.telefone, i.origem].filter(Boolean).join(" · ") || "lead " + lead)}</div></div>
         <span class="minitermo" title="Prontidão para o fechamento">🌡 <i><b style="width:${t}%"></b></i>${t}%</span><span class="pill ${t >= 70 ? "bad" : t >= 40 ? "warn" : ""}">${nivel}</span>
         <div class="row" style="width:100%">${doCelular ? `<span class="pill acc">📱 Celular conectado</span>` : hum ? `<span class="pill acc">✋ Atendimento humano · IA pausada</span><button class="btn sm" data-waact="devolver">🤖 Devolver para a IA</button>` : `<button class="btn sm" data-waact="assumir">✋ Assumir atendimento</button>`}
@@ -1195,12 +1202,14 @@
           const e0 = etapaDe(px), op = (g, t) => `<optgroup label="${t}">${ETAPAS.filter((e) => e.grupo === g).map((e) => `<option value="${e.id}"${e.id === e0 ? " selected" : ""}>${esc(e.nome)}</option>`).join("")}</optgroup>`;
           return `<label class="small dim" for="waCrm">CRM</label><select class="in crmsel" id="waCrm" data-crmsel="${px.id}" aria-label="Etapa no CRM">${op("lead", "Funil Lead")}${op("cliente", "Funil Cliente")}</select><button class="btn sm" data-waact="followup">Ficha</button>`; })()}${kommoLink ? `<a class="btn sm" href="${esc(kommoLink)}" target="_blank" rel="noopener">Abrir no Kommo</a>` : ""}</div></div>
       <div class="thread" id="waThread">${msgs.map((m) => `<div class="bolha ${m.autor === "cliente" ? "cli" : "cl"}${m._nova ? " chegou" : ""}">${esc(m.texto)}<span class="m">${m.autor === "cliente" ? "Paciente" : m.ia ? "🤖 IA de atendimento" : "Clínica"} · ${hora(m.ts)}</span></div>`).join("") || '<p class="dim">Sem mensagens.</p>'}</div>
-      <div class="composer"><textarea id="waTexto" rows="2" aria-label="Escreva a mensagem" placeholder="Escreva uma mensagem…">${esc(rasc)}</textarea>
+      <div class="wa-avisos hide" id="waAvisos" aria-live="polite"></div>
+      <div class="composer"><textarea id="waTexto" rows="2" spellcheck="true" lang="pt-BR" aria-label="Escreva a mensagem" placeholder="Escreva uma mensagem…">${esc(rasc)}</textarea>
         ${podeEnviar ? `<button class="btn pri" data-waact="enviar" title="${doCelular ? "Enviar pelo celular conectado" : "Enviar"}">➤ Enviar</button>` : `<button class="btn pri" data-waact="copiar">${kommoLink ? "Copiar e abrir no Kommo" : "Copiar"}</button>`}
         ${wa ? `<a class="btn" id="waLink" href="${esc(wa)}" target="_blank" rel="noopener" title="Abrir no WhatsApp">WhatsApp</a>` : ""}</div>`;
     msgs.forEach((m) => delete m._nova);
     const th = $("#waThread"); th.scrollTop = th.scrollHeight;
     if (foco) { const ta = $("#waTexto"); ta.focus(); try { ta.setSelectionRange(foco[0], foco[1]); } catch (e) { /* */ } }
+    avisosComposer();
     renderSide();
   }
   function renderSide() {
@@ -1267,7 +1276,7 @@
   $("#waAssuntos").addEventListener("click", (e) => { const b = e.target.closest("[data-ass]"); if (!b) return; WA.filtro = b.dataset.ass; renderWA(); });
   $("#wa").addEventListener("input", (e) => {
     if (!WA.sel) return;
-    if (e.target.id === "waTexto") { WA.rascunho[WA.sel] = e.target.value; const a = $("#waLink"); if (a) a.href = linkWA(WA.info[WA.sel] || {}, e.target.value); }
+    if (e.target.id === "waTexto") { autoCorrigir(e.target, e); avisosComposer(); WA.rascunho[WA.sel] = e.target.value; const a = $("#waLink"); if (a) a.href = linkWA(WA.info[WA.sel] || {}, e.target.value); }
     if (e.target.id === "waSug" && WA.sug[WA.sel]) WA.sug[WA.sel].mensagem = e.target.value;
   });
   $("#wa").addEventListener("change", async (e) => {
@@ -1288,12 +1297,16 @@
       const M = metodoConversa(WA.msgs[lead] || []); if (M.q) usarNoChat(lead, preencherBib(M.q, lead));
     } else if (act === "copiar") {
       const txt = $("#waTexto").value.trim() || ($("#waSug") || {}).value || "";
+      const negC = negativasNoTexto(txt);
+      if (negC.length && b.dataset.conf !== "1") { b.dataset.conf = "1"; toast(`Evite: ${negC.map((x) => x.p).join(", ")}. Troque ou toque de novo para copiar assim.`); setTimeout(() => { b.dataset.conf = ""; }, 6000); return; }
       try { await navigator.clipboard.writeText(txt); toast("Mensagem copiada"); } catch (err) { $("#waTexto").select(); toast("Selecionado: use Ctrl+C para copiar"); }
       if (PLAT && PLAT.kommoUrl && !lead.startsWith("tel-")) window.open(`${PLAT.kommoUrl}/leads/detail/${encodeURIComponent(lead)}`, "_blank", "noopener");
     } else if (act === "modelos") {
       abrirModelos(Object.assign({}, i, { nome: i.nome }), (txt) => { WA.sug[lead] = Object.assign({}, WA.sug[lead] || {}, { mensagem: txt, rotulo: "Modelo", orientacao: "Modelo da biblioteca: revise e envie.", fonte: "roteiro" }); renderSide(); });
     } else if (act === "enviar") {
       const txt = $("#waTexto").value.trim(); if (!txt) { toast("Escreva a mensagem ou use a sugestão ao lado"); return; }
+      const neg = negativasNoTexto(txt);
+      if (neg.length && b.dataset.conf !== "1") { b.dataset.conf = "1"; avisosComposer(); toast(`Evite: ${neg.map((x) => x.p).join(", ")}. Troque ou toque em Enviar de novo para mandar assim.`); setTimeout(() => { b.dataset.conf = ""; }, 6000); return; }
       b.disabled = true; b.textContent = "Enviando…";
       try {
         if (PLAT) { const d = await api("POST", "api/whatsapp/enviar", { lead, texto: txt }); WA.rascunho[lead] = ""; receber(lead, [{ id: d.id, ts: new Date().toISOString(), autor: "clinica", texto: txt }]); toast("Mensagem enviada pelo celular ✓"); }
@@ -1312,7 +1325,7 @@
       const objs = [...new Set(cli.flatMap((m) => BIB.objecoes.filter((o) => casa(m.texto, o.gatilhos)).map((o) => o.id)))];
       const A = analiseWA(lead);
       p = { id: novoId(), leadId: lead, nome: i.nome || "Lead " + lead, telefone: i.telefone || "", unidade: i.unidade || "", origem: i.origem === "celular" || lead.startsWith("tel-") ? "WhatsApp (celular)" : i.origem || "WhatsApp (Kommo)", status: "lead", etapa: "contato", entradaEm: (cli[0] || {}).ts || new Date().toISOString(),
-        tratamento: A.tratamento || "", interesse: A.tratamento || "", disc: A.disc.n ? A.disc : undefined, assuntos: A.assuntos,
+        tratamento: A.tratamento || "", interesse: A.tratamento || "", disc: A.disc.n ? A.disc : undefined, assuntos: A.assuntos, crc: eu() || "", foto: i.foto || undefined,
         responsavel: (AJ.equipe || [])[0] || "", profissional: (AJ.equipe || [])[0] || "", objecoes: objs, palavras: cli.slice(-3).map((m) => m.texto.slice(0, 90)), oQueTravou: objs[0] ? OBJ_NOME[objs[0]] : "", prontidao: WA.temp[lead], toques: {} };
       await Store.salvar(p); toast("Adicionado ao CRM · Em contato"); render();
     }
@@ -1395,7 +1408,7 @@
     const el = $("#permTabela"); if (!el) return;
     const P = Object.assign({}, PERM_PADRAO, AJ.permissoes || {});
     const linha = (chave, nome, tipo) => `<tr><td>${esc(nome)}</td><td class="c">✓</td>${["operacional", "crc"].map((r) => `<td class="c"><input type="checkbox" aria-label="${esc(nome)} · ${PAPEL_NOME[r]}" data-perm="${r}|${tipo}|${chave}"${(P[r] && P[r][tipo] || []).includes(chave) ? " checked" : ""}></td>`).join("")}</tr>`;
-    el.innerHTML = `<thead><tr><th>Tela ou ação</th><th class="c">Administrador</th><th class="c">Operacional</th><th class="c">CRC</th></tr></thead><tbody>
+    el.innerHTML = `<thead><tr><th>Tela ou ação</th><th class="c">Admin</th><th class="c">Operacional</th><th class="c">CRC</th></tr></thead><tbody>
       ${TELAS.map(([k, n]) => linha(k, n, "telas")).join("")}${ACOES.map(([k, n]) => linha(k, n, "acoes")).join("")}
       <tr><td>Ajustes da clínica, equipe, domínio, conectar celular, apagar dados</td><td class="c">✓</td><td class="c dim">—</td><td class="c dim">—</td></tr></tbody>`;
     $("#aLeadsAuto").checked = AJ.leadsAutomaticos !== false;
@@ -1453,51 +1466,105 @@
   const COM = { mes: new Date().toISOString().slice(0, 7), unidade: "", busca: "", abertas: {} };
   const noMes = (iso, mes) => !!iso && String(new Date(iso).toISOString()).slice(0, 7) === mes;
   const pct = (a, b) => (b ? Math.round((a / b) * 100) : 0);
-  function numerosComercial(mes, unidade) {
-    const base = PAC.filter((p) => !unidade || p.unidade === unidade);
+  function numerosComercial(mes, unidade, crc) {
+    const base = PAC.filter((p) => (!unidade || p.unidade === unidade) && (crc == null || (p.crc || "") === crc));
     const coorte = base.filter((p) => noMes(entrouEm(p), mes)); // leads que entraram no mês
-    const c = { entraram: coorte.length, agendaram: 0, compareceram: 0, faltaram: 0, fecharam: 0, naoFecharam: 0, emFollowup: 0, aguardando: 0, perdidos: 0, valorFechado: 0, valorFollowup: 0 };
+    const L = { entraram: coorte, agendaram: [], compareceram: [], faltaram: [], fecharam: [], naoFecharam: [], emFollowup: [], aguardando: [], perdidos: [] };
     coorte.forEach((p) => {
       const e = etapaDe(p);
-      if (ehCliente(p) || ["agendado", "faltou"].includes(e) || p.agendadoEm) c.agendaram++;
-      if (ehCliente(p)) c.compareceram++;
-      if (e === "faltou") c.faltaram++;
-      if (e === "perdido") c.perdidos++;
-      if (e === "fechado") { c.fecharam++; c.valorFechado += Number(p.valorFechado || 0); }
-      if (e === "nao_fechou") c.naoFecharam++;
-      if (e === "orcamento") { c.emFollowup++; c.valorFollowup += Number(p.valorApresentado || 0); }
-      if (["novo", "contato", "agendado"].includes(e)) c.aguardando++;
+      if (ehCliente(p) || ["agendado", "faltou"].includes(e) || p.agendadoEm) L.agendaram.push(p);
+      if (ehCliente(p)) L.compareceram.push(p);
+      if (e === "faltou") L.faltaram.push(p);
+      if (e === "perdido") L.perdidos.push(p);
+      if (e === "fechado") L.fecharam.push(p);
+      if (e === "nao_fechou") L.naoFecharam.push(p);
+      if (e === "orcamento") L.emFollowup.push(p);
+      if (["novo", "contato", "agendado"].includes(e)) L.aguardando.push(p);
     });
+    const c = Object.fromEntries(Object.entries(L).map(([k, v]) => [k, v.length]));
+    c.valorFechado = L.fecharam.reduce((t, p) => t + Number(p.valorFechado || 0), 0);
+    c.valorFollowup = L.emFollowup.reduce((t, p) => t + Number(p.valorApresentado || 0), 0);
     // orçamentos (clientes que compareceram no mês) e o follow-up deles
     const orc = base.filter((p) => ehCliente(p) && noMes(p.compareceuEm || p.consultaEm, mes));
-    const o = { total: orc.length, fecharam: orc.filter((p) => p.status === "fechado").length, naoFecharam: orc.filter((p) => p.status === "perdido").length, emFollowup: orc.filter((p) => p.status === "aberto").length,
-      apresentado: orc.reduce((t, p) => t + Number(p.valorApresentado || 0), 0), fechado: orc.filter((p) => p.status === "fechado").reduce((t, p) => t + Number(p.valorFechado || 0), 0),
-      recuperados: orc.filter((p) => p.status === "fechado" && p.recuperado).length };
-    return { c, o };
+    const LO = { orcTotal: orc, orcFecharam: orc.filter((p) => p.status === "fechado"), orcNao: orc.filter((p) => p.status === "perdido"), orcFollow: orc.filter((p) => p.status === "aberto"), orcRecuperados: orc.filter((p) => p.status === "fechado" && p.recuperado) };
+    const o = { total: orc.length, fecharam: LO.orcFecharam.length, naoFecharam: LO.orcNao.length, emFollowup: LO.orcFollow.length,
+      apresentado: orc.reduce((t, p) => t + Number(p.valorApresentado || 0), 0), fechado: LO.orcFecharam.reduce((t, p) => t + Number(p.valorFechado || 0), 0), recuperados: LO.orcRecuperados.length };
+    return { c, o, listas: Object.assign({}, L, LO) };
+  }
+  // lista de pacientes (ao tocar num número): sem precisar filtrar
+  function abrirListaPacientes(titulo, lista, sub) {
+    const linha = (p) => { const e = etapaDe(p), [dt, rot] = dataDoCartao(p, e), tel = telIntl(p.telefone);
+      return `<div class="it" data-pid="${p.id}"><span class="tdot t-${tempDe(p)}" aria-hidden="true"></span><span class="grow"><b>${esc(p.nome)}</b><span class="tiny dim"> · ${esc(ETAPA[e].nome)}${p.unidade ? " · " + esc(p.unidade) : ""}${p.crc ? " · CRC " + esc(p.crc) : ""} · ${esc(rot.toLowerCase())} ${dt ? dataBR(dt) : "—"}</span></span>
+        ${tel ? `<a class="btn sm" href="https://wa.me/${tel}" target="_blank" rel="noopener">WhatsApp</a>` : ""}<button class="btn sm" data-lfich="1">Ficha</button></div>`; };
+    $("#drawerHost").innerHTML = `<div class="veil" id="veil"><div class="drawer" role="dialog" aria-label="${esc(titulo)}">
+      <div class="row"><div class="grow"><h2 style="font-size:21px">${esc(titulo)}</h2><div class="small dim">${lista.length} paciente${lista.length === 1 ? "" : "s"}${sub ? " · " + esc(sub) : ""}</div></div><button class="btn sm ghost" id="btnFechar" aria-label="Fechar">✕</button></div>
+      <div class="card"><div class="lista-int" id="lpLista">${lista.length ? lista.slice().sort((a, b) => a.nome.localeCompare(b.nome)).map(linha).join("") : `<span class="small dim">Ninguém aqui.</span>`}</div></div></div></div>`;
+    $("#veil").addEventListener("click", (e) => { if (e.target.id === "veil") fecharGaveta(); });
+    $("#btnFechar").onclick = fecharGaveta;
+    $("#lpLista").addEventListener("click", (e) => { const it = e.target.closest("[data-pid]"); if (!it || e.target.closest("a")) return; const p = PAC.find((x) => x.id === it.dataset.pid); if (p) (ehCliente(p) ? abrirGaveta : abrirCard)(p); });
+  }
+  const NOME_LISTA = { entraram: "Leads que entraram", agendaram: "Agendaram", compareceram: "Compareceram (viraram clientes)", faltaram: "Faltaram à consulta", fecharam: "Fecharam", naoFecharam: "Não fecharam", emFollowup: "Em follow-up de orçamento", aguardando: "Ainda no Funil Lead", perdidos: "Leads perdidos",
+    orcTotal: "Orçamentos do mês", orcFecharam: "Orçamentos fechados", orcNao: "Orçamentos não fechados", orcFollow: "Orçamentos em follow-up", orcRecuperados: "Recuperados pelo follow-up" };
+  let LISTAS_COM = {};
+  function kpisClic(sel, linhas) {
+    $(sel).innerHTML = linhas.map(([rot, val, sub, hl, chave]) => !chave ? `<div class="kpi${hl ? " hl" : ""}"><div class="label">${rot}</div><b class="num">${val}</b><span>${sub}</span></div>` : `<button class="kpi click${hl ? " hl" : ""}" data-lista="${chave}" aria-label="${esc(rot)}: ${esc(String(val))}. Ver os pacientes"><div class="label">${rot}</div><b class="num">${val}</b><span>${sub}</span><em class="go">Ver nomes →</em></button>`).join("");
   }
   function renderComercial() {
     if (!$("#comMes").value) $("#comMes").value = COM.mes;
     $$("#comUnidade button").forEach((b) => b.classList.toggle("on", b.dataset.u === COM.unidade));
-    const { c, o } = numerosComercial(COM.mes, COM.unidade);
+    const { c, o, listas } = numerosComercial(COM.mes, COM.unidade);
+    LISTAS_COM = listas;
     const nomeMes = new Date(COM.mes + "-15").toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
-    $("#comTitulo").textContent = `Leads que entraram em ${nomeMes}`;
-    const MT = AJ.metas || {};
-    $("#comMeta").textContent = MT.fechamentos || MT.leads ? [MT.leads ? `meta de leads: ${c.entraram}/${MT.leads}` : "", MT.comparecimentos ? `comparecimentos: ${c.compareceram}/${MT.comparecimentos}` : "", MT.fechamentos ? `fechamentos: ${c.fecharam}/${MT.fechamentos}` : ""].filter(Boolean).join(" · ") : "de quem entrou no mês, até onde cada um chegou";
-    const passos = [["Entraram", c.entraram, "leads no mês", ""], ["Agendaram", c.agendaram, `${pct(c.agendaram, c.entraram)}% dos leads`, "agendamento"], ["Compareceram", c.compareceram, `${pct(c.compareceram, c.agendaram)}% dos agendados (clientes)`, "comparecimento"], ["Fecharam", c.fecharam, `${pct(c.fecharam, c.compareceram)}% dos que compareceram`, "fechamento"]];
-    const mx = Math.max(1, c.entraram);
-    $("#comFunil").innerHTML = passos.map(([n, v, s]) => `<div class="fl"><div class="nome">${n}</div><div class="trilho"><b style="width:${Math.max(v ? 2 : 0, (v / mx) * 100)}%" data-dica="${esc(`${n}: ${v} · ${s}`)}"></b></div><div class="val"><strong class="num">${v}</strong><span>${esc(s)}</span></div></div>`).join("");
-    kpis("#comKpis", [
-      ["Faltaram", c.faltaram, c.agendaram ? `${pct(c.faltaram, c.agendaram)}% dos agendados` : "—"],
-      ["Não fecharam", c.naoFecharam, c.compareceram ? `${pct(c.naoFecharam, c.compareceram)}% dos clientes` : "—"],
-      ["Em follow-up de orçamento", c.emFollowup, "clientes decidindo"],
-      ["Ainda no Funil Lead", c.aguardando, `novos, em contato ou agendados${c.perdidos ? ` · ${c.perdidos} perdido${c.perdidos > 1 ? "s" : ""}` : ""}`]
+    $("#comTitulo").textContent = `Ampulheta de ${nomeMes}`;
+    // ampulheta: em cima o Funil Lead (estreita até quem comparece), embaixo o Funil Cliente (alarga até quem fecha)
+    const cam = (k, n, v, sub, lado, larg) => `<button class="camada-a ${lado}" style="--w:${larg}%" data-lista="${k}" aria-label="${esc(n)}: ${v}. Ver os pacientes" data-dica="${esc(`${n}: ${v} · ${sub} (toque para ver os nomes)`)}"><span class="num">${v}</span><small>${esc(n)}</small><em>${esc(sub)}</em></button>`;
+    $("#ampulheta").innerHTML = `<div class="amp-rot">Funil Lead</div>
+      ${cam("entraram", "Leads que entraram", c.entraram, "100%", "topo", 100)}
+      ${cam("agendaram", "Agendaram", c.agendaram, `${pct(c.agendaram, c.entraram)}% dos leads`, "topo", 78)}
+      ${cam("compareceram", "Compareceram", c.compareceram, `${pct(c.compareceram, c.agendaram)}% dos agendados`, "topo pescoco", 56)}
+      <div class="amp-gargalo" aria-hidden="true">viraram clientes</div>
+      ${cam("emFollowup", "Em follow-up", c.emFollowup, brl(c.valorFollowup), "base", 56)}
+      ${cam("fecharam", "Fecharam", c.fecharam, `${pct(c.fecharam, c.compareceram)}% de quem compareceu · ${brl(c.valorFechado)}`, "base", 78)}
+      <div class="amp-rot">Funil Cliente</div>`;
+    $("#ampLados").innerHTML = [["faltaram", "Faltaram", c.faltaram, "bad"], ["perdidos", "Perdidos", c.perdidos, "bad"], ["aguardando", "Ainda no Funil Lead", c.aguardando, ""], ["naoFecharam", "Não fecharam", c.naoFecharam, "bad"]]
+      .map(([k, n, v, cls]) => `<button class="lado ${cls}" data-lista="${k}" data-dica="${esc(n)}: toque para ver os nomes"><b class="num">${v}</b> ${esc(n)}</button>`).join("");
+    kpisClic("#comOrc", [
+      ["Orçamentos no mês", o.total, brl(o.apresentado) + " apresentados", false, "orcTotal"],
+      ["Fecharam", o.fecharam, `${pct(o.fecharam, o.total)}% · ${brl(o.fechado)}`, true, "orcFecharam"],
+      ["Não fecharam", o.naoFecharam, `${pct(o.naoFecharam, o.total)}% dos orçamentos`, false, "orcNao"],
+      ["Em follow-up", o.emFollowup, `${o.recuperados} recuperado${o.recuperados === 1 ? "" : "s"}`, false, "orcFollow"]
     ]);
-    kpis("#comOrc", [
-      ["Orçamentos no mês", o.total, brl(o.apresentado) + " apresentados"],
-      ["Fecharam", o.fecharam, `${pct(o.fecharam, o.total)}% · ${brl(o.fechado)}`, true],
-      ["Não fecharam", o.naoFecharam, `${pct(o.naoFecharam, o.total)}% dos orçamentos`],
-      ["Em follow-up", o.emFollowup, `${o.recuperados} recuperado${o.recuperados === 1 ? "" : "s"} pelo follow-up`]
-    ]);
+    const MT = AJ.metas || {}, barra = (n, v, m) => m ? `<div class="meta-l"><span>${n}</span><i><b style="width:${Math.min(100, pct(v, m))}%"></b></i><span class="num">${typeof v === "number" && n === "Faturamento" ? brl(v) : v} / ${n === "Faturamento" ? brl(m) : m}</span></div>` : "";
+    $("#comMetas").innerHTML = (barra("Leads", c.entraram, MT.leads) + barra("Comparecimentos", c.compareceram, MT.comparecimentos) + barra("Fechamentos", c.fecharam, MT.fechamentos) + barra("Faturamento", c.valorFechado, MT.faturamento)) || `<span class="small dim">Cadastre as metas em Ajustes › Clínica e metas.</span>`;
+    renderEquipe();
+  }
+  $("#v-comercial").addEventListener("click", (e) => {
+    const b = e.target.closest("[data-lista]"); if (!b) return;
+    const k = b.dataset.lista, crc = b.dataset.crc;
+    const lista = crc != null ? numerosComercial(COM.mes, COM.unidade, crc).listas[k] : LISTAS_COM[k];
+    if (lista) abrirListaPacientes((NOME_LISTA[k] || k) + (crc != null ? ` · ${crc || "sem CRC"}` : ""), lista, new Date(COM.mes + "-15").toLocaleDateString("pt-BR", { month: "long", year: "numeric" }));
+  });
+  // desempenho por CRC (metas individuais e evolução)
+  const crcsCadastradas = () => (AJ.crcs || []).filter((x) => x && x.nome);
+  function renderEquipe() {
+    const el = $("#equipeTabela"); if (!el) return;
+    const nomes = crcsCadastradas().map((x) => x.nome);
+    PAC.forEach((p) => { if (p.crc && !nomes.includes(p.crc)) nomes.push(p.crc); });
+    const meses = [2, 1, 0].map((k) => { const d = new Date(COM.mes + "-15"); d.setMonth(d.getMonth() - k); return d.toISOString().slice(0, 7); });
+    const lin = (nome) => {
+      const { c } = numerosComercial(COM.mes, COM.unidade, nome), cad = crcsCadastradas().find((x) => x.nome === nome), M = (cad && cad.metas) || {};
+      const evo = meses.map((m) => numerosComercial(m, COM.unidade, nome).c.fecharam);
+      const cel = (k, v, meta, moeda) => `<td class="n"><button class="lk" data-lista="${k}" data-crc="${esc(nome)}">${moeda ? brl(v) : v}</button>${meta ? `<div class="mini-meta" title="Meta: ${moeda ? brl(meta) : meta}"><b style="width:${Math.min(100, pct(v, meta))}%"></b></div><span class="tiny dim">${pct(v, meta)}% da meta</span>` : ""}</td>`;
+      const idx = [["agendaram", M.agendamentos], ["compareceram", M.comparecimentos], ["fecharam", M.fechamentos]].filter(([, m]) => m).map(([k, m]) => Math.min(150, pct(c[k], m)));
+      const indice = idx.length ? Math.round(idx.reduce((a, b) => a + b, 0) / idx.length) : null;
+      return `<tr><td><b>${esc(nome || "Sem CRC")}</b></td>${cel("entraram", c.entraram)}${cel("agendaram", c.agendaram, M.agendamentos)}${cel("compareceram", c.compareceram, M.comparecimentos)}${cel("fecharam", c.fecharam, M.fechamentos)}<td class="n">${brl(c.valorFechado)}${M.faturamento ? `<div class="mini-meta"><b style="width:${Math.min(100, pct(c.valorFechado, M.faturamento))}%"></b></div>` : ""}</td>
+        <td class="n">${pct(c.fecharam, c.compareceram)}%</td><td class="n">${indice == null ? "—" : `<b class="indice ${indice >= 100 ? "ok" : indice >= 70 ? "med" : "baixo"}">${indice}%</b>`}</td>
+        <td class="n"><span class="evo" title="Fechamentos nos últimos 3 meses">${evo.map((v, i) => `<i style="height:${6 + Math.min(22, v * 5)}px" data-dica="${esc(new Date(meses[i] + "-15").toLocaleDateString("pt-BR", { month: "short" }))}: ${v} fechamento${v === 1 ? "" : "s"}"></i>`).join("")}</span></td></tr>`;
+    };
+    const semCrc = PAC.some((p) => !p.crc && noMes(entrouEm(p), COM.mes));
+    el.innerHTML = nomes.length || semCrc ? `<thead><tr><th>CRC</th><th class="n">Leads atendidos</th><th class="n">Agendaram</th><th class="n">Compareceram</th><th class="n">Fecharam</th><th class="n">Faturamento</th><th class="n">Conversão</th><th class="n">Índice da meta</th><th class="n">Evolução</th></tr></thead><tbody>${nomes.map(lin).join("")}${semCrc ? lin("") : ""}</tbody>`
+      : `<tbody><tr><td class="small dim">Cadastre as CRCs e as metas em Ajustes › Clínica e metas e escolha a CRC de cada lead.</td></tr></tbody>`;
+    rotularTabela(el);
   }
   const CRMS = { unidade: "" };
   // termômetro do cliente (bolinha colorida): manual ou pela prontidão registrada
@@ -1667,16 +1734,18 @@
   function abrirCard(p) {
     const novo = !p;
     if (p && ehCliente(p)) { abrirGavetaCRM(p); return; }
-    p = p || { id: novoId(), status: "lead", etapa: "novo", entradaEm: new Date().toISOString(), origem: "Anúncio Meta", unidade: COM.unidade || "", toques: {} };
+    p = p || { id: novoId(), status: "lead", etapa: "novo", entradaEm: new Date().toISOString(), origem: "Anúncio Meta", unidade: COM.unidade || "", crc: eu() || "", toques: {} };
     const sel = (id, ops, atual) => `<select class="in" id="${id}">${ops.map((o) => `<option${o === atual ? " selected" : ""}>${esc(o)}</option>`).join("")}</select>`;
     const trat = tratDoPaciente(p) === "Não informado" ? "" : tratDoPaciente(p);
     $("#drawerHost").innerHTML = `<div class="veil" id="veil"><div class="drawer" role="dialog" aria-label="${novo ? "Novo lead" : esc(p.nome)}">
       <div class="row"><div class="ava">${esc(iniciais(p.nome || "+"))}</div><div class="grow"><h2 style="font-size:22px">${novo ? "Novo lead" : esc(p.nome)}</h2><div class="small dim">${novo ? "Funil de leads" : `${ETAPA[etapaDe(p)].nome} · entrou ${fmtData(entrouEm(p))}${p.faltas ? ` · faltou ${p.faltas}x` : ""}`}</div></div><button class="btn sm ghost" id="btnFechar" aria-label="Fechar">✕</button></div>
+      ${novo ? "" : decisorResumo(p)}
       <div class="card stack">
         <div><label class="f" for="lNome">Nome</label><input class="in" id="lNome" value="${esc(p.nome || "")}"></div>
         <div class="duo"><div><label class="f" for="lTel">WhatsApp</label><input class="in" id="lTel" inputmode="tel" value="${esc(p.telefone || "")}"></div>
           <div><label class="f" for="lEmail">E-mail</label><input class="in" id="lEmail" type="email" inputmode="email" value="${esc(p.email || "")}"></div></div>
         <div><label class="f" for="lUni">Unidade</label>${sel("lUni", ["", "Caruaru", "Recife"], p.unidade || "")}</div>
+        ${camposContatoHTML(p, "l")}
         <div class="duo"><div><label class="f" for="lTrat">Tratamento de interesse</label>${sel("lTrat", [""].concat(TRAT.map((t) => t.nome)), trat)}</div>
           <div><label class="f" for="lOrig">Origem</label>${sel("lOrig", ["Anúncio Meta", "Instagram orgânico", "Indicação", "Google", "WhatsApp (Kommo)", "WhatsApp (celular)", "Passou na frente", "Outro"].concat(p.origem && !["Anúncio Meta", "Instagram orgânico", "Indicação", "Google", "WhatsApp (Kommo)", "WhatsApp (celular)", "Passou na frente", "Outro"].includes(p.origem) ? [p.origem] : []), p.origem || "")}</div></div>
         <div class="duo"><div><label class="f" for="lEtapa">Etapa</label>${sel("lEtapa", ETAPAS.filter((e) => e.grupo === "lead").map((e) => e.nome), ETAPA[etapaDe(p)].nome)}</div>
@@ -1691,8 +1760,9 @@
     </div></div>`;
     $("#veil").addEventListener("click", (e) => { if (e.target.id === "veil") fecharGaveta(); });
     $("#btnFechar").onclick = fecharGaveta;
+    ligarContato(p, "l");
     const ler = () => {
-      p.nome = $("#lNome").value.trim(); p.telefone = $("#lTel").value.trim(); p.email = $("#lEmail").value.trim(); p.unidade = $("#lUni").value; p.origem = $("#lOrig").value; p.obs = $("#lObs").value.trim();
+      p.nome = $("#lNome").value.trim(); p.telefone = $("#lTel").value.trim(); p.email = $("#lEmail").value.trim(); lerContato(p, "l"); p.unidade = $("#lUni").value; p.origem = $("#lOrig").value; p.obs = $("#lObs").value.trim();
       const t = $("#lTrat").value; p.interesse = t; p.tratamento = t;
       const ag = $("#lAgenda").value; p.agendaPara = ag ? new Date(ag + "T12:00:00").toISOString() : undefined;
       const et = ETAPAS.find((e) => e.nome === $("#lEtapa").value);
@@ -1743,7 +1813,10 @@
     return { n: s.entraram, agend: pct(s.agendaram, s.entraram), comp: pct(s.compareceram, s.agendaram), fech: pct(s.fecharam, s.compareceram), ticket: fech.length ? Math.round(fech.reduce((t, p) => t + Number(p.valorFechado), 0) / fech.length) : 0 };
   }
   function renderCampanhas() {
-    const C = CALC;
+    const r0 = taxasReais(), usaCRM = CALC.autoCRM !== false && r0.n >= 5;
+    const C = usaCRM ? Object.assign({}, CALC, { agend: r0.agend || CALC.agend, comp: r0.comp || CALC.comp, fech: r0.fech || CALC.fech, ticket: r0.ticket || CALC.ticket }) : CALC;
+    ["agend", "comp", "fech", "ticket"].forEach((k) => { const el = $("#k_" + k); if (el) { el.disabled = usaCRM; el.title = usaCRM ? "Vem do CRM automaticamente" : ""; } });
+    if ($("#kAutoCRM")) { $("#kAutoCRM").checked = CALC.autoCRM !== false; $("#kAutoInfo").textContent = usaCRM ? `Usando o CRM: ${r0.n} leads dos últimos 3 meses` : r0.n >= 5 ? "Taxas digitadas à mão" : `Poucos dados no CRM (${r0.n} leads): usando as taxas digitadas`; }
     ["invest", "dias", "cpl", "agend", "comp", "fech", "ticket", "meta"].forEach((k) => { const el = $("#k_" + k); if (el && document.activeElement !== el) el.value = C[k]; });
     $$("#kPreset button").forEach((b) => b.classList.toggle("on", b.dataset.pr === C.preset));
     ["topo", "meio", "fundo"].forEach((k, i) => { const el = $("#k_" + k); if (el && document.activeElement !== el) el.value = C.dist[i]; });
@@ -1840,7 +1913,7 @@
   document.addEventListener("click", (e) => {
     const b = e.target.closest(".abas button"); if (!b) return;
     const g = b.closest(".abas").dataset.grupo; abrirAba(g, b.dataset.aba); window.scrollTo({ top: 0 });
-    if (g === "camp") renderCampanhas(); if (g === "res") renderResultados(); if (g === "aj") { renderAjustes(); if (["api", "kommo"].includes(b.dataset.aba)) carregarIntegracoes(); } if (g === "crm") renderPipeline();
+    if (g === "camp") renderCampanhas(); if (g === "res") renderResultados(); if (g === "aj") { renderAjustes(); if (["api", "kommo"].includes(b.dataset.aba)) carregarIntegracoes(); if (b.dataset.aba === "seg") renderSeguranca(); } if (g === "com") renderComercial(); if (g === "crm") renderPipeline();
   });
   // tabela vira cartão no celular: cada célula leva o nome da coluna
   function rotularTabela(t) {
@@ -1881,15 +1954,15 @@
     const inv = CALC.real[CM.mes] != null ? CALC.real[CM.mes] : CALC.invest;
     if (document.activeElement !== $("#cmInvest")) $("#cmInvest").value = inv;
     const dos = (n) => `${pct(n, c.entraram)}% dos leads`;
-    kpis("#cmKpis", [
-      ["Leads que entraram", c.entraram, "total do mês", true],
-      ["Compareceram", c.compareceram, `${dos(c.compareceram)} · viraram clientes`],
-      ["Fecharam", c.fecharam, `${dos(c.fecharam)} · ${pct(c.fecharam, c.compareceram)}% de quem compareceu`],
-      ["Faltaram à consulta", c.faltaram, `${dos(c.faltaram)} · ${pct(c.faltaram, c.agendaram)}% dos agendados`]
+    kpisClic("#cmKpis", [
+      ["Leads que entraram", c.entraram, "total do mês", true, "entraram"],
+      ["Compareceram", c.compareceram, `${dos(c.compareceram)} · viraram clientes`, false, "compareceram"],
+      ["Fecharam", c.fecharam, `${dos(c.fecharam)} · ${pct(c.fecharam, c.compareceram)}% de quem compareceu`, false, "fecharam"],
+      ["Faltaram à consulta", c.faltaram, `${dos(c.faltaram)} · ${pct(c.faltaram, c.agendaram)}% dos agendados`, false, "faltaram"]
     ]);
-    kpis("#cmKpis2", [
-      ["Não fecharam", c.naoFecharam, `${dos(c.naoFecharam)} · ${pct(c.naoFecharam, c.compareceram)}% de quem compareceu`],
-      ["Follow-up de orçamento", c.emFollowup, `${dos(c.emFollowup)} · ${brl(c.valorFollowup)} em negociação`],
+    kpisClic("#cmKpis2", [
+      ["Não fecharam", c.naoFecharam, `${dos(c.naoFecharam)} · ${pct(c.naoFecharam, c.compareceram)}% de quem compareceu`, false, "naoFecharam"],
+      ["Follow-up de orçamento", c.emFollowup, `${dos(c.emFollowup)} · ${brl(c.valorFollowup)} em negociação`, false, "emFollowup"],
       ["Custo por lead", c.entraram ? brl(inv / c.entraram) : "—", `investido ${brl(inv)} no mês`],
       ["Custo por fechamento", c.fecharam ? brl(inv / c.fecharam) : "—", c.valorFechado ? `${brl(c.valorFechado)} fechados · retorno ${inv ? (c.valorFechado / inv).toFixed(1).replace(".", ",") + "x" : "—"}` : "sem fechamentos ainda"]
     ]);
@@ -1907,6 +1980,8 @@
       ${linha("Leads", lp, c.entraram, MT.leads)}${linha("Agendamentos", ap, c.agendaram, null)}${linha("Comparecimentos", cp, c.compareceram, MT.comparecimentos)}${linha("Fechamentos", fp, c.fecharam, MT.fechamentos)}${linha("Faturamento", fp * CALC.ticket, c.valorFechado, MT.faturamento, true)}</tbody>`;
     rotularTabela($("#cmComp"));
   }
+  $("#v-campanhas").addEventListener("click", (e) => { const b = e.target.closest("[data-lista]"); if (!b) return; const L = numerosComercial(CM.mes, CM.unidade).listas[b.dataset.lista]; if (L) abrirListaPacientes(NOME_LISTA[b.dataset.lista] || b.dataset.lista, L, new Date(CM.mes + "-15").toLocaleDateString("pt-BR", { month: "long", year: "numeric" })); });
+  $("#kAutoCRM").addEventListener("change", (e) => { CALC.autoCRM = e.target.checked; ls.set("alinha.calc", CALC); renderCampanhas(); });
   $("#cmMes").addEventListener("change", (e) => { CM.mes = e.target.value || new Date().toISOString().slice(0, 7); renderCampReal(); });
   $("#cmUnidade").addEventListener("click", (e) => { const b = e.target.closest("[data-u]"); if (b) { CM.unidade = b.dataset.u; renderCampReal(); } });
   $("#cmInvest").addEventListener("input", (e) => { CALC.real = CALC.real || {}; CALC.real[CM.mes] = Math.max(0, num(e.target.value)); ls.set("alinha.calc", CALC); renderCampReal(); });
@@ -1946,7 +2021,7 @@
   const nomeTrab = (t) => `${t.tipo}${t.dente ? " (dente " + t.dente + ")" : ""}`;
   // prontuário do paciente: cada marcação e desmarcação fica registrada com a data
   function prontuario(p, texto, data) {
-    p.prontuario = [{ em: new Date().toISOString(), data: data || null, texto, por: PLAT ? (PAPEL_NOME[papel()] || "") : "" }].concat(p.prontuario || []).slice(0, 400);
+    p.prontuario = [{ em: new Date().toISOString(), data: data || null, texto, por: eu() || (PLAT ? (PAPEL_NOME[papel()] || "") : "") }].concat(p.prontuario || []).slice(0, 400);
   }
   // situação do trabalho de laboratório (pela última fase marcada)
   function situacaoLab(t) {
@@ -1973,12 +2048,14 @@
       if (r.colocacaoHoje) it.push(`<button data-irlab="1">🦷 ${r.colocacaoHoje} consulta${r.colocacaoHoje > 1 ? "s" : ""} hoje</button>`);
       const n = r.atrasados + r.hoje + r.agendar; const c = $("#labCont"); if (c) { c.textContent = n || ""; c.className = "pill" + (r.atrasados ? " bad" : n ? " warn" : ""); c.classList.toggle("hide", !n); }
     }
+    if (pode("crm")) { const ac = altaChance().length; if (ac) it.push(`<button class="bad" data-iralerta="1" title="Pacientes com alta probabilidade de fechamento">🔥 ${ac} alta chance</button>`); }
     const lb = lembretesVencidos().length; if (lb) it.push(`<button class="warn" data-irlemb="1" title="Lembretes para hoje">🔔 ${lb} lembrete${lb > 1 ? "s" : ""} hoje</button>`);
     el.innerHTML = it.join(""); el.classList.toggle("hide", !it.length);
   }
   $("#avisosLab").addEventListener("click", (e) => {
     if (e.target.closest("[data-irlab]")) { mostrar("tratamentos"); abrirAba("trat", "lab"); renderTratamentos(); }
     if (e.target.closest("[data-irlemb]")) abrirLembretesDoDia();
+    if (e.target.closest("[data-iralerta]")) abrirAlerta();
   });
 
   const TR = { busca: "", unidade: "", pg: 0 };
@@ -1992,7 +2069,7 @@
   function cartaoTrab(p, t) {
     const F = fasesDe(t), pos = posicao(t), atual = F[pos], prox = proxima(t), s = situacaoLab(t);
     return `<div class="card trab" data-trab="${t.id}" data-pid="${p.id}">
-      <div class="row"><div class="ava">${esc(iniciais(p.nome))}</div><div class="grow"><h3>${esc(p.nome)}</h3><div class="meta">${esc(t.tipo)}${t.dente ? " · dente " + esc(t.dente) : ""}${p.unidade ? " · " + esc(p.unidade) : ""}</div></div></div>
+      <div class="row"><div class="ava">${esc(iniciais(p.nome))}</div><div class="grow"><h3>${esc(p.nome)}</h3><div class="meta">${esc(t.tipo)}${t.dente ? " · dente " + esc(t.dente) : ""}${t.dr ? " · " + esc(t.dr) : ""}${p.unidade ? " · " + esc(p.unidade) : ""}</div></div></div>
       ${s ? `<div><span class="pill ${s.cls === "late" ? "bad" : s.cls === "today" ? "warn" : "good"}">${esc(s.txt)}</span></div>` : ""}
       <div class="passos" aria-label="Fases: ${F.filter((f) => feita(t, f)).length} de ${F.length} marcadas">${bolinhas(t)}</div>
       <div class="agora">${atual ? `Agora: <b>${esc(atual.nome)}</b> <span class="dim small">· ${dataBR(t.etapas[atual.id].em)}</span>` : "<b>Nenhuma fase marcada</b>"}</div>
@@ -2115,6 +2192,7 @@
     const F = fasesDe(t), prox = proxima(t);
     $("#drawerHost").innerHTML = `<div class="veil" id="veil"><div class="drawer" role="dialog" aria-label="Linha do tempo">
       <div class="row"><div class="ava">${esc(iniciais(p.nome))}</div><div class="grow"><h2 style="font-size:21px">${esc(p.nome)}</h2><div class="small dim">${esc(nomeTrab(t))}${t.obs ? " · " + esc(t.obs) : ""}</div></div><button class="btn sm ghost" id="btnFechar" aria-label="Fechar">✕</button></div>
+      <div class="row"><label class="f" for="ltDr" style="margin:0">Doutor do tratamento</label><select class="in" id="ltDr" style="width:auto">${[""].concat(doutores()).concat(t.dr && !doutores().includes(t.dr) ? [t.dr] : []).map((d) => `<option value="${esc(d)}"${d === (t.dr || "") ? " selected" : ""}>${esc(d || "— escolha —")}</option>`).join("")}</select></div>
       <div class="card"><ol class="tl tledit">${F.map((f) => { const r = (t.etapas || {})[f.id];
         const extra = f.papel === "lab_envio" && t.lab ? `${t.lab.nome ? esc(t.lab.nome) + " · " : ""}entrega combinada ${dataBR(t.lab.entrega)}` : f.papel === "agendamento" && t.consulta ? `consulta ${dataBR(t.consulta)} ${horaBR(t.consulta)}` : f.papel === "moldagem" && t.metodo ? esc(t.metodo) : "";
         return `<li class="${r ? "ok" : prox && prox.id === f.id ? "atual" : "pend"}"><label class="row" style="gap:10px"><input type="checkbox" data-ltfase="${esc(f.id)}"${r ? " checked" : ""} aria-label="${esc(f.nome)}"><span class="grow"><span class="q">${esc(f.nome)}</span><span class="d">${extra ? extra : f.papel ? esc(PAPEIS[f.papel].split(" (")[0]) : ""}${r && r.obs ? (extra ? " · " : "") + esc(r.obs) : ""}</span></span></label>
@@ -2136,6 +2214,7 @@
       prontuario(p, `${nomeTrab(t)}: data de ${f.nome} alterada de ${dataBR(velho)} para ${dataBR(novo)}`, novo);
       await Store.salvar(p); toast("Data alterada"); render(); linhaDoTempo(p, t);
     }));
+    $("#ltDr").onchange = async (e) => { t.dr = e.target.value; prontuario(p, `${nomeTrab(t)}: tratamento com ${t.dr || "—"}`, new Date().toISOString()); await Store.salvar(p); toast("Doutor do tratamento salvo"); render(); };
     $("#ltEditar").onclick = () => editorFases(fasesDe(t), `Fases · ${nomeTrab(t)}`, async (novas) => {
       const ids = new Set(novas.map((f) => f.id)), removidas = fasesDe(t).filter((f) => !ids.has(f.id));
       t.fases = novas; const et = Object.assign({}, t.etapas); removidas.forEach((f) => delete et[f.id]); t.etapas = et;
@@ -2189,6 +2268,7 @@
         <div><label class="f" for="ntPac">Paciente</label>${pac ? `<input class="in" id="ntPac" value="${esc(pac.nome)}" disabled>` : `<input class="in" id="ntPac" list="ntPacs" placeholder="Digite o nome" autocomplete="off"><datalist id="ntPacs">${nomes.map((p) => `<option value="${esc(p.nome)}">`).join("")}</datalist>`}</div>
         <div class="duo"><div><label class="f" for="ntTipo">Procedimento</label><select class="in" id="ntTipo">${Object.keys(P).map((k) => `<option${k === tipo ? " selected" : ""}>${esc(k)}</option>`).join("")}</select></div>
           <div><label class="f" for="ntDente">Dente(s)</label><input class="in" id="ntDente" placeholder="ex.: 26 ou 11 e 21"></div></div>
+        <div><label class="f" for="ntDr">Doutor do tratamento</label><select class="in" id="ntDr">${doutores().map((d) => `<option${d === ((pac && (pac.drAvaliacao || pac.profissional)) || "") ? " selected" : ""}>${esc(d)}</option>`).join("")}</select></div>
         <div><label class="f" for="ntObs">Observações</label><input class="in" id="ntObs" placeholder="ex.: cor A2, 3 refinamentos"></div>
         <div class="row"><span class="label grow">Fases deste tratamento</span><span class="tiny dim">personalize se precisar</span></div>
         <div class="fases" id="ntFases"></div><button class="btn sm" data-fadd>+ Adicionar fase</button>
@@ -2210,8 +2290,9 @@
       fases.forEach((f, i) => { if (["consulta", "orcamento"].includes(f.id) && (i < iAprov || iAprov < 0)) etapas[f.id] = { em: consultaEm }; });
       if (!Object.keys(etapas).length && fases[0]) etapas[fases[0].id] = { em: agora };
       if ((opts.aprovado || p.status === "fechado") && iAprov >= 0) etapas[fases[iAprov].id] = { em: p.fechadoEm || agora };
-      const t = { id: "t" + Date.now().toString(36) + Math.random().toString(36).slice(2, 5), tipo, dente: $("#ntDente").value.trim(), obs: $("#ntObs").value.trim(), criadoEm: agora, fases, etapas };
+      const t = { id: "t" + Date.now().toString(36) + Math.random().toString(36).slice(2, 5), tipo, dente: $("#ntDente").value.trim(), dr: $("#ntDr").value, obs: $("#ntObs").value.trim(), criadoEm: agora, fases, etapas };
       p.trabalhos = (p.trabalhos || []).concat(t);
+      if (t.dr) prontuario(p, `${nomeTrab(t)}: tratamento com ${t.dr}`, agora);
       prontuario(p, `${nomeTrab(t)}: linha do tempo criada (${fases.length} fases) · ${fases.filter((f) => etapas[f.id]).map((f) => f.nome).join(", ")}`, agora);
       await Store.salvar(p); fecharGaveta(); toast("Linha do tempo criada");
       if (vista === "tratamentos") { abrirAba("trat", "and"); renderTratamentos(); } else render();
@@ -2468,6 +2549,251 @@
   }
 
   /* ------------------------------------------------------------ */
+  /* Probabilidade de fechamento (termômetro) e alerta do dia        */
+  /* ------------------------------------------------------------ */
+  const probDe = (p) => (typeof p.prontidao === "number" && !p.temp ? p.prontidao : ({ quente: 85, morno: 55, frio: 20 })[tempDe(p)] ?? 35);
+  const emAberto = (p) => (p.status === "lead" && !["perdido"].includes(p.etapa)) || p.status === "aberto";
+  const altaChance = () => PAC.filter((p) => emAberto(p) && probDe(p) >= 70).sort((a, b) => probDe(b) - probDe(a));
+  const mediaChance = () => PAC.filter((p) => emAberto(p) && probDe(p) >= 40 && probDe(p) < 70);
+  function abrirAlerta() {
+    const alta = altaChance(), media = mediaChance();
+    const linha = (p) => { const tel = telIntl(p.telefone), dec = p.decisor ? ` · decide: ${esc(p.decisor)}` : "", hor = p.melhorHorario ? ` · ⏰ ${esc(p.melhorHorario)}` : "";
+      return `<div class="it" data-pid="${p.id}"><span class="tdot t-${tempDe(p)}" aria-hidden="true"></span><span class="grow"><b>${esc(p.nome)}</b> <span class="pill bad">${probDe(p)}%</span><span class="tiny dim"> · ${esc(ETAPA[etapaDe(p)].nome)}${dec}${hor}</span></span>${tel ? `<a class="btn sm" href="https://wa.me/${tel}" target="_blank" rel="noopener">WhatsApp</a>` : ""}<button class="btn sm" data-afich="1">Ficha</button></div>`; };
+    $("#drawerHost").innerHTML = `<div class="veil" id="veil"><div class="drawer" role="dialog" aria-label="Alerta do dia">
+      <div class="row"><div class="grow"><h2 style="font-size:21px">🔥 Alerta do dia</h2><div class="small dim">Pacientes com maior probabilidade de fechamento (pelo termômetro)</div></div><button class="btn sm ghost" id="btnFechar" aria-label="Fechar">✕</button></div>
+      <div class="kpis" style="grid-template-columns:repeat(3,minmax(0,1fr))"><div class="kpi hl"><div class="label">Alta chance</div><b class="num">${alta.length}</b><span>quentes · 70% ou mais</span></div><div class="kpi"><div class="label">Média chance</div><b class="num">${media.length}</b><span>mornos · 40% a 69%</span></div><div class="kpi"><div class="label">Em aberto</div><b class="num">${PAC.filter(emAberto).length}</b><span>leads e orçamentos</span></div></div>
+      <div class="card stack"><span class="label">Fale primeiro com estes</span><div class="lista-int" id="alLista">${alta.length ? alta.slice(0, 12).map(linha).join("") : `<span class="small dim">Nenhum paciente quente agora. Use a bolinha do termômetro nos cartões do CRM para classificar.</span>`}</div></div>
+      <div class="row"><button class="btn pri" id="alCrm">Abrir o CRM</button><span class="grow"></span><span class="tiny dim">Aparece uma vez por dia ao abrir o app.</span></div></div></div>`;
+    $("#veil").addEventListener("click", (e) => { if (e.target.id === "veil") fecharGaveta(); });
+    $("#btnFechar").onclick = fecharGaveta;
+    $("#alCrm").onclick = () => { fecharGaveta(); mostrar("crm"); };
+    $("#alLista").addEventListener("click", (e) => { const it = e.target.closest("[data-pid]"); if (!it || e.target.closest("a")) return; const p = PAC.find((x) => x.id === it.dataset.pid); if (p) (ehCliente(p) ? abrirGaveta : abrirCard)(p); });
+  }
+  function alertaAoAbrir() {
+    if (!pode("crm") || !altaChance().length) return;
+    const hoje = new Date().toISOString().slice(0, 10);
+    if (ls.get("alinha.alertaDia", "") === hoje) return;
+    ls.set("alinha.alertaDia", hoje); abrirAlerta();
+  }
+
+  /* ------------------------------------------------------------ */
+  /* Versículo do dia (rodapé)                                      */
+  /* ------------------------------------------------------------ */
+  const VERSICULOS = [
+    ["Tudo posso naquele que me fortalece.", "Filipenses 4:13"],
+    ["Entrega o teu caminho ao Senhor, confia nele, e ele tudo fará.", "Salmos 37:5"],
+    ["Consagre ao Senhor tudo o que você faz, e os seus planos serão bem-sucedidos.", "Provérbios 16:3"],
+    ["Tudo quanto fizerdes, fazei-o de todo o coração, como ao Senhor.", "Colossenses 3:23"],
+    ["Não te mandei eu? Esforça-te e tem bom ânimo; não temas, porque o Senhor teu Deus é contigo.", "Josué 1:9"],
+    ["Os que esperam no Senhor renovarão as suas forças; subirão com asas como águias.", "Isaías 40:31"],
+    ["O Senhor é o meu pastor; nada me faltará.", "Salmos 23:1"],
+    ["Este é o dia que o Senhor fez; regozijemo-nos e alegremo-nos nele.", "Salmos 118:24"],
+    ["Confia no Senhor de todo o teu coração e não te estribes no teu próprio entendimento.", "Provérbios 3:5"],
+    ["E não nos cansemos de fazer o bem, porque a seu tempo ceifaremos, se não desfalecermos.", "Gálatas 6:9"],
+    ["Sabemos que todas as coisas contribuem juntamente para o bem daqueles que amam a Deus.", "Romanos 8:28"],
+    ["Lancem sobre ele toda a sua ansiedade, porque ele tem cuidado de vocês.", "1 Pedro 5:7"],
+    ["Alegrai-vos na esperança, sede pacientes na tribulação, perseverai na oração.", "Romanos 12:12"],
+    ["O coração alegre aformoseia o rosto.", "Provérbios 15:13"],
+    ["Deem graças em todas as circunstâncias.", "1 Tessalonicenses 5:18"],
+    ["O amor é paciente, o amor é bondoso.", "1 Coríntios 13:4"],
+    ["As misericórdias do Senhor se renovam a cada manhã; grande é a tua fidelidade.", "Lamentações 3:22-23"],
+    ["Bem-aventurados os mansos, porque herdarão a terra.", "Mateus 5:5"],
+    ["Assim brilhe a vossa luz diante dos homens, para que vejam as vossas boas obras.", "Mateus 5:16"],
+    ["Vinde a mim, todos os que estais cansados e sobrecarregados, e eu vos aliviarei.", "Mateus 11:28"],
+    ["A resposta branda desvia o furor.", "Provérbios 15:1"],
+    ["Seja a vossa palavra sempre agradável, temperada com sal.", "Colossenses 4:6"],
+    ["Em tudo dai graças, porque esta é a vontade de Deus.", "1 Tessalonicenses 5:18"],
+    ["O Senhor te abençoe e te guarde.", "Números 6:24"],
+    ["Se Deus é por nós, quem será contra nós?", "Romanos 8:31"],
+    ["A fé é a certeza daquilo que esperamos e a prova das coisas que não vemos.", "Hebreus 11:1"],
+    ["Pois eu sei os planos que tenho para vocês, planos de fazê-los prosperar.", "Jeremias 29:11"],
+    ["Mil cairão ao teu lado, e dez mil à tua direita, mas tu não serás atingido.", "Salmos 91:7"],
+    ["Aquele que começou a boa obra em vós há de completá-la.", "Filipenses 1:6"],
+    ["Cada um exerça o dom que recebeu para servir os outros.", "1 Pedro 4:10"],
+    ["Melhor é serem dois do que um, porque têm melhor paga do seu trabalho.", "Eclesiastes 4:9"]
+  ];
+  function versiculoDoDia() {
+    const d = new Date(), ini = new Date(d.getFullYear(), 0, 0), dia = Math.floor((d - ini) / DIA);
+    const [t, ref] = VERSICULOS[dia % VERSICULOS.length];
+    $$(".versiculo").forEach((el) => { el.innerHTML = `<span>“${esc(t)}”</span><b>${esc(ref)}</b>`; el.title = `${t} (${ref})`; });
+  }
+
+  /* ------------------------------------------------------------ */
+  /* Quem está atendendo (CRC) — usado como CRC do lead e no prontuário */
+  /* ------------------------------------------------------------ */
+  const eu = () => ls.get("alinha.eu", "");
+  function renderEu() {
+    const el = $("#euSel"); if (!el) return;
+    const nomes = [...new Set(crcsCadastradas().map((x) => x.nome).concat(doutores()).concat(AJ.equipe || []))].filter(Boolean);
+    el.innerHTML = `<option value="">— escolha —</option>` + nomes.map((n) => `<option${n === eu() ? " selected" : ""}>${esc(n)}</option>`).join("");
+  }
+  $("#euSel").addEventListener("change", (e) => { ls.set("alinha.eu", e.target.value); toast(e.target.value ? `Atendendo como ${e.target.value}` : "Atendente removido"); });
+  const doutores = () => { const d = (AJ.doutores || []).filter(Boolean); if (d.length) return d; const e = (AJ.equipe || []).filter((n) => /^dr/i.test(n)); return e.length ? e : ["Dr. Edelweiss"]; };
+
+  // Ajustes › CRCs e metas individuais
+  function renderCrcsAjustes() {
+    const el = $("#crcLista"); if (!el) return;
+    const L = (AJ.crcs || []).length ? AJ.crcs : [];
+    el.innerHTML = L.map((x, i) => crcLinha(x, i)).join("") || `<span class="small dim">Nenhuma CRC cadastrada.</span>`;
+    $("#aDoutores").value = doutores().join(", ");
+  }
+  const crcLinha = (x, i) => { const M = x.metas || {}; return `<div class="crcrow" data-i="${i}"><input class="in" data-c="nome" value="${esc(x.nome || "")}" placeholder="Nome da CRC" aria-label="Nome da CRC">
+    <input class="in num" data-c="agendamentos" value="${M.agendamentos || ""}" placeholder="agend." inputmode="numeric" aria-label="Meta de agendamentos"><input class="in num" data-c="comparecimentos" value="${M.comparecimentos || ""}" placeholder="compar." inputmode="numeric" aria-label="Meta de comparecimentos">
+    <input class="in num" data-c="fechamentos" value="${M.fechamentos || ""}" placeholder="fech." inputmode="numeric" aria-label="Meta de fechamentos"><input class="in num" data-c="faturamento" value="${M.faturamento || ""}" placeholder="R$" inputmode="decimal" aria-label="Meta de faturamento">
+    <button class="btn sm ghost" data-crcdel aria-label="Remover CRC">✕</button></div>`; };
+  const lerCrcs = () => $$("#crcLista .crcrow").map((r) => { const v = (k) => $(`[data-c="${k}"]`, r).value.trim(); const n = (k) => num(v(k)) || null;
+    return { nome: v("nome"), metas: { agendamentos: n("agendamentos"), comparecimentos: n("comparecimentos"), fechamentos: n("fechamentos"), faturamento: n("faturamento") } }; }).filter((x) => x.nome);
+  $("#crcBox").addEventListener("click", async (e) => {
+    if (e.target.closest("#btnCrcAdd")) { const L = lerCrcs().concat({ nome: "", metas: {} }); $("#crcLista").innerHTML = L.map(crcLinha).join(""); const ins = $$("#crcLista [data-c=nome]"); ins[ins.length - 1].focus(); return; }
+    const d = e.target.closest("[data-crcdel]"); if (d) { d.closest(".crcrow").remove(); return; }
+    if (e.target.closest("#btnCrcSalvar")) {
+      try { await Store.ajustes({ crcs: lerCrcs(), doutores: $("#aDoutores").value.split(",").map((s) => s.trim()).filter(Boolean) }); $("#crcStatus").textContent = "✓ Salvo"; renderEu(); render(); }
+      catch (er) { $("#crcStatus").textContent = "Erro: " + er.message; }
+    }
+  });
+
+  /* ------------------------------------------------------------ */
+  /* Chat: palavras negativadas e correção ortográfica               */
+  /* ------------------------------------------------------------ */
+  const NEG_PADRAO = [["barato", "acessível"], ["desconto", "condição especial"], ["promoção", "condição especial"], ["garantido", "previsível"], ["garantia de resultado", "planejamento previsível"], ["preço", "investimento"], ["caro", "investimento"], ["problema", "situação"], ["contrato", "plano de tratamento"], ["infelizmente", "no momento"], ["não sei", "vou confirmar"], ["impossível", "vou verificar uma alternativa"]];
+  const CORR_PADRAO = { vc: "você", vcs: "vocês", voce: "você", voces: "vocês", q: "que", tbm: "também", tb: "também", tambem: "também", pq: "porque", obg: "obrigado", obgd: "obrigado", nao: "não", ja: "já", ate: "até", entao: "então", sao: "são", estao: "estão", vao: "vão", tao: "tão",
+    horario: "horário", horarios: "horários", endereco: "endereço", clinica: "clínica", avaliacao: "avaliação", orcamento: "orçamento", orcamentos: "orçamentos", cartao: "cartão", otimo: "ótimo", otima: "ótima", possivel: "possível", disponivel: "disponível", disponiveis: "disponíveis",
+    amanha: "amanhã", manha: "manhã", proxima: "próxima", proximo: "próximo", numero: "número", informacao: "informação", informacoes: "informações", duvida: "dúvida", duvidas: "dúvidas", simulacao: "simulação", ortodontico: "ortodôntico", invisivel: "invisível", consultorio: "consultório", odontologico: "odontológico",
+    concerteza: "com certeza", derrepente: "de repente", porisso: "por isso", seje: "seja", esteje: "esteja", menas: "menos", excessao: "exceção", previlegio: "privilégio", agradeco: "agradeço", blz: "beleza", msg: "mensagem", hj: "hoje", td: "tudo", cmg: "comigo", ctz: "certeza", dps: "depois", flw: "até logo", vlw: "obrigado" };
+  const negativas = () => ((AJ.palavrasNegativas && AJ.palavrasNegativas.length) ? AJ.palavrasNegativas : NEG_PADRAO.map(([p, s]) => ({ p, s })));
+  const modoCorrecao = () => (AJ.correcao && AJ.correcao.modo) || "sugerir";
+  const dicionario = () => Object.assign({}, CORR_PADRAO, Object.fromEntries(((AJ.correcao && AJ.correcao.extras) || []).map((x) => [norm(x.e), x.c])));
+  const reEsc = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const reNeg = (p) => new RegExp(`(^|[^\\p{L}])(${reEsc(p)})(?=$|[^\\p{L}])`, "iu");
+  function negativasNoTexto(txt) { return negativas().filter((x) => x.p && reNeg(x.p).test(txt)); }
+  function correcoesNoTexto(txt) {
+    const D = dicionario(), out = [];
+    txt.replace(/[\p{L}]+/gu, (w) => { const k = norm(w).replace(/ /g, ""); if (D[k] && D[k] !== w && D[k].toLowerCase() !== w.toLowerCase() && !out.some((o) => o.de === w)) out.push({ de: w, para: w[0] === w[0].toUpperCase() && w[0] !== w[0].toLowerCase() ? D[k][0].toUpperCase() + D[k].slice(1) : D[k] }); return w; });
+    return out;
+  }
+  const trocarPalavra = (txt, de, para) => txt.replace(new RegExp(`(^|[^\\p{L}])${reEsc(de)}(?=$|[^\\p{L}])`, "gu"), (m, a) => a + para);
+  function avisosComposer() {
+    const ta = $("#waTexto"), box = $("#waAvisos"); if (!ta || !box) return;
+    const txt = ta.value, neg = negativasNoTexto(txt), corr = modoCorrecao() === "sugerir" ? correcoesNoTexto(txt) : [];
+    box.innerHTML = (neg.length ? `<div class="aviso-neg">⚠️ Evite: ${neg.map((x) => `<button class="chipx" data-neg="${esc(x.p)}" data-sug="${esc(x.s || "")}" title="Trocar por “${esc(x.s || "")}”"><s>${esc(x.p)}</s>${x.s ? ` → ${esc(x.s)}` : ""}</button>`).join("")}</div>` : "")
+      + (corr.length ? `<div class="aviso-corr">✎ Correção: ${corr.map((x) => `<button class="chipx" data-de="${esc(x.de)}" data-para="${esc(x.para)}">${esc(x.de)} → <b>${esc(x.para)}</b></button>`).join("")}${corr.length > 1 ? `<button class="btn sm" data-corrtodas>Corrigir tudo</button>` : ""}</div>` : "");
+    if (ultimaCorrecao && txt.includes(ultimaCorrecao.para)) box.insertAdjacentHTML("afterbegin", `<div class="aviso-corr">✓ Corrigido: ${esc(ultimaCorrecao.de)} → <b>${esc(ultimaCorrecao.para)}</b> <button class="btn sm" data-desfazer>Desfazer</button></div>`);
+    box.classList.toggle("hide", !box.innerHTML);
+  }
+  // correção automática: ao terminar a palavra (espaço ou pontuação), troca e mostra "desfazer"
+  let ultimaCorrecao = null;
+  function autoCorrigir(ta, e) {
+    if (modoCorrecao() !== "auto" || !e || !/^[\s.,!?;:]$/.test(e.data || "")) return;
+    const pos = ta.selectionStart, antes = ta.value.slice(0, pos - 1), m = antes.match(/([\p{L}]+)$/u); if (!m) return;
+    const w = m[1], c = correcoesNoTexto(w)[0]; if (!c) return;
+    const ini = pos - 1 - w.length;
+    ta.value = ta.value.slice(0, ini) + c.para + ta.value.slice(pos - 1);
+    const np = ini + c.para.length + 1; ta.setSelectionRange(np, np);
+    ultimaCorrecao = { de: w, para: c.para, ini };
+  }
+  $("#wa").addEventListener("click", (e) => {
+    const ta = $("#waTexto"); if (!ta) return;
+    const n = e.target.closest("[data-neg]"), c = e.target.closest("[data-de]");
+    if (n && n.dataset.sug) { ta.value = ta.value.replace(new RegExp(`(^|[^\\p{L}])${reEsc(n.dataset.neg)}(?=$|[^\\p{L}])`, "giu"), (m, a) => a + n.dataset.sug); }
+    else if (c) ta.value = trocarPalavra(ta.value, c.dataset.de, c.dataset.para);
+    else if (e.target.closest("[data-corrtodas]")) correcoesNoTexto(ta.value).forEach((x) => { ta.value = trocarPalavra(ta.value, x.de, x.para); });
+    else if (e.target.closest("[data-desfazer]") && ultimaCorrecao) { const u = ultimaCorrecao; ta.value = ta.value.slice(0, u.ini) + u.de + ta.value.slice(u.ini + u.para.length); ultimaCorrecao = null; }
+    else return;
+    WA.rascunho[WA.sel] = ta.value; ta.dispatchEvent(new Event("input", { bubbles: true })); ta.focus();
+  }, true);
+  // Ajustes › Chat
+  function renderChatAjustes() {
+    const el = $("#negLista"); if (!el) return;
+    el.innerHTML = negativas().map((x) => `<div class="negrow"><input class="in" data-n="p" value="${esc(x.p)}" aria-label="Palavra negativada"><span class="dim">→</span><input class="in" data-n="s" value="${esc(x.s || "")}" placeholder="sugestão (opcional)" aria-label="Sugestão"><button class="btn sm ghost" data-negdel aria-label="Remover">✕</button></div>`).join("");
+    $$("#corrModo button").forEach((b) => b.classList.toggle("on", b.dataset.m === modoCorrecao()));
+    $("#corrExtras").value = ((AJ.correcao && AJ.correcao.extras) || []).map((x) => `${x.e} = ${x.c}`).join("\n");
+  }
+  $("#chatBox").addEventListener("click", async (e) => {
+    if (e.target.closest("#btnNegAdd")) { $("#negLista").insertAdjacentHTML("beforeend", `<div class="negrow"><input class="in" data-n="p" placeholder="palavra" aria-label="Palavra negativada"><span class="dim">→</span><input class="in" data-n="s" placeholder="sugestão (opcional)" aria-label="Sugestão"><button class="btn sm ghost" data-negdel aria-label="Remover">✕</button></div>`); const i = $$("#negLista [data-n=p]"); i[i.length - 1].focus(); return; }
+    const d = e.target.closest("[data-negdel]"); if (d) { d.closest(".negrow").remove(); return; }
+    const m = e.target.closest("#corrModo [data-m]"); if (m) { $$("#corrModo button").forEach((b) => b.classList.toggle("on", b === m)); return; }
+    if (e.target.closest("#btnChatSalvar")) {
+      const neg = $$("#negLista .negrow").map((r) => ({ p: $("[data-n=p]", r).value.trim(), s: $("[data-n=s]", r).value.trim() })).filter((x) => x.p);
+      const extras = $("#corrExtras").value.split("\n").map((l) => l.split("=")).filter((x) => x.length === 2 && x[0].trim() && x[1].trim()).map(([a, b]) => ({ e: a.trim(), c: b.trim() }));
+      const modo = ($("#corrModo .on") || {}).dataset ? $("#corrModo .on").dataset.m : "sugerir";
+      try { await Store.ajustes({ palavrasNegativas: neg, correcao: { modo, extras } }); $("#chatStatus").textContent = "✓ Salvo"; } catch (er) { $("#chatStatus").textContent = "Erro: " + er.message; }
+    }
+    if (e.target.closest("#btnNegPadrao")) { AJ.palavrasNegativas = null; renderChatAjustes(); }
+  });
+
+  /* ------------------------------------------------------------ */
+  /* Verificação em duas etapas (Google Authenticator)              */
+  /* ------------------------------------------------------------ */
+  async function renderSeguranca() {
+    const el = $("#segEstado"); if (!el) return;
+    if (!PLAT) { el.textContent = "disponível na plataforma (com login)"; $("#seg2fa").innerHTML = `<p class="small dim" style="margin:0">Na demonstração não há login. Na plataforma, cada perfil pode ativar o código de 6 números do Google Authenticator.</p>`; return; }
+    try {
+      const d = await api("GET", "api/seguranca");
+      el.textContent = d.ativo ? "✓ ativada" : "desativada"; el.className = "pill " + (d.ativo ? "good" : "");
+      $("#seg2fa").innerHTML = d.ativo
+        ? `<p class="small" style="margin:0">O perfil <b>${esc(PAPEL_NOME[d.papel] || d.papel)}</b> pede o código de 6 números do Google Authenticator a cada login.</p><div class="row"><input class="in num" id="segCodDes" placeholder="código atual" inputmode="numeric" maxlength="7" style="width:150px"><button class="btn" id="btnSegDes">Desativar</button></div>`
+        : `<p class="small" style="margin:0">Proteja o acesso: além da senha, o login pede um código de 6 números que muda a cada 30 segundos no celular.</p><button class="btn pri" id="btnSegIni">Ativar com o Google Authenticator</button>`;
+      if (d.perfis) $("#segPerfis").innerHTML = `<span class="label">Situação dos perfis</span>` + Object.entries(d.perfis).map(([r, at]) => `<div class="it"><b class="grow">${esc(PAPEL_NOME[r])}</b><span class="pill ${at ? "good" : ""}">${at ? "ativada" : "desativada"}</span>${at && r !== d.papel ? `<button class="btn sm ghost" data-segres="${r}">Desativar (perdeu o celular)</button>` : ""}</div>`).join("");
+    } catch (e) { el.textContent = "erro"; }
+  }
+  $("#segBox").addEventListener("click", async (e) => {
+    if (e.target.closest("#btnSegIni")) {
+      const d = await api("POST", "api/seguranca/2fa/iniciar", {});
+      $("#seg2fa").innerHTML = `<ol class="small" style="margin:0 0 0 18px;padding:0"><li>Instale o <b>Google Authenticator</b> no celular.</li><li>Toque em <b>+</b> › <b>Ler código QR</b> e aponte para o código abaixo.</li><li>Digite os 6 números que aparecerem.</li></ol>
+        <div class="row" style="align-items:flex-start"><div class="qrmini" id="segQr"></div><div class="grow stack" style="gap:6px"><span class="tiny dim">Sem câmera? Digite a chave:</span><code style="word-break:break-all">${esc(d.segredo.replace(/(.{4})/g, "$1 ").trim())}</code>
+        <input class="in num" id="segCod" placeholder="000000" inputmode="numeric" maxlength="7" style="width:150px;letter-spacing:.2em"><button class="btn pri" id="btnSegAtv">Confirmar e ativar</button><span class="small" id="segErr" style="color:var(--bad)"></span></div></div>`;
+      try { const q = qrcode(0, "M"); q.addData(d.uri); q.make(); $("#segQr").innerHTML = q.createSvgTag({ cellSize: 4, margin: 2 }); } catch (er) { $("#segQr").textContent = "QR indisponível"; }
+      return;
+    }
+    if (e.target.closest("#btnSegAtv")) { try { await api("POST", "api/seguranca/2fa/ativar", { codigo: $("#segCod").value }); toast("Verificação em duas etapas ativada"); renderSeguranca(); } catch (er) { $("#segErr").textContent = er.message; } return; }
+    if (e.target.closest("#btnSegDes")) { try { await api("POST", "api/seguranca/2fa/desativar", { codigo: $("#segCodDes").value }); toast("Verificação em duas etapas desativada"); renderSeguranca(); } catch (er) { toast(er.message); } return; }
+    const r = e.target.closest("[data-segres]"); if (r) { if (r.dataset.c !== "1") { r.dataset.c = "1"; r.textContent = "Confirmar"; return; } try { await api("POST", "api/seguranca/2fa/desativar", { papel: r.dataset.segres }); toast("Desativada para " + PAPEL_NOME[r.dataset.segres]); renderSeguranca(); } catch (er) { toast(er.message); } }
+  });
+
+  /* fotos do WhatsApp (círculo) */
+  function avaHTML(nome, foto, extra = "") {
+    const ini = esc(iniciais(nome || "?"));
+    return foto ? `<span class="ava foto ${extra}"><img src="${esc(foto)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.parentNode.classList.remove('foto');this.parentNode.textContent='${ini}'"></span>` : `<div class="ava ${extra}">${ini}</div>`;
+  }
+
+  /* ------------------------------------------------------------ */
+  /* Decisor do pagamento, melhor horário, CRC e doutor (ficha)      */
+  /* ------------------------------------------------------------ */
+  const RELACOES = ["O próprio paciente", "Cônjuge", "Pai ou mãe", "Noivo(a)", "Filho(a)", "Outro"];
+  const HORARIOS = ["Manhã (8h–12h)", "Almoço (12h–14h)", "Tarde (14h–18h)", "Noite (18h–21h)", "Qualquer horário"];
+  function decisorResumo(p) {
+    const linhas = [];
+    if (p.decisor || p.decisorTel) { const tel = telIntl(p.decisorTel);
+      linhas.push(`💳 Decide o pagamento: <b>${esc(p.decisor || "—")}</b>${p.decisorRel && p.decisorRel !== "O próprio paciente" ? ` (${esc(p.decisorRel)})` : ""}${p.decisorTel ? ` · ${esc(p.decisorTel)}` : ""}${tel ? ` <a class="btn sm" href="https://wa.me/${tel}" target="_blank" rel="noopener">WhatsApp do decisor</a>` : ""}`); }
+    if (p.melhorHorario) linhas.push(`⏰ Melhor horário para contato: <b>${esc(p.melhorHorario)}</b>`);
+    const resp = [p.crc ? `CRC: <b>${esc(p.crc)}</b>` : "", (p.drAvaliacao || "") ? `avaliação: <b>${esc(p.drAvaliacao)}</b>` : "", ...[...new Set((p.trabalhos || []).map((t) => t.dr).filter(Boolean))].map((d) => `tratamento: <b>${esc(d)}</b>`)].filter(Boolean);
+    if (resp.length) linhas.push(`👤 ${resp.join(" · ")}`);
+    return linhas.length ? `<div class="decisor">${linhas.join("<br>")}</div>` : "";
+  }
+  function camposContatoHTML(p, x) {
+    const sel = (id, ops, at, vazio) => `<select class="in" id="${x}${id}">${(vazio ? [""] : []).concat(ops).map((o) => `<option value="${esc(o)}"${o === at ? " selected" : ""}>${esc(o || vazio || "")}</option>`).join("")}</select>`;
+    const crcs = crcsCadastradas().map((c) => c.nome); if (p.crc && !crcs.includes(p.crc)) crcs.push(p.crc);
+    const drs = doutores().slice(); const dav = p.drAvaliacao || ""; if (dav && !drs.includes(dav)) drs.push(dav);
+    return `<div class="duo"><div><label class="f" for="${x}DecRel">Quem decide o pagamento</label>${sel("DecRel", RELACOES, p.decisorRel || "", "— não informado —")}</div><div><label class="f" for="${x}DecNome">Nome do decisor</label><input class="in" id="${x}DecNome" value="${esc(p.decisor || "")}"></div></div>
+      <div class="duo"><div><label class="f" for="${x}DecTel">Telefone do decisor</label><input class="in" id="${x}DecTel" inputmode="tel" value="${esc(p.decisorTel || "")}"></div><div><label class="f" for="${x}Horario">Melhor horário para contato</label>${sel("Horario", HORARIOS, p.melhorHorario || "", "— não informado —")}</div></div>
+      <div class="duo"><div><label class="f" for="${x}Crc">CRC que atendeu</label>${sel("Crc", crcs, p.crc || "", "— escolha —")}</div><div><label class="f" for="${x}DrAv">Doutor da avaliação</label>${sel("DrAv", drs, dav, "— escolha —")}</div></div>`;
+  }
+  function lerContato(p, x) {
+    const v = (id) => ($(`#${x}${id}`) || {}).value;
+    const antes = { crc: p.crc || "", dr: p.drAvaliacao || "", dec: p.decisor || "" };
+    p.decisorRel = v("DecRel") || ""; p.decisor = (v("DecNome") || "").trim(); p.decisorTel = (v("DecTel") || "").trim(); p.melhorHorario = v("Horario") || ""; p.crc = v("Crc") || ""; p.drAvaliacao = v("DrAv") || "";
+    if (p.crc !== antes.crc && p.crc) prontuario(p, `Atendido pela CRC ${p.crc}`, new Date().toISOString());
+    if (p.drAvaliacao !== antes.dr && p.drAvaliacao) prontuario(p, `Direcionado para ${p.drAvaliacao} (avaliação)`, new Date().toISOString());
+    if (p.decisor !== antes.dec && p.decisor) prontuario(p, `Decisor do pagamento: ${p.decisor}${p.decisorRel ? " (" + p.decisorRel + ")" : ""}`, new Date().toISOString());
+  }
+  // "o próprio paciente" preenche nome e telefone do decisor
+  function ligarContato(p, x, aoMudar) {
+    const rel = $(`#${x}DecRel`); if (!rel) return;
+    rel.addEventListener("change", () => { if (rel.value === "O próprio paciente") { if (!$(`#${x}DecNome`).value) $(`#${x}DecNome`).value = p.nome || ($("#lNome") || {}).value || ""; if (!$(`#${x}DecTel`).value) $(`#${x}DecTel`).value = p.telefone || ($("#lTel") || {}).value || ""; } });
+    if (aoMudar) ["DecRel", "DecNome", "DecTel", "Horario", "Crc", "DrAv"].forEach((id) => $(`#${x}${id}`).addEventListener("change", aoMudar));
+  }
+
+  /* ------------------------------------------------------------ */
   /* Navegação e início                                            */
   /* ------------------------------------------------------------ */
   let vista = "hoje";
@@ -2561,6 +2887,7 @@
     $("#pillIA").textContent = PLAT && PLAT.ia ? "IA ouvindo + roteiro" : "Dicas do roteiro";
     try { await Store.carregar(); } catch (e) { toast("Não foi possível carregar os dados: " + e.message); }
     aplicarUnidades(); renderAjustes(); mostrar(vista);
+    versiculoDoDia(); renderEu(); setTimeout(alertaAoAbrir, 400);
   }
   iniciar();
 })();

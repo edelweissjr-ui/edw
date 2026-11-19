@@ -6,7 +6,7 @@ import fs from "node:fs";
 import path from "node:path";
 
 const DIA = 86400000;
-const resumoDe = (lead, C) => { const u = C.lista[C.lista.length - 1] || {}; return { lead, nome: C.nome || "", unidade: C.unidade || "", ultima: u.texto || "", autor: u.autor || "", ts: u.ts || "", total: C.lista.length, atualizado: C.atualizado || 0 }; };
+const resumoDe = (lead, C) => { const u = C.lista[C.lista.length - 1] || {}; return { lead, nome: C.nome || "", foto: C.foto || "", unidade: C.unidade || "", ultima: u.texto || "", autor: u.autor || "", ts: u.ts || "", total: C.lista.length, atualizado: C.atualizado || 0 }; };
 
 export function criarArmazenamento({ dados, prefixo = "alinha", env = process.env }) {
   const url = env.KV_REST_API_URL || env.UPSTASH_REDIS_REST_URL || "";

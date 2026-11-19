@@ -93,6 +93,16 @@ async function evo(metodo, rota, corpo) {
   if (!r.ok) { const e = new Error(`Conector do WhatsApp respondeu ${r.status}: ${(d && (d.message || d.error || (d.response && JSON.stringify(d.response.message)))) || txt.slice(0, 160)}`); e.status = r.status; throw e; }
   return d;
 }
+// foto do perfil do WhatsApp do paciente (pelo celular conectado)
+async function fotoEvo(telefone) {
+  const n = String(telefone || "").replace(/\D/g, ""); if (!n || !evoOk()) return "";
+  const ctrl = new AbortController(), tm = setTimeout(() => ctrl.abort(), 4000);
+  try {
+    const r = await fetch(`${CFG.evoUrl}/chat/fetchProfilePictureUrl/${encodeURIComponent(CFG.evoInst)}`, { method: "POST", signal: ctrl.signal, headers: { apikey: CFG.evoKey, "Content-Type": "application/json" }, body: JSON.stringify({ number: n }) });
+    const d = await r.json().catch(() => ({})); const u = d && (d.profilePictureUrl || d.picture || d.url) || "";
+    return /^https:\/\//.test(u) ? String(u).slice(0, 600) : "";
+  } finally { clearTimeout(tm); }
+}
 async function evoEstado() {
   try {
     const d = await evo("GET", `/instance/connectionState/${encodeURIComponent(CFG.evoInst)}`);
@@ -159,6 +169,7 @@ async function guardarMensagensEvo(lista) {
     }
     if (!mudou) continue;
     C.lista.sort((a, b) => (a.ts > b.ts ? 1 : a.ts < b.ts ? -1 : 0)); C.lista = C.lista.slice(-200); C.atualizado = Date.now();
+    if (!C.foto && (!C.fotoEm || Date.now() - C.fotoEm > 86400000)) { C.fotoEm = Date.now(); C.foto = await fotoEvo(C.telefone).catch(() => "") || ""; } // foto do perfil do WhatsApp
     await STORE.salvarConversa(lead, C);
     if (!existia) await leadAutomatico(lead, C).catch(() => {});
     for (const m of C.lista.filter((x) => !idsAntes.has(x.id) && x.autor === "cliente")) {
@@ -209,6 +220,7 @@ async function guardarWhatsApp(lista) {
       const id = String(msg.id || lead + "-" + ts);
       const autorInfo = JSON.stringify(msg.author || {}).toLowerCase();
       if (msg.type !== "outgoing" && msg.author && msg.author.name && !C.nome) C.nome = String(msg.author.name).slice(0, 60);
+      if (msg.type !== "outgoing" && msg.author && /^https:\/\//.test(msg.author.avatar_url || "")) C.foto = String(msg.author.avatar_url).slice(0, 600); // foto do perfil do WhatsApp
       if (C.lista.some((x) => x.id === id)) continue;
       C.lista.push({ id, ts, autor: msg.type === "outgoing" ? "clinica" : "cliente", ia: msg.type === "outgoing" && /bot|robo|\bia\b|assistente|salesbot|n8n|gpt|claude/.test(autorInfo),
         texto: String(msg.text || (ehAudio ? "🎧 [áudio]" : "📎 [anexo]")), anexo: anexo || null });
@@ -294,12 +306,43 @@ function permissoes(papel) {
 const pode = (papel, k) => { const P = permissoes(papel); return P.telas.includes(k) || P.acoes.includes(k); };
 const ehHttps = (req) => (req.headers["x-forwarded-proto"] || "").includes("https");
 
+/* verificação em duas etapas: código de 6 números do Google Authenticator (TOTP, RFC 6238) */
+const B32 = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
+function base32(buf) { let bits = "", out = ""; for (const b of buf) bits += b.toString(2).padStart(8, "0"); for (let i = 0; i < bits.length; i += 5) out += B32[parseInt(bits.slice(i, i + 5).padEnd(5, "0"), 2)]; return out; }
+function deBase32(s) { let bits = ""; for (const c of String(s).replace(/=+$/, "").toUpperCase()) { const v = B32.indexOf(c); if (v >= 0) bits += v.toString(2).padStart(5, "0"); } const out = []; for (let i = 0; i + 8 <= bits.length; i += 8) out.push(parseInt(bits.slice(i, i + 8), 2)); return Buffer.from(out); }
+function totp(segredo, passo) {
+  const b = Buffer.alloc(8); b.writeBigUInt64BE(BigInt(passo));
+  const h = crypto.createHmac("sha1", deBase32(segredo)).update(b).digest(), o = h[h.length - 1] & 15;
+  return String((h.readUInt32BE(o) & 0x7fffffff) % 1000000).padStart(6, "0");
+}
+const usadosTotp = new Map(); // impede reaproveitar o mesmo código
+function totpConfere(segredo, codigo, chave) {
+  const c = String(codigo || "").replace(/\D/g, ""); if (c.length !== 6 || !segredo) return false;
+  const agora = Math.floor(Date.now() / 30000);
+  for (const k of [0, -1, 1]) {
+    const passo = agora + k;
+    if (crypto.timingSafeEqual(Buffer.from(totp(segredo, passo)), Buffer.from(c))) {
+      if (chave) { if ((usadosTotp.get(chave) || -1) >= passo) return false; usadosTotp.set(chave, passo); }
+      return true;
+    }
+  }
+  return false;
+}
+const cookie2fa = (papel) => { const exp = Date.now() + 5 * 60 * 1000; return `${exp}.${papel}.${assinar("2fa." + exp + "." + papel)}`; };
+function pendente2fa(req) {
+  const m = (req.headers.cookie || "").match(/(?:^|;\s*)alinha2fa=([^;]+)/); if (!m) return null;
+  const [exp, papel, sig] = decodeURIComponent(m[1]).split(".");
+  if (!exp || !papel || !sig || Number(exp) < Date.now()) return null;
+  const esp = assinar("2fa." + exp + "." + papel);
+  return sig.length === esp.length && crypto.timingSafeEqual(Buffer.from(sig), Buffer.from(esp)) ? papel : null;
+}
+
 const tentativas = new Map(); // proteção simples contra força bruta
 function bloqueado(ip) { const t = tentativas.get(ip); return t && t.n >= 8 && Date.now() - t.em < 15 * 60 * 1000; }
 function falhou(ip) { const t = tentativas.get(ip) || { n: 0, em: Date.now() }; t.n++; t.em = Date.now(); tentativas.set(ip, t); }
 
 
-function paginaLogin(erro = "") {
+function paginaLogin(erro = "", etapaCodigo = false) {
   return `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex">
 <title>Alinha · Gestão Infinity</title><link rel="icon" href="logo.svg"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600&display=swap"><style>
 :root{--bg:#0A0A1C;--card:#13122B;--fg:#EEEDFF;--dim:#CDCAF2;--accent:#7C6CF6;--line:rgba(167,158,255,.18);--bad:#FF7A72;color-scheme:dark}
@@ -308,14 +351,17 @@ form{background:var(--card);border:1px solid var(--line);border-radius:18px;padd
 .logo{display:flex;flex-direction:column;align-items:center;text-align:center;gap:2px;margin-bottom:4px}.logo svg{width:96px;height:51px}.logo b{font-family:Cinzel,Georgia,serif;font-weight:600;font-size:38px;letter-spacing:.03em;line-height:1;background:linear-gradient(180deg,#F3EEFF,#B9A2F5);-webkit-background-clip:text;background-clip:text;color:transparent}.logo span{font-family:Cinzel,Georgia,serif;font-size:14px;letter-spacing:.14em;color:#D9CFF8}p{margin:0;color:var(--dim);font-size:15px}
 input{font:inherit;color:inherit;padding:11px 12px;border:1px solid var(--line);border-radius:10px;background:var(--bg)}
 button{font:inherit;font-weight:700;padding:12px;border:0;border-radius:10px;background:var(--accent);color:#fff;cursor:pointer}.err{color:var(--bad);font-weight:600}.lema{color:var(--fg);font-size:14.5px;line-height:1.5}.lema b{color:#A79BFF}.small{font-size:12px}
-</style></head><body><form method="post" action="login">
+</style></head><body><form method="post" action="${etapaCodigo ? "login/2fa" : "login"}">
 <div class="logo"><svg aria-hidden="true" viewBox="0 0 120 64"><defs><linearGradient id="mkA" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#B9A0EE"/><stop offset=".4" stop-color="#6A3FBF"/><stop offset="1" stop-color="#2A1150"/></linearGradient><linearGradient id="mkB" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#2A1150"/><stop offset=".55" stop-color="#5E35B1"/><stop offset="1" stop-color="#CDB9F7"/></linearGradient><linearGradient id="mkC" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#341869"/><stop offset=".5" stop-color="#7A50CF"/><stop offset="1" stop-color="#341869"/></linearGradient></defs><g fill="none" stroke-linecap="round"><path d="M60 32C50 18 39 9 27 9 14 9 6 19 6 32s8 23 21 23c12 0 23-9 33-23" stroke="url(#mkA)" stroke-width="10"/><path d="M60 32c10 14 21 23 33 23 13 0 21-10 21-23S106 9 93 9C81 9 70 18 60 32" stroke="url(#mkB)" stroke-width="10"/><path d="M47 18c5 4 9 9 13 14s8 10 13 14" stroke="url(#mkC)" stroke-width="10.5"/><path d="M14 22c3-6 8-8 13-8" stroke="#fff" stroke-opacity=".38" stroke-width="2"/><path d="M93 14c6 0 11 3 13 9" stroke="#fff" stroke-opacity=".38" stroke-width="2"/></g></svg><b>ALINHA</b><span>GESTÃO INFINITY</span></div><p class="lema">Alinha a conversa, o orçamento, o fechamento e o tratamento.<br><b>Do primeiro contato ao sorriso alinhado.</b></p><p class="small">Weiss Odontologia</p>
 ${erro ? `<p class="err">${erro}</p>` : ""}
-<label for="usuario" style="font-size:13px;font-weight:600">Usuário</label>
+${etapaCodigo ? `<label for="codigo" style="font-size:13px;font-weight:600">Código do Google Authenticator</label>
+<input id="codigo" name="codigo" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9 ]{6,7}" maxlength="7" placeholder="000 000" required autofocus style="letter-spacing:.3em;font-size:20px;text-align:center">
+<p class="small">Abra o Google Authenticator no celular e digite os 6 números de "Alinha".</p>
+<button type="submit">Confirmar</button><a href="sair" style="color:var(--dim);font-size:13px;text-align:center">Voltar</a>` : `<label for="usuario" style="font-size:13px;font-weight:600">Usuário</label>
 <input id="usuario" name="usuario" autocomplete="username" placeholder="admin, operacional ou crc" value="" autocapitalize="none" spellcheck="false">
 <label for="senha" style="font-size:13px;font-weight:600">Senha</label>
 <input id="senha" name="senha" type="password" autocomplete="current-password" required autofocus>
-<button type="submit">Entrar</button></form></body></html>`;
+<button type="submit">Entrar</button>`}</form></body></html>`;
 }
 
 /* ------------------------------------------------------------------ */
@@ -705,7 +751,7 @@ function recursoTrabalho(t) {
   const fases = (t.fases && t.fases.length ? t.fases : ((AJC.procedimentos || {})[t.tipo] || FASES_PADRAO[t.tipo] || FASES_PADRAO["Outro procedimento"]));
   const feitas = fases.filter((f) => (t.etapas || {})[f.id]), atual = feitas[feitas.length - 1] || null;
   const prox = fases.find((f) => !(t.etapas || {})[f.id]) || null, fim = fases[fases.length - 1];
-  return { id: t.id, tipo: t.tipo, dente: t.dente || "", etapa_atual: atual ? atual.id : null, etapa_atual_papel: atual ? atual.papel || "" : "", proxima_etapa: prox ? prox.id : null,
+  return { id: t.id, tipo: t.tipo, dente: t.dente || "", doutor: t.dr || "", etapa_atual: atual ? atual.id : null, etapa_atual_papel: atual ? atual.papel || "" : "", proxima_etapa: prox ? prox.id : null,
     concluido: !!(fim && (t.etapas || {})[fim.id]),
     fases: fases.map((f) => ({ id: f.id, nome: f.nome || f.id, papel: f.papel || "", data: ((t.etapas || {})[f.id] || {}).em || null })),
     etapas: Object.fromEntries(Object.entries(t.etapas || {}).map(([k, v]) => [k, v && v.em])),
@@ -716,7 +762,8 @@ function recursoPaciente(p) {
   const e = etapaSrv(p);
   return { id: p.id, nome: p.nome || "", telefone: p.telefone || "", unidade: p.unidade || "", origem: p.origem || "", tratamento: p.tratamento || p.interesse || "",
     funil: funilDe(e), etapa: e, etapa_nome: NOME_ETAPA[e], valor_apresentado: p.valorApresentado ?? null, valor_fechado: p.valorFechado ?? null,
-    email: p.email || "", termometro: p.temp || null, entrada_em: p.entradaEm || p.consultaEm || null, agendado_em: p.agendadoEm || null, compareceu_em: p.compareceuEm || null, fechado_em: p.fechadoEm || null,
+    email: p.email || "", termometro: p.temp || null, decisor: p.decisor || "", decisor_telefone: p.decisorTel || "", melhor_horario: p.melhorHorario || "",
+    crc: p.crc || "", doutor_avaliacao: p.drAvaliacao || p.profissional || "", entrada_em: p.entradaEm || p.consultaEm || null, agendado_em: p.agendadoEm || null, compareceu_em: p.compareceuEm || null, fechado_em: p.fechadoEm || null,
     kommo_lead_id: p.leadId || null, responsavel: p.responsavel || "", obs: p.obs || "", tratamentos: (p.trabalhos || []).map(recursoTrabalho) };
 }
 function numerosMes(pacs, mes, unidade) {
@@ -745,7 +792,7 @@ const EVENTOS = {
   "tratamento.etapa": "Etapa de tratamento registrada (inclui laboratório)",
   "mensagem.recebida": "Mensagem recebida do paciente"
 };
-async function integ() { const x = await STORE.integracoes(); return { tokens: [], webhooks: [], entregas: [], ...(x || {}) }; }
+async function integ() { const x = await STORE.integracoes(); return { tokens: [], webhooks: [], entregas: [], seg: {}, ...(x || {}) }; }
 const hashTk = (t) => crypto.createHash("sha256").update(String(t)).digest("hex");
 function ipPrivado(ip) {
   const l = String(ip).toLowerCase();
@@ -909,6 +956,11 @@ async function apiV1(req, res, url, p) {
         if (b.origem != null) x.origem = texto(b.origem, 60);
         if (b.tratamento != null) { x.tratamento = texto(b.tratamento, 80); x.interesse = x.tratamento; }
         if (b.obs != null) x.obs = texto(b.obs, 500);
+        if (b.decisor != null) x.decisor = texto(b.decisor, 80);
+        if (b.decisor_telefone != null) x.decisorTel = texto(b.decisor_telefone, 30);
+        if (b.melhor_horario != null) x.melhorHorario = texto(b.melhor_horario, 60);
+        if (b.crc != null) x.crc = texto(b.crc, 60);
+        if (b.doutor_avaliacao != null) x.drAvaliacao = texto(b.doutor_avaliacao, 60);
         if (b.valor_apresentado != null && Number.isFinite(Number(b.valor_apresentado))) x.valorApresentado = Number(b.valor_apresentado);
         if (b.valor_fechado != null && Number.isFinite(Number(b.valor_fechado))) x.valorFechado = Number(b.valor_fechado);
         if (b.kommo_lead_id != null && /^\d{1,15}$/.test(String(b.kommo_lead_id))) x.leadId = String(b.kommo_lead_id);
@@ -954,6 +1006,7 @@ async function apiV1(req, res, url, p) {
       if (b.nome && !C.nome) C.nome = texto(b.nome, 60);
       if (tel && !C.telefone) C.telefone = "+" + tel;
       if (b.unidade && !C.unidade) C.unidade = texto(b.unidade, 20);
+      if (/^https:\/\//.test(b.foto || "")) C.foto = texto(b.foto, 600);
       const autor = b.autor === "clinica" ? "clinica" : "cliente";
       const m = { id: "api" + Date.now().toString(36) + crypto.randomBytes(2).toString("hex"), ts: new Date().toISOString(), autor, texto: txt };
       C.lista.push(m); C.lista = C.lista.slice(-200); C.atualizado = Date.now();
@@ -1004,10 +1057,26 @@ async function rotas(req, res) {
     const papel = autenticar(form.get("usuario"), form.get("senha") || "");
     if (!papel) { falhou(ip); res.writeHead(401, { "Content-Type": "text/html; charset=utf-8" }); return res.end(paginaLogin("Usuário ou senha incorretos.")); }
     tentativas.delete(ip);
+    const seg = ((await integ()).seg || {})[papel];
+    if (seg && seg.ativo && seg.segredo) { // segunda etapa: código do Google Authenticator
+      res.writeHead(200, { "Content-Type": "text/html; charset=utf-8", "Set-Cookie": `alinha2fa=${encodeURIComponent(cookie2fa(papel))}; Path=/; HttpOnly; SameSite=Lax; Max-Age=300${ehHttps(req) ? "; Secure" : ""}` });
+      return res.end(paginaLogin("", true));
+    }
     res.writeHead(303, { Location: "./", "Set-Cookie": `alinha=${encodeURIComponent(cookieSessao(papel))}; Path=/; HttpOnly; SameSite=Lax; Max-Age=43200${ehHttps(req) ? "; Secure" : ""}` });
     return res.end();
   }
-  if (p === "/sair") { res.writeHead(303, { Location: "login", "Set-Cookie": "alinha=; Path=/; Max-Age=0" }); return res.end(); }
+  if (p === "/login/2fa" && req.method === "POST") {
+    if (bloqueado(ip)) { res.writeHead(429, { "Content-Type": "text/html; charset=utf-8" }); return res.end(paginaLogin("Muitas tentativas. Aguarde 15 minutos.")); }
+    const papel = pendente2fa(req);
+    if (!papel) { res.writeHead(303, { Location: "login" }); return res.end(); }
+    const form = new URLSearchParams((await lerCorpo(req)).toString("utf8"));
+    const seg = ((await integ()).seg || {})[papel];
+    if (!seg || !totpConfere(seg.segredo, form.get("codigo"), "login:" + papel)) { falhou(ip); res.writeHead(401, { "Content-Type": "text/html; charset=utf-8" }); return res.end(paginaLogin("Código incorreto ou expirado. Tente o código atual.", true)); }
+    tentativas.delete(ip);
+    res.writeHead(303, { Location: "./", "Set-Cookie": [`alinha=${encodeURIComponent(cookieSessao(papel))}; Path=/; HttpOnly; SameSite=Lax; Max-Age=43200${ehHttps(req) ? "; Secure" : ""}`, "alinha2fa=; Path=/; Max-Age=0"] });
+    return res.end();
+  }
+  if (p === "/sair") { res.writeHead(303, { Location: "login", "Set-Cookie": ["alinha=; Path=/; Max-Age=0", "alinha2fa=; Path=/; Max-Age=0"] }); return res.end(); }
   if (p === "/login") { res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" }); return res.end(paginaLogin()); }
 
   if (p === "/api/v1" || p.startsWith("/api/v1/")) return apiV1(req, res, url, p); // API aberta: autenticação por token
@@ -1036,6 +1105,34 @@ async function rotas(req, res) {
     res.writeHead(200, { "Content-Type": "application/json; charset=utf-8", "Content-Disposition": `attachment; filename="alinha-dados-${new Date().toISOString().slice(0, 10)}.json"`, "Cache-Control": "no-store" });
     const dump = { ...(await STORE.exportar()) }; delete dump.integracoes; // tokens e segredos de webhook ficam fora da cópia
     return res.end(JSON.stringify(dump, null, 2));
+  }
+
+  // segurança: verificação em duas etapas (Google Authenticator)
+  if (p.startsWith("/api/seguranca")) {
+    const I = await integ(); I.seg = I.seg || {};
+    const estado = () => ({ ok: true, papel, ativo: !!(I.seg[papel] && I.seg[papel].ativo), perfis: papel === "admin" ? Object.fromEntries(["admin", "operacional", "crc"].map((r) => [r, !!(I.seg[r] && I.seg[r].ativo)])) : undefined });
+    if (req.method === "GET" && p === "/api/seguranca") return json(res, 200, estado());
+    if (req.method === "POST" && p === "/api/seguranca/2fa/iniciar") {
+      const segredo = base32(crypto.randomBytes(20));
+      I.seg[papel] = Object.assign({}, I.seg[papel], { pendente: segredo }); await STORE.salvarIntegracoes(I);
+      const rotulo = encodeURIComponent(`Alinha:${papel}`), emissor = encodeURIComponent("Alinha Gestão Infinity");
+      return json(res, 200, { ok: true, segredo, uri: `otpauth://totp/${rotulo}?secret=${segredo}&issuer=${emissor}&algorithm=SHA1&digits=6&period=30` });
+    }
+    if (req.method === "POST" && p === "/api/seguranca/2fa/ativar") {
+      const b = await lerJSON(req), pend = I.seg[papel] && I.seg[papel].pendente;
+      if (!pend) return json(res, 400, { erro: "Gere o QR code primeiro." });
+      if (!totpConfere(pend, b.codigo, "ativar:" + papel)) return json(res, 400, { erro: "Código incorreto. Confira o horário do celular e digite o código atual." });
+      I.seg[papel] = { segredo: pend, ativo: true, ativadoEm: new Date().toISOString() }; await STORE.salvarIntegracoes(I);
+      return json(res, 200, estado());
+    }
+    if (req.method === "POST" && p === "/api/seguranca/2fa/desativar") {
+      const b = await lerJSON(req), alvo = papel === "admin" && b.papel ? b.papel : papel;
+      if (!["admin", "operacional", "crc"].includes(alvo)) return json(res, 400, { erro: "Perfil inválido." });
+      if (alvo === papel && !(papel === "admin" && b.papel && b.papel !== "admin") && !totpConfere(I.seg[papel] && I.seg[papel].segredo, b.codigo, "desativar:" + papel)) return json(res, 400, { erro: "Digite o código atual do Google Authenticator para desativar." });
+      I.seg[alvo] = { ativo: false }; await STORE.salvarIntegracoes(I);
+      return json(res, 200, estado());
+    }
+    return json(res, 404, { erro: "Não encontrado" });
   }
 
   // integrações (administrador): tokens da API, webhooks de saída e Kommo

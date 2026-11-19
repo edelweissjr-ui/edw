@@ -42,6 +42,12 @@ As conversas dos WhatsApps de **Caruaru e Recife**, que já estão ligados ao Ko
 ## Campanhas: calculadora da pirâmide
 Informe o valor investido e os dias de campanha. O Alinha divide o investimento entre **topo (atração), meio (consideração) e fundo (conversão)** — com divisões prontas (50/30/20, 60/25/15, 40/30/30, 70/20/10) ou a sua, editando o percentual direto na pirâmide (as outras fases se ajustam para somar 100%) e salvando como "minha divisão" —, mostra o valor por fase por dia e por semana, a **cadência** de conteúdo e de investimento semana a semana e a **projeção**: leads, agendamentos, comparecimentos, fechamentos, faturamento, retorno e o investimento necessário para a meta. As taxas podem vir dos números reais do Comercial.
 
+## Comercial: ampulheta, CRCs e alerta do dia
+- **Ampulheta**: Funil Lead em cima (entraram, agendaram, compareceram) e Funil Cliente embaixo (em follow-up, fecharam), com faltaram, perdidos e não fecharam ao lado. Os números vêm do CRM e **todos são clicáveis**, abrindo a lista de nomes.
+- **Equipe (CRCs)**: cadastre as CRCs e as metas individuais em Ajustes › Clínica e metas; o Comercial mostra o desempenho, o índice da meta e a evolução de cada uma.
+- **Alerta do dia**: ao abrir o app, os pacientes com maior probabilidade de fechamento (termômetro). No rodapé, um versículo bíblico por dia.
+- **Ficha**: decisor do pagamento (telefone e WhatsApp), melhor horário, CRC que atendeu, doutor da avaliação e doutor do tratamento.
+
 ## CRM: Funil Lead e Funil Cliente
 Cartões compactos: nome e data, com atalhos para **e-mail, WhatsApp, SMS e lembrete** e a **bolinha do termômetro** (toque para trocar a cor). O botão **Filtrar** filtra por etapa, termômetro, origem, tratamento, responsável, período, lembrete, contato, valor, faltas e tratamento em andamento.
 
@@ -152,6 +158,9 @@ Em **Ajustes › Reconhecimento de voz**, escolha o profissional, toque em **Gra
 Na consulta, o botão **🎙 Automático** fica ativo: a sua voz é marcada como **Profissional** e qualquer outra como **Paciente**. Se o Alinha errar uma frase, toque nela na transcrição para trocar.
 - Não grava áudio: guarda só uma "impressão" numérica do timbre e do tom.
 - Funciona melhor com o microfone perto do profissional e em sala silenciosa. Vozes muito parecidas podem confundir; por isso a correção com um toque continua disponível, e a IA também corrige pelo conteúdo ao gerar o briefing.
+
+## Segurança: Google Authenticator
+O acesso é por usuário e senha. Depois do primeiro acesso, cada perfil pode ativar em **Ajustes › Segurança** o código de 6 números do **Google Authenticator** (verificação em duas etapas, padrão TOTP). Como o perfil é compartilhado, todos que usam aquele usuário precisam do código no celular. Se alguém perder o celular, o administrador desativa para aquele perfil.
 
 ## Acessos e permissões
 | Usuário | Senha (variável na hospedagem) | Pode (padrão) |

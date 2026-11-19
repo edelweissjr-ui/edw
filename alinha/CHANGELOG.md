@@ -1,5 +1,16 @@
 # Novidades do Alinha
 
+## 2.3.0 — nov/2026
+- **Login com Google Authenticator**: o acesso continua por usuário e senha; depois do primeiro acesso, cada perfil pode ativar o código de 6 números (TOTP, compatível com Google Authenticator e similares) em Ajustes › Segurança. Códigos não podem ser reaproveitados; o administrador desativa para um perfil que perdeu o celular. As chaves não vão para a cópia dos dados.
+- **Temas**: além de escuro e claro, Esmeralda e Pérola. A logomarca não muda de cor.
+- **WhatsApp**: foto do perfil do paciente no círculo (pelo Kommo ou pelo celular conectado); **palavras negativadas** (Ajustes › Chat) com aviso e troca sugerida, e confirmação para enviar assim; **correção ortográfica** automática (com Desfazer), sugerida ou desligada, com correções da própria clínica.
+- **Comercial em ampulheta**: em cima o Funil Lead (entraram › agendaram › compareceram), embaixo o Funil Cliente (em follow-up › fecharam), com faltaram, perdidos e não fecharam ao lado. **Todo número é clicável** e abre a lista de nomes (com WhatsApp e ficha). O mesmo vale para os orçamentos do mês e o resultado do mês das Campanhas.
+- **Campanhas**: as taxas da projeção vêm do CRM automaticamente (pode desligar).
+- **Equipe (CRCs)**: cadastro das CRCs com metas individuais (agendamentos, comparecimentos, fechamentos, faturamento) e, no Comercial, o desempenho de cada uma com índice da meta e evolução de 3 meses.
+- **Alerta do dia**: ao abrir o app, uma vez por dia, os pacientes com maior probabilidade de fechamento (termômetro). Aviso também no Hoje.
+- **Versículo bíblico do dia** no rodapé.
+- **Ficha**: decisor do pagamento (com telefone e WhatsApp), melhor horário para contato, CRC que atendeu e doutor da avaliação; doutor de cada tratamento. Trocas registradas no prontuário com quem fez ("Atendendo" no rodapé).
+
 ## 2.2.0 — nov/2026
 - **Nova logomarca** Alinha · Gestão Infinity (vetor, nítida em qualquer tamanho; versão clara para o tema escuro).
 - **Linha do tempo**:
