@@ -47,6 +47,8 @@ function arquivo(pasta) {
       salvar();
     },
     async resumoWA() { return { ver: DB.waVer || 0, itens: Object.entries(DB.whatsapp).map(([l, C]) => resumoDe(l, C)) }; },
+    async integracoes() { return DB.integracoes || {}; },
+    async salvarIntegracoes(x) { DB.integracoes = x; salvar(true); },
     async exportar() { return DB; },
     async backup(motivo) {
       if (!fs.existsSync(ARQ)) return null;
@@ -72,7 +74,7 @@ function redis(url, token, P) {
   }
   const um = async (...c) => (await pipe([c]))[0];
   const ler = (s, def) => { try { return s ? JSON.parse(s) : def; } catch { return def; } };
-  const K = { meta: `${P}:meta`, aj: `${P}:ajustes`, pac: `${P}:pacientes`, res: `${P}:wa:resumo`, wa: (l) => `${P}:wa:${l}` };
+  const K = { meta: `${P}:meta`, aj: `${P}:ajustes`, pac: `${P}:pacientes`, res: `${P}:wa:resumo`, wa: (l) => `${P}:wa:${l}`, integ: `${P}:integracoes` };
   return {
     tipo: "redis", persistente: true,
     async meta() { return ler(await um("GET", K.meta), { esquema: 0, versao: null }); },
@@ -97,6 +99,8 @@ function redis(url, token, P) {
       velhos.forEach((l) => delete r.itens[l]);
       await pipe([["SET", K.wa(lead), JSON.stringify(C), "EX", String(35 * 86400)], ["SET", K.res, JSON.stringify(r)], ...velhos.map((l) => ["DEL", K.wa(l)])]);
     },
+    async integracoes() { return ler(await um("GET", K.integ), {}); },
+    async salvarIntegracoes(x) { await um("SET", K.integ, JSON.stringify(x)); },
     async resumoWA() { const r = ler(await um("GET", K.res), { ver: 0, itens: {} }); return { ver: r.ver || 0, itens: Object.values(r.itens || {}) }; },
     async exportar() {
       const [m, a] = await pipe([["GET", K.meta], ["GET", K.aj]]);

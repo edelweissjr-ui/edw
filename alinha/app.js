@@ -8,8 +8,9 @@
   const BIB = window.ROTEIRO, DEMO = window.ALINHA_DEMO;
   /* Versão: na plataforma, vem do servidor (package.json) no momento em que a tela abriu.
      Ao publicar uma atualização, aumente a versão em package.json e registre em NOVIDADES. */
-  let VERSAO = "2.0.0";
+  let VERSAO = "2.1.0";
   const NOVIDADES = [
+    { v: "2.1.0", data: "nov/2026", itens: ["CRM em tela própria com dois funis: Funil Lead (lead novo, em contato, agendou, faltou, perdido) e Funil Cliente (compareceu, fechou, não fechou)", "Etapa do CRM direto na conversa do WhatsApp", "API aberta com tokens (ler e gravar ou só leitura) para conectar n8n, Kommo, site e outros apps", "Webhooks assinados: o Alinha avisa outros apps quando um lead entra, muda de etapa, comparece, fecha ou avança no tratamento", "Kommo: leads novos entram no Funil Lead, a mudança para o funil de clientes passa para o Funil Cliente e o card pode ser movido no Kommo quando o paciente comparece"] },
     { v: "2.0.0", data: "nov/2026", itens: ["Tratamentos: linha do tempo de cada tratamento, com a etapa atual e a próxima (coroa em porcelana, prótese e coroa sobre implante, Invisalign, aparelho fixo)", "Laboratório: trabalhos enviados com a data de entrega combinada, aviso de atraso, recebidos para agendar e colocações marcadas; avisos no Hoje", "Linha do tempo completa do paciente na ficha (comercial e tratamentos)", "Suporte: chat com IA e manual de ajuda pesquisável para tirar dúvidas sobre o sistema", "Letras mais nítidas: fonte carregada antes, mínimo de 13 px e mais contraste"] },
     { v: "1.9.0", data: "nov/2026", itens: ["Telas sem barras de rolagem: conteúdo organizado em abas e páginas para caber na tela (Comercial, Campanhas, Resultados, Consulta, Hoje e Ajustes)", "Nada rola para o lado: Follow-up e Pipeline quebram em linhas e as tabelas viram cartões no celular", "Ajustes ampliado: largura total em abas, com Unidades (endereço e contatos editáveis) e Metas do mês", "Campanhas › Resultado do mês: leads que entraram, compareceram, fecharam, faltaram, não fecharam e follow-up de orçamento, com custo por lead e por fechamento, e previsto x meta x realizado", "Celular: barra com as 4 telas principais e o botão Mais"] },
     { v: "1.8.1", data: "nov/2026", itens: ["Campanhas: percentual de cada fase editável direto na pirâmide (digitando ou arrastando), com ajuste automático para somar 100% e a opção de salvar a sua divisão"] },
@@ -800,7 +801,7 @@
     $("#cProf").innerHTML = profs.map((n) => `<option${n === atual ? " selected" : ""}>${esc(n)}</option>`).join("");
     renderVozes(); atualizarAuto();
     estadoCelular(); renderAbrirCelular(); renderDominio(false);
-    if (ehAdminFront()) { renderPermissoes(); renderUnidadesMetas(); }
+    if (ehAdminFront()) { renderPermissoes(); renderUnidadesMetas(); if (["api", "kommo"].includes(ABAS.aj)) { if (INTEG) renderIntegracoes(); else carregarIntegracoes(); } }
   }
   function ehAdminFront() { return !PLAT || PLAT.papel === "admin"; }
   /* ------------------------------------------------------------ */
@@ -1187,7 +1188,9 @@
         <div class="grow"><b style="font-size:17px">${esc(i.nome || "Lead " + lead)}</b><div class="small dim">${esc([i.unidade, i.telefone, i.origem].filter(Boolean).join(" · ") || "lead " + lead)}</div></div>
         <span class="minitermo" title="Prontidão para o fechamento">🌡 <i><b style="width:${t}%"></b></i>${t}%</span><span class="pill ${t >= 70 ? "bad" : t >= 40 ? "warn" : ""}">${nivel}</span>
         <div class="row" style="width:100%">${doCelular ? `<span class="pill acc">📱 Celular conectado</span>` : hum ? `<span class="pill acc">✋ Atendimento humano · IA pausada</span><button class="btn sm" data-waact="devolver">🤖 Devolver para a IA</button>` : `<button class="btn sm" data-waact="assumir">✋ Assumir atendimento</button>`}
-          ${(() => { const px = PAC.find((x) => x.leadId && String(x.leadId) === String(lead)); return px ? `<button class="btn sm" data-waact="followup">📇 Ver no CRM · ${esc(ETAPA[etapaDe(px)].nome)}</button>` : `<button class="btn sm" data-waact="followup">+ Adicionar ao CRM</button>`; })()}${kommoLink ? `<a class="btn sm" href="${esc(kommoLink)}" target="_blank" rel="noopener">Abrir no Kommo</a>` : ""}</div></div>
+          ${(() => { const px = PAC.find((x) => x.leadId && String(x.leadId) === String(lead)); if (!px) return `<button class="btn sm" data-waact="followup">+ Adicionar ao CRM</button>`;
+          const e0 = etapaDe(px), op = (g, t) => `<optgroup label="${t}">${ETAPAS.filter((e) => e.grupo === g).map((e) => `<option value="${e.id}"${e.id === e0 ? " selected" : ""}>${esc(e.nome)}</option>`).join("")}</optgroup>`;
+          return `<label class="small dim" for="waCrm">CRM</label><select class="in crmsel" id="waCrm" data-crmsel="${px.id}" aria-label="Etapa no CRM">${op("lead", "Funil Lead")}${op("cliente", "Funil Cliente")}</select><button class="btn sm" data-waact="followup">Ficha</button>`; })()}${kommoLink ? `<a class="btn sm" href="${esc(kommoLink)}" target="_blank" rel="noopener">Abrir no Kommo</a>` : ""}</div></div>
       <div class="thread" id="waThread">${msgs.map((m) => `<div class="bolha ${m.autor === "cliente" ? "cli" : "cl"}${m._nova ? " chegou" : ""}">${esc(m.texto)}<span class="m">${m.autor === "cliente" ? "Paciente" : m.ia ? "🤖 IA de atendimento" : "Clínica"} · ${hora(m.ts)}</span></div>`).join("") || '<p class="dim">Sem mensagens.</p>'}</div>
       <div class="composer"><textarea id="waTexto" rows="2" aria-label="Escreva a mensagem" placeholder="Escreva uma mensagem…">${esc(rasc)}</textarea>
         ${podeEnviar ? `<button class="btn pri" data-waact="enviar" title="${doCelular ? "Enviar pelo celular conectado" : "Enviar"}">➤ Enviar</button>` : `<button class="btn pri" data-waact="copiar">${kommoLink ? "Copiar e abrir no Kommo" : "Copiar"}</button>`}
@@ -1263,6 +1266,10 @@
     if (!WA.sel) return;
     if (e.target.id === "waTexto") { WA.rascunho[WA.sel] = e.target.value; const a = $("#waLink"); if (a) a.href = linkWA(WA.info[WA.sel] || {}, e.target.value); }
     if (e.target.id === "waSug" && WA.sug[WA.sel]) WA.sug[WA.sel].mensagem = e.target.value;
+  });
+  $("#wa").addEventListener("change", async (e) => {
+    const sel = e.target.closest("[data-crmsel]"); if (!sel) return;
+    const px = PAC.find((x) => x.id === sel.dataset.crmsel); if (px) await mover(px, sel.value);
   });
   $("#wa").addEventListener("keydown", (e) => {
     if (e.target.id !== "waTexto" || e.key !== "Enter" || e.shiftKey || e.isComposing) return;
@@ -1360,12 +1367,12 @@
   /* ------------------------------------------------------------ */
   /* Permissões: Administrador · Operacional · CRC                  */
   /* ------------------------------------------------------------ */
-  const TELAS = [["hoje", "Hoje"], ["whatsapp", "WhatsApp"], ["consulta", "Consulta"], ["briefings", "Briefings"], ["followup", "Follow-up"], ["comercial", "Comercial (funil e CRM)"], ["tratamentos", "Tratamentos e laboratório"], ["resultados", "Resultados"], ["campanhas", "Campanhas"]];
+  const TELAS = [["hoje", "Hoje"], ["whatsapp", "WhatsApp"], ["crm", "CRM (Funil Lead e Funil Cliente)"], ["consulta", "Consulta"], ["briefings", "Briefings"], ["followup", "Follow-up"], ["comercial", "Comercial (funil do mês)"], ["tratamentos", "Tratamentos e laboratório"], ["resultados", "Resultados"], ["campanhas", "Campanhas"]];
   const ACOES = [["enviar_whatsapp", "Enviar mensagens pelo celular conectado"], ["exportar", "Baixar cópia dos dados"]];
   const PAPEL_NOME = { admin: "Administrador", operacional: "Operacional", crc: "CRC" };
   const PERM_PADRAO = {
-    operacional: { telas: ["hoje", "consulta", "briefings", "followup", "comercial", "tratamentos"], acoes: [] },
-    crc: { telas: ["hoje", "whatsapp", "briefings", "followup", "comercial", "tratamentos"], acoes: ["enviar_whatsapp"] }
+    operacional: { telas: ["hoje", "crm", "consulta", "briefings", "followup", "comercial", "tratamentos"], acoes: [] },
+    crc: { telas: ["hoje", "whatsapp", "crm", "briefings", "followup", "comercial", "tratamentos"], acoes: ["enviar_whatsapp"] }
   };
   const papel = () => (PLAT ? PLAT.papel : "admin");
   function perm() {
@@ -1392,7 +1399,7 @@
     rotularTabela(el);
   }
   $("#btnSalvarPerm").addEventListener("click", async () => {
-    const P = { operacional: { telas: [], acoes: [] }, crc: { telas: [], acoes: [] } };
+    const P = { operacional: { telas: [], acoes: [], v: 2 }, crc: { telas: [], acoes: [], v: 2 } };
     $$("#permTabela [data-perm]").forEach((c) => { if (c.checked) { const [r, t, k] = c.dataset.perm.split("|"); P[r][t].push(k); } });
     try { await Store.ajustes({ permissoes: P, leadsAutomaticos: $("#aLeadsAuto").checked }); $("#permStatus").textContent = "Salvo ✓ (vale no próximo acesso de cada pessoa)"; }
     catch (e) { $("#permStatus").textContent = "Erro: " + e.message; }
@@ -1408,6 +1415,7 @@
     { id: "contato", nome: "Em contato", grupo: "lead", sub: "conversando" },
     { id: "agendado", nome: "Agendou", grupo: "lead", sub: "check-up / avaliação marcada" },
     { id: "faltou", nome: "Faltou", grupo: "lead", sub: "remarcar" },
+    { id: "perdido", nome: "Perdido", grupo: "lead", sub: "sem interesse ou sem resposta" },
     { id: "orcamento", nome: "Compareceu · orçamento", grupo: "cliente", sub: "follow-up do orçamento" },
     { id: "fechado", nome: "Fechou", grupo: "cliente", sub: "tratamento fechado" },
     { id: "nao_fechou", nome: "Não fechou", grupo: "cliente", sub: "reativação 30/60/90" }
@@ -1426,6 +1434,7 @@
       p.status = "lead"; p.etapa = etapa;
       if (etapa === "agendado") p.agendadoEm = p.agendadoEm || agora;
       if (etapa === "faltou") { p.faltouEm = agora; p.faltas = (p.faltas || 0) + 1; p.agendadoEm = p.agendadoEm || agora; }
+      if (etapa === "perdido") p.perdidoEm = agora;
     } else {
       if (!ehCliente(p)) { p.compareceuEm = agora; p.consultaEm = agora; p.agendadoEm = p.agendadoEm || agora; p.toques = p.toques || {}; } // compareceu: vira cliente
       p.compareceuEm = p.compareceuEm || p.consultaEm || agora;
@@ -1443,12 +1452,13 @@
   function numerosComercial(mes, unidade) {
     const base = PAC.filter((p) => !unidade || p.unidade === unidade);
     const coorte = base.filter((p) => noMes(entrouEm(p), mes)); // leads que entraram no mês
-    const c = { entraram: coorte.length, agendaram: 0, compareceram: 0, faltaram: 0, fecharam: 0, naoFecharam: 0, emFollowup: 0, aguardando: 0, valorFechado: 0, valorFollowup: 0 };
+    const c = { entraram: coorte.length, agendaram: 0, compareceram: 0, faltaram: 0, fecharam: 0, naoFecharam: 0, emFollowup: 0, aguardando: 0, perdidos: 0, valorFechado: 0, valorFollowup: 0 };
     coorte.forEach((p) => {
       const e = etapaDe(p);
       if (ehCliente(p) || ["agendado", "faltou"].includes(e) || p.agendadoEm) c.agendaram++;
       if (ehCliente(p)) c.compareceram++;
       if (e === "faltou") c.faltaram++;
+      if (e === "perdido") c.perdidos++;
       if (e === "fechado") { c.fecharam++; c.valorFechado += Number(p.valorFechado || 0); }
       if (e === "nao_fechou") c.naoFecharam++;
       if (e === "orcamento") { c.emFollowup++; c.valorFollowup += Number(p.valorApresentado || 0); }
@@ -1476,7 +1486,7 @@
       ["Faltaram", c.faltaram, c.agendaram ? `${pct(c.faltaram, c.agendaram)}% dos agendados` : "—"],
       ["Não fecharam", c.naoFecharam, c.compareceram ? `${pct(c.naoFecharam, c.compareceram)}% dos clientes` : "—"],
       ["Em follow-up de orçamento", c.emFollowup, "clientes decidindo"],
-      ["Ainda no funil de leads", c.aguardando, "novos, em contato ou agendados"]
+      ["Ainda no Funil Lead", c.aguardando, `novos, em contato ou agendados${c.perdidos ? ` · ${c.perdidos} perdido${c.perdidos > 1 ? "s" : ""}` : ""}`]
     ]);
     kpis("#comOrc", [
       ["Orçamentos no mês", o.total, brl(o.apresentado) + " apresentados"],
@@ -1484,19 +1494,22 @@
       ["Não fecharam", o.naoFecharam, `${pct(o.naoFecharam, o.total)}% dos orçamentos`],
       ["Em follow-up", o.emFollowup, `${o.recuperados} recuperado${o.recuperados === 1 ? "" : "s"} pelo follow-up`]
     ]);
-    renderPipeline();
   }
+  const CRMS = { unidade: "" };
   function renderPipeline() {
     const q = norm(COM.busca);
-    const lista = PAC.filter((p) => (!COM.unidade || p.unidade === COM.unidade) && (!q || norm(p.nome + " " + (p.telefone || "")).includes(q)));
+    $$("#crmUnidade button").forEach((b) => b.classList.toggle("on", b.dataset.u === CRMS.unidade));
+    const lista = PAC.filter((p) => (!CRMS.unidade || p.unidade === CRMS.unidade) && (!q || norm(p.nome + " " + (p.telefone || "")).includes(q)));
     const recente = (p) => { const e = etapaDe(p); if (["fechado"].includes(e)) return Date.now() - new Date(p.fechadoEm || 0) < 60 * 864e5; if (e === "nao_fechou") return Date.now() - new Date(p.encerradoEm || p.consultaEm || 0) < 60 * 864e5; return true; };
-    const grupoHTML = (g, titulo) => `<div class="pgrupo"><div class="pghead ${g}">${titulo}</div><div class="pipe">${ETAPAS.filter((e) => e.grupo === g).map((e) => {
+    const grupoHTML = (g) => ETAPAS.filter((e) => e.grupo === g).map((e) => {
       const itens = lista.filter((p) => etapaDe(p) === e.id && recente(p)).sort((a, b) => ((b.fechadoEm || b.compareceuEm || entrouEm(b) || "") > (a.fechadoEm || a.compareceuEm || entrouEm(a) || "") ? 1 : -1));
       const soma = itens.reduce((t, p) => t + Number((e.id === "fechado" ? p.valorFechado : p.valorApresentado) || 0), 0);
       return `<div class="col" data-etapa="${e.id}"><h3>${e.nome}<span class="pill">${itens.length}</span></h3><div class="sub">${e.sub}${soma ? " · " + brl(soma) : ""}</div>
         ${itens.slice(0, COM.abertas[e.id] ? itens.length : 5).map((p) => `<button class="pc" draggable="true" data-pid="${p.id}"><b>${esc(p.nome)}</b><span class="m">${esc([tratDoPaciente(p) !== "Não informado" ? tratDoPaciente(p) : "", p.unidade].filter(Boolean).join(" · "))}</span><span class="m">${e.grupo === "lead" ? `entrou ${fmtData(entrouEm(p))}${p.origem ? " · " + esc(p.origem) : ""}${p.agendaPara && e.id === "agendado" ? ` · <b>${fmtData(p.agendaPara)}</b>` : ""}` : brl(e.id === "fechado" ? p.valorFechado : p.valorApresentado)}</span></button>`).join("") || `<span class="tiny dim">vazio</span>`}
-        ${itens.length > 5 ? `<button class="mais-col" data-maiscol="${e.id}">${COM.abertas[e.id] ? "Mostrar menos" : `+ ${itens.length - 5} mais`}</button>` : ""}</div>`; }).join("")}</div></div>`;
-    $("#pipeline").innerHTML = grupoHTML("lead", "Funil de leads") + grupoHTML("cliente", "Funil de clientes · compareceram");
+        ${itens.length > 5 ? `<button class="mais-col" data-maiscol="${e.id}">${COM.abertas[e.id] ? "Mostrar menos" : `+ ${itens.length - 5} mais`}</button>` : ""}</div>`; }).join("");
+    $("#pipeLead").innerHTML = grupoHTML("lead"); $("#pipeCliente").innerHTML = grupoHTML("cliente");
+    const qtd = (g) => lista.filter((p) => ETAPA[etapaDe(p)].grupo === g && recente(p)).length;
+    $("#crmQtdLead").textContent = qtd("lead"); $("#crmQtdCliente").textContent = qtd("cliente");
   }
   // arrastar e soltar entre as colunas
   let arrastando = null;
@@ -1512,6 +1525,19 @@
   $("#pipeline").addEventListener("click", (e) => { const m = e.target.closest("[data-maiscol]"); if (m) { COM.abertas[m.dataset.maiscol] = !COM.abertas[m.dataset.maiscol]; renderPipeline(); return; } const c = e.target.closest("[data-pid]"); if (!c) return; const p = PAC.find((x) => x.id === c.dataset.pid); if (p) abrirCard(p); });
   $("#comMes").addEventListener("change", (e) => { COM.mes = e.target.value || new Date().toISOString().slice(0, 7); renderComercial(); });
   $("#comUnidade").addEventListener("click", (e) => { const b = e.target.closest("[data-u]"); if (b) { COM.unidade = b.dataset.u; renderComercial(); } });
+  $("#crmUnidade").addEventListener("click", (e) => { const b = e.target.closest("[data-u]"); if (b) { CRMS.unidade = b.dataset.u; renderPipeline(); } });
+  $("#btnIrCrm").addEventListener("click", () => mostrar("crm"));
+  // soltar o card sobre a aba do outro funil: Funil Cliente = compareceu; Funil Lead = volta para "Agendou"
+  const abasCrm = $('.abas[data-grupo="crm"]');
+  abasCrm.addEventListener("dragover", (e) => { const b = e.target.closest("[data-solta]"); if (!b || !arrastando) return; e.preventDefault(); b.classList.add("solta"); });
+  abasCrm.addEventListener("dragleave", (e) => { const b = e.target.closest("[data-solta]"); if (b) b.classList.remove("solta"); });
+  abasCrm.addEventListener("drop", async (e) => {
+    const b = e.target.closest("[data-solta]"); $$('.abas[data-grupo="crm"] .solta').forEach((x) => x.classList.remove("solta"));
+    if (!b || !arrastando) return; e.preventDefault();
+    const p = PAC.find((x) => x.id === arrastando); arrastando = null; if (!p) return;
+    const alvo = b.dataset.solta === "cliente" ? "orcamento" : "agendado";
+    if (ETAPA[etapaDe(p)].grupo !== b.dataset.solta) { await mover(p, alvo); abrirAba("crm", b.dataset.solta); renderPipeline(); }
+  });
   $("#comBusca").addEventListener("input", (e) => { COM.busca = e.target.value; renderPipeline(); });
   $("#btnNovoLead").addEventListener("click", () => abrirCard(null));
 
@@ -1691,7 +1717,7 @@
   document.addEventListener("click", (e) => {
     const b = e.target.closest(".abas button"); if (!b) return;
     const g = b.closest(".abas").dataset.grupo; abrirAba(g, b.dataset.aba); window.scrollTo({ top: 0 });
-    if (g === "com") renderComercial(); if (g === "camp") renderCampanhas(); if (g === "res") renderResultados(); if (g === "aj") renderAjustes();
+    if (g === "camp") renderCampanhas(); if (g === "res") renderResultados(); if (g === "aj") { renderAjustes(); if (["api", "kommo"].includes(b.dataset.aba)) carregarIntegracoes(); } if (g === "crm") renderPipeline();
   });
   // tabela vira cartão no celular: cada célula leva o nome da coluna
   function rotularTabela(t) {
@@ -1746,7 +1772,7 @@
     ]);
     const nomeMes = new Date(CM.mes + "-15").toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
     $("#cmTitulo").textContent = `Leads de ${nomeMes}`;
-    const linhas = [["Entraram", c.entraram], ["Agendaram", c.agendaram], ["Compareceram", c.compareceram], ["Fecharam", c.fecharam], ["Faltaram", c.faltaram], ["Não fecharam", c.naoFecharam], ["Follow-up", c.emFollowup], ["No funil de leads", c.aguardando]];
+    const linhas = [["Entraram", c.entraram], ["Agendaram", c.agendaram], ["Compareceram", c.compareceram], ["Fecharam", c.fecharam], ["Faltaram", c.faltaram], ["Não fecharam", c.naoFecharam], ["Follow-up", c.emFollowup], ["No Funil Lead", c.aguardando], ["Leads perdidos", c.perdidos]];
     const mx = Math.max(1, c.entraram);
     $("#cmFunil").innerHTML = linhas.map(([n, v]) => `<div class="fl"><div class="nome">${n}</div><div class="trilho"><b style="width:${Math.max(v ? 2 : 0, (v / mx) * 100)}%" data-dica="${esc(`${n}: ${v} de ${c.entraram} leads (${pct(v, c.entraram)}%)`)}"></b></div><div class="val"><strong class="num">${v}</strong><span>${pct(v, c.entraram)}%</span></div></div>`).join("");
     // previsto (com as taxas da projeção e o investido no mês) x realizado
@@ -2047,6 +2073,86 @@
   });
 
   /* ------------------------------------------------------------ */
+  /* Integrações: tokens da API, webhooks e Kommo (administrador)    */
+  /* ------------------------------------------------------------ */
+  let INTEG = null;
+  const EVENTOS_PADRAO = ["lead.criado", "lead.etapa", "cliente.compareceu", "cliente.fechou"];
+  const dataHora = (iso) => (iso ? new Date(iso).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }) : "nunca");
+  async function carregarIntegracoes() {
+    if (!PLAT || !ehAdminFront()) { renderIntegracoes(); return; }
+    try { INTEG = await api("GET", "api/integracoes"); } catch (e) { INTEG = { erro: e.message }; }
+    renderIntegracoes();
+  }
+  function renderIntegracoes(tokenNovo) {
+    if (!$("#tkLista")) return;
+    if (!PLAT) {
+      const msg = `<span class="small dim">Disponível na plataforma (com login de administrador). Na demonstração não há servidor para receber chamadas.</span>`;
+      $("#tkLista").innerHTML = msg; $("#whLista").innerHTML = msg; $("#whEventos").innerHTML = ""; $("#kmEstado").textContent = "demonstração"; return;
+    }
+    if (!INTEG || INTEG.erro) { $("#tkLista").innerHTML = `<span class="small" style="color:var(--bad)">${esc((INTEG && INTEG.erro) || "Carregando…")}</span>`; return; }
+    const I = INTEG;
+    $("#tkNovo").innerHTML = tokenNovo ? `<div class="tknovo"><b>Token gerado: copie agora, ele não será mostrado de novo.</b><div class="copiar"><code id="tkValor">${esc(tokenNovo)}</code><button class="btn sm" data-copiar="tkValor">Copiar</button></div></div>` : "";
+    $("#tkLista").innerHTML = I.tokens.length ? I.tokens.map((t) => `<div class="it"><b>${esc(t.nome)}</b><code>${esc(t.prefixo)}…</code><span class="pill ${t.escopo === "leitura" ? "" : "acc"}">${t.escopo === "leitura" ? "só leitura" : "ler e gravar"}</span><span class="tiny dim grow">criado ${dataHora(t.criadoEm)} · último uso ${dataHora(t.usadoEm)}</span><button class="btn sm ghost" data-tkdel="${t.id}">Revogar</button></div>`).join("") : `<span class="small dim">Nenhum token ainda.</span>`;
+    if (!$("#whEventos").children.length) $("#whEventos").innerHTML = Object.entries(I.eventos).map(([k, n]) => `<button data-ev="${k}" class="${EVENTOS_PADRAO.includes(k) ? "on" : ""}" title="${esc(n)}">${esc(k)}</button>`).join("");
+    $("#whLista").innerHTML = I.webhooks.length ? I.webhooks.map((w) => `<div class="it"><b>${esc(w.nome)}</b><span class="pill ${w.ativo === false ? "" : "good"}">${w.ativo === false ? "pausado" : "ativo"}</span><span class="tiny dim grow" style="word-break:break-all">${esc(w.url)}</span>
+      <span class="tiny" style="width:100%">Eventos: ${w.eventos.map(esc).join(", ")}</span>
+      <div class="copiar" style="width:100%"><span class="tiny dim">Segredo para conferir a assinatura:</span><code id="seg${w.id}">${esc(w.segredo)}</code><button class="btn sm" data-copiar="seg${w.id}">Copiar</button></div>
+      <button class="btn sm" data-whteste="${w.id}">Enviar teste</button><button class="btn sm" data-whativo="${w.id}">${w.ativo === false ? "Ativar" : "Pausar"}</button><button class="btn sm ghost" data-whdel="${w.id}">Remover</button></div>`).join("") : `<span class="small dim">Nenhum webhook ainda.</span>`;
+    const ent = (I.entregas || []).slice(0, 5);
+    $("#whEntregas").innerHTML = ent.length ? `<span class="label">Últimas entregas</span><br>` + ent.map((x) => `${x.ok ? "✅" : "⚠️"} ${esc(x.evento)} · ${dataHora(x.em)} · ${x.status ? "HTTP " + x.status : esc(x.erro || "")}`).join("<br>") : "";
+    const K = I.kommo || {};
+    $("#kmEstado").textContent = K.conectado ? "API do Kommo conectada" : "token do Kommo não configurado"; $("#kmEstado").className = "pill " + (K.conectado ? "good" : "");
+    $("#kmWebhook").textContent = K.webhook || "Configure KOMMO_CHAVE_WEBHOOK na hospedagem para gerar o endereço.";
+    $("#kmImportar").checked = K.importar !== false; $("#kmSincronizar").checked = !!K.sincronizar;
+    $("#kmFunilLead").value = K.funilLead || ""; $("#kmFunilCliente").value = K.funilCliente || ""; $("#kmEtapaCliente").value = K.etapaCliente || ""; $("#kmEtapaFechou").value = K.etapaClienteFechou || "";
+  }
+  $("#v-ajustes").addEventListener("click", async (e) => {
+    const cp = e.target.closest("[data-copiar]");
+    if (cp) { const el = document.getElementById(cp.dataset.copiar); try { await navigator.clipboard.writeText(el.textContent); toast("Copiado"); } catch (er) { const r = document.createRange(); r.selectNodeContents(el); getSelection().removeAllRanges(); getSelection().addRange(r); toast("Selecionado: use Ctrl+C"); } return; }
+    const ev = e.target.closest("#whEventos [data-ev]"); if (ev) { ev.classList.toggle("on"); return; }
+    if (!PLAT) return;
+    const chamar = async (m, rota, corpo, msg) => { try { const d = await api(m, rota, corpo); INTEG = d; renderIntegracoes(d.token); if (msg) toast(msg); return d; } catch (er) { toast(er.message); } };
+    const del = e.target.closest("[data-tkdel]");
+    if (del) { if (del.dataset.c !== "1") { del.dataset.c = "1"; del.textContent = "Confirmar"; return; } await chamar("DELETE", "api/integracoes/tokens/" + del.dataset.tkdel, null, "Token revogado"); return; }
+    const wt = e.target.closest("[data-whteste]");
+    if (wt) { wt.disabled = true; wt.textContent = "Enviando…"; const d = await chamar("POST", `api/integracoes/webhooks/${wt.dataset.whteste}/teste`, {}); if (d && d.teste) toast(d.teste.ok ? `Teste entregue (HTTP ${d.teste.status})` : `Não entregou: ${d.teste.erro || "HTTP " + d.teste.status}`); return; }
+    const wa = e.target.closest("[data-whativo]");
+    if (wa) { const w = INTEG.webhooks.find((x) => x.id === wa.dataset.whativo); await chamar("PATCH", "api/integracoes/webhooks/" + w.id, { ativo: w.ativo === false }, w.ativo === false ? "Webhook ativado" : "Webhook pausado"); return; }
+    const wd = e.target.closest("[data-whdel]");
+    if (wd) { if (wd.dataset.c !== "1") { wd.dataset.c = "1"; wd.textContent = "Confirmar"; return; } await chamar("DELETE", "api/integracoes/webhooks/" + wd.dataset.whdel, null, "Webhook removido"); return; }
+    if (e.target.closest("#btnTkCriar")) { await chamar("POST", "api/integracoes/tokens", { nome: $("#tkNome").value.trim(), escopo: $("#tkEscopo").value }, "Token gerado"); $("#tkNome").value = ""; return; }
+    if (e.target.closest("#btnWhCriar")) {
+      const evs = $$("#whEventos .on").map((b) => b.dataset.ev);
+      const d = await chamar("POST", "api/integracoes/webhooks", { url: $("#whUrl").value.trim(), eventos: evs }, "Webhook adicionado"); if (d) $("#whUrl").value = ""; return;
+    }
+    if (e.target.closest("#btnKmSalvar")) {
+      const n = (id) => { const v = $(id).value.replace(/\D/g, ""); return v ? Number(v) : null; };
+      try { await Store.ajustes({ funilLead: n("#kmFunilLead"), funilCliente: n("#kmFunilCliente"), etapaCliente: n("#kmEtapaCliente"), etapaClienteFechou: n("#kmEtapaFechou"), kommoSincronizar: $("#kmSincronizar").checked, kommoImportarLeads: $("#kmImportar").checked }); $("#kmStatus").textContent = "✓ Salvo"; carregarIntegracoes(); }
+      catch (er) { $("#kmStatus").textContent = "Erro: " + er.message; }
+      return;
+    }
+    if (e.target.closest("#btnApiDoc")) abrirDocApi();
+  });
+  function abrirDocApi() {
+    const base = (INTEG && INTEG.api) || (location.origin + "/api/v1");
+    const ex = (s) => `<pre>${esc(s)}</pre>`;
+    $("#drawerHost").innerHTML = `<div class="veil" id="veil"><div class="drawer doc" role="dialog" aria-label="Documentação da API">
+      <div class="row"><h2 class="grow" style="font-size:21px">API do Alinha</h2><button class="btn sm ghost" id="btnFechar" aria-label="Fechar">✕</button></div>
+      <div class="card stack">
+        <p class="small" style="margin:0">Endereço base: <code>${esc(base)}</code>. Envie o token no cabeçalho <code>Authorization: Bearer SEU_TOKEN</code>. Limite: 120 requisições por minuto por token. Respostas em JSON.</p>
+        <span class="label">Listar leads do Funil Lead</span>${ex(`curl -H "Authorization: Bearer SEU_TOKEN" "${base}/leads?funil=lead"`)}
+        <span class="label">Criar lead (ex.: vindo do site ou do Kommo)</span>${ex(`curl -X POST -H "Authorization: Bearer SEU_TOKEN" -H "Content-Type: application/json" \\\n  -d '{"nome":"Maria Souza","telefone":"81999990000","unidade":"Recife","origem":"Site","tratamento":"Invisalign","kommo_lead_id":"12345"}' \\\n  "${base}/leads"`)}
+        <span class="label">Mudar de etapa (ex.: compareceu → Funil Cliente)</span>${ex(`curl -X PATCH -H "Authorization: Bearer SEU_TOKEN" -H "Content-Type: application/json" \\\n  -d '{"etapa":"orcamento","valor_apresentado":8900}' "${base}/leads/ID_DO_LEAD"`)}
+        <p class="small" style="margin:0">Etapas do <b>Funil Lead</b>: novo, contato, agendado, faltou, perdido. Etapas do <b>Funil Cliente</b>: orcamento (compareceu), fechado, nao_fechou.</p>
+        <span class="label">Outras rotas</span>${ex(`GET  ${base}/leads/{id ou kommo_lead_id}\nGET  ${base}/tratamentos?situacao=andamento|laboratorio|concluido\nGET  ${base}/funil?mes=AAAA-MM&unidade=Recife\nPOST ${base}/mensagens  {"telefone":"81999990000","nome":"Maria","texto":"Oi!","autor":"cliente"}`)}
+        <span class="label">Webhooks</span>
+        <p class="small" style="margin:0">O Alinha envia um POST em JSON <code>{"id","evento","criado_em","dados"}</code> para o endereço cadastrado. Confira a assinatura no cabeçalho <code>X-Alinha-Assinatura: sha256=…</code> (HMAC-SHA256 do corpo com o segredo do webhook). Eventos: ${Object.keys((INTEG && INTEG.eventos) || {}).map((k) => `<code>${esc(k)}</code>`).join(", ") || "lead.criado, lead.etapa, cliente.compareceu, cliente.fechou, cliente.nao_fechou, tratamento.etapa, mensagem.recebida"}.</p>
+      </div></div></div>`;
+    $("#veil").addEventListener("click", (e) => { if (e.target.id === "veil") fecharGaveta(); });
+    $("#btnFechar").onclick = fecharGaveta;
+  }
+
+  /* ------------------------------------------------------------ */
   /* Navegação e início                                            */
   /* ------------------------------------------------------------ */
   let vista = "hoje";
@@ -2072,6 +2178,7 @@
     if (vista === "whatsapp") renderWA();
     if (vista === "resultados") renderResultados();
     if (vista === "comercial") renderComercial();
+    if (vista === "crm") renderPipeline();
     if (vista === "campanhas") renderCampanhas();
     if (vista === "tratamentos") renderTratamentos();
     if (vista === "suporte") renderSuporte();

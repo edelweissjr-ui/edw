@@ -416,6 +416,20 @@ html,body{overflow-x:hidden}
 .manual details p{margin:8px 0 4px;font-size:14.5px}
 .manual details ol{margin:4px 0 6px 18px;padding:0;font-size:14.5px}
 @media (max-width:860px){.chatsup,.manualbox{height:auto;min-height:0}.supmsgs{max-height:55vh}.manual{max-height:none}}
+label.row{flex-wrap:nowrap;align-items:flex-start}
+label.row>input[type=checkbox]{flex:none;margin-top:4px;width:17px;height:17px}
+/* integrações */
+.lista-int{display:flex;flex-direction:column;gap:6px}
+.lista-int .it{display:flex;gap:8px;align-items:center;flex-wrap:wrap;border:1px solid var(--line);border-radius:10px;padding:8px 10px;background:var(--surface-2);font-size:14px}
+.lista-int .it b{font-weight:800}
+.lista-int code,.copiar code,.doc code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:13px;word-break:break-all}
+.copiar{display:flex;gap:8px;align-items:center;background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:8px 10px}
+.copiar code{flex:1}
+.tknovo{border:1.5px solid var(--good);background:var(--good-bg);border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;gap:6px}
+.evchips button{font-size:13.5px;padding:5px 10px}
+.doc pre{background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:10px 12px;white-space:pre-wrap;word-break:break-all;font-size:13px;margin:6px 0}
+.abas button.solta{outline:2px dashed var(--accent);outline-offset:2px}
+.crmsel{width:auto;max-width:260px;padding:6px 10px;font-size:14px}
 /* comercial */
 .funil{display:flex;flex-direction:column;gap:12px}
 .funil .fl{display:grid;grid-template-columns:130px minmax(0,1fr) 250px;gap:12px;align-items:center}
@@ -493,6 +507,7 @@ html,body{overflow-x:hidden}
     <nav class="nav" id="nav">
       <button data-v="hoje" class="on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 12h4l3-8 4 16 3-8h4"/></svg>Hoje<span class="badge hide" id="badgeHoje"></span></button>
       <button data-v="whatsapp"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.5 11.6a8.4 8.4 0 0 1-12.4 7.4L3.5 20.5l1.6-4.4A8.4 8.4 0 1 1 20.5 11.6z"/><path d="M9 9.5c.4 2 2.3 4 4.5 4.6"/></svg>WhatsApp<span class="badge hide" id="badgeWA"></span></button>
+      <button data-v="crm"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="7" height="16" rx="1.5"/><rect x="14" y="4" width="7" height="10" rx="1.5"/></svg>CRM</button>
       <button data-v="comercial"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 4h18l-7 8v6l-4 2v-8z"/></svg>Comercial</button>
       <button data-v="tratamentos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M7 3c-2 0-3.5 1.6-3.5 4 0 3 1.4 5 2 8 .5 2.5 1 6 2.5 6s1.6-4 2.5-6c.4-.9.9-1.3 1.5-1.3s1.1.4 1.5 1.3c.9 2 1 6 2.5 6s2-3.5 2.5-6c.6-3 2-5 2-8 0-2.4-1.5-4-3.5-4-1.8 0-2.8 1-5 1S8.8 3 7 3z"/></svg>Tratamentos</button>
       <button data-v="consulta"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0M12 17v5"/></svg>Consulta</button>
@@ -531,6 +546,19 @@ html,body{overflow-x:hidden}
     </section>
 
     <!-- CONSULTA AO VIVO -->
+    <!-- CRM -->
+    <section class="view" id="v-crm">
+      <div class="head"><div><h1>CRM</h1><p>Dois funis: o <b>Funil Lead</b> (antes de vir à clínica) e o <b>Funil Cliente</b> (quem compareceu). Quem comparece passa para o Funil Cliente.</p></div><button class="btn pri" id="btnNovoLead">+ Novo lead</button></div>
+      <div class="row barra-abas"><div class="abas" data-grupo="crm" role="tablist"><button data-aba="lead" data-solta="lead">Funil Lead <span class="pill" id="crmQtdLead"></span></button><button data-aba="cliente" data-solta="cliente">Funil Cliente <span class="pill" id="crmQtdCliente"></span></button></div>
+        <span class="small dim grow">Arraste o card para mudar de etapa (ou solte sobre a outra aba para trocar de funil).</span>
+        <input class="in" id="comBusca" placeholder="Buscar nome ou telefone" style="width:210px">
+        <div class="chips" id="crmUnidade"><button data-u="" class="on">Todas</button><button data-u="Caruaru">Caruaru</button><button data-u="Recife">Recife</button></div></div>
+      <div id="pipeline" class="pipeline">
+        <div class="painel" data-grupo="crm" data-aba="lead"><div class="pipe" id="pipeLead"></div></div>
+        <div class="painel" data-grupo="crm" data-aba="cliente"><div class="pipe" id="pipeCliente"></div></div>
+      </div>
+    </section>
+
     <!-- TRATAMENTOS -->
     <section class="view" id="v-tratamentos">
       <div class="head"><div><h1>Tratamentos</h1><p>A linha do tempo de cada paciente: em que etapa está, o que vem a seguir e os trabalhos no laboratório.</p></div><button class="btn pri" id="btnNovoTrab">+ Novo tratamento</button></div>
@@ -655,10 +683,10 @@ html,body{overflow-x:hidden}
     <!-- COMERCIAL -->
     <section class="view" id="v-comercial">
       <div class="head"><div><h1>Comercial</h1><p>Do lead que entrou ao tratamento fechado. Quem comparece na clínica passa a ser cliente.</p></div></div>
-      <div class="row barra-abas"><div class="abas" data-grupo="com" role="tablist"><button data-aba="funil">Funil do mês</button><button data-aba="pipe">CRM · Pipeline</button></div><span class="grow"></span>
+      <div class="row barra-abas"><h3 class="grow" style="font-size:17px">Funil do mês</h3><button class="btn sm" id="btnIrCrm">Abrir o CRM ›</button>
         <input class="in" type="month" id="comMes" aria-label="Mês" style="width:auto">
         <div class="chips" id="comUnidade"><button data-u="" class="on">Todas</button><button data-u="Caruaru">Caruaru</button><button data-u="Recife">Recife</button></div></div>
-      <div class="painel" data-grupo="com" data-aba="funil">
+      <div>
       <div class="card stack">
         <div class="row"><h3 class="grow" id="comTitulo">Leads do mês</h3><span class="small dim" id="comMeta">de quem entrou no mês, até onde cada um chegou</span></div>
         <div class="funil" id="comFunil"></div>
@@ -666,11 +694,6 @@ html,body{overflow-x:hidden}
       <div class="kpis" id="comKpis" style="margin-top:14px"></div>
       <div class="row" style="margin:6px 0 10px"><h3 class="grow">Follow-up de orçamento no mês</h3><span class="small dim">clientes que compareceram no mês</span></div>
       <div class="kpis" id="comOrc"></div>
-      </div>
-      <div class="painel" data-grupo="com" data-aba="pipe">
-      <div class="row" style="margin:0 0 10px"><h2 class="grow" style="font-size:20px">CRM · Pipeline</h2><input class="in" id="comBusca" placeholder="Buscar nome ou telefone" style="width:220px"><button class="btn pri" id="btnNovoLead">+ Novo lead</button></div>
-      <p class="small dim" style="margin:-4px 0 10px">Arraste o card para mudar de etapa ou toque nele para abrir a ficha.</p>
-      <div id="pipeline" class="pipeline"></div>
       </div>
     </section>
 
@@ -749,7 +772,7 @@ html,body{overflow-x:hidden}
     <!-- AJUSTES -->
     <section class="view" id="v-ajustes">
       <div class="head"><div><h1>Ajustes</h1></div>
-        <div class="abas" data-grupo="aj" role="tablist"><button data-aba="clinica" class="so-admin">Clínica e metas</button><button data-aba="unid" class="so-admin">Unidades</button><button data-aba="perm" class="so-admin">Permissões</button><button data-aba="cel">Celular e acesso</button><button data-aba="dom" class="so-admin">Domínio</button><button data-aba="voz">Voz</button><button data-aba="sis">Sistema</button></div></div>
+        <div class="abas" data-grupo="aj" role="tablist"><button data-aba="clinica" class="so-admin">Clínica e metas</button><button data-aba="unid" class="so-admin">Unidades</button><button data-aba="perm" class="so-admin">Permissões</button><button data-aba="cel">Celular e acesso</button><button data-aba="api" class="so-admin">API e webhooks</button><button data-aba="kommo" class="so-admin">Kommo</button><button data-aba="dom" class="so-admin">Domínio</button><button data-aba="voz">Voz</button><button data-aba="sis">Sistema</button></div></div>
       <div class="painel" data-grupo="aj" data-aba="clinica"><div class="ajgrid">
         <div class="card stack so-admin">
           <h3>Equipe</h3>
@@ -794,6 +817,38 @@ html,body{overflow-x:hidden}
         <div class="card stack" id="cardAbrirCelular">
           <h3>Abrir o Alinha no celular</h3>
           <div class="row" style="align-items:flex-start"><div id="abrirQr" class="qrmini"></div><div class="grow"><p class="small" style="margin:0">Aponte a câmera do celular para o QR code e entre com o seu usuário e senha. Dica: no celular, use “Adicionar à tela de início” para abrir como um app.</p><p class="small dim num" id="abrirUrl" style="margin:8px 0 0;word-break:break-all"></p></div></div>
+        </div>
+      </div></div>
+      <div class="painel" data-grupo="aj" data-aba="api"><div class="ajgrid">
+        <div class="card stack">
+          <div class="row"><h3 class="grow">Tokens da API</h3><button class="btn sm" id="btnApiDoc">Documentação</button></div>
+          <p class="small dim" style="margin:0">Cada app (Kommo, n8n, site, planilha…) usa o seu token no cabeçalho <code>Authorization: Bearer</code>. O token aparece uma única vez.</p>
+          <div class="row"><input class="in grow" id="tkNome" placeholder="Nome (ex.: n8n, Kommo, site)" style="min-width:160px"><select class="in" id="tkEscopo" style="width:auto"><option value="escrita">Ler e gravar</option><option value="leitura">Só leitura</option></select><button class="btn pri" id="btnTkCriar">Gerar token</button></div>
+          <div id="tkNovo"></div>
+          <div class="lista-int" id="tkLista"></div>
+        </div>
+        <div class="card stack">
+          <h3>Webhooks (o Alinha avisa outros apps)</h3>
+          <div class="row"><input class="in grow" id="whUrl" placeholder="https://… (endereço que vai receber)" style="min-width:200px"><button class="btn pri" id="btnWhCriar">Adicionar</button></div>
+          <div class="chips evchips" id="whEventos"></div>
+          <div class="lista-int" id="whLista"></div>
+          <div class="small dim" id="whEntregas"></div>
+        </div>
+      </div></div>
+      <div class="painel" data-grupo="aj" data-aba="kommo"><div class="ajgrid">
+        <div class="card stack">
+          <div class="row"><h3 class="grow">Kommo → Alinha</h3><span class="pill" id="kmEstado">…</span></div>
+          <p class="small dim" style="margin:0">No Kommo, em <b>Configurações › Integrações › Webhooks</b>, cadastre o endereço abaixo e marque: <b>lead adicionado</b>, <b>status do lead alterado</b>, <b>mensagem recebida</b> e <b>mensagem enviada</b>. Leads novos entram no Funil Lead e quem vai para o funil de clientes do Kommo passa para o Funil Cliente.</p>
+          <div class="copiar"><code id="kmWebhook">—</code><button class="btn sm" data-copiar="kmWebhook">Copiar</button></div>
+          <label class="row" style="gap:8px;font-weight:600"><input type="checkbox" id="kmImportar"> Criar no CRM os leads novos do Kommo</label>
+        </div>
+        <div class="card stack">
+          <h3>Alinha → Kommo (funis)</h3>
+          <div class="duo"><div><label class="f" for="kmFunilLead">ID do funil Lead no Kommo</label><input class="in num" id="kmFunilLead" inputmode="numeric" placeholder="ex.: 11873219"></div><div><label class="f" for="kmFunilCliente">ID do funil Cliente no Kommo</label><input class="in num" id="kmFunilCliente" inputmode="numeric"></div></div>
+          <div class="duo"><div><label class="f" for="kmEtapaCliente">ID da etapa de entrada (compareceu)</label><input class="in num" id="kmEtapaCliente" inputmode="numeric"></div><div><label class="f" for="kmEtapaFechou">ID da etapa "fechou" (opcional)</label><input class="in num" id="kmEtapaFechou" inputmode="numeric"></div></div>
+          <label class="row" style="gap:8px;font-weight:600"><input type="checkbox" id="kmSincronizar"> Quando o paciente comparecer no Alinha, mover o card para o funil Cliente no Kommo</label>
+          <p class="small dim" style="margin:0">Os IDs aparecem no endereço do Kommo (ex.: …/leads/pipeline/<b>11873219</b>). Fechou = etapa 142 e Não fechou = 143, se você não informar outra.</p>
+          <div class="row"><button class="btn pri" id="btnKmSalvar">Salvar</button><span class="small dim" id="kmStatus"></span></div>
         </div>
       </div></div>
       <div class="painel" data-grupo="aj" data-aba="dom">

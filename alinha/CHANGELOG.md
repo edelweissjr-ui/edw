@@ -1,5 +1,16 @@
 # Novidades do Alinha
 
+## 2.1.0 — nov/2026
+- **CRM em tela própria** (menu CRM), com dois funis em abas:
+  - **Funil Lead** (antes de vir à clínica): Lead novo › Em contato › Agendou › Faltou › Perdido (nova etapa).
+  - **Funil Cliente** (quem compareceu): Compareceu · orçamento › Fechou › Não fechou.
+  - Arraste entre etapas; para trocar de funil, solte o card sobre a aba do outro funil. O Comercial ficou só com o funil do mês e um atalho para o CRM.
+- **Etapa do CRM na conversa do WhatsApp**: seletor com os dois funis no topo da conversa.
+- **API aberta** (`/api/v1`): tokens gerados em Ajustes › API e webhooks (ler e gravar ou só leitura, revogáveis, mostrados uma única vez e guardados só como hash), leads (listar, buscar, criar, mudar de etapa), tratamentos, funil do mês e mensagens. CORS liberado e limite de 120 requisições por minuto por token.
+- **Webhooks de saída** assinados com HMAC-SHA256 (`X-Alinha-Assinatura`): lead.criado, lead.etapa, cliente.compareceu, cliente.fechou, cliente.nao_fechou, tratamento.etapa e mensagem.recebida. Botão de teste e registro das últimas entregas. Só endereços públicos em https.
+- **Kommo**: o webhook do Kommo também traz os leads (lead novo entra no Funil Lead; card no funil de clientes do Kommo passa para o Funil Cliente; 142 = fechou, 143 = perdido/não fechou). Opcional: quando o paciente comparece no Alinha, o card é movido para o funil Cliente no Kommo. Configuração em Ajustes › Kommo.
+- A cópia dos dados não inclui tokens nem segredos de webhook.
+
 ## 2.0.0 — nov/2026
 - Nova tela **Tratamentos**: cada tratamento do paciente tem uma **linha do tempo** com as etapas, as datas e o que vem a seguir.
   - Coroa em porcelana, prótese sobre implante e coroa sobre implante: orçamento (necessidade identificada) › orçamento aprovado › preparo do dente › escaneamento ou moldagem › enviado ao laboratório (com a **data de entrega combinada**) › recebido do laboratório › consulta de colocação agendada (dia e horário) › instalado.

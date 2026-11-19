@@ -138,8 +138,10 @@ async function leadAutomatico(lead, C) {
   const primeira = C.lista.find((m) => m.autor === "cliente"); if (!primeira) return;
   const todos = await STORE.pacientes();
   if (todos.some((x) => String(x.leadId) === String(lead))) return;
-  await STORE.salvarPaciente({ id: "l" + Date.now().toString(36) + crypto.randomBytes(3).toString("hex"), leadId: lead, nome: C.nome || (C.telefone ? "WhatsApp " + C.telefone : "Lead " + lead),
-    telefone: C.telefone || "", unidade: C.unidade || "", origem: C.origem === "celular" ? "WhatsApp (celular)" : "WhatsApp (Kommo)", status: "lead", etapa: "novo", entradaEm: primeira.ts, auto: true, toques: {} });
+  const novo = { id: "l" + Date.now().toString(36) + crypto.randomBytes(3).toString("hex"), leadId: lead, nome: C.nome || (C.telefone ? "WhatsApp " + C.telefone : "Lead " + lead),
+    telefone: C.telefone || "", unidade: C.unidade || "", origem: C.origem === "celular" ? "WhatsApp (celular)" : C.origem === "api" ? "API" : "WhatsApp (Kommo)", status: "lead", etapa: "novo", entradaEm: primeira.ts, auto: true, toques: {} };
+  await STORE.salvarPaciente(novo);
+  await emitir(null, novo, "whatsapp");
 }
 async function guardarMensagensEvo(lista) {
   const porLead = {};
@@ -147,6 +149,7 @@ async function guardarMensagensEvo(lista) {
   for (const [lead, msgs] of Object.entries(porLead)) {
     const existia = await STORE.conversa(lead);
     const C = existia || { lista: [], nome: "", atualizado: 0, origem: "celular" };
+    const idsAntes = new Set(C.lista.map((x) => x.id));
     let mudou = false;
     for (const m of msgs) {
       if (!m.deMim && m.nome && !C.nome) C.nome = m.nome.slice(0, 60);
@@ -158,6 +161,10 @@ async function guardarMensagensEvo(lista) {
     C.lista.sort((a, b) => (a.ts > b.ts ? 1 : a.ts < b.ts ? -1 : 0)); C.lista = C.lista.slice(-200); C.atualizado = Date.now();
     await STORE.salvarConversa(lead, C);
     if (!existia) await leadAutomatico(lead, C).catch(() => {});
+    for (const m of C.lista.filter((x) => !idsAntes.has(x.id) && x.autor === "cliente")) {
+      const pr = disparar("mensagem.recebida", { origem: C.origem === "celular" ? "celular" : "kommo", lead, nome: C.nome || "", telefone: C.telefone || "", texto: m.texto }).catch(() => {});
+      if (process.env.VERCEL) await pr;
+    }
   }
 }
 const hostDaRequisicao = (req) => String(req.headers["x-forwarded-host"] || req.headers.host || "").split(",")[0].trim().toLowerCase();
@@ -192,6 +199,7 @@ async function guardarWhatsApp(lista) {
   for (const [lead, msgs] of Object.entries(porLead)) {
     const existia = await STORE.conversa(lead);
     const C = existia || { lista: [], nome: "", atualizado: 0 };
+    const idsAntes = new Set(C.lista.map((x) => x.id));
     let mudou = false;
     for (const msg of msgs) {
       const anexo = msg.attachment && msg.attachment.link ? String(msg.attachment.link) : "";
@@ -211,6 +219,10 @@ async function guardarWhatsApp(lista) {
     C.lista = C.lista.slice(-200); C.atualizado = Date.now();
     await STORE.salvarConversa(lead, C);
     if (!existia) await leadAutomatico(lead, C).catch(() => {});
+    for (const m of C.lista.filter((x) => !idsAntes.has(x.id) && x.autor === "cliente")) {
+      const pr = disparar("mensagem.recebida", { origem: C.origem === "celular" ? "celular" : "kommo", lead, nome: C.nome || "", telefone: C.telefone || "", texto: m.texto }).catch(() => {});
+      if (process.env.VERCEL) await pr;
+    }
   }
 }
 
@@ -266,16 +278,18 @@ function autenticar(usuario, senha) {
   return null;
 }
 /* permissões por perfil (o administrador ajusta em Ajustes › Permissões) */
-const TELAS = ["hoje", "whatsapp", "consulta", "briefings", "followup", "comercial", "tratamentos", "resultados", "campanhas"];
+const TELAS = ["hoje", "whatsapp", "crm", "consulta", "briefings", "followup", "comercial", "tratamentos", "resultados", "campanhas"];
 const ACOES_CONFIG = ["enviar_whatsapp", "exportar"];
 const PERM_PADRAO = {
-  operacional: { telas: ["hoje", "consulta", "briefings", "followup", "comercial", "tratamentos"], acoes: [] },
-  crc: { telas: ["hoje", "whatsapp", "briefings", "followup", "comercial", "tratamentos"], acoes: ["enviar_whatsapp"] }
+  operacional: { telas: ["hoje", "crm", "consulta", "briefings", "followup", "comercial", "tratamentos"], acoes: [] },
+  crc: { telas: ["hoje", "whatsapp", "crm", "briefings", "followup", "comercial", "tratamentos"], acoes: ["enviar_whatsapp"] }
 };
 function permissoes(papel) {
   if (papel === "admin") return { telas: [...TELAS, "suporte", "ajustes"], acoes: [...ACOES_CONFIG, "apagar", "configurar"] };
   const c = (AJC.permissoes && AJC.permissoes[papel]) || PERM_PADRAO[papel] || { telas: [], acoes: [] };
-  return { telas: [...(c.telas || []).filter((t) => TELAS.includes(t)), "suporte", "ajustes"], acoes: (c.acoes || []).filter((a) => ACOES_CONFIG.includes(a)) };
+  const telas = [...(c.telas || [])];
+  if (c.v !== 2 && telas.includes("comercial")) telas.push("crm", "tratamentos"); // permissões salvas antes do CRM e dos Tratamentos
+  return { telas: [...new Set(telas.filter((t) => TELAS.includes(t)))].concat("suporte", "ajustes"), acoes: (c.acoes || []).filter((a) => ACOES_CONFIG.includes(a)) };
 }
 const pode = (papel, k) => { const P = permissoes(papel); return P.telas.includes(k) || P.acoes.includes(k); };
 const ehHttps = (req) => (req.headers["x-forwarded-proto"] || "").includes("https");
@@ -652,6 +666,301 @@ ${b.versao_anterior ? "Escreva uma versão DIFERENTE desta: " + b.versao_anterio
 /* ------------------------------------------------------------------ */
 /* rotas                                                               */
 /* ------------------------------------------------------------------ */
+/* CRM: funil Lead e funil Cliente (as mesmas regras da tela)          */
+/* ------------------------------------------------------------------ */
+const ETAPAS_LEAD = ["novo", "contato", "agendado", "faltou", "perdido"];
+const ETAPAS_CLIENTE = ["orcamento", "fechado", "nao_fechou"];
+const NOME_ETAPA = { novo: "Lead novo", contato: "Em contato", agendado: "Agendou", faltou: "Faltou", perdido: "Perdido", orcamento: "Compareceu · orçamento", fechado: "Fechou", nao_fechou: "Não fechou" };
+const ehClienteSrv = (p) => ["aberto", "fechado", "perdido"].includes(p.status);
+function etapaSrv(p) {
+  if (p.status === "lead") return ETAPAS_LEAD.includes(p.etapa) ? p.etapa : "novo";
+  return p.status === "fechado" ? "fechado" : p.status === "perdido" ? "nao_fechou" : "orcamento";
+}
+const funilDe = (e) => (ETAPAS_CLIENTE.includes(e) ? "cliente" : "lead");
+function aplicarEtapa(p, etapa) {
+  const agora = new Date().toISOString();
+  if (ETAPAS_LEAD.includes(etapa)) {
+    p.status = "lead"; p.etapa = etapa;
+    if (etapa === "agendado") p.agendadoEm = p.agendadoEm || agora;
+    if (etapa === "faltou") { p.faltouEm = agora; p.faltas = (p.faltas || 0) + 1; p.agendadoEm = p.agendadoEm || agora; }
+    if (etapa === "perdido") p.perdidoEm = agora;
+    return;
+  }
+  if (!ehClienteSrv(p)) { p.compareceuEm = agora; p.consultaEm = agora; p.agendadoEm = p.agendadoEm || agora; p.toques = p.toques || {}; }
+  p.compareceuEm = p.compareceuEm || p.consultaEm || agora;
+  if (etapa === "orcamento") { p.status = "aberto"; delete p.fechadoEm; }
+  if (etapa === "fechado") { p.status = "fechado"; p.fechadoEm = agora; p.valorFechado = p.valorFechado || p.valorApresentado || 0; }
+  if (etapa === "nao_fechou") { p.status = "perdido"; p.encerradoEm = agora; }
+}
+const FLUXO_IDS = {
+  protese: ["orcamento", "aprovado", "preparo", "moldagem", "enviado", "recebido", "agendado", "instalado"],
+  invisalign: ["orcamento", "aprovado", "moldagem", "planejamento", "enviado", "recebido", "agendado", "tratamento", "contencao"],
+  fixo: ["orcamento", "aprovado", "documentacao", "agendado", "instalado", "manutencao", "remocao", "contencao"],
+  generico: ["orcamento", "aprovado", "agendado", "execucao", "concluido"]
+};
+const FLUXO_TIPO = { "Coroa em porcelana": "protese", "Prótese sobre implante": "protese", "Coroa sobre implante": "protese", Invisalign: "invisalign", "Aparelho fixo": "fixo" };
+function recursoTrabalho(t) {
+  const ids = FLUXO_IDS[FLUXO_TIPO[t.tipo] || "generico"], feitas = ids.filter((k) => (t.etapas || {})[k]);
+  const atual = feitas[feitas.length - 1] || null, prox = ids[ids.indexOf(atual) + 1] || null;
+  return { id: t.id, tipo: t.tipo, dente: t.dente || "", etapa_atual: atual, proxima_etapa: prox, concluido: !prox,
+    etapas: Object.fromEntries(Object.entries(t.etapas || {}).map(([k, v]) => [k, v && v.em])),
+    laboratorio: t.lab ? { nome: t.lab.nome || "", enviado_em: t.lab.enviadoEm || null, entrega_combinada: t.lab.entrega || null, recebido_em: t.lab.recebidoEm || null } : null,
+    consulta_colocacao: t.consulta || null };
+}
+function recursoPaciente(p) {
+  const e = etapaSrv(p);
+  return { id: p.id, nome: p.nome || "", telefone: p.telefone || "", unidade: p.unidade || "", origem: p.origem || "", tratamento: p.tratamento || p.interesse || "",
+    funil: funilDe(e), etapa: e, etapa_nome: NOME_ETAPA[e], valor_apresentado: p.valorApresentado ?? null, valor_fechado: p.valorFechado ?? null,
+    entrada_em: p.entradaEm || p.consultaEm || null, agendado_em: p.agendadoEm || null, compareceu_em: p.compareceuEm || null, fechado_em: p.fechadoEm || null,
+    kommo_lead_id: p.leadId || null, responsavel: p.responsavel || "", obs: p.obs || "", tratamentos: (p.trabalhos || []).map(recursoTrabalho) };
+}
+function numerosMes(pacs, mes, unidade) {
+  const noMes = (iso) => { try { return !!iso && new Date(iso).toISOString().slice(0, 7) === mes; } catch { return false; } };
+  const coorte = pacs.filter((p) => (!unidade || p.unidade === unidade) && noMes(p.entradaEm || p.consultaEm));
+  const c = { mes, unidade: unidade || "todas", entraram: coorte.length, agendaram: 0, compareceram: 0, faltaram: 0, fecharam: 0, nao_fecharam: 0, em_followup: 0, no_funil_lead: 0, perdidos: 0, valor_fechado: 0 };
+  coorte.forEach((p) => { const e = etapaSrv(p);
+    if (ehClienteSrv(p) || ["agendado", "faltou"].includes(e) || p.agendadoEm) c.agendaram++;
+    if (ehClienteSrv(p)) c.compareceram++;
+    if (e === "faltou") c.faltaram++; if (e === "perdido") c.perdidos++;
+    if (e === "fechado") { c.fecharam++; c.valor_fechado += Number(p.valorFechado || 0); }
+    if (e === "nao_fechou") c.nao_fecharam++; if (e === "orcamento") c.em_followup++;
+    if (["novo", "contato", "agendado"].includes(e)) c.no_funil_lead++; });
+  return c;
+}
+
+/* ------------------------------------------------------------------ */
+/* Integrações: tokens da API e webhooks de saída                      */
+/* ------------------------------------------------------------------ */
+const EVENTOS = {
+  "lead.criado": "Lead novo no CRM",
+  "lead.etapa": "Mudou de etapa (funil Lead ou Cliente)",
+  "cliente.compareceu": "Compareceu: passou para o funil Cliente",
+  "cliente.fechou": "Fechou o tratamento",
+  "cliente.nao_fechou": "Não fechou",
+  "tratamento.etapa": "Etapa de tratamento registrada (inclui laboratório)",
+  "mensagem.recebida": "Mensagem recebida do paciente"
+};
+async function integ() { const x = await STORE.integracoes(); return { tokens: [], webhooks: [], entregas: [], ...(x || {}) }; }
+const hashTk = (t) => crypto.createHash("sha256").update(String(t)).digest("hex");
+function ipPrivado(ip) {
+  const l = String(ip).toLowerCase();
+  if (l.includes(":")) return l === "::1" || l === "::" || l.startsWith("fc") || l.startsWith("fd") || l.startsWith("fe80") || (l.startsWith("::ffff:") && ipPrivado(l.slice(7)));
+  const [a, b] = l.split(".").map(Number);
+  return a === 10 || a === 127 || a === 0 || (a === 169 && b === 254) || (a === 172 && b >= 16 && b <= 31) || (a === 192 && b === 168) || (a === 100 && b >= 64 && b <= 127) || a >= 224;
+}
+// webhooks só para endereços públicos em https (evita que o servidor seja usado para acessar a rede interna)
+async function urlSegura(u) {
+  let x; try { x = new URL(String(u)); } catch { return { ok: false, erro: "endereço inválido" }; }
+  const local = env.WEBHOOK_PERMITIR_LOCAL === "1";
+  if (x.protocol !== "https:" && !(local && x.protocol === "http:")) return { ok: false, erro: "use um endereço https://" };
+  if (x.username || x.password) return { ok: false, erro: "o endereço não pode ter usuário e senha" };
+  if (local) return { ok: true };
+  try { const dnsP = await import("node:dns/promises"); const ips = (await dnsP.lookup(x.hostname, { all: true })).map((a) => a.address); if (!ips.length || ips.some(ipPrivado)) return { ok: false, erro: "endereço interno não é permitido" }; }
+  catch { return { ok: false, erro: "domínio não encontrado" }; }
+  return { ok: true };
+}
+async function enviarWebhook(w, evento, dados) {
+  const corpo = JSON.stringify({ id: "ev_" + crypto.randomBytes(8).toString("hex"), evento, criado_em: new Date().toISOString(), dados });
+  const ent = { id: crypto.randomBytes(4).toString("hex"), webhook: w.id, url: w.url, evento, em: new Date().toISOString() };
+  try {
+    const chk = await urlSegura(w.url); if (!chk.ok) throw new Error(chk.erro);
+    const ctrl = new AbortController(), tm = setTimeout(() => ctrl.abort(), 5000);
+    const r = await fetch(w.url, { method: "POST", redirect: "manual", signal: ctrl.signal, body: corpo,
+      headers: { "Content-Type": "application/json", "User-Agent": "Alinha-Webhook/1", "X-Alinha-Evento": evento, "X-Alinha-Assinatura": "sha256=" + crypto.createHmac("sha256", w.segredo).update(corpo).digest("hex") } });
+    clearTimeout(tm); ent.status = r.status; ent.ok = r.status >= 200 && r.status < 300;
+  } catch (e) { ent.ok = false; ent.erro = e.name === "AbortError" ? "sem resposta em 5 segundos" : String(e.message).slice(0, 160); }
+  return ent;
+}
+async function disparar(evento, dados) {
+  const I = await integ();
+  const alvos = I.webhooks.filter((w) => w.ativo !== false && (w.eventos || []).includes(evento));
+  if (!alvos.length) return;
+  const ents = await Promise.all(alvos.map((w) => enviarWebhook(w, evento, dados)));
+  const J = await integ(); J.entregas = ents.concat(J.entregas || []).slice(0, 40); await STORE.salvarIntegracoes(J);
+}
+// compara o antes e o depois de um paciente e avisa os webhooks (e o Kommo, se a sincronização estiver ligada)
+async function emitirMudancas(antes, depois, origem) {
+  const r = recursoPaciente(depois), ev = [];
+  const ea = antes ? etapaSrv(antes) : null, ed = etapaSrv(depois);
+  if (!antes) ev.push(["lead.criado", { paciente: r }]);
+  if (antes && ea !== ed) ev.push(["lead.etapa", { paciente: r, de: ea, para: ed }]);
+  if (ea !== ed) {
+    if (funilDe(ed) === "cliente" && (!ea || funilDe(ea) === "lead")) ev.push(["cliente.compareceu", { paciente: r }]);
+    if (ed === "fechado") ev.push(["cliente.fechou", { paciente: r }]);
+    if (ed === "nao_fechou") ev.push(["cliente.nao_fechou", { paciente: r }]);
+  }
+  const velhas = new Map(((antes && antes.trabalhos) || []).map((t) => [t.id, Object.keys(t.etapas || {})]));
+  (depois.trabalhos || []).forEach((t) => Object.keys(t.etapas || {}).filter((k) => !(velhas.get(t.id) || []).includes(k))
+    .forEach((k) => ev.push(["tratamento.etapa", { paciente: { id: r.id, nome: r.nome }, tratamento: recursoTrabalho(t), etapa: k }])));
+  for (const [e, d] of ev) await disparar(e, { origem, ...d });
+  // Kommo: o card vai para o funil Cliente quando o paciente comparece (e marca fechou / não fechou)
+  if (origem !== "kommo" && AJ.kommoSincronizar && kommoOk() && /^\d+$/.test(String(depois.leadId || "")) && ea !== ed && funilDe(ed) === "cliente") {
+    const destino = destinoNoFunil(ed === "fechado" ? "fechado" : ed === "nao_fechou" ? "perdido" : "negociacao", true);
+    if (Object.keys(destino).length) { try { await kommo("PATCH", `/api/v4/leads/${depois.leadId}`, destino); } catch (e) { console.warn("Kommo (funil):", e.message); } }
+  }
+}
+// no Render o aviso segue em segundo plano; na Vercel a função precisa esperar terminar
+function emitir(antes, depois, origem) { const pr = emitirMudancas(antes, depois, origem).catch((e) => console.warn("Eventos:", e.message)); return process.env.VERCEL ? pr : Promise.resolve(); }
+
+/* Kommo → Alinha: lead novo e mudança de funil/etapa (webhook do Kommo) */
+function lerLeadsKommo(corpo) {
+  const acc = {};
+  for (const [k, v] of new URLSearchParams(corpo)) {
+    const m = k.match(/^leads\[(add|status|update)\]\[(\d+)\]\[([^\]]+)\]$/);
+    if (!m) continue;
+    const ch = m[1] + m[2]; acc[ch] = acc[ch] || { tipo: m[1] }; acc[ch][m[3]] = v;
+  }
+  return Object.values(acc);
+}
+async function aplicarLeadsKommo(itens) {
+  if (!itens.length) return;
+  const pacs = await STORE.pacientes();
+  for (const it of itens) {
+    const id = String(it.id || ""); if (!/^\d+$/.test(id)) continue;
+    const pipe = String(it.pipeline_id || ""), st = String(it.status_id || "");
+    const noCliente = !!AJ.funilCliente && pipe === String(AJ.funilCliente), noLead = !!AJ.funilLead && pipe === String(AJ.funilLead);
+    let p = pacs.find((x) => String(x.leadId) === id);
+    const antes = p ? JSON.parse(JSON.stringify(p)) : null;
+    if (!p) {
+      if (AJ.kommoImportarLeads === false) continue;
+      if (it.tipo === "update" && !noCliente && !noLead) continue;
+      p = { id: "k" + id, leadId: id, nome: String(it.name || "Lead " + id).slice(0, 120), telefone: "", unidade: "", origem: "Kommo", status: "lead", etapa: "novo",
+        entradaEm: it.created_at ? new Date(Number(it.created_at) * 1000).toISOString() : new Date().toISOString(), toques: {} };
+      pacs.push(p);
+    } else if (it.name && /^(Lead|WhatsApp) /.test(p.nome)) p.nome = String(it.name).slice(0, 120);
+    let alvo = null;
+    if (noCliente) alvo = st === "142" ? "fechado" : st === "143" ? "nao_fechou" : (ehClienteSrv(p) ? null : "orcamento");
+    else if (st === "143") alvo = ehClienteSrv(p) ? "nao_fechou" : "perdido";
+    else if (st === "142") alvo = "fechado";
+    if (alvo && alvo !== etapaSrv(p)) aplicarEtapa(p, alvo);
+    if (!antes || JSON.stringify(antes) !== JSON.stringify(p)) { await STORE.salvarPaciente(p); await emitir(antes, p, "kommo"); }
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* API aberta (v1): Authorization: Bearer <token>                       */
+/* ------------------------------------------------------------------ */
+const usoApi = new Map();
+async function autenticarToken(req) {
+  const h = String(req.headers.authorization || "");
+  const t = h.toLowerCase().startsWith("bearer ") ? h.slice(7).trim() : String(req.headers["x-api-key"] || "").trim();
+  if (!t || t.length > 200) return null;
+  const hh = hashTk(t), I = await integ();
+  const tk = I.tokens.find((x) => x.hash && x.hash.length === hh.length && crypto.timingSafeEqual(Buffer.from(x.hash), Buffer.from(hh)));
+  if (!tk) return null;
+  if (!tk.usadoEm || Date.now() - new Date(tk.usadoEm).getTime() > 60000) { tk.usadoEm = new Date().toISOString(); await STORE.salvarIntegracoes(I); }
+  return tk;
+}
+const texto = (v, max) => (v == null ? "" : String(v).trim().slice(0, max));
+const digitosTel = (t) => String(t || "").replace(/\D/g, "");
+function indiceApi(base) {
+  return { nome: "API do Alinha", versao: VERSAO, base: base + "/api/v1", autenticacao: "Authorization: Bearer <token> (ou X-Api-Key). Gere o token em Ajustes › API e webhooks.",
+    limite: "120 requisições por minuto por token",
+    rotas: [
+      "GET    /api/v1/leads?funil=lead|cliente&etapa=&unidade=&desde=AAAA-MM-DD&limite=100",
+      "GET    /api/v1/leads/{id ou kommo_lead_id}",
+      "POST   /api/v1/leads  { nome*, telefone, unidade, origem, tratamento, etapa, kommo_lead_id, valor_apresentado, obs }",
+      "PATCH  /api/v1/leads/{id}  { etapa, nome, telefone, unidade, tratamento, valor_apresentado, valor_fechado, obs }",
+      "GET    /api/v1/tratamentos?situacao=andamento|laboratorio|concluido",
+      "GET    /api/v1/funil?mes=AAAA-MM&unidade=",
+      "POST   /api/v1/mensagens  { telefone* ou lead, nome, texto*, autor: cliente|clinica, unidade }"
+    ],
+    etapas: { funil_lead: ETAPAS_LEAD, funil_cliente: ETAPAS_CLIENTE }, eventos_webhook: EVENTOS,
+    assinatura_webhook: "X-Alinha-Assinatura: sha256=HMAC-SHA256(segredo do webhook, corpo da requisição)" };
+}
+async function apiV1(req, res, url, p) {
+  const cors = { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "Authorization, Content-Type, X-Api-Key", "Access-Control-Allow-Methods": "GET, POST, PATCH, OPTIONS", "Access-Control-Max-Age": "600" };
+  if (req.method === "OPTIONS") { res.writeHead(204, cors); return res.end(); }
+  const out = (st, obj) => { res.writeHead(st, { ...cors, "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" }); res.end(JSON.stringify(obj)); };
+  const tk = await autenticarToken(req);
+  if (!tk) return out(401, { erro: "Token ausente ou inválido. Envie o cabeçalho Authorization: Bearer <token>." });
+  const u = usoApi.get(tk.id) || { n: 0, desde: Date.now() };
+  if (Date.now() - u.desde > 60000) { u.n = 0; u.desde = Date.now(); }
+  u.n++; usoApi.set(tk.id, u);
+  if (u.n > 120) return out(429, { erro: "Limite de 120 requisições por minuto atingido. Tente de novo em instantes." });
+  if (req.method !== "GET" && tk.escopo !== "escrita") return out(403, { erro: "Este token é só de leitura." });
+  const partes = p.split("/").filter(Boolean).slice(2);
+  try {
+    if (!partes.length && req.method === "GET") return out(200, indiceApi(baseDaRequisicao(req)));
+    if (partes[0] === "leads") {
+      const pacs = await STORE.pacientes();
+      if (req.method === "GET" && partes.length === 1) {
+        const f = url.searchParams, desde = f.get("desde") || "", lim = Math.min(500, Math.max(1, Number(f.get("limite")) || 100));
+        let l = pacs.map(recursoPaciente).filter((r) => (!f.get("funil") || r.funil === f.get("funil")) && (!f.get("etapa") || r.etapa === f.get("etapa")) && (!f.get("unidade") || r.unidade === f.get("unidade")) && (!desde || (r.entrada_em || "") >= desde));
+        l.sort((a, b) => ((b.entrada_em || "") > (a.entrada_em || "") ? 1 : -1));
+        return out(200, { total: l.length, dados: l.slice(0, lim) });
+      }
+      const achar = (id) => pacs.find((x) => x.id === id || String(x.leadId) === id);
+      if (req.method === "GET" && partes[1]) { const x = achar(partes[1]); return x ? out(200, { dados: recursoPaciente(x) }) : out(404, { erro: "Lead não encontrado." }); }
+      const b = await lerJSON(req);
+      if (b === null || typeof b !== "object" || Array.isArray(b)) return out(400, { erro: "Envie um objeto JSON." });
+      if (b.etapa && ![...ETAPAS_LEAD, ...ETAPAS_CLIENTE].includes(b.etapa)) return out(400, { erro: "Etapa inválida.", etapas: [...ETAPAS_LEAD, ...ETAPAS_CLIENTE] });
+      if (b.unidade && !["Caruaru", "Recife"].includes(b.unidade)) return out(400, { erro: "Unidade inválida (Caruaru ou Recife)." });
+      const aplicarCampos = (x) => {
+        if (b.nome != null) x.nome = texto(b.nome, 120);
+        if (b.telefone != null) x.telefone = texto(b.telefone, 30);
+        if (b.unidade != null) x.unidade = b.unidade;
+        if (b.origem != null) x.origem = texto(b.origem, 60);
+        if (b.tratamento != null) { x.tratamento = texto(b.tratamento, 80); x.interesse = x.tratamento; }
+        if (b.obs != null) x.obs = texto(b.obs, 500);
+        if (b.valor_apresentado != null && Number.isFinite(Number(b.valor_apresentado))) x.valorApresentado = Number(b.valor_apresentado);
+        if (b.valor_fechado != null && Number.isFinite(Number(b.valor_fechado))) x.valorFechado = Number(b.valor_fechado);
+        if (b.kommo_lead_id != null && /^\d{1,15}$/.test(String(b.kommo_lead_id))) x.leadId = String(b.kommo_lead_id);
+      };
+      if (req.method === "POST" && partes.length === 1) {
+        if (!texto(b.nome, 120)) return out(400, { erro: "Informe o nome." });
+        const tel = digitosTel(b.telefone).slice(-9);
+        const existe = pacs.find((x) => (b.kommo_lead_id && String(x.leadId) === String(b.kommo_lead_id)) || (tel.length >= 8 && digitosTel(x.telefone).slice(-9) === tel));
+        if (existe) return out(200, { existente: true, dados: recursoPaciente(existe) });
+        const novo = { id: "p" + Date.now().toString(36) + crypto.randomBytes(2).toString("hex"), status: "lead", etapa: "novo", origem: "API", entradaEm: new Date().toISOString(), toques: {} };
+        aplicarCampos(novo);
+        if (b.etapa && b.etapa !== "novo") aplicarEtapa(novo, b.etapa);
+        await STORE.salvarPaciente(novo); await emitir(null, novo, "api");
+        return out(201, { dados: recursoPaciente(novo) });
+      }
+      if (req.method === "PATCH" && partes[1]) {
+        const x = achar(partes[1]); if (!x) return out(404, { erro: "Lead não encontrado." });
+        const antes = JSON.parse(JSON.stringify(x));
+        aplicarCampos(x);
+        if (b.etapa && b.etapa !== etapaSrv(x)) aplicarEtapa(x, b.etapa);
+        await STORE.salvarPaciente(x); await emitir(antes, x, "api");
+        return out(200, { dados: recursoPaciente(x) });
+      }
+    }
+    if (partes[0] === "tratamentos" && req.method === "GET") {
+      const sit = url.searchParams.get("situacao") || "";
+      const l = (await STORE.pacientes()).flatMap((x) => (x.trabalhos || []).map((t) => ({ paciente: { id: x.id, nome: x.nome, unidade: x.unidade || "" }, ...recursoTrabalho(t) })))
+        .filter((t) => !sit || (sit === "concluido" ? t.concluido : sit === "laboratorio" ? ["enviado", "recebido", "agendado"].includes(t.etapa_atual) && t.laboratorio : !t.concluido));
+      return out(200, { total: l.length, dados: l });
+    }
+    if (partes[0] === "funil" && req.method === "GET") {
+      const mes = /^\d{4}-\d{2}$/.test(url.searchParams.get("mes") || "") ? url.searchParams.get("mes") : new Date().toISOString().slice(0, 7);
+      return out(200, { dados: numerosMes(await STORE.pacientes(), mes, url.searchParams.get("unidade") || "") });
+    }
+    if (partes[0] === "mensagens" && req.method === "POST") {
+      const b = await lerJSON(req);
+      const txt = texto(b && b.texto, 4000), tel = digitosTel(b && b.telefone);
+      if (!txt) return out(400, { erro: "Informe o texto." });
+      const lead = b.lead ? texto(b.lead, 60).replace(/[^\w.-]/g, "") : tel.length >= 8 ? "api-" + tel : "";
+      if (!lead) return out(400, { erro: "Informe o telefone (ou o lead)." });
+      const existia = await STORE.conversa(lead);
+      const C = existia || { lista: [], nome: "", atualizado: 0, origem: "api" };
+      if (b.nome && !C.nome) C.nome = texto(b.nome, 60);
+      if (tel && !C.telefone) C.telefone = "+" + tel;
+      if (b.unidade && !C.unidade) C.unidade = texto(b.unidade, 20);
+      const autor = b.autor === "clinica" ? "clinica" : "cliente";
+      const m = { id: "api" + Date.now().toString(36) + crypto.randomBytes(2).toString("hex"), ts: new Date().toISOString(), autor, texto: txt };
+      C.lista.push(m); C.lista = C.lista.slice(-200); C.atualizado = Date.now();
+      await STORE.salvarConversa(lead, C);
+      if (!existia) await leadAutomatico(lead, C).catch(() => {});
+      if (autor === "cliente") { const pr = disparar("mensagem.recebida", { origem: "api", lead, nome: C.nome || "", telefone: C.telefone || "", texto: txt }).catch(() => {}); if (process.env.VERCEL) await pr; }
+      return out(201, { dados: { lead, mensagem: m } });
+    }
+    return out(404, { erro: "Rota não encontrada. Veja GET /api/v1 para a lista de rotas." });
+  } catch (e) { return out(400, { erro: "Requisição inválida: " + String(e.message).slice(0, 160) }); }
+}
+
+/* ------------------------------------------------------------------ */
 async function rotas(req, res) {
   const url = new URL(req.url, "http://local");
   const p = url.pathname;
@@ -660,7 +969,7 @@ async function rotas(req, res) {
   if (p === "/saude") return json(res, 200, { ok: true });
   const oficial = hostOficial(), hostAtual = hostDaRequisicao(req);
   if (oficial && hostAtual && hostAtual !== oficial && !/^(localhost|127\.|0\.0\.0\.0|\[::1\])/.test(hostAtual)
-      && (req.method === "GET" || req.method === "HEAD") && !p.startsWith("/webhooks/") && p !== "/versao" && (env.APP_URL_FORCAR === "1" || await dominioJaAponta())) {
+      && (req.method === "GET" || req.method === "HEAD") && !p.startsWith("/webhooks/") && !p.startsWith("/api/v1") && p !== "/versao" && (env.APP_URL_FORCAR === "1" || await dominioJaAponta())) {
     res.writeHead(301, { Location: CFG.appUrl + req.url }); return res.end(); // ex.: projeto.vercel.app → domínio próprio
   }
   if (p === "/versao") return json(res, 200, { versao: VERSAO }); // público: só o número da versão
@@ -674,7 +983,9 @@ async function rotas(req, res) {
   }
   if (p.startsWith("/webhooks/kommo/") && req.method === "POST") {
     if (!CFG.kommoChaveWebhook || p.split("/").pop() !== CFG.kommoChaveWebhook) return json(res, 403, { ok: false });
-    await guardarWhatsApp(lerMensagensKommo((await lerCorpo(req)).toString("utf8")));
+    const corpoK = (await lerCorpo(req)).toString("utf8");
+    await guardarWhatsApp(lerMensagensKommo(corpoK));
+    await aplicarLeadsKommo(lerLeadsKommo(corpoK)).catch((e) => console.warn("Kommo (leads):", e.message));
     return json(res, 200, { ok: true });
   }
   if (p.startsWith("/assets/")) return servirArquivo(res, ASSETS_DIR, p.slice("/assets/".length));
@@ -693,6 +1004,7 @@ async function rotas(req, res) {
   if (p === "/sair") { res.writeHead(303, { Location: "login", "Set-Cookie": "alinha=; Path=/; Max-Age=0" }); return res.end(); }
   if (p === "/login") { res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" }); return res.end(paginaLogin()); }
 
+  if (p === "/api/v1" || p.startsWith("/api/v1/")) return apiV1(req, res, url, p); // API aberta: autenticação por token
   const papel = sessaoValida(req);
   const soAdmin = () => { if (papel === "admin") return false; json(res, 403, { erro: "Somente o administrador pode fazer isso." }); return true; };
   const exige = (...ks) => { if (ks.some((k) => pode(papel, k))) return false; json(res, 403, { erro: "Seu perfil não tem permissão para isso." }); return true; };
@@ -716,7 +1028,44 @@ async function rotas(req, res) {
   if (p === "/api/backup" && req.method === "GET") {
     if (exige("exportar")) return;
     res.writeHead(200, { "Content-Type": "application/json; charset=utf-8", "Content-Disposition": `attachment; filename="alinha-dados-${new Date().toISOString().slice(0, 10)}.json"`, "Cache-Control": "no-store" });
-    return res.end(JSON.stringify(await STORE.exportar(), null, 2));
+    const dump = { ...(await STORE.exportar()) }; delete dump.integracoes; // tokens e segredos de webhook ficam fora da cópia
+    return res.end(JSON.stringify(dump, null, 2));
+  }
+
+  // integrações (administrador): tokens da API, webhooks de saída e Kommo
+  if (p.startsWith("/api/integracoes")) {
+    if (soAdmin()) return;
+    const I = await integ(), base = baseDaRequisicao(req), seg = p.split("/").filter(Boolean); // ["api","integracoes",tipo,id,acao]
+    const visao = () => ({ ok: true, base, api: base + "/api/v1", eventos: EVENTOS,
+      tokens: I.tokens.map(({ hash, ...t }) => t), webhooks: I.webhooks, entregas: (I.entregas || []).slice(0, 20),
+      kommo: { conectado: kommoOk(), webhook: CFG.kommoChaveWebhook ? `${base}/webhooks/kommo/${CFG.kommoChaveWebhook}` : "", funilLead: AJ.funilLead || "", funilCliente: AJ.funilCliente || "", etapaCliente: AJ.etapaCliente || "", etapaClienteFechou: AJ.etapaClienteFechou || "", sincronizar: !!AJ.kommoSincronizar, importar: AJ.kommoImportarLeads !== false } });
+    if (req.method === "GET" && seg.length === 2) return json(res, 200, visao());
+    if (seg[2] === "tokens" && req.method === "POST" && seg.length === 3) {
+      const b = await lerJSON(req), nome = texto(b.nome, 60) || "Integração";
+      if (I.tokens.length >= 20) return json(res, 400, { erro: "Limite de 20 tokens. Revogue um antes de criar outro." });
+      const token = "alinha_" + crypto.randomBytes(24).toString("base64url");
+      I.tokens.push({ id: crypto.randomBytes(6).toString("hex"), nome, escopo: b.escopo === "leitura" ? "leitura" : "escrita", hash: hashTk(token), prefixo: token.slice(0, 13), criadoEm: new Date().toISOString(), usadoEm: null });
+      await STORE.salvarIntegracoes(I);
+      return json(res, 200, { ...visao(), token }); // o token aparece uma única vez
+    }
+    if (seg[2] === "tokens" && req.method === "DELETE" && seg[3]) { I.tokens = I.tokens.filter((t) => t.id !== seg[3]); await STORE.salvarIntegracoes(I); return json(res, 200, visao()); }
+    if (seg[2] === "webhooks" && req.method === "POST" && seg.length === 3) {
+      const b = await lerJSON(req), urlW = texto(b.url, 500), evs = (Array.isArray(b.eventos) ? b.eventos : []).filter((e) => EVENTOS[e]);
+      const chk = await urlSegura(urlW); if (!chk.ok) return json(res, 400, { erro: "Endereço do webhook: " + chk.erro });
+      if (!evs.length) return json(res, 400, { erro: "Escolha ao menos um evento." });
+      if (I.webhooks.length >= 20) return json(res, 400, { erro: "Limite de 20 webhooks." });
+      I.webhooks.push({ id: crypto.randomBytes(6).toString("hex"), nome: texto(b.nome, 60) || new URL(urlW).hostname, url: urlW, eventos: evs, segredo: "whsec_" + crypto.randomBytes(20).toString("hex"), ativo: true, criadoEm: new Date().toISOString() });
+      await STORE.salvarIntegracoes(I); return json(res, 200, visao());
+    }
+    const w = seg[2] === "webhooks" && I.webhooks.find((x) => x.id === seg[3]);
+    if (w && req.method === "PATCH") { const b = await lerJSON(req); if (typeof b.ativo === "boolean") w.ativo = b.ativo; if (Array.isArray(b.eventos)) { const evs = b.eventos.filter((e) => EVENTOS[e]); if (evs.length) w.eventos = evs; } await STORE.salvarIntegracoes(I); return json(res, 200, visao()); }
+    if (w && req.method === "DELETE") { I.webhooks = I.webhooks.filter((x) => x.id !== w.id); await STORE.salvarIntegracoes(I); return json(res, 200, visao()); }
+    if (w && req.method === "POST" && seg[4] === "teste") {
+      const ent = await enviarWebhook(w, "teste", { mensagem: "Teste de conexão do Alinha", webhook: w.nome });
+      const J = await integ(); J.entregas = [ent].concat(J.entregas || []).slice(0, 40); await STORE.salvarIntegracoes(J);
+      return json(res, 200, { ...visao(), teste: ent, entregas: J.entregas.slice(0, 20) });
+    }
+    return json(res, 404, { erro: "Não encontrado" });
   }
 
   // pacientes (follow-up)
@@ -724,7 +1073,9 @@ async function rotas(req, res) {
   if (p === "/api/pacientes" && req.method === "POST") {
     const b = await lerJSON(req);
     if (!b.id) b.id = "p" + Date.now().toString(36) + crypto.randomBytes(2).toString("hex");
+    const antes = (await STORE.pacientes()).find((x) => x.id === b.id) || null;
     await STORE.salvarPaciente(b);
+    await emitir(antes, b, "alinha");
     return json(res, 200, { ok: true, paciente: b });
   }
   if (p.startsWith("/api/pacientes/") && req.method === "DELETE") {
@@ -744,10 +1095,10 @@ async function rotas(req, res) {
 
   // IA
   if (p.startsWith("/api/ia/") && req.method === "POST") {
-    if (!anthropic) return json(res, 503, { erro: "IA não configurada (ANTHROPIC_API_KEY)" });
-    const b = await lerJSON(req);
     const tipo = p.split("/").pop();
     if (exige(...({ dica: ["consulta"], briefing: ["consulta"], whatsapp: ["whatsapp"], mensagem: ["hoje", "followup", "comercial"], suporte: ["suporte"] }[tipo] || ["configurar"]))) return;
+    if (!anthropic) return json(res, 503, { erro: "IA não configurada (ANTHROPIC_API_KEY)" });
+    const b = await lerJSON(req);
     if (tipo === "suporte") return json(res, 200, { ok: true, ...(await chamarIA(promptSuporte(b, papel))) });
     const montar = { dica: promptDica, briefing: promptBriefing, mensagem: promptMensagem, whatsapp: promptWhatsApp }[tipo];
     if (!montar) return json(res, 404, { erro: "Não encontrado" });

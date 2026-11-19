@@ -42,6 +42,15 @@ As conversas dos WhatsApps de **Caruaru e Recife**, que já estão ligados ao Ko
 ## Campanhas: calculadora da pirâmide
 Informe o valor investido e os dias de campanha. O Alinha divide o investimento entre **topo (atração), meio (consideração) e fundo (conversão)** — com divisões prontas (50/30/20, 60/25/15, 40/30/30, 70/20/10) ou a sua, editando o percentual direto na pirâmide (as outras fases se ajustam para somar 100%) e salvando como "minha divisão" —, mostra o valor por fase por dia e por semana, a **cadência** de conteúdo e de investimento semana a semana e a **projeção**: leads, agendamentos, comparecimentos, fechamentos, faturamento, retorno e o investimento necessário para a meta. As taxas podem vir dos números reais do Comercial.
 
+## CRM: Funil Lead e Funil Cliente
+O menu **CRM** tem dois funis. **Funil Lead** (antes de vir à clínica): Lead novo, Em contato, Agendou, Faltou e Perdido. **Funil Cliente** (quem compareceu): Compareceu · orçamento, Fechou e Não fechou. Arraste o card entre as etapas; solte sobre a aba do outro funil para trocar de funil. Na conversa do WhatsApp, o seletor **CRM** muda a etapa do paciente.
+
+## API aberta, tokens e webhooks
+- **Tokens:** em **Ajustes › API e webhooks** o administrador gera um token por app (ler e gravar ou só leitura). O token aparece uma única vez e pode ser revogado. Use no cabeçalho `Authorization: Bearer <token>`.
+- **Rotas (`/api/v1`):** `GET/POST /leads`, `GET/PATCH /leads/{id ou kommo_lead_id}`, `GET /tratamentos`, `GET /funil?mes=AAAA-MM`, `POST /mensagens`. `GET /api/v1` devolve a lista completa. Limite: 120 requisições por minuto por token.
+- **Webhooks:** o Alinha envia um POST em JSON para o endereço cadastrado (https público) quando acontecem os eventos escolhidos: `lead.criado`, `lead.etapa`, `cliente.compareceu`, `cliente.fechou`, `cliente.nao_fechou`, `tratamento.etapa`, `mensagem.recebida`. Confira a assinatura `X-Alinha-Assinatura: sha256=HMAC-SHA256(segredo, corpo)`.
+- **Kommo:** cadastre no Kommo o endereço mostrado em **Ajustes › Kommo** (eventos: lead adicionado, status do lead alterado, mensagem recebida e enviada). Leads novos entram no Funil Lead; quem vai para o funil de clientes do Kommo passa para o Funil Cliente. Com os IDs dos funis preenchidos e a sincronização ligada, quando o paciente comparece no Alinha o card é movido para o funil Cliente no Kommo.
+
 ## Tratamentos e laboratório
 Cada tratamento tem uma **linha do tempo** com as etapas e as datas, para o profissional saber em que ponto o paciente está.
 - **Coroa em porcelana, prótese sobre implante e coroa sobre implante:** orçamento (necessidade identificada) › orçamento aprovado › preparo do dente › escaneamento ou moldagem › **enviado ao laboratório, com a data de entrega combinada** › recebido do laboratório › **consulta de colocação agendada** › instalado.
