@@ -15,6 +15,7 @@ Site de página única, animado, da Weiss Odontologia (Caruaru e Recife).
 - Endereço: **https://infinity.weissodontologia.com.br** (subdomínio do site; o site continua em www.weissodontologia.com.br).
 - A pasta `apps/` é o projeto publicado na Vercel. `apps/index.html` é o portal com a lista de sistemas; `apps/vercel.json` define os atalhos: `/financeiro` (e `/contas`) abre o Weiss Financeiro.
 - O Weiss Financeiro roda no Claude (https://claude.ai/artifact/TDSgSEYY3CResmE3sj5i5N): dados, comprovantes e login ficam lá, só para quem foi convidado. Perfis: titular/administrador (painel de gestão) e funcionário (lança contas e vê se estão pagas). Nada sensível fica neste repositório.
+- O Weiss Indicadores roda no Claude (https://claude.ai/artifact/Bu4NKXrCWEuJb1kGveRQQZ), atalho `/indicadores`. Pacientes/leads e saídas ficam no banco do artifact, só para convidados. `docs/apps/indicadores.html` é a cópia do código.
 - `docs/apps/contas-a-pagar.html` é uma cópia do código do Financeiro, para histórico de versões.
 - A pasta `apps` não é publicada pelo GitHub Pages do site (`_config.yml`).
 

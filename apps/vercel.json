@@ -5,6 +5,7 @@
   "redirects": [
     { "source": "/financeiro", "destination": "https://claude.ai/artifact/TDSgSEYY3CResmE3sj5i5N", "permanent": false },
     { "source": "/contas", "destination": "https://claude.ai/artifact/TDSgSEYY3CResmE3sj5i5N", "permanent": false },
+    { "source": "/indicadores", "destination": "https://claude.ai/artifact/Bu4NKXrCWEuJb1kGveRQQZ", "permanent": false },
     { "source": "/alinha", "destination": "https://alinha.weissodontologia.com.br", "permanent": false }
   ],
   "headers": [
