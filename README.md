@@ -36,3 +36,6 @@ Site de página única, animado, da Weiss Odontologia (Caruaru e Recife).
 ## Indicadores
 - **Weiss Indicadores** (Artifact, atalho `/indicadores` no portal) e a tela **Indicadores** do Alinha (dados do CRM; entrada, forma e situação do pagamento ficam na ficha do cliente › Pagamento e campanha; saídas em + Saída).
 - **Clínica em Números** (`produtos/clinica-em-numeros/`): a versão sem marca para vender a outras clínicas. Veja o README da pasta.
+
+## Torque Fisioterapia
+- Sistema de gestão para clínica de fisioterapia (agenda, prontuário COFFITO, financeiro, divisão entre sócios) em `produtos/torque-fisioterapia/`. Veja o README da pasta.
