@@ -160,6 +160,29 @@ label.chipc input{margin:0}
 .eva output{font-family:var(--font-mono);font-weight:600;width:44px;text-align:center;padding:3px;border-radius:6px;background:var(--surface-2)}
 .mini-t td,.mini-t th{padding:5px 6px}
 .mini-t input,.mini-t select{padding:5px 7px}
+/* Testes e linha do tempo */
+.tb{display:inline-block;font-family:var(--font-mono);font-size:11.5px;font-weight:600;padding:1px 6px;border-radius:5px;margin:1px}
+.tb.pos{background:var(--bad-soft);color:var(--bad)}.tb.neg{background:var(--ok-soft);color:var(--ok)}
+.tchip{display:inline-flex;align-items:center;border-radius:99px;padding:3px 10px;font-size:12px;font-weight:600}
+.tchip.pos{background:var(--bad-soft);color:var(--bad)}.tchip.neg{background:var(--ok-soft);color:var(--ok)}
+.tchip.win{box-shadow:inset 0 0 0 1.5px var(--ok)}.tchip.lose{box-shadow:inset 0 0 0 1.5px var(--bad)}
+.tm th,.tm td{text-align:center;white-space:nowrap}
+.tm th:first-child,.tm td:first-child{text-align:left;position:sticky;left:0;background:var(--surface);z-index:1}
+.tm th:first-child{background:var(--surface-2)}
+.tm tr.reg td{background:var(--surface-2);font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:600;text-align:left}
+.tl{list-style:none;margin:0;padding:0 0 0 44px;position:relative;display:flex;flex-direction:column;gap:12px}
+.tl::before{content:"";position:absolute;left:15px;top:8px;bottom:8px;width:2px;background:var(--line)}
+.tl-i{position:relative;min-width:0}
+.tl-m{position:absolute;left:-44px;top:8px;width:32px;height:32px;border-radius:50%;display:grid;place-items:center;font-family:var(--font-mono);font-weight:600;font-size:12px;background:var(--surface);border:2px solid var(--brand);color:var(--brand)}
+.tl-i.aval .tl-m{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.tl-i.falta .tl-m{border-color:var(--bad);color:var(--bad);width:24px;height:24px;left:-40px;font-size:11px}
+.tl-c{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.tl-i.aval .tl-c{border-color:color-mix(in srgb,var(--accent) 45%,var(--line))}
+.tl-i.falta .tl-c{background:transparent;border-style:dashed;padding:6px 12px}
+.tl-eva{display:flex;align-items:center;gap:10px;font-size:13px;flex-wrap:wrap}
+.evab{position:relative;height:8px;border-radius:99px;background:var(--surface-2);width:160px;max-width:100%;overflow:hidden}
+.evab i{position:absolute;left:0;top:0;bottom:0;border-radius:99px}
+.evab .pre{background:color-mix(in srgb,var(--accent) 30%,transparent)}.evab .pos{background:var(--accent)}
 /* Painel lateral (modal) */
 .ov{position:fixed;inset:0;background:rgba(5,15,14,.45);z-index:40;display:flex;justify-content:flex-end}
 .drawer{background:var(--bg);width:min(760px,100%);height:100%;overflow:auto;display:flex;flex-direction:column;box-shadow:-10px 0 30px rgba(0,0,0,.2)}
@@ -267,7 +290,26 @@ const DEF_CFG={
   catDespesa:["Aluguel","Condomínio","Energia","Água","Internet/Telefone","Salários e encargos","Pró-labore","Impostos","Material de consumo","Equipamentos","Manutenção","Marketing","Contabilidade","Sistema/Software","Outros"],
   catReceita:["Atendimento","Pacote de sessões","Convênio","Pilates (mensalidade)","Outros"]
 };
-const TECNICAS=["Cinesioterapia","Terapia manual","Liberação miofascial","Mobilização articular","Alongamento","Fortalecimento","Treino funcional","Treino de marcha","Propriocepção","TENS","FES","Ultrassom","Laser","Ondas curtas","Crioterapia","Termoterapia","Kinesio taping","Dry needling","Ventosaterapia","Pilates","RPG","Drenagem linfática","Biofeedback","Orientações domiciliares"];
+const TECNICAS=["Cinesioterapia","Terapia manual","Liberação miofascial","Mobilização articular","Alongamento","Fortalecimento","Treino funcional","Treino de marcha","Propriocepção","TENS","FES","Ultrassom","Laser","Ondas curtas","Crioterapia","Termoterapia","Kinesio taping","Dry needling","Ventosaterapia","Pilates","RPG","Drenagem linfática","Biofeedback","Mobilização neural","Osteopatia estrutural (HVLA)","Técnica de músculo-energia","Strain-counterstrain","Osteopatia visceral","Osteopatia craniana","Orientações domiciliares"];
+/* Testes especiais por região: "Nome|o que o positivo sugere" */
+const TESTES={
+  "Ombro":["Neer|impacto subacromial","Hawkins-Kennedy|impacto subacromial","Jobe (lata vazia)|supraespinal","Patte|infraespinal / redondo menor","Gerber (lift-off)|subescapular","Belly press|subescapular","Speed|cabeça longa do bíceps","Yergason|bíceps / ligamento transverso","O'Brien|lesão SLAP / acromioclavicular","Apreensão|instabilidade anterior","Arco doloroso (60–120°)|impacto / tendinopatia","Queda do braço|ruptura do manguito","Cross-body|acromioclavicular"],
+  "Cotovelo":["Cozen|epicondilite lateral","Mill|epicondilite lateral","Maudsley|epicondilite lateral","Golfista (Cozen reverso)|epicondilite medial","Tinel no túnel cubital|nervo ulnar","Flexão do cotovelo|síndrome do túnel cubital","Estresse em valgo|ligamento colateral ulnar","Estresse em varo|ligamento colateral radial"],
+  "Punho e mão":["Phalen|síndrome do túnel do carpo","Phalen invertido|síndrome do túnel do carpo","Tinel no carpo|nervo mediano","Durkan (compressão do carpo)|túnel do carpo","Finkelstein|tenossinovite de De Quervain","Watson (escafoide)|instabilidade escafossemilunar","Froment|nervo ulnar (adutor do polegar)","Allen|perfusão radial / ulnar","Bunnell-Littler|retração dos intrínsecos","Grind do polegar|artrose trapeziometacarpal","Dedo em gatilho|tenossinovite estenosante"],
+  "Quadril":["Patrick (FABER)|quadril / sacroilíaca","FADIR|impacto femoroacetabular","Thomas|encurtamento dos flexores do quadril","Ober|encurtamento da banda iliotibial","Trendelenburg|fraqueza do glúteo médio","Ely|encurtamento do reto femoral","Log roll|patologia intra-articular","FAIR (piriforme)|síndrome do piriforme","Scour|lesão labral / artrose","Craig|anteversão femoral"],
+  "Joelho":["Lachman|LCA","Gaveta anterior|LCA","Gaveta posterior|LCP","Pivot shift|LCA (instabilidade rotatória)","McMurray|menisco","Apley (compressão)|menisco","Thessaly|menisco","Estresse em valgo|LCM","Estresse em varo|LCL","Apreensão patelar|instabilidade patelar","Clarke (compressão patelar)|dor femoropatelar","Noble|síndrome da banda iliotibial","Sinal da tecla|derrame articular"],
+  "Tornozelo e pé":["Gaveta anterior do tornozelo|ligamento talofibular anterior","Inclinação talar (tilt)|ligamento calcaneofibular","Kleiger (rotação externa)|sindesmose / deltoide","Squeeze test|sindesmose","Thompson|ruptura do tendão calcâneo","Windlass|fascite plantar","Tinel no túnel do tarso|nervo tibial","Mulder|neuroma de Morton","Queda do navicular|pronação excessiva","Elevação unipodal do calcanhar|disfunção do tibial posterior"],
+  "Coluna":["Lasègue|radiculopatia lombar","Slump|tensão neural","Spurling|radiculopatia cervical","Distração cervical|alívio radicular","Schober|mobilidade lombar","Adams|escoliose estrutural","Valsalva|aumento da pressão intratecal"],
+  "Osteopatia":["Flexão em pé (TFE)|disfunção ilíaca","Flexão sentado (TFS)|disfunção sacral","Gillet|mobilidade sacroilíaca","Downing|ilíaco (alongamento / encurtamento)","Escuta global|zona de restrição principal","Escuta local|restrição localizada","Rebote sacral|disfunção sacral","Spring test lombar|hipomobilidade segmentar","Mobilidade diafragmática|restrição diafragmática","Mobilidade visceral|restrição visceral","MRP craniano (ritmo / amplitude)|mecanismo respiratório primário"]
+};
+const REGS=Object.keys(TESTES),TKEYS={};
+REGS.forEach((r,ri)=>TESTES[r].forEach((x,ti)=>{const [n,h]=x.split("|");TKEYS[r+"|"+n]={r,n,h,o:ri*100+ti}}));
+const tName=k=>(TKEYS[k]||{}).n||String(k).split("|")[1]||k;
+const tReg=k=>String(k).split("|")[0];
+const tOrd=k=>(TKEYS[k]||{o:9999}).o;
+const sortT=L=>[...(L||[])].sort((a,b)=>tOrd(a.k)-tOrd(b.k));
+const sym=v=>v==="+"?"+":v==="-"?"−":"";
+const tBadge=(side,v)=>v?`<span class="tb ${v==="+"?"pos":"neg"}">${side}${sym(v)}</span>`:"";
 const FORMAS=["Pix","Dinheiro","Cartão de débito","Cartão de crédito","Boleto","Transferência","Convênio"];
 const ORIGENS=["Indicação médica","Indicação de paciente","Instagram","Google","Convênio","Passou na frente","Outro"];
 const STATUS=["agendado","confirmado","atendido","faltou","cancelado"];
@@ -312,7 +354,11 @@ async function saveCfg(){
 /* ================= Dados de exemplo (só na tela) ================= */
 function buildDemo(){
   const t=today(),D={pacientes:[],agenda:[],registros:[],financeiro:[]};
-  const nomes=[["Exemplo · Ana Beatriz Lima","1988-03-14","F","Unimed","Lombalgia mecânica","M54.5","p1",20],["Exemplo · Carlos Eduardo Melo","1975-11-02","M","","Pós-operatório LCA joelho D","S83.5","p2",24],["Exemplo · Fernanda Souza","1992-07-21","F","Bradesco Saúde","Síndrome do impacto ombro E","M75.4","p1",10],["Exemplo · José Ribamar Alves","1951-01-30","M","Cassi","Sequela de AVC (hemiparesia E)","I69.4","p3",30],["Exemplo · Mariana Costa","1990-"+t.slice(5,7)+"-"+String(Math.min(28,parseD(t).getDate()+3)).padStart(2,"0"),"F","","Incontinência urinária de esforço","N39.3","p4",12],["Exemplo · Rafael Nunes","2001-05-09","M","","Entorse de tornozelo grau II","S93.4","p2",10],["Exemplo · Luciana Ferraz","1969-09-17","F","SulAmérica","Cervicalgia / postura","M54.2","p5",16],["Exemplo · Pedro Henrique Rocha","1983-12-04","M","","Fascite plantar","M72.2","p1",8]];
+  const nomes=[["Exemplo · Ana Beatriz Lima","1988-03-14","F","Unimed","Lombalgia mecânica","M54.5","p1",20],["Exemplo · Carlos Eduardo Melo","1975-11-02","M","","Pós-operatório LCA joelho D","S83.5","p2",24],["Exemplo · Fernanda Souza","1992-07-21","F","Bradesco Saúde","Síndrome do impacto ombro E","M75.4","p1",10],["Exemplo · José Ribamar Alves","1951-01-30","M","Cassi","Sequela de AVC (hemiparesia E)","I69.4","p3",30],["Exemplo · Mariana Costa","1990-"+t.slice(5,7)+"-"+String(Math.min(28,parseD(t).getDate()+3)).padStart(2,"0"),"F","","Incontinência urinária de esforço","N39.3","p4",12],["Exemplo · Rafael Nunes","2001-05-09","M","","Entorse de tornozelo grau II","S93.4","p2",10],["Exemplo · Luciana Ferraz","1969-09-17","F","SulAmérica","Cervicalgia / postura","M54.2","p5",16],["Exemplo · Pedro Henrique Rocha","1983-12-04","M","","Fascite plantar","M72.2","p1",8],["Exemplo · Sônia Maria Barros","1964-04-11","F","Unimed","Síndrome do túnel do carpo D","G56.0","p1",10]];
+  const tk=(k,sd,v)=>({k,d:sd==="D"?v:"",e:sd==="E"?v:""});
+  const DT={0:[tk("Coluna|Lasègue","D","+"),tk("Coluna|Slump","D","+"),tk("Osteopatia|Flexão em pé (TFE)","D","+"),tk("Osteopatia|Spring test lombar","D","+")],1:[tk("Joelho|Lachman","D","+"),tk("Joelho|Gaveta anterior","D","+"),tk("Joelho|Sinal da tecla","D","+"),tk("Joelho|Pivot shift","D","+")],2:[tk("Ombro|Arco doloroso (60–120°)","E","+"),tk("Ombro|Neer","E","+"),tk("Ombro|Hawkins-Kennedy","E","+"),tk("Ombro|Jobe (lata vazia)","E","+")],5:[tk("Tornozelo e pé|Gaveta anterior do tornozelo","D","+"),tk("Tornozelo e pé|Inclinação talar (tilt)","D","+")],6:[tk("Osteopatia|Escuta global","D","+"),tk("Osteopatia|MRP craniano (ritmo / amplitude)","D","+"),tk("Coluna|Spurling","D","+")],7:[tk("Tornozelo e pé|Windlass","D","+"),tk("Tornozelo e pé|Queda do navicular","D","+")],8:[tk("Punho e mão|Phalen","D","+"),tk("Punho e mão|Tinel no carpo","D","+"),tk("Punho e mão|Durkan (compressão do carpo)","D","+")]};
+  const NEG={2:[tk("Ombro|Speed","E","-")],8:[tk("Punho e mão|Finkelstein","D","-")],1:[tk("Joelho|McMurray","D","-")]};
+  const cnt={};
   nomes.forEach((n,i)=>D.pacientes.push({id:"ex_p"+i,nome:n[0],nascimento:n[1],sexo:n[2],convenio:n[3],diagnosticoMedico:n[4],cid:n[5],profId:n[6],sessoesPrevistas:n[7],telefone:"(81) 90000-00"+String(10+i),situacao:"ativo",comoConheceu:ORIGENS[i%ORIGENS.length],medicoSolicitante:i%2?"Dr. Exemplo Ortopedista":"Dra. Exemplo Fisiatra",criadoEm:addDays(t,-40+i*3)}));
   const sv={p1:"s2",p2:"s3",p3:"s4",p4:"s5",p5:"s6"};
   let k=0;
@@ -327,12 +373,14 @@ function buildDemo(){
       D.agenda.push(a);
       if(st==="atendido"){
         const ev=Math.max(1,8-Math.floor((d+21)/4)-(i%3));
-        D.registros.push({id:"ex_r"+k,tipo:"evolucao",pacienteId:p.id,profId:p.profId,agendaId:a.id,data:dia,evaPre:ev,evaPos:Math.max(0,ev-2),tecnicas:["Cinesioterapia","Terapia manual","TENS"].slice(0,1+i%3),s:"Relata melhora progressiva da dor.",o:"Boa tolerância aos exercícios propostos.",a:"Evolução dentro do esperado.",p:"Manter conduta e progredir carga."});
+        cnt[i]=(cnt[i]||0)+1;const T0=DT[i]||[];let rt=[];
+        if(T0.length&&cnt[i]%2===0){const neg=Math.floor(cnt[i]/2);rt=T0.map((x,j)=>({k:x.k,d:x.d?(j<neg?"-":"+"):"",e:x.e?(j<neg?"-":"+"):""}))}
+        D.registros.push({id:"ex_r"+k,tipo:"evolucao",retestes:rt,disfuncoes:i===0&&cnt[i]%2?"L5 ERS D; ilíaco posterior D":"",pacienteId:p.id,profId:p.profId,agendaId:a.id,data:dia,evaPre:ev,evaPos:Math.max(0,ev-2),tecnicas:["Cinesioterapia","Terapia manual","TENS"].slice(0,1+i%3),s:"Relata melhora progressiva da dor.",o:"Boa tolerância aos exercícios propostos.",a:"Evolução dentro do esperado.",p:"Manter conduta e progredir carga."});
         if(tipo!=="pacote")D.financeiro.push({id:"ex_f"+k,tipo:"receita",data:dia,descricao:s.nome+" — "+p.nome,categoria:tipo==="convenio"?"Convênio":"Atendimento",valor:a.valor,forma:tipo==="convenio"?"Convênio":FORMAS[i%4],status:tipo==="convenio"&&d>-15?"pendente":"pago",pagoEm:dia,pacienteId:p.id,profId:p.profId,agendaId:a.id});
       }
     });
   }
-  D.pacientes.forEach((p,i)=>D.registros.push({id:"ex_av"+i,tipo:"avaliacao",pacienteId:p.id,profId:p.profId,data:addDays(t,-24),queixa:"Dor e limitação funcional.",eva:8-(i%3),diagnosticoFisio:"Disfunção cinético-funcional relacionada a: "+p.diagnosticoMedico+".",objetivos:"Reduzir dor, ganhar ADM e força, retorno às atividades.",conduta:"Cinesioterapia, terapia manual e eletroterapia analgésica.",sessoes:p.sessoesPrevistas,frequencia:"2x por semana",gonio:[],forca:[]}));
+  D.pacientes.forEach((p,i)=>D.registros.push({id:"ex_av"+i,tipo:"avaliacao",pacienteId:p.id,profId:p.profId,data:addDays(t,-24),queixa:"Dor e limitação funcional.",eva:8-(i%3),diagnosticoFisio:"Disfunção cinético-funcional relacionada a: "+p.diagnosticoMedico+".",objetivos:"Reduzir dor, ganhar ADM e força, retorno às atividades.",conduta:"Cinesioterapia, terapia manual e eletroterapia analgésica.",sessoes:p.sessoesPrevistas,frequencia:"2x por semana",gonio:[],forca:[],testesOrto:[...(DT[i]||[]),...(NEG[i]||[])],disfuncoes:i===0?"L5 ERS D; ilíaco posterior D; sacro em torção D/D":i===6?"C2 FRS E; T4 ERS D; diafragma em inspiração":""}));
   const m=mesDe(t);
   [["Aluguel",1500,"05"],["Energia",310,"10"],["Internet/Telefone",120,"12"],["Contabilidade",350,"15"],["Material de consumo",180,"18"],["Marketing",300,"22"]].forEach((x,i)=>{if(x[1])D.financeiro.push({id:"ex_d"+i,tipo:"despesa",data:m+"-"+x[2],descricao:x[0],categoria:x[0],valor:x[1],forma:"Pix",status:m+"-"+x[2]<=t?"pago":"pendente",pagoEm:m+"-"+x[2]})});
   D.financeiro.push({id:"ex_pk",tipo:"receita",data:addDays(t,-20),descricao:"Pacote 10 sessões — Exemplo · Ana Beatriz Lima",categoria:"Pacote de sessões",valor:1000,forma:"Cartão de crédito",status:"pago",pagoEm:addDays(t,-20),pacienteId:"ex_p0",profId:"p1"});
@@ -493,7 +541,7 @@ VIEWS.paciente=(id)=>{
   const fin=s.financeiro.filter(x=>x.pacienteId===id).sort((a,b)=>b.data.localeCompare(a.data));
   const prox=ag.filter(a=>a.data>=today()&&["agendado","confirmado"].includes(a.status)).sort((a,b)=>(a.data+a.hora).localeCompare(b.data+b.hora))[0];
   const tab=UI.pTab;
-  const T_=[["resumo","Resumo"],["avaliacoes",`Avaliações (${avs.length})`],["evolucoes",`Evoluções (${evs.length})`],["agenda",`Agenda (${ag.length})`],["financeiro","Financeiro"]];
+  const T_=[["resumo","Resumo"],["linha","Linha do tempo"],["avaliacoes",`Avaliações (${avs.length})`],["evolucoes",`Evoluções (${evs.length})`],["agenda",`Agenda (${ag.length})`],["financeiro","Financeiro"]];
   let body="";
   if(tab==="resumo"){
     const pts=[...avs.map(a=>({d:a.data,v:a.eva})),...evs.map(e=>({d:e.data,v:e.evaPre}))].filter(x=>x.v!==undefined&&x.v!==""&&x.v!==null).sort((a,b)=>a.d.localeCompare(b.d));
@@ -512,6 +560,8 @@ VIEWS.paciente=(id)=>{
      <dt>Como conheceu</dt><dd>${esc(p.comoConheceu||"—")}</dd>
      <dt>LGPD</dt><dd>${p.lgpd?"Consentimento registrado em "+fmtD(p.lgpdData):"Sem consentimento registrado"}</dd>
      ${p.obs?`<dt>Observações</dt><dd>${esc(p.obs)}</dd>`:""}</dl></div></div>`;
+  }else if(tab==="linha"){
+    body=viewTimeline(id);
   }else if(tab==="avaliacoes"){
     body=avs.length?avs.map(recAvaliacao).join(""):`<div class="card empty">Nenhuma avaliação. <button class="btn pri sm" onclick="T.openAvaliacao('${id}')">Nova avaliação</button></div>`;
   }else if(tab==="evolucoes"){
@@ -543,13 +593,14 @@ function adendosHtml(r){return (r.adendos||[]).map(a=>`<div class="adendo"><b>Ad
 function recAvaliacao(a){
   const tb=(rows,h)=>rows&&rows.filter(x=>x.a).length?`<div class="tbl-wrap"><table class="mini-t"><thead><tr>${h.map(x=>`<th>${x}</th>`).join("")}</tr></thead><tbody>${rows.filter(x=>x.a).map(x=>`<tr><td>${esc(x.a)}</td><td>${esc(x.b)}</td><td class="num">${esc(x.d)}</td><td class="num">${esc(x.e)}</td></tr>`).join("")}</tbody></table></div>`:"";
   return `<div class="rec"><div class="rec-h"><h2>Avaliação · ${fmtD(a.data)}</h2><span class="muted">${esc(prof(a.profId).nome)}${prof(a.profId).crefito?" · CREFITO "+esc(prof(a.profId).crefito):""}</span></div>
-  <dl class="kv">${[["Queixa principal",a.queixa],["História da doença atual",a.hda],["Antecedentes / HPP",a.hpp],["Medicamentos",a.medicamentos],["Exames complementares",a.exames],["Dor (EVA)",a.eva!==undefined&&a.eva!==""?a.eva+"/10"+(a.dorLocal?" · "+a.dorLocal:""):""],["Inspeção / palpação",a.inspecao],["Testes especiais",a.testes],["Escalas funcionais",a.escalas],["Diagnóstico cinético-funcional",a.diagnosticoFisio],["Objetivos",a.objetivos],["Conduta / plano",a.conduta],["Sessões e frequência",[a.sessoes?a.sessoes+" sessões":"",a.frequencia].filter(Boolean).join(" · ")]].filter(x=>x[1]).map(x=>`<dt>${x[0]}</dt><dd>${esc(x[1])}</dd>`).join("")}</dl>
-  ${tb(a.gonio,["Articulação","Movimento","D (°)","E (°)"])}${tb(a.forca,["Músculo / grupo","Observação","D (0–5)","E (0–5)"])}${adendosHtml(a)}</div>`;
+  <dl class="kv">${[["Queixa principal",a.queixa],["História da doença atual",a.hda],["Antecedentes / HPP",a.hpp],["Medicamentos",a.medicamentos],["Exames complementares",a.exames],["Dor (EVA)",a.eva!==undefined&&a.eva!==""?a.eva+"/10"+(a.dorLocal?" · "+a.dorLocal:""):""],["Inspeção / palpação",a.inspecao],["Testes especiais",a.testes],["Escalas funcionais",a.escalas],["Disfunções somáticas (osteopatia)",a.disfuncoes],["Diagnóstico cinético-funcional",a.diagnosticoFisio],["Objetivos",a.objetivos],["Conduta / plano",a.conduta],["Sessões e frequência",[a.sessoes?a.sessoes+" sessões":"",a.frequencia].filter(Boolean).join(" · ")]].filter(x=>x[1]).map(x=>`<dt>${x[0]}</dt><dd>${esc(x[1])}</dd>`).join("")}</dl>
+  ${tb(a.gonio,["Articulação","Movimento","D (°)","E (°)"])}${tb(a.forca,["Músculo / grupo","Observação","D (0–5)","E (0–5)"])}${(a.testesOrto||[]).length?`<div><h3 style="margin:4px 0 6px">Testes especiais</h3><div class="tbl-wrap"><table class="mini-t"><thead><tr><th>Região</th><th>Teste</th><th>D</th><th>E</th><th>Observação</th></tr></thead><tbody>${sortT(a.testesOrto).map(t=>`<tr><td class="muted">${esc(tReg(t.k))}</td><td>${esc(tName(t.k))}</td><td>${tBadge("",t.d)}</td><td>${tBadge("",t.e)}</td><td>${esc(t.obs||"")}</td></tr>`).join("")}</tbody></table></div></div>`:""}${adendosHtml(a)}</div>`;
 }
 function recEvolucao(e){
   return `<div class="rec"><div class="rec-h"><h2>Evolução · ${fmtD(e.data)}</h2><span class="muted">${esc(prof(e.profId).nome)}${e.evaPre!==undefined&&e.evaPre!==""?` · EVA ${esc(e.evaPre)} → ${esc(e.evaPos??"-")}`:""}</span></div>
   ${e.tecnicas&&e.tecnicas.length?`<div class="chips">${e.tecnicas.map(t=>`<span class="chip">${esc(t)}</span>`).join("")}</div>`:""}
-  <dl class="kv">${[["S · Subjetivo",e.s],["O · Objetivo",e.o],["A · Avaliação",e.a],["P · Plano",e.p]].filter(x=>x[1]).map(x=>`<dt>${x[0]}</dt><dd>${esc(x[1])}</dd>`).join("")}</dl>${adendosHtml(e)}</div>`;
+  ${(e.retestes||[]).length?`<div class="chips"><span class="muted" style="font-size:12.5px">Reteste:</span>${sortT(e.retestes).map(t=>`<span class="chip">${esc(tName(t.k))} ${tBadge("D",t.d)}${tBadge("E",t.e)}</span>`).join("")}</div>`:""}
+  <dl class="kv">${[["S · Subjetivo",e.s],["O · Objetivo",e.o],["A · Avaliação",e.a],["P · Plano",e.p],["Osteopatia · disfunções tratadas",e.disfuncoes]].filter(x=>x[1]).map(x=>`<dt>${x[0]}</dt><dd>${esc(x[1])}</dd>`).join("")}</dl>${adendosHtml(e)}</div>`;
 }
 
 /* ---------- Financeiro ---------- */
@@ -756,8 +807,9 @@ function openAvaliacao(pid){
     <label class="f">Inspeção, palpação e postura<textarea id="av-insp" name="inspecao" rows="2"></textarea></label>
     <div><h3 style="margin-bottom:6px">Goniometria (ADM)</h3><div class="tbl-wrap"><table class="mini-t" id="t-gon"><thead><tr><th>Articulação</th><th>Movimento</th><th>D (°)</th><th>E (°)</th></tr></thead><tbody>${gonRow()+gonRow()+gonRow()}</tbody></table></div><button type="button" class="btn sm ghost" onclick="T.addRow('t-gon','g')">+ linha</button></div>
     <div><h3 style="margin-bottom:6px">Força muscular (escala de Oxford 0–5)</h3><div class="tbl-wrap"><table class="mini-t" id="t-for"><thead><tr><th>Músculo / grupo</th><th>Observação</th><th>D</th><th>E</th></tr></thead><tbody>${forRow()+forRow()+forRow()}</tbody></table></div><button type="button" class="btn sm ghost" onclick="T.addRow('t-for','m')">+ linha</button></div>
-    <label class="f">Testes especiais<textarea id="av-tes" name="testes" rows="2" placeholder="ex.: Lasègue + à D 45°; Neer –; Lachman +"></textarea></label>
+    <label class="f">Outros testes e observações<textarea id="av-tes" name="testes" rows="2" placeholder="ex.: Lasègue + à D com 45°; teste não listado abaixo"></textarea></label>
     <label class="f">Escalas e questionários funcionais<textarea id="av-esc" name="escalas" rows="2" placeholder="ex.: Oswestry 38%; DASH 42; Lysholm 61; Berg 44/56"></textarea></label></div></fieldset>
+   ${testesFieldset()}
    <fieldset><legend>Diagnóstico e plano</legend><div class="grid">
     <label class="f">Diagnóstico cinético-funcional<textarea id="av-dx" name="diagnosticoFisio" rows="2"></textarea></label>
     <label class="f">Objetivos (curto e longo prazo)<textarea id="av-obj" name="objetivos" rows="2"></textarea></label>
@@ -767,7 +819,7 @@ function openAvaliacao(pid){
    async f=>{
      const o={tipo:"avaliacao",pacienteId:pid};["data","profId","queixa","hda","hpp","medicamentos","exames","eva","dorLocal","inspecao","testes","escalas","diagnosticoFisio","objetivos","conduta","sessoes","frequencia"].forEach(k=>o[k]=fv(f,k));
      o.eva=num(o.eva);o.sessoes=num(o.sessoes)||"";
-     o.gonio=rowsOf(f,"g");o.forca=rowsOf(f,"m");
+     o.gonio=rowsOf(f,"g");o.forca=rowsOf(f,"m");o.testesOrto=readTestes(f);o.disfuncoes=fv(f,"disfuncoes");
      if(await save("registros",o,true)){if(o.sessoes&&!real.pacientes.find(x=>x.id===pid).sessoesPrevistas){const pp=real.pacientes.find(x=>x.id===pid);pp.sessoesPrevistas=o.sessoes;await save("pacientes",pp,true)}closeM();UI.pTab="avaliacoes";go("paciente-"+pid);toast("Avaliação registrada no prontuário.")}
    });
 }
@@ -783,18 +835,20 @@ function openEvolucao(pid,_,agendaId){
    <div class="grid g3"><label class="f">Data<input type="date" id="ev-data" name="data" value="${esc(a?a.data:today())}"></label><label class="f">Fisioterapeuta<select id="ev-prof" name="profId">${profs(true).map(x=>opt(x.id,x.nome,a?a.profId:p.profId)).join("")}</select></label><div class="f muted" style="align-self:end;font-size:12.5px">Sessão ${Math.max(n,1)}${p.sessoesPrevistas?" de "+esc(p.sessoesPrevistas):""}</div></div>
    <div class="grid g2"><label class="f">Dor antes da sessão (EVA)${evaInput("ev-pre","evaPre",ult?ult.evaPos:0)}</label><label class="f">Dor ao final (EVA)${evaInput("ev-pos","evaPos",ult?ult.evaPos:0)}</label></div>
    <fieldset><legend>Recursos e técnicas utilizados</legend><div class="chips">${TECNICAS.map(t=>`<label class="chipc"><input type="checkbox" name="tec" value="${esc(t)}" ${ult&&(ult.tecnicas||[]).includes(t)?"checked":""}> ${esc(t)}</label>`).join("")}</div></fieldset>
+   ${retesteFieldset(pid)}
    <fieldset><legend>Registro SOAP</legend><div class="grid">
     <label class="f">S · Subjetivo (relato do paciente)<textarea id="ev-s" name="s" rows="2"></textarea></label>
     <label class="f">O · Objetivo (o que foi observado e feito)<textarea id="ev-o" name="o" rows="3"></textarea></label>
     <label class="f">A · Avaliação (resposta ao tratamento)<textarea id="ev-a" name="a" rows="2"></textarea></label>
-    <label class="f">P · Plano (próxima sessão / orientações)<textarea id="ev-p" name="p" rows="2">${esc(ult?ult.p||"":"")}</textarea></label></div></fieldset>
+    <label class="f">P · Plano (próxima sessão / orientações)<textarea id="ev-p" name="p" rows="2">${esc(ult?ult.p||"":"")}</textarea></label>
+    <label class="f">Osteopatia · disfunções tratadas (opcional)<input type="text" id="ev-os" name="disfuncoes" placeholder="ex.: L5 ERS D (HVLA); sacro torção D/D (músculo-energia)"></label></div></fieldset>
    ${a&&a.status!=="atendido"?`<label class="f chk"><input type="checkbox" id="ev-mark" name="marcar" checked> Marcar o agendamento das ${esc(a.hora)} como atendido</label>`:""}
    <p class="muted" style="margin:0;font-size:12.5px">Depois de salva, a evolução não pode ser apagada nem alterada (Res. COFFITO 414/2012). Correções entram como adendo.</p>`,
    `<button type="button" class="btn" onclick="T.close()">Cancelar</button><button class="btn pri">Salvar evolução</button>`,
    async f=>{
      const o={tipo:"evolucao",pacienteId:pid,agendaId:agendaId||""};["data","profId","s","o","a","p"].forEach(k=>o[k]=fv(f,k));
-     o.evaPre=num(fv(f,"evaPre"));o.evaPos=num(fv(f,"evaPos"));o.tecnicas=$$("input[name=tec]:checked",f).map(x=>x.value);
-     if(!o.s&&!o.o&&!o.a&&!o.p&&!o.tecnicas.length){toast("Descreva a sessão antes de salvar.");return}
+     o.evaPre=num(fv(f,"evaPre"));o.evaPos=num(fv(f,"evaPos"));o.tecnicas=$$("input[name=tec]:checked",f).map(x=>x.value);o.retestes=readTestes(f);o.disfuncoes=fv(f,"disfuncoes");
+     if(!o.s&&!o.o&&!o.a&&!o.p&&!o.tecnicas.length&&!o.retestes.length){toast("Descreva a sessão antes de salvar.");return}
      if(await save("registros",o,true)){
        if(a&&fv(f,"marcar")){const ra=real.agenda.find(x=>x.id===a.id);if(ra){ra.status="atendido";await save("agenda",ra,true);await syncReceita(ra)}}
        closeM();UI.pTab="evolucoes";go("paciente-"+pid);toast("Evolução registrada.")}
@@ -805,6 +859,84 @@ function openAdendo(rid){
   drawer("Adendo ao registro de "+fmtD(r.data),`<label class="f">Fisioterapeuta<select id="ad-prof" name="prof">${profs(true).map(x=>opt(x.id,x.nome,r.profId)).join("")}</select></label><label class="f">Texto do adendo<textarea id="ad-t" name="texto" rows="5" required></textarea></label><p class="muted" style="margin:0">O registro original fica como está; o adendo aparece logo abaixo, com data.</p>`,
   `<button type="button" class="btn" onclick="T.close()">Cancelar</button><button class="btn pri">Salvar adendo</button>`,
   async f=>{const t=fv(f,"texto");if(!t){toast("Escreva o adendo.");return}const o=Object.assign({},r);o.adendos=[...(r.adendos||[]),{em:today(),prof:fv(f,"prof"),texto:t}];if(await save("registros",o)){closeM();toast("Adendo salvo.")}});
+}
+
+/* ---------- Testes especiais e linha do tempo ---------- */
+function testRow(k,v,mode,prev){
+  v=v||{};const t=TKEYS[k]||{n:tName(k),h:""};
+  const sel=(cls,val,lbl)=>`<select class="${cls}" aria-label="${esc(t.n)} ${lbl}" style="width:auto">${[["","—"],["+","+ positivo"],["-","− negativo"]].map(o=>`<option value="${o[0]}" ${val===o[0]?"selected":""}>${o[1]}</option>`).join("")}</select>`;
+  const antes=prev&&(prev.d||prev.e)?`<div style="font-size:11.5px;margin-top:2px">antes: ${tBadge("D",prev.d)}${tBadge("E",prev.e)}</div>`:"";
+  return `<tr data-k="${esc(k)}"><td style="min-width:170px">${mode==="re"?`<span class="muted" style="font-size:11px">${esc(tReg(k))} · </span>`:""}<b>${esc(t.n)}</b>${t.h?`<div class="muted" style="font-size:11.5px">${esc(t.h)}</div>`:""}${antes}</td><td>${sel("td",v.d||"","direito")}</td><td>${sel("te",v.e||"","esquerdo")}</td>${mode==="av"?`<td><input type="text" class="to" value="${esc(v.obs||"")}" placeholder="ex.: dor a 90°" style="min-width:120px"></td>`:""}</tr>`;
+}
+function readTestes(scope){return $$("tr[data-k]",scope).filter(tr=>{const g=tr.closest(".treg");return !g||!g.hidden}).map(tr=>({k:tr.dataset.k,d:tr.querySelector(".td").value,e:tr.querySelector(".te").value,obs:((tr.querySelector(".to")||{}).value||"").trim()})).filter(x=>x.d||x.e||x.obs)}
+function testesFieldset(){
+  return `<fieldset><legend>Avaliação traumato-ortopédica · testes especiais</legend>
+  <p class="muted" style="margin:0 0 8px;font-size:12.5px">Escolha as regiões avaliadas e marque + (positivo) ou − (negativo) em cada lado. Só os testes preenchidos entram no prontuário e na linha do tempo.</p>
+  <div class="chips"><span class="muted" style="font-size:12px;align-self:center">Membro superior:</span>${["Ombro","Cotovelo","Punho e mão"].map(regChip).join("")}<span class="muted" style="font-size:12px;align-self:center">Membro inferior:</span>${["Quadril","Joelho","Tornozelo e pé"].map(regChip).join("")}<span class="muted" style="font-size:12px;align-self:center">Outros:</span>${["Coluna","Osteopatia"].map(regChip).join("")}</div>
+  ${REGS.map(r=>`<div class="treg" data-reg="${esc(r)}" hidden><h3 style="margin:14px 0 6px">${esc(r)}</h3><div class="tbl-wrap"><table class="mini-t"><thead><tr><th>Teste</th><th>D</th><th>E</th><th>Observação</th></tr></thead><tbody>${TESTES[r].map(x=>testRow(r+"|"+x.split("|")[0],{},"av")).join("")}</tbody></table></div>${r==="Osteopatia"?`<label class="f" style="margin-top:8px">Disfunções somáticas encontradas<textarea id="av-dis" name="disfuncoes" rows="2" placeholder="ex.: L5 ERS D; sacro em torção D/D; ilíaco posterior D; T4 FRS E; diafragma em inspiração"></textarea></label>`:""}</div>`).join("")}
+  </fieldset>`;
+}
+const regChip=r=>`<label class="chipc" data-r="${esc(r)}"><input type="checkbox" onchange="T.toggleReg(this.parentNode.dataset.r,this.checked)"> ${esc(r)}</label>`;
+function testHistory(pid){
+  const regs=S().registros.filter(r=>r.pacienteId===pid).sort((a,b)=>a.data.localeCompare(b.data)||String(a.criadoEm||"").localeCompare(String(b.criadoEm||"")));
+  const evo=regs.filter(r=>r.tipo==="evolucao");
+  return regs.map(r=>({r,tests:(r.tipo==="avaliacao"?r.testesOrto:r.retestes)||[],sess:r.tipo==="evolucao"?evo.indexOf(r)+1:0}));
+}
+function statusTestes(pid){const st={};testHistory(pid).forEach(h=>h.tests.forEach(t=>{const o=st[t.k]||(st[t.k]={d:"",e:""});if(t.d)o.d=t.d;if(t.e)o.e=t.e}));return st}
+const testOpts=()=>REGS.map(r=>`<optgroup label="${esc(r)}">${TESTES[r].map(x=>{const n=x.split("|")[0];return `<option value="${esc(r+"|"+n)}">${esc(n)}</option>`}).join("")}</optgroup>`).join("");
+function retesteFieldset(pid){
+  const st=statusTestes(pid),pos=Object.keys(st).filter(k=>st[k].d==="+"||st[k].e==="+").sort((a,b)=>tOrd(a)-tOrd(b));
+  return `<fieldset><legend>Reteste dos testes especiais</legend>
+  <p class="muted" style="margin:0 0 8px;font-size:12.5px">${pos.length?"Estes testes estavam positivos. Preencha só os que foram retestados hoje.":"Nenhum teste positivo em aberto. Se retestar algum, escolha abaixo."}</p>
+  <div class="tbl-wrap" id="rt-wrap" ${pos.length?"":"hidden"}><table class="mini-t" id="t-rt"><thead><tr><th>Teste</th><th>D hoje</th><th>E hoje</th></tr></thead><tbody>${pos.map(k=>testRow(k,{},"re",st[k])).join("")}</tbody></table></div>
+  <select id="rt-add" style="margin-top:8px;width:auto;max-width:100%" onchange="T.addReteste(this,'${esc(pid)}')"><option value="">+ Retestar outro teste…</option>${testOpts()}</select></fieldset>`;
+}
+function viewTimeline(pid){
+  const s=S(),H=testHistory(pid);
+  const faltas=s.agenda.filter(a=>a.pacienteId===pid&&a.status==="faltou");
+  const items=[...H.map(h=>({h,d:h.r.data,c:String(h.r.criadoEm||"")})),...faltas.map(f=>({f,d:f.data,c:"0"}))].sort((a,b)=>a.d.localeCompare(b.d)||a.c.localeCompare(b.c));
+  if(!items.length)return `<div class="card empty">A linha do tempo começa com a avaliação.<br><button class="btn pri sm" style="margin-top:8px" onclick="T.openAvaliacao('${pid}')">Fazer avaliação</button></div>`;
+  const cols=H.filter(h=>h.tests.length);
+  const keys=[...new Set(cols.flatMap(h=>h.tests.map(t=>t.k)))].sort((a,b)=>tOrd(a)-tOrd(b));
+  const st=statusTestes(pid);
+  const av0=H.find(h=>h.r.tipo==="avaliacao");
+  const posIni=av0?(av0.r.testesOrto||[]).filter(t=>t.d==="+"||t.e==="+").length:0;
+  const posAgora=Object.values(st).filter(x=>x.d==="+"||x.e==="+").length;
+  const evaPts=H.map(h=>h.r.tipo==="avaliacao"?h.r.eva:h.r.evaPos).filter(v=>v!==undefined&&v!=="");
+  const nSess=H.filter(h=>h.r.tipo==="evolucao").length;
+  let matrix="";
+  if(keys.length){
+    let lastReg="";
+    matrix=`<div class="card"><div class="card-h"><h2>Mapa dos testes por sessão</h2><span class="legend"><span>${tBadge("D","+")} positivo</span><span>${tBadge("D","-")} negativo</span></span></div>
+    <div class="tbl-wrap"><table class="mini-t tm"><thead><tr><th>Teste</th>${cols.map(h=>`<th>${h.r.tipo==="avaliacao"?"Aval.":"S"+h.sess}<div style="font-weight:400;text-transform:none;letter-spacing:0">${fmtD(h.r.data).slice(0,5)}</div></th>`).join("")}<th>Atual</th></tr></thead><tbody>
+    ${keys.map(k=>{const reg=tReg(k);const hd=reg!==lastReg?`<tr class="reg"><td colspan="${cols.length+2}">${esc(reg)}</td></tr>`:"";lastReg=reg;
+      return hd+`<tr><td>${esc(tName(k))}</td>${cols.map(h=>{const t=h.tests.find(x=>x.k===k);return `<td>${t&&(t.d||t.e)?tBadge("D",t.d)+tBadge("E",t.e):'<span class="muted">·</span>'}</td>`}).join("")}<td>${tBadge("D",st[k].d)}${tBadge("E",st[k].e)}</td></tr>`}).join("")}
+    </tbody></table></div></div>`;
+  }
+  const run={};
+  const nodes=items.map(it=>{
+    if(it.f)return `<li class="tl-i falta"><span class="tl-m" aria-hidden="true">✕</span><div class="tl-c"><div class="rec-h"><b>Faltou</b><span class="muted">${fmtD(it.f.data)} · ${esc(it.f.hora)} · ${esc(prof(it.f.profId).nome)}</span></div></div></li>`;
+    const h=it.h,r=h.r,av=r.tipo==="avaliacao";
+    const ch=[];
+    sortT(h.tests).forEach(t=>{const pv=run[t.k]||{};["d","e"].forEach(sd=>{const v=t[sd];if(!v)return;const was=pv[sd];let cls=v==="+"?"pos":"neg",note="";if(was==="+"&&v==="-"){note=" · negativou";cls+=" win"}else if(was==="-"&&v==="+"){note=" · positivou";cls+=" lose"}ch.push(`<span class="tchip ${cls}">${esc(tName(t.k))} ${sd.toUpperCase()}${sym(v)}${note}</span>`)});const o=run[t.k]||(run[t.k]={});if(t.d)o.d=t.d;if(t.e)o.e=t.e});
+    const pre=av?r.eva:r.evaPre,pos=av?r.eva:r.evaPos;
+    const eva=pre!==undefined&&pre!==""?`<div class="tl-eva"><span class="muted">Dor (EVA)</span><div class="evab" aria-hidden="true"><i class="pre" style="width:${num(pre)*10}%"></i><i class="pos" style="width:${num(pos)*10}%"></i></div><span class="num"><b>${esc(pre)}</b>${av?"":" → <b>"+esc(pos??"-")+"</b>"}</span></div>`:"";
+    const linhas=av?[["Queixa",r.queixa],["Diagnóstico cinético-funcional",r.diagnosticoFisio],["Plano",r.conduta]]:[["S",r.s],["A",r.a],["P",r.p]];
+    return `<li class="tl-i ${av?"aval":""}"><span class="tl-m" aria-hidden="true">${av?"A":h.sess}</span><div class="tl-c">
+      <div class="rec-h"><b>${av?"Avaliação traumato-ortopédica":"Sessão "+h.sess}</b><span class="muted">${fmtD(r.data)} · ${esc(prof(r.profId).nome)}</span></div>
+      ${eva}
+      ${r.tecnicas&&r.tecnicas.length?`<div class="chips">${r.tecnicas.map(t=>`<span class="chip">${esc(t)}</span>`).join("")}</div>`:""}
+      ${ch.length?`<div class="chips">${ch.join("")}</div>`:""}
+      ${r.disfuncoes?`<div style="font-size:13px"><span class="muted">Osteopatia:</span> ${esc(r.disfuncoes)}</div>`:""}
+      ${linhas.filter(x=>x[1]).length?`<dl class="kv" style="font-size:13px">${linhas.filter(x=>x[1]).map(x=>`<dt>${x[0]}</dt><dd>${esc(x[1])}</dd>`).join("")}</dl>`:""}
+      ${(r.adendos||[]).length?`<div class="muted" style="font-size:12px">${r.adendos.length} adendo(s)</div>`:""}
+    </div></li>`;
+  }).join("");
+  return `<div class="kpis"><div class="kpi"><span>Sessões evoluídas</span><b>${nSess}</b><small>${faltas.length} falta(s)</small></div>
+   <div class="kpi"><span>Dor (EVA)</span><b>${evaPts.length?esc(evaPts[0])+" → "+esc(evaPts[evaPts.length-1]):"—"}</b><small>da avaliação à última sessão</small></div>
+   <div class="kpi"><span>Testes positivos</span><b>${posIni} → ${posAgora}</b><small>na avaliação → hoje</small></div></div>
+  ${matrix}
+  <div class="card"><div class="card-h"><h2>Linha do tempo</h2><div class="tools"><button class="btn sm" onclick="T.openAvaliacao('${pid}')">+ Reavaliação</button><button class="btn sm pri" onclick="T.openEvolucao('${pid}')">+ Evolução</button></div></div><ol class="tl">${nodes}</ol></div>`;
 }
 
 /* ---------- Lançamento financeiro ---------- */
@@ -876,6 +1008,7 @@ function docBody(pid,kind){
     h=`<h4>Relatório fisioterapêutico</h4><p><b>${esc(g("to"))}</b></p><p>Paciente: <b>${nomeP}</b>${p.nascimento?", "+idade(p.nascimento)+" anos":""}. Diagnóstico médico: ${esc(p.diagnosticoMedico||"não informado")}${p.cid?" (CID "+esc(p.cid)+")":""}.</p>
     ${av?`<p><b>Avaliação inicial (${fmtD(av.data)}):</b> ${esc(av.queixa||"")} Dor EVA ${esc(av.eva)}/10. ${esc(av.diagnosticoFisio||"")}</p><p><b>Objetivos:</b> ${esc(av.objetivos||"—")}</p>`:""}
     <p><b>Tratamento realizado:</b> ${sessoesFeitas(pid)} sessão(ões)${tec.length?", com "+esc(tec.join(", ").toLowerCase()):""}.</p>
+    ${(()=>{const ini=sortT((av&&av.testesOrto)||[]).filter(t=>t.d==="+"||t.e==="+");if(!ini.length)return"";const stt=statusTestes(pid);const lado=t=>[t.d==="+"?"D":"",t.e==="+"?"E":""].filter(Boolean).join("/");return `<p><b>Testes especiais:</b> positivos na avaliação: ${ini.map(t=>esc(tName(t.k))+" ("+lado(t)+")").join(", ")}. No último reteste: ${ini.map(t=>{const x=stt[t.k]||{};const ainda=(t.d==="+"&&x.d==="+")||(t.e==="+"&&x.e==="+");return esc(tName(t.k))+" "+(ainda?"ainda positivo":"negativo")}).join("; ")}.</p>`})()}
     ${ue?`<p><b>Evolução:</b> dor ${av?"de EVA "+esc(av.eva)+" ":""}para EVA ${esc(ue.evaPos??ue.evaPre)}/10. ${esc(ue.a||"")}</p><p><b>Conduta:</b> ${esc(ue.p||"Manter tratamento.")}</p>`:""}
     <p>Coloco-me à disposição para esclarecimentos.</p>`}
   if(kind==="tcl")h=`<h4>Termo de consentimento livre e esclarecido</h4><p>Eu, <b>${nomeP}</b>${cpf}, declaro que fui informado(a) de forma clara sobre a avaliação e o tratamento fisioterapêutico proposto, seus objetivos, benefícios esperados, possíveis desconfortos e alternativas, e que posso interromper o tratamento a qualquer momento.</p><p>Autorizo a <b>${esc(c.nome)}</b> a registrar e guardar meus dados pessoais e de saúde em prontuário eletrônico, exclusivamente para a prestação do atendimento, comunicação sobre minhas consultas e cumprimento de obrigações legais, conforme a Lei 13.709/2018 (LGPD) e a Resolução COFFITO 414/2012. Sei que posso pedir acesso, correção ou informações sobre o uso desses dados.</p><div class="sig"><div></div>${nomeP}<br>Paciente ou responsável</div>`;
@@ -904,6 +1037,8 @@ window.T={
   apPac(sel){const p=pac(sel.value);if(!p)return;const f=sel.form;if(p.profId)f.elements.profId.value=p.profId;f.elements.tipo.value=p.convenio?"convenio":"particular";T.apTipo(f.elements.tipo)},
   apServ(sel){const s=serv(sel.value),f=sel.form;f.elements.duracao.value=s.duracao;if(f.elements.tipo.value==="particular")f.elements.valor.value=s.valor},
   apTipo(sel){const f=sel.form;const s=serv(f.elements.servicoId.value);f.elements.valor.value=sel.value==="particular"?s.valor:sel.value==="pacote"?"":f.elements.valor.value;f.elements.valor.placeholder=sel.value==="convenio"?"valor pago pelo convênio":sel.value==="pacote"?"já pago no pacote":""},
+  toggleReg(r,on){const el=$$("#dw .treg").find(x=>x.dataset.reg===r);if(el)el.hidden=!on},
+  addReteste(sel,pid){const k=sel.value;sel.value="";if(!k)return;const tb=$("#t-rt tbody");if($$("tr[data-k]",tb).some(tr=>tr.dataset.k===k)){toast("Este teste já está na lista.");return}tb.insertAdjacentHTML("beforeend",testRow(k,{},"re",statusTestes(pid)[k]||{}));$("#rt-wrap").hidden=false},
   addRow(tid,p){$("#"+tid+" tbody").insertAdjacentHTML("beforeend",p==="g"?gonRow():forRow())},
   addProfRow(){$("#t-prof tbody").insertAdjacentHTML("beforeend",profRow({id:"p"+uid(),nome:"",cor:"#4a8f87",socio:false,cota:0,comissao:40,ativo:true}))},
   addServRow(){$("#t-serv tbody").insertAdjacentHTML("beforeend",servRow({id:"s"+uid(),nome:"",valor:0,duracao:50}))},
