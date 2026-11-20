@@ -199,7 +199,8 @@ input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;bac
 .pearl .btn-gold:hover{background:#1F6E94}
 
 /* Doctor */
-.doc{display:grid;grid-template-columns:.9fr 1.1fr;gap:56px;align-items:center}
+.doc{display:grid;grid-template-columns:.7fr 1.3fr;gap:56px;align-items:center}
+.doc .portrait{max-width:340px;justify-self:center;width:100%}
 .portrait{aspect-ratio:4/5;max-width:100%;border-radius:220px 220px 28px 28px;background:#fff;position:relative;overflow:hidden;display:grid;place-items:end center;box-shadow:0 0 0 1px rgba(24,88,120,.12),0 40px 80px -40px rgba(7,35,48,.55)}
 .portrait img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 20%}
 
@@ -411,8 +412,8 @@ h1 em,h2 em,h3 em{font-style:normal!important;background:linear-gradient(90deg,#
 
 /* Apple-style tiles */
 .atiles{display:grid;grid-template-columns:1fr 1fr;gap:12px;background:transparent}
-.atile{position:relative;height:680px;overflow:hidden;display:flex;flex-direction:column;align-items:center;text-align:center;padding-top:52px;text-decoration:none;min-width:0}
-.at-wide{grid-column:span 2;height:640px}
+.atile{position:relative;height:500px;overflow:hidden;display:flex;flex-direction:column;align-items:center;text-align:center;padding-top:52px;text-decoration:none;min-width:0}
+.at-wide{grid-column:span 2;height:500px}
 .at-txt{position:relative;z-index:1;padding-inline:20px}
 .at-eb{font-size:15px;font-weight:600;letter-spacing:0;opacity:.75;margin-bottom:6px}
 .atile h3{font-size:clamp(2rem,4vw,3rem);font-weight:600;letter-spacing:-.02em}
@@ -428,8 +429,8 @@ h1 em,h2 em,h3 em{font-style:normal!important;background:linear-gradient(90deg,#
 .at-pair{gap:20px;align-items:flex-end;padding-bottom:0}
 .at-pair img{position:relative;left:auto;top:auto;bottom:auto;aspect-ratio:auto;transform:none;width:auto!important;height:360px;max-width:none;object-fit:cover;object-position:50% 0;border-radius:22px 22px 0 0;box-shadow:0 20px 40px -24px rgba(0,0,0,.35)}
 .atile:hover .at-pair img{transform:translateY(-6px)}
-.at-ico{width:190px;height:190px;opacity:.95}
-.at-big{font-size:clamp(7rem,14vw,11rem);font-weight:700;letter-spacing:-.05em;line-height:.9}
+.at-ico{width:150px;height:150px;opacity:.95}
+.at-big{font-size:clamp(5rem,11vw,8rem);font-weight:700;letter-spacing:-.05em;line-height:.9}
 .at-gray{background:#F5F5F7;color:#1D1D1F}
 .at-white{background:#FBFBFD;color:#1D1D1F;box-shadow:inset 0 0 0 1px #EDEDF0}
 .at-black{background:#000;color:#F5F5F7}.at-black .at-links a{color:#2997FF}
@@ -439,7 +440,7 @@ h1 em,h2 em,h3 em{font-style:normal!important;background:linear-gradient(90deg,#
 .at-sun{background:linear-gradient(160deg,#FFE08A,#FF9F43);color:#3A2A08}
 .at-coral .at-links a,.at-violet .at-links a{color:#fff;text-decoration:underline;text-underline-offset:3px}
 .at-sun .at-links a{color:#3A2A08;text-decoration:underline;text-underline-offset:3px}
-@media (max-width:760px){.at-pair{gap:12px}.at-pair img{height:210px}.atiles{grid-template-columns:1fr}.at-wide{grid-column:auto}.atile,.at-wide{height:500px;padding-top:40px}.atile .at-media img{max-width:82%}.at-ico{width:150px;height:150px}}
+@media (max-width:760px){.at-pair{gap:12px}.at-pair img{height:210px}.atiles{grid-template-columns:1fr}.at-wide{grid-column:auto}.atile,.at-wide{height:400px;padding-top:34px}.atile .at-media img{max-width:82%}.at-ico{width:150px;height:150px}}
 
 /* Mobile menu */
 .top .wrap{position:relative}
@@ -475,7 +476,7 @@ h1 em,h2 em,h3 em{font-style:normal!important;background:linear-gradient(90deg,#
 .ig-links a{display:inline-flex;align-items:center;gap:8px;font-size:19px;font-weight:600;text-decoration:none;background:linear-gradient(90deg,#FA7E1E,#D62976 45%,#962FBF 75%,#4F5BD5);-webkit-background-clip:text;background-clip:text;color:transparent}
 .ig-links a:hover{text-decoration:underline;text-decoration-color:#D62976;text-underline-offset:4px}
 .ig-links svg{width:22px;height:22px;flex:none}
-.at-3d{width:220px;height:220px}
+.at-3d{width:170px;height:170px}
 @media (prefers-reduced-motion:no-preference){.spark{transform-box:fill-box;transform-origin:center;animation:twinkle 2.4s ease-in-out infinite}.spark.s2{animation-delay:-1.2s}@keyframes twinkle{50%{transform:scale(.55);opacity:.5}}}
 @media (prefers-reduced-motion:no-preference){.scanline{animation:scanl 2.6s ease-in-out infinite alternate}@keyframes scanl{from{transform:translateY(-36px)}to{transform:translateY(36px)}}}
 
@@ -575,6 +576,50 @@ p,li,address,.lead{color:inherit}
 .qr:hover small{text-decoration:underline}
 @media (max-width:900px){.f-qr{display:none}}
 
+/* tagline */
+.flag-tagline{font-family:var(--f-display);font-weight:600;font-size:clamp(1.5rem,3vw,2.2rem);letter-spacing:-.015em;color:#F7F2E7;margin-top:6px;text-align:center}
+/* Premium cards */
+.head.center{grid-template-columns:1fr;text-align:center;justify-items:center}
+.head.center .lead{margin-inline:auto}
+.pcards{display:grid;grid-template-columns:repeat(3,1fr);gap:22px}
+.pcard{display:flex;flex-direction:column;gap:18px;min-width:0}
+.pc-face{position:relative;aspect-ratio:1.586;max-width:100%;border-radius:20px;padding:22px 24px;color:#F7F2E7;overflow:hidden;box-shadow:0 30px 60px -28px rgba(0,0,0,.55),inset 0 0 0 1px rgba(255,255,255,.18);display:flex;flex-direction:column;justify-content:space-between;transition:transform .5s cubic-bezier(.2,.7,.2,1)}
+.pc-face::before{content:"";position:absolute;inset:0;background:linear-gradient(115deg,transparent 30%,rgba(255,255,255,.28) 45%,transparent 60%);transform:translateX(-120%);transition:transform 1.1s ease}
+.pcard:hover .pc-face{transform:translateY(-6px) rotate(-1deg)}
+.pcard:hover .pc-face::before{transform:translateX(120%)}
+.pc-blue .pc-face{background:radial-gradient(120% 90% at 85% 0%,#2C4F86 0%,transparent 60%),linear-gradient(135deg,#0B1F3F,#06122A)}
+.pc-green .pc-face{background:radial-gradient(120% 90% at 85% 0%,#14845A 0%,transparent 60%),linear-gradient(135deg,#006039,#00331F)}
+.pc-gold .pc-face{background:radial-gradient(120% 90% at 85% 0%,#F4E3B8 0%,transparent 60%),linear-gradient(135deg,#D9B977,#9C7A3C);color:#2A1E08}
+.pc-top{display:flex;justify-content:space-between;align-items:center}
+.pc-top img{width:40px;height:auto}
+.pc-gold .pc-top img{content:url(assets/escudo.png)}
+.pc-chip{width:44px;height:34px;border-radius:7px;background:linear-gradient(135deg,#F2DFA9,#B8924F);box-shadow:inset 0 0 0 1px rgba(0,0,0,.2)}
+.pc-name{font-size:15px;letter-spacing:.32em;font-weight:500}
+.pc-name b{font-weight:700;letter-spacing:.2em}
+.pc-num{font-size:clamp(14px,1.6vw,18px);letter-spacing:.14em;opacity:.85;font-variant-numeric:tabular-nums}
+.pc-sub{font-size:12px;letter-spacing:.2em;text-transform:uppercase;opacity:.8}
+.pc-info{display:flex;flex-direction:column;align-items:flex-start;gap:8px}
+.pc-info h3{font-size:1.5rem}
+.pc-soon{color:var(--fg-dim);font-size:16px}
+@media (max-width:900px){.pcards{grid-template-columns:1fr;max-width:420px;margin:0 auto}}
+/* Coupon */
+.cup-wrap{display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:start}
+.cup-txt h2{font-size:clamp(2rem,4.4vw,3.2rem);margin-top:6px}
+.cup-txt .lead{margin-top:14px}
+.cup-form{display:flex;flex-direction:column;gap:8px;background:var(--surface);border:1px solid var(--line);border-radius:24px;padding:26px;box-shadow:var(--shadow,0 22px 50px -34px rgba(0,0,0,.4))}
+.cup-form label{font-size:14px;font-weight:600;color:var(--fg)}
+.cup-form input:not([type=checkbox]),.cup-form select{font:500 17px var(--f-body);padding:13px 14px;border-radius:12px;border:1px solid var(--line);background:var(--bg);color:var(--fg);margin-bottom:6px;width:100%}
+.cup-form input:focus,.cup-form select:focus{outline:2px solid var(--accent);outline-offset:1px}
+.cup-form .cup-ok{display:flex;gap:10px;align-items:flex-start;font-weight:400;font-size:14px;color:var(--fg-dim);margin-top:4px}
+.cup-ok input{margin-top:3px;width:18px;height:18px;flex:none;accent-color:var(--accent)}
+.cup-err{min-height:1.2em;color:#C0392B;font-size:14px;margin:2px 0}
+.cup-form .btn{justify-content:center}
+.cup-result{margin-top:36px;display:flex;flex-direction:column;align-items:center;gap:18px}
+.cup-result canvas{width:min(360px,100%);height:auto;border-radius:22px;box-shadow:0 30px 60px -28px rgba(0,0,0,.5)}
+.cup-actions{display:flex;flex-wrap:wrap;gap:10px;justify-content:center}
+.cup-tip{color:var(--fg-dim);font-size:14px;text-align:center;max-width:46ch}
+@media (max-width:860px){.cup-wrap{grid-template-columns:1fr;gap:26px}}
+
 .toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translateX(-50%) translateY(120px);background:var(--deep);color:var(--on-accent);padding:10px 18px;border-radius:999px;font-weight:600;font-size:15px;transition:transform .35s,visibility .35s;z-index:80;visibility:hidden}
 .toast.show{transform:translateX(-50%) translateY(0);visibility:visible}
 </style>
@@ -595,6 +640,8 @@ p,li,address,.lead{color:inherit}
       <a href="#historias">Histórias</a>
       <a href="#unidades">Unidades</a>
       <a href="#localizacao">Localização</a>
+      <a href="#premium">Cliente Premium</a>
+      <a href="#cupom">Cupom</a>
     </nav>
     <a class="btn btn-gold" href="#unidades"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg><span>Agendar avaliação</span></a>
   </div>
@@ -718,6 +765,7 @@ p,li,address,.lead{color:inherit}
         <span class="flag"><svg viewBox="0 0 30 20" aria-hidden="true"><rect width="30" height="20" fill="#fff"/><rect y="0.00" width="30" height="1.54" fill="#111"/><rect y="3.08" width="30" height="1.54" fill="#111"/><rect y="6.15" width="30" height="1.54" fill="#111"/><rect y="9.23" width="30" height="1.54" fill="#111"/><rect y="12.31" width="30" height="1.54" fill="#111"/><rect y="15.38" width="30" height="1.54" fill="#111"/><rect y="18.46" width="30" height="1.54" fill="#111"/><rect width="12" height="9.2" fill="#D52B1E"/><circle cx="6" cy="4.6" r="2.6" fill="#fff"/><circle cx="6" cy="4.6" r="1.4" fill="#1F3F8F"/></svg>São Paulo</span>
       </div>
     </div>
+    <p class="flag-tagline">Já cuidados <em>por nós</em>!</p>
   </div>
 </section>
 
@@ -854,6 +902,75 @@ p,li,address,.lead{color:inherit}
       <article class="story"><span class="route">Santa Cruz do Capibaribe</span><q>Cuidando de 3 gerações! Uma honra poder cuidar de toda a família há mais de 18 anos. Mãe, filho e netas!</q><div class="where"><span>Família, há 18 anos</span><a href="https://www.instagram.com/p/DbRBfj4xRuM/" target="_blank" rel="noopener">Ver no Instagram ↗</a></div></article>
       <article class="story"><span class="route">Caruaru → Parintins, AM</span><q>Uma grande satisfação poder devolver o sorriso, a mastigação e a autoestima. Uma honra poder cuidar ainda mais do seu sorriso.</q><div class="where"><span>Reabilitação</span><a href="https://www.instagram.com/p/DbQ-5ELRxyY/" target="_blank" rel="noopener">Ver no Instagram ↗</a></div></article>
       <article class="story"><span class="route">WE Odontologia · Recife → Portugal</span><q>Atendimento personalizado. Uma honra poder cuidar ainda mais da saúde bucal de vocês!</q><div class="where"><span>Família</span><a href="https://www.instagram.com/p/DbQ8Iy0RCbG/" target="_blank" rel="noopener">Ver no Instagram ↗</a></div></article>
+    </div>
+  </div>
+</section>
+
+<section class="block" id="premium">
+  <div class="wrap">
+    <div class="head center reveal"><p class="eyebrow">Cliente Premium</p><h2>Cartões <em>Weiss</em>.</h2><p class="lead">Três níveis de relacionamento, com benefícios exclusivos para quem cuida do sorriso com a gente.</p></div>
+    <div class="pcards">
+      <article class="pcard pc-blue">
+        <div class="pc-face">
+          <div class="pc-top"><img src="assets/escudo-escuro.png" alt="" width="40" height="46"><span class="pc-chip" aria-hidden="true"></span></div>
+          <p class="pc-name">WEISS <b>Blue</b></p>
+          <p class="pc-num" aria-hidden="true">•••• •••• •••• 2026</p>
+          <p class="pc-sub">Membro Weiss</p>
+        </div>
+        <div class="pc-info"><h3>Blue</h3><p class="pc-soon">Benefícios em breve.</p><a class="btn btn-gold" href="https://wa.me/5581998368491?text=Ol%C3%A1!%20Quero%20saber%20sobre%20o%20cart%C3%A3o%20Weiss%20Blue." target="_blank" rel="noopener">Quero o Blue</a></div>
+      </article>
+      <article class="pcard pc-green">
+        <div class="pc-face">
+          <div class="pc-top"><img src="assets/escudo-escuro.png" alt="" width="40" height="46"><span class="pc-chip" aria-hidden="true"></span></div>
+          <p class="pc-name">WEISS <b>Green</b></p>
+          <p class="pc-num" aria-hidden="true">•••• •••• •••• 2026</p>
+          <p class="pc-sub">Membro Weiss</p>
+        </div>
+        <div class="pc-info"><h3>Green</h3><p class="pc-soon">Benefícios em breve.</p><a class="btn btn-gold" href="https://wa.me/5581998368491?text=Ol%C3%A1!%20Quero%20saber%20sobre%20o%20cart%C3%A3o%20Weiss%20Green." target="_blank" rel="noopener">Quero o Green</a></div>
+      </article>
+      <article class="pcard pc-gold">
+        <div class="pc-face">
+          <div class="pc-top"><img src="assets/escudo-escuro.png" alt="" width="40" height="46"><span class="pc-chip" aria-hidden="true"></span></div>
+          <p class="pc-name">WEISS <b>Gold</b></p>
+          <p class="pc-num" aria-hidden="true">•••• •••• •••• 2026</p>
+          <p class="pc-sub">Membro Weiss</p>
+        </div>
+        <div class="pc-info"><h3>Gold</h3><p class="pc-soon">Benefícios em breve.</p><a class="btn btn-gold" href="https://wa.me/5581998368491?text=Ol%C3%A1!%20Quero%20saber%20sobre%20o%20cart%C3%A3o%20Weiss%20Gold." target="_blank" rel="noopener">Quero o Gold</a></div>
+      </article>
+    </div>
+  </div>
+</section>
+
+<section class="block" id="cupom">
+  <div class="wrap cup-wrap">
+    <div class="cup-txt">
+      <p class="eyebrow">Cupom de consulta</p>
+      <h2>Gere aqui o seu <em>cupom</em>.</h2>
+      <p class="lead">Preencha o cadastro, gere o cupom e salve a imagem no celular. É só apresentar no dia da consulta.</p>
+    </div>
+    <form class="cup-form" id="cupForm" novalidate>
+      <label for="cupNome">Nome completo</label>
+      <input id="cupNome" name="nome" autocomplete="name" required minlength="5" placeholder="Seu nome">
+      <label for="cupTel">WhatsApp com DDD</label>
+      <input id="cupTel" name="tel" inputmode="tel" autocomplete="tel" required placeholder="(81) 99999-9999">
+      <label for="cupCpf">CPF</label>
+      <input id="cupCpf" name="cpf" inputmode="numeric" required placeholder="000.000.000-00">
+      <label for="cupUnid">Unidade</label>
+      <select id="cupUnid" name="unidade"><option value="Caruaru">Caruaru</option><option value="Recife">Recife</option></select>
+      <label class="cup-ok"><input type="checkbox" id="cupAceite" required><span>Autorizo a Weiss Odontologia a usar estes dados para identificar meu cupom e entrar em contato, conforme a <a href="#privacidade" data-priv>Privacidade</a>.</span></label>
+      <p class="cup-err" id="cupErr" role="alert"></p>
+      <button class="btn btn-gold" type="submit">Gerar meu cupom</button>
+    </form>
+  </div>
+  <div class="wrap">
+    <div class="cup-result" id="cupResult" hidden>
+      <canvas id="cupCanvas" width="1080" height="1350" aria-label="Cupom gerado"></canvas>
+      <div class="cup-actions">
+        <a class="btn btn-gold" id="cupSave" download="cupom-weiss.png" href="#">Salvar foto do cupom</a>
+        <a class="btn btn-ghost" id="cupSend" target="_blank" rel="noopener" href="#">Enviar para a clínica</a>
+        <button class="btn btn-ghost" id="cupNew" type="button">Gerar outro</button>
+      </div>
+      <p class="cup-tip">No iPhone, se a foto abrir numa nova tela, toque e segure a imagem e escolha "Salvar na Fotos".</p>
     </div>
   </div>
 </section>
@@ -1007,7 +1124,7 @@ p,li,address,.lead{color:inherit}
     <h2 id="privacyTitle">Privacidade</h2>
     <p>Este aviso explica como a Weiss Odontologia (Caruaru) e a WE Odontologia (Recife) tratam dados pessoais neste site, conforme a Lei Geral de Proteção de Dados (Lei nº 13.709/2018).</p>
     <h3>O que este site coleta</h3>
-    <p>O site não tem formulário nem cadastro, e não usa ferramentas próprias de análise ou publicidade.</p>
+    <p>O site não usa ferramentas próprias de análise ou publicidade. O único cadastro é o do cupom de consulta (nome, WhatsApp com DDD, CPF e unidade). Esses dados servem só para identificar o cupom no atendimento e entrar em contato sobre a consulta, e não são repassados a terceiros. O cupom fica salvo no seu celular; a clínica recebe os dados quando você toca em "Enviar para a clínica".</p>
     <h3>Quando você fala com a clínica</h3>
     <p>Ao clicar em um botão de WhatsApp, você sai deste site. Usamos seu nome, telefone e o que você escrever para responder e agendar seu atendimento.</p>
     <h3>Serviços de terceiros</h3>
@@ -1185,6 +1302,47 @@ if(!reduce && 'IntersectionObserver' in window){
     if(!reduce||drag)requestAnimationFrame(frame);};
   requestAnimationFrame(frame);
   if(reduce)watch.addEventListener('pointermove',()=>requestAnimationFrame(frame));
+})();
+
+
+/* ---------- Coupon generator ---------- */
+(()=>{const f=document.getElementById('cupForm');if(!f)return;
+  const $=id=>document.getElementById(id),err=$('cupErr'),res=$('cupResult'),cv=$('cupCanvas');
+  const digits=v=>v.replace(/\D/g,'');
+  const maskTel=v=>{v=digits(v).slice(0,11);return v.length>10?`(${v.slice(0,2)}) ${v.slice(2,7)}-${v.slice(7)}`:v.length>6?`(${v.slice(0,2)}) ${v.slice(2,6)}-${v.slice(6)}`:v.length>2?`(${v.slice(0,2)}) ${v.slice(2)}`:v};
+  const maskCpf=v=>{v=digits(v).slice(0,11);return v.replace(/(\d{3})(\d)/,'$1.$2').replace(/(\d{3})(\d)/,'$1.$2').replace(/(\d{3})(\d{1,2})$/,'$1-$2')};
+  const cpfOk=c=>{c=digits(c);if(c.length!==11||/^(\d)\1+$/.test(c))return false;for(let t=9;t<11;t++){let s=0;for(let i=0;i<t;i++)s+=+c[i]*(t+1-i);if(((s*10)%11)%10!==+c[t])return false}return true};
+  $('cupTel').addEventListener('input',e=>e.target.value=maskTel(e.target.value));
+  $('cupCpf').addEventListener('input',e=>e.target.value=maskCpf(e.target.value));
+  const code=()=>{const a='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';let s='';const r=crypto.getRandomValues(new Uint8Array(6));r.forEach(n=>s+=a[n%a.length]);return 'WEISS-'+s};
+  const logo=new Image();logo.src='assets/logo-weiss-escuro.png';
+  const draw=d=>{const x=cv.getContext('2d'),W=cv.width,H=cv.height;
+    const g=x.createLinearGradient(0,0,W,H);g.addColorStop(0,'#006039');g.addColorStop(1,'#00221A');x.fillStyle=g;x.fillRect(0,0,W,H);
+    const r=x.createRadialGradient(W*.8,0,10,W*.8,0,W);r.addColorStop(0,'rgba(232,213,168,.35)');r.addColorStop(1,'rgba(232,213,168,0)');x.fillStyle=r;x.fillRect(0,0,W,H);
+    x.strokeStyle='#C9A86A';x.lineWidth=4;x.strokeRect(40,40,W-80,H-80);
+    if(logo.complete&&logo.naturalWidth){const lh=300,lw=logo.naturalWidth*lh/logo.naturalHeight;x.drawImage(logo,(W-lw)/2,90,lw,lh)}
+    x.textAlign='center';x.fillStyle='#E8D5A8';x.font='600 34px -apple-system,Helvetica,Arial,sans-serif';x.fillText('CUPOM DE CONSULTA',W/2,470);
+    x.fillStyle='#F7F2E7';x.font='800 96px -apple-system,Helvetica,Arial,sans-serif';x.fillText(d.codigo,W/2,590);
+    x.strokeStyle='rgba(232,213,168,.5)';x.lineWidth=2;x.setLineDash([12,10]);x.beginPath();x.moveTo(120,650);x.lineTo(W-120,650);x.stroke();x.setLineDash([]);
+    const row=(k,v,y)=>{x.textAlign='left';x.fillStyle='#C9A86A';x.font='600 30px -apple-system,Helvetica,Arial,sans-serif';x.fillText(k,140,y);x.fillStyle='#F7F2E7';x.font='500 44px -apple-system,Helvetica,Arial,sans-serif';x.fillText(v,140,y+54)};
+    row('NOME',d.nome.length>30?d.nome.slice(0,29)+'…':d.nome,730);row('WHATSAPP',d.tel,860);row('CPF',d.cpfMask,990);row('UNIDADE · EMITIDO EM',d.unidade+' · '+d.data,1120);
+    x.textAlign='center';x.fillStyle='rgba(247,242,231,.75)';x.font='400 26px -apple-system,Helvetica,Arial,sans-serif';x.fillText('Apresente este cupom no dia da consulta.',W/2,1270)};
+  const show=d=>{const go=()=>{draw(d);try{$('cupSave').href=cv.toDataURL('image/png');$('cupSave').download=d.codigo+'.png'}catch(_){ $('cupSave').hidden=true }
+      const num=d.unidade==='Recife'?'5581973185005':'5581998368491';
+      const msg=`Olá! Gerei meu cupom de consulta no site.\nCupom: ${d.codigo}\nNome: ${d.nome}\nWhatsApp: ${d.tel}\nCPF: ${d.cpfMask}\nUnidade: ${d.unidade}`;
+      $('cupSend').href=`https://wa.me/${num}?text=${encodeURIComponent(msg)}`;res.hidden=false;res.scrollIntoView({behavior:'smooth',block:'center'})};
+    logo.complete?go():(logo.onload=go,logo.onerror=go)};
+  f.addEventListener('submit',e=>{e.preventDefault();err.textContent='';
+    const nome=$('cupNome').value.trim(),tel=$('cupTel').value,cpf=$('cupCpf').value;
+    if(nome.split(/\s+/).length<2)return err.textContent='Digite nome e sobrenome.';
+    if(digits(tel).length<10)return err.textContent='Digite o WhatsApp com DDD.';
+    if(!cpfOk(cpf))return err.textContent='CPF inválido. Confira os números.';
+    if(!$('cupAceite').checked)return err.textContent='Marque a autorização para gerar o cupom.';
+    const d={codigo:code(),nome,tel:maskTel(tel),cpfMask:maskCpf(cpf).replace(/^(\d{3})\.(\d{3})/,'***.***'),cpf:digits(cpf),unidade:$('cupUnid').value,data:new Date().toLocaleDateString('pt-BR'),criado:new Date().toISOString()};
+    window.WEISS_CUPOM_ENDPOINT&&fetch(window.WEISS_CUPOM_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(d)}).catch(()=>{});
+    show(d)});
+  $('cupNew').addEventListener('click',()=>{f.reset();res.hidden=true;$('cupNome').focus()});
+  document.querySelectorAll('[data-priv]').forEach(a=>a.addEventListener('click',e=>{const p=document.getElementById('privacy');if(p&&p.showModal){e.preventDefault();p.showModal()}}));
 })();
 
 /* ---------- WhatsApp FAB ---------- */
