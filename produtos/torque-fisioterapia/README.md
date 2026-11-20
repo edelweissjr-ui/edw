@@ -8,6 +8,9 @@ Sistema de gestão para a clínica Torque Fisioterapia (5 sócios), com os módu
 ## Módulos
 - **Início:** agenda do dia com ações rápidas (WhatsApp, atendido, faltou, evoluir), indicadores do mês e alertas: atendimentos sem evolução, pacotes/guias acabando, contas vencidas, aniversariantes.
 - **Agenda:** visão por dia (uma coluna por fisioterapeuta) e por semana; clique no horário vazio para agendar; sessões repetidas (ex.: Seg e Qua, 10 sessões); aviso de conflito; confirmação pelo WhatsApp.
+- **Cores e confirmação na agenda:** cada procedimento tem sua cor (ajustável em Ajustes). Ao lado do nome do paciente há uma barra cinza que fica verde quando o paciente confirma (clique na barra para confirmar ou desfazer); vermelha se faltou.
+- **Contato do paciente:** telefone visível no agendamento e na agenda do dia, com botões de WhatsApp (confirmação), Lembrete (WhatsApp) e SMS, copiar número e copiar lembrete. O sistema registra quando cada lembrete foi enviado.
+- **Chat da equipe:** conversas entre os profissionais em salas (Geral, Recepção e agenda, Casos clínicos, Sócios…), criação de novas salas, aviso de mensagens não lidas no menu.
 - **Pacientes e prontuário:** cadastro completo (convênio, carteirinha, guia, médico, CID, LGPD), avaliação fisioterapêutica (anamnese, EVA, goniometria, força de Oxford, testes, escalas, diagnóstico cinético-funcional, plano), evoluções SOAP com técnicas, curva de dor. Registros não são apagados nem alterados; correções entram como adendo (Res. COFFITO 414/2012).
 - **Avaliação traumato-ortopédica:** testes especiais prontos por região (ombro, cotovelo, punho e mão, quadril, joelho, tornozelo e pé, coluna e osteopatia), com + ou − por lado, observação e o que o teste positivo sugere. Na osteopatia, campo para as disfunções somáticas.
 - **Reteste a cada sessão:** a evolução já traz os testes que estavam positivos para retestar, e aceita qualquer outro teste da lista.

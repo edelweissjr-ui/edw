@@ -101,6 +101,32 @@ td.r,th.r{text-align:right}
 .st-faltou,.st-vencido{background:var(--bad-soft);color:var(--bad)}
 .st-pendente{background:var(--warn-soft);color:var(--warn)}
 .st-cancelado,.st-alta,.st-inativo{background:var(--off-soft);color:var(--off)}
+.cbar{flex:none;width:6px;height:38px;border-radius:4px;border:0;padding:0;background:var(--cb);cursor:pointer;transition:background .2s}
+.cbar:hover{filter:brightness(1.15)}
+.lgbar{display:inline-block;width:5px;height:14px;border-radius:3px;background:var(--cb)}
+.li small.tel{font-size:12px;color:var(--fg)}
+.contato{display:flex;gap:12px;align-items:center}.contato .cbar{height:56px;width:8px}
+.tel-big{font-size:17px;font-weight:600;user-select:all}
+.nb{font-style:normal;margin-left:auto;background:#f07a43;color:#1a0c05;border-radius:99px;font-size:11px;font-weight:700;padding:1px 7px;line-height:1.5}
+/* Chat */
+.chat{display:grid;grid-template-columns:230px minmax(0,1fr);gap:14px;align-items:start}
+.rooms{display:flex;flex-direction:column;gap:2px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:8px}
+.rooms>button{display:flex;align-items:center;gap:8px;border:0;background:none;text-align:left;padding:8px 10px;border-radius:7px;cursor:pointer;color:var(--muted);font-weight:600}
+.rooms>button span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rooms>button:hover{background:var(--surface-2);color:var(--fg)}.rooms>button.on{background:var(--brand);color:var(--surface)}
+.rooms .nova{display:flex;gap:6px;margin-top:8px;padding-top:8px;border-top:1px solid var(--line)}.rooms .nova input{padding:6px 8px}
+.conv{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);display:flex;flex-direction:column;min-width:0;padding:0 0 10px}
+.conv-h{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:12px 16px;border-bottom:1px solid var(--line)}
+.msgs{height:calc(100vh - 340px);min-height:280px;overflow-y:auto;padding:12px 16px;display:flex;flex-direction:column;gap:8px}
+.msg{max-width:min(620px,88%);align-self:flex-start;background:var(--surface-2);border-radius:12px 12px 12px 4px;padding:7px 11px}
+.msg.mine{align-self:flex-end;background:var(--accent-soft);border-radius:12px 12px 4px 12px}
+.mh{display:flex;align-items:center;gap:6px;font-size:12px}.mh .muted{font-size:11px}
+.mt{white-space:pre-wrap;overflow-wrap:anywhere;margin-top:2px}
+.mdel{border:0;background:none;color:var(--muted);font-size:11px;cursor:pointer;padding:0;margin-left:auto}.mdel:hover{color:var(--bad)}
+.msep{display:flex;align-items:center;gap:10px;color:var(--muted);font-size:11.5px;font-weight:600;margin:6px 0}.msep::before,.msep::after{content:"";flex:1;height:1px;background:var(--line)}
+.composer{display:flex;gap:8px;align-items:flex-end;padding:10px 16px 0;border-top:1px solid var(--line);flex-wrap:wrap}
+.composer textarea{flex:1;min-width:200px;min-height:44px}
+@media (max-width:760px){.chat{grid-template-columns:minmax(0,1fr)}.rooms{flex-direction:row;overflow-x:auto}.rooms>button{white-space:nowrap;flex:none}.rooms .nova{display:none}.msgs{height:55vh}}
 .dot{width:10px;height:10px;border-radius:50%;display:inline-block;flex:none;background:var(--pc,var(--muted))}
 .list{display:flex;flex-direction:column}
 .li{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--line);min-width:0}
@@ -128,7 +154,8 @@ td.r,th.r{text-align:right}
 .cal-times{position:sticky;left:0;z-index:2;background:var(--surface);border-right:1px solid var(--line)}
 .cal-times div{font-family:var(--font-mono);font-size:11px;color:var(--muted);text-align:right;padding-right:6px;transform:translateY(-7px)}
 .cal-col{position:relative;border-right:1px solid var(--line);cursor:copy;background-image:linear-gradient(var(--line) 1px,transparent 1px);background-size:100% var(--slot)}
-.ev{position:absolute;border-radius:6px;padding:3px 6px;font-size:11.5px;line-height:1.25;overflow:hidden;cursor:pointer;border-left:3px solid var(--pc);background:color-mix(in srgb,var(--pc) 15%,var(--surface));color:var(--fg)}
+.ev{position:absolute;border-radius:6px;padding:3px 6px 3px 14px;font-size:11.5px;line-height:1.25;overflow:hidden;cursor:pointer;background:color-mix(in srgb,var(--sc) 22%,var(--surface));box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--sc) 45%,transparent);color:var(--fg)}
+.ev .cbar{position:absolute;left:0;top:0;bottom:0;width:8px;height:auto;border-radius:6px 0 0 6px}
 .ev:hover{z-index:2;box-shadow:0 2px 8px rgba(0,0,0,.18)}
 .ev b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .ev small{display:block;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -275,20 +302,21 @@ const DEF_CFG={
     {id:"p5",nome:"Sócio(a) 5",crefito:"",especialidade:"Pilates clínico / RPG",cor:"#c98a00",socio:true,cota:20,comissao:0,ativo:true}
   ],
   servicos:[
-    {id:"s1",nome:"Avaliação fisioterapêutica",valor:150,duracao:60},
-    {id:"s2",nome:"Fisioterapia ortopédica",valor:120,duracao:50},
-    {id:"s3",nome:"Fisioterapia esportiva",valor:140,duracao:50},
-    {id:"s4",nome:"Fisioterapia neurológica",valor:130,duracao:50},
-    {id:"s5",nome:"Fisioterapia pélvica",valor:160,duracao:50},
-    {id:"s6",nome:"Pilates clínico",valor:90,duracao:50},
-    {id:"s7",nome:"RPG",valor:140,duracao:60},
-    {id:"s8",nome:"Drenagem linfática",valor:120,duracao:60},
-    {id:"s9",nome:"Acupuntura / Dry needling",valor:120,duracao:40},
-    {id:"s10",nome:"Reabilitação pós-operatória",valor:150,duracao:60}
+    {id:"s1",cor:"#d9561f",nome:"Avaliação fisioterapêutica",valor:150,duracao:60},
+    {id:"s2",cor:"#2b7fd6",nome:"Fisioterapia ortopédica",valor:120,duracao:50},
+    {id:"s3",cor:"#0f9d8a",nome:"Fisioterapia esportiva",valor:140,duracao:50},
+    {id:"s4",cor:"#8a5bd6",nome:"Fisioterapia neurológica",valor:130,duracao:50},
+    {id:"s5",cor:"#d6458f",nome:"Fisioterapia pélvica",valor:160,duracao:50},
+    {id:"s6",cor:"#c98a00",nome:"Pilates clínico",valor:90,duracao:50},
+    {id:"s7",cor:"#5f8f2a",nome:"RPG",valor:140,duracao:60},
+    {id:"s8",cor:"#2fa3c9",nome:"Drenagem linfática",valor:120,duracao:60},
+    {id:"s9",cor:"#b8432f",nome:"Acupuntura / Dry needling",valor:120,duracao:40},
+    {id:"s10",cor:"#5b5fd1",nome:"Reabilitação pós-operatória",valor:150,duracao:60}
   ],
   convenios:["Unimed","Bradesco Saúde","SulAmérica","Amil","Hapvida","Cassi","Geap","Camed"],
   catDespesa:["Aluguel","Condomínio","Energia","Água","Internet/Telefone","Salários e encargos","Pró-labore","Impostos","Material de consumo","Equipamentos","Manutenção","Marketing","Contabilidade","Sistema/Software","Outros"],
-  catReceita:["Atendimento","Pacote de sessões","Convênio","Pilates (mensalidade)","Outros"]
+  catReceita:["Atendimento","Pacote de sessões","Convênio","Pilates (mensalidade)","Outros"],
+  salas:["Geral","Recepção e agenda","Casos clínicos","Ortopedia e esportiva","Neuro e pélvica","Pilates e RPG","Sócios"]
 };
 const TECNICAS=["Cinesioterapia","Terapia manual","Liberação miofascial","Mobilização articular","Alongamento","Fortalecimento","Treino funcional","Treino de marcha","Propriocepção","TENS","FES","Ultrassom","Laser","Ondas curtas","Crioterapia","Termoterapia","Kinesio taping","Dry needling","Ventosaterapia","Pilates","RPG","Drenagem linfática","Biofeedback","Mobilização neural","Osteopatia estrutural (HVLA)","Técnica de músculo-energia","Strain-counterstrain","Osteopatia visceral","Osteopatia craniana","Orientações domiciliares"];
 /* Testes especiais por região: "Nome|o que o positivo sugere" */
@@ -319,7 +347,8 @@ const pill=s=>`<span class="pill st-${esc(s)}">${esc(ST_LBL[s]||s)}</span>`;
 /* ================= Estado e dados ================= */
 let LOCAL=false, db=null, canWrite=true, loaded=false;
 const COLS=["pacientes","agenda","registros","financeiro"];
-const real={pacientes:[],agenda:[],registros:[],financeiro:[]};
+const real={pacientes:[],agenda:[],registros:[],financeiro:[],chat:[]};
+let ME=null;
 let CFG=JSON.parse(JSON.stringify(DEF_CFG));
 let DEMO=null;
 const isDemo=()=>COLS.every(c=>!real[c].length);
@@ -327,6 +356,11 @@ const S=()=>isDemo()?(DEMO||(DEMO=buildDemo())):real;
 const profs=(all)=>CFG.profissionais.filter(p=>all||p.ativo!==false);
 const prof=id=>CFG.profissionais.find(p=>p.id===id)||{nome:"—",cor:"#888",crefito:""};
 const serv=id=>CFG.servicos.find(s=>s.id===id)||{nome:"Atendimento",valor:0,duracao:50};
+const PAL=["#d9561f","#2b7fd6","#0f9d8a","#8a5bd6","#d6458f","#c98a00","#5f8f2a","#2fa3c9","#b8432f","#5b5fd1"];
+const servCor=id=>{const i=CFG.servicos.findIndex(s=>s.id===id);if(i<0)return"#8b93a1";return CFG.servicos[i].cor||PAL[i%PAL.length]};
+/* Barra de confirmação: cinza até o paciente confirmar, verde depois */
+const confCor=st=>st==="confirmado"||st==="atendido"?"var(--ok)":st==="faltou"?"var(--bad)":"var(--off)";
+const confTxt=st=>st==="confirmado"?"Paciente confirmou":st==="atendido"?"Atendido":st==="faltou"?"Faltou":st==="cancelado"?"Cancelado":"Aguardando confirmação: clique para marcar como confirmado";
 const pac=id=>S().pacientes.find(p=>p.id===id);
 const pacNome=id=>(pac(id)||{}).nome||"Paciente removido";
 const UI={agDate:today(),agMode:"dia",agProf:"",agCancel:false,pBusca:"",pSit:"ativo",pTab:"resumo",fMes:mesDe(today()),fTipo:"todos",fStatus:"todos",rMes:mesDe(today())};
@@ -401,6 +435,10 @@ async function setStatus(id,st){
   a.status=st;if(await save("agenda",a,true)){await syncReceita(a);render();toast("Marcado como "+ST_LBL[st].toLowerCase()+".");if(st==="atendido"&&!real.registros.some(r=>r.agendaId===id))setTimeout(()=>openEvolucao(a.pacienteId,null,id),250)}
 }
 function waLink(tel,msg){let d=digits(tel);if(!d)return"";if(d.length<=11)d="55"+d;return"https://wa.me/"+d+"?text="+encodeURIComponent(msg)}
+function msgLembrete(a){const p=pac(a.pacienteId)||{},c=CFG.clinica,pn=(p.nome||"").replace(/^Exemplo · /,"").split(" ")[0];const quando=a.data===addDays(today(),1)?"amanhã ("+dLong(a.data).toLowerCase()+")":a.data===today()?"hoje":dLong(a.data).toLowerCase();return `Olá, ${pn}! Lembrete da ${c.nome}: ${quando} às ${a.hora} você tem ${serv(a.servicoId).nome.toLowerCase()} com ${prof(a.profId).nome}.${c.endereco?" Endereço: "+c.endereco+".":""} Venha com roupa confortável e chegue 10 minutos antes. Se precisar remarcar, responda esta mensagem.`}
+function smsLink(tel,msg){let d=digits(tel);if(!d)return"";if(d.length<=11)d="55"+d;return"sms:+"+d+"?body="+encodeURIComponent(msg)}
+function contatoBtns(a,p,sm){if(!p||!p.telefone)return"";const c=sm?"btn sm":"btn";return `<a class="${c} wa" target="_blank" rel="noopener" href="${waLink(p.telefone,msgConfirma(a))}" onclick="T.marca('${a.id}','confirmacaoEm')" title="Pedir confirmação pelo WhatsApp">WhatsApp</a><a class="${c}" target="_blank" rel="noopener" href="${waLink(p.telefone,msgLembrete(a))}" onclick="T.marca('${a.id}','lembreteEm')" title="Enviar lembrete pelo WhatsApp">Lembrete</a><a class="${c}" href="${smsLink(p.telefone,msgLembrete(a))}" onclick="T.marca('${a.id}','smsEm')" title="Enviar lembrete por SMS (abre o app de mensagens do celular)">SMS</a>`}
+const cbar=a=>`<button type="button" class="cbar" style="--cb:${confCor(a.status)}" title="${esc(confTxt(a.status))}" aria-label="${esc(confTxt(a.status))}" onclick="event.stopPropagation();T.toggleConf('${a.id}')"></button>`;
 function msgConfirma(a){const p=pac(a.pacienteId)||{};const pr=prof(a.profId);return `Olá, ${(p.nome||"").replace(/^Exemplo · /,"").split(" ")[0]}! Aqui é da ${CFG.clinica.nome}. Confirmando seu atendimento de ${serv(a.servicoId).nome.toLowerCase()} com ${pr.nome} em ${dLong(a.data).toLowerCase()} às ${a.hora}. Responda 1 para CONFIRMAR ou 2 para REMARCAR.`}
 
 /* ================= Navegação ================= */
@@ -408,14 +446,15 @@ const ICONS={
   inicio:'<path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/>',
   agenda:'<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>',
   pacientes:'<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-3.6 3.4-5.5 6.5-5.5s5.7 1.9 6.5 5.5"/><path d="M16 4.6a3.5 3.5 0 010 6.8M18 14.8c1.9.7 3.1 2.4 3.5 5.2"/>',
+  chat:'<path d="M20 15a2 2 0 01-2 2H8l-4 4V5a2 2 0 012-2h12a2 2 0 012 2z"/><path d="M8 9h8M8 13h5"/>',
   financeiro:'<rect x="2.5" y="6" width="19" height="13" rx="2"/><circle cx="12" cy="12.5" r="2.8"/><path d="M6 9.5v6M18 9.5v6"/>',
   relatorios:'<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>',
   ajustes:'<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 00.3 1.8l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.7 1.7 0 00-1.8-.3 1.7 1.7 0 00-1 1.5V21a2 2 0 11-4 0v-.1a1.7 1.7 0 00-1.1-1.5 1.7 1.7 0 00-1.8.3l-.1.1a2 2 0 11-2.8-2.8l.1-.1a1.7 1.7 0 00.3-1.8 1.7 1.7 0 00-1.5-1H3a2 2 0 110-4h.1a1.7 1.7 0 001.5-1.1 1.7 1.7 0 00-.3-1.8l-.1-.1a2 2 0 112.8-2.8l.1.1a1.7 1.7 0 001.8.3H9a1.7 1.7 0 001-1.5V3a2 2 0 114 0v.1a1.7 1.7 0 001 1.5 1.7 1.7 0 001.8-.3l.1-.1a2 2 0 112.8 2.8l-.1.1a1.7 1.7 0 00-.3 1.8V9a1.7 1.7 0 001.5 1H21a2 2 0 110 4h-.1a1.7 1.7 0 00-1.5 1z"/>'
 };
-const NAV=[["inicio","Início"],["agenda","Agenda"],["pacientes","Pacientes"],["financeiro","Financeiro"],["relatorios","Relatórios"],["ajustes","Ajustes"]];
+const NAV=[["inicio","Início"],["agenda","Agenda"],["pacientes","Pacientes"],["chat","Chat"],["financeiro","Financeiro"],["relatorios","Relatórios"],["ajustes","Ajustes"]];
 function route(){const h=(location.hash||"#inicio").slice(1);if(h.startsWith("paciente-"))return{v:"paciente",id:h.slice(9)};return{v:NAV.some(n=>n[0]===h)?h:"inicio"}}
 function go(h){if(location.hash==="#"+h)render();else location.hash=h}
-function renderNav(){const r=route().v;const cur=r==="paciente"?"pacientes":r;$("#nav").innerHTML=NAV.map(([k,l])=>`<a href="#${k}" class="${cur===k?"on":""}"><svg viewBox="0 0 24 24">${ICONS[k]}</svg><span>${l}</span></a>`).join("")}
+function renderNav(){const r=route().v;const cur=r==="paciente"?"pacientes":r;$("#nav").innerHTML=NAV.map(([k,l])=>`<a href="#${k}" class="${cur===k?"on":""}"><svg viewBox="0 0 24 24">${ICONS[k]}</svg><span>${l}</span>${k==="chat"&&naoLidas()?`<i class="nb">${naoLidas()}</i>`:""}</a>`).join("")}
 
 function render(){
   if(!loaded)return;
@@ -428,6 +467,7 @@ function render(){
   main.innerHTML=html;
   if(fid){const el=document.getElementById(fid);if(el){el.focus();if(sel)try{el.setSelectionRange(sel[0],sel[1])}catch(e){}}}
   if(r.v==="agenda")scrollCal();
+  if(r.v==="chat")chatAfter();
 }
 
 /* ================= Views ================= */
@@ -469,10 +509,10 @@ VIEWS.inicio=()=>{
 function liAppt(a){
   const p=pac(a.pacienteId)||{},pr=prof(a.profId);
   const evo=S().registros.some(r=>r.agendaId===a.id);
-  return `<div class="li"><span class="t">${esc(a.hora)}</span><span class="dot" style="--pc:${esc(pr.cor)}" title="${esc(pr.nome)}"></span>
-  <div class="m"><b><a href="#paciente-${a.pacienteId}" style="color:inherit;text-decoration:none">${esc(p.nome||"Paciente removido")}</a></b><small>${esc(serv(a.servicoId).nome)} · ${esc(pr.nome)}${a.tipo==="convenio"?" · "+esc(p.convenio||"Convênio"):a.tipo==="pacote"?" · Pacote":""}</small></div>
+  return `<div class="li"><span class="t">${esc(a.hora)}</span>${cbar(a)}
+  <div class="m"><b><a href="#paciente-${a.pacienteId}" style="color:inherit;text-decoration:none">${esc(p.nome||"Paciente removido")}</a></b><small><span class="dot" style="--pc:${esc(servCor(a.servicoId))}"></span> ${esc(serv(a.servicoId).nome)} · ${esc(pr.nome)}${a.tipo==="convenio"?" · "+esc(p.convenio||"Convênio"):a.tipo==="pacote"?" · Pacote":""}</small>${p.telefone?`<small class="num tel">${esc(p.telefone)}${a.lembreteEm||a.smsEm?' · <span style="color:var(--ok)">lembrete enviado</span>':""}</small>`:""}</div>
   <div class="a">${pill(a.status)}
-   ${a.status==="agendado"&&p.telefone?`<a class="btn sm wa" target="_blank" rel="noopener" href="${waLink(p.telefone,msgConfirma(a))}">WhatsApp</a>`:""}
+   ${["agendado","confirmado"].includes(a.status)?contatoBtns(a,p,1):""}
    ${["agendado","confirmado"].includes(a.status)?`<button class="btn sm" onclick="T.setStatus('${a.id}','atendido')">Atendido</button><button class="btn sm" onclick="T.setStatus('${a.id}','faltou')">Faltou</button>`:""}
    ${a.status==="atendido"&&!evo?`<button class="btn sm pri" onclick="T.openEvolucao('${a.pacienteId}',null,'${a.id}')">Evoluir</button>`:""}
    <button class="btn sm ghost" onclick="T.openAppt('${a.id}')" aria-label="Editar">Editar</button></div></div>`;
@@ -491,7 +531,7 @@ VIEWS.agenda=()=>{
     let evs=s.agenda.filter(a=>a.data===c.data&&a.profId===c.prof&&(UI.agCancel||a.status!=="cancelado")).map(a=>({a,s:toMin(a.hora),e:toMin(a.hora)+num(a.duracao||50)}));
     layoutLanes(evs);
     return `<div class="cal-col" style="height:${H}px;--slot:${PX}px" data-d="${c.data}" data-p="${c.prof}" onclick="T.calClick(event,this)">${evs.map(e=>{const p=pac(e.a.pacienteId)||{},pr=prof(e.a.profId);const top=(e.s-ini)*ppm,h=Math.max(22,(e.e-e.s)*ppm-2),w=100/e.n;
-      return `<div class="ev ${e.a.status}" style="--pc:${esc(pr.cor)};top:${top}px;height:${h}px;left:calc(${w*e.lane}% + 2px);width:calc(${w}% - 4px)" onclick="event.stopPropagation();T.openAppt('${e.a.id}')" title="${esc(e.a.hora+" "+(p.nome||"")+" · "+ST_LBL[e.a.status])}"><b>${esc(e.a.hora)} ${esc((p.nome||"Paciente removido").replace("Exemplo · ",""))}</b><small>${esc(serv(e.a.servicoId).nome)}${e.a.status!=="agendado"?" · "+ST_LBL[e.a.status]:""}</small></div>`}).join("")}</div>`}).join("");
+      return `<div class="ev ${e.a.status}" style="--sc:${esc(servCor(e.a.servicoId))};--cb:${confCor(e.a.status)};top:${top}px;height:${h}px;left:calc(${w*e.lane}% + 2px);width:calc(${w}% - 4px)" onclick="event.stopPropagation();T.openAppt('${e.a.id}')" title="${esc(e.a.hora+" "+(p.nome||"")+(p.telefone?" · "+p.telefone:"")+" · "+serv(e.a.servicoId).nome+" · "+ST_LBL[e.a.status])}">${cbar(e.a)}<b>${esc(e.a.hora)} ${esc((p.nome||"Paciente removido").replace("Exemplo · ",""))}</b><small>${esc(serv(e.a.servicoId).nome)}${e.a.status!=="agendado"?" · "+ST_LBL[e.a.status]:""}</small>${p.telefone?`<small class="num">${esc(p.telefone)}</small>`:""}</div>`}).join("")}</div>`}).join("");
   const count=s.agenda.filter(a=>(UI.agMode==="dia"?a.data===UI.agDate:cols.some(c=>c.data===a.data&&a.profId===UI.agProf))&&a.status!=="cancelado").length;
   return `<div class="head"><div><h1>Agenda</h1><div class="sub">${UI.agMode==="dia"?esc(dLong(UI.agDate)):"Semana de "+fmtD(cols[0].data)+" a "+fmtD(cols[cols.length-1].data)} · ${count} agendamento(s)</div></div>
    <div class="tools">
@@ -501,7 +541,7 @@ VIEWS.agenda=()=>{
     <input type="date" id="ag-date" value="${UI.agDate}" onchange="this.value&&T.ui('agDate',this.value)">
     <button class="btn pri" onclick="T.openAppt(null,{data:'${UI.agDate}'})">+ Agendar</button>
    </div></div>
-  <div class="legend">${STATUS.map(st=>`<span>${pill(st)}</span>`).join("")}<label class="f chk" style="font-size:12.5px"><input type="checkbox" id="ag-canc" ${UI.agCancel?"checked":""} onchange="T.ui('agCancel',this.checked)"> mostrar cancelados</label><span>Clique num horário vazio para agendar.</span></div>
+  <div class="legend"><span><i class="lgbar" style="--cb:var(--off)"></i> aguardando confirmação</span><span><i class="lgbar" style="--cb:var(--ok)"></i> paciente confirmou</span><span><i class="lgbar" style="--cb:var(--bad)"></i> faltou</span>${CFG.servicos.map(sv=>`<span><span class="dot" style="--pc:${esc(servCor(sv.id))}"></span>${esc(sv.nome)}</span>`).join("")}<label class="f chk" style="font-size:12.5px"><input type="checkbox" id="ag-canc" ${UI.agCancel?"checked":""} onchange="T.ui('agCancel',this.checked)"> mostrar cancelados</label><span>Clique num horário vazio para agendar.</span></div>
   <div class="cal" id="cal"><div class="cal-in" style="grid-template-columns:56px repeat(${cols.length},minmax(150px,1fr))">
    <div class="cal-hd corner"></div>${cols.map(c=>`<div class="cal-hd ${c.hl?"today":""}">${c.label}</div>`).join("")}
    <div class="cal-times">${times.join("")}</div>${colHtml}
@@ -659,6 +699,40 @@ VIEWS.relatorios=()=>{
   </div>`;
 };
 
+/* ---------- Chat da equipe ---------- */
+const meuId=()=>LOCAL?"local":(ME||"anon");
+const vistos=()=>lsGet("torque.chatVisto",{});
+function naoLidas(sala){const v=vistos(),me=meuId();return real.chat.filter(m=>(!sala||m.sala===sala)&&m.autorId!==me&&String(m.em)>String(v[m.sala]||"")).length}
+const hhmm=iso=>{const d=new Date(iso);return isNaN(d)?"":String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0")};
+const diaDe=iso=>{const d=new Date(iso);return isNaN(d)?"":iso_local(d)};
+const iso_local=d=>iso(d);
+VIEWS.chat=()=>{
+  if(!CFG.salas.includes(UI.sala))UI.sala=CFG.salas[0]||"Geral";
+  if(!UI.chatProf||!CFG.profissionais.some(p=>p.id===UI.chatProf))UI.chatProf=lsGet("torque.chatProf",(profs()[0]||{}).id);
+  const me=meuId(),sala=UI.sala;
+  const msgs=real.chat.filter(m=>m.sala===sala).sort((a,b)=>String(a.em).localeCompare(String(b.em)));
+  let dia="";
+  const lista=msgs.map(m=>{const d=diaDe(m.em),pr=prof(m.profId),mine=m.autorId===me;const sep=d!==dia?`<div class="msep"><span>${d===today()?"Hoje":d===addDays(today(),-1)?"Ontem":esc(dLong(d))}</span></div>`:"";dia=d;
+    return sep+`<div class="msg ${mine?"mine":""}"><div class="mh"><span class="dot" style="--pc:${esc(pr.cor)}"></span><b>${esc(pr.nome)}</b><span class="muted num">${hhmm(m.em)}</span>${mine?`<button type="button" class="mdel" onclick="T.chatDel('${m.id}')" aria-label="Apagar mensagem">apagar</button>`:""}</div><div class="mt">${esc(m.texto)}</div></div>`}).join("");
+  return `<div class="head"><div><h1>Chat da equipe</h1><div class="sub">Conversas entre os profissionais da clínica, separadas por sala. Registros clínicos vão no prontuário.</div></div></div>
+  <div class="chat">
+   <div class="rooms">${CFG.salas.map(r=>{const n=naoLidas(r);return `<button type="button" class="${r===sala?"on":""}" onclick="T.ui('sala',this.dataset.r)" data-r="${esc(r)}"><span># ${esc(r)}</span>${n?`<i class="nb">${n}</i>`:""}</button>`}).join("")}
+    <form class="nova" onsubmit="event.preventDefault();T.novaSala(this)"><input type="text" id="chat-nova" name="nome" placeholder="Nova sala" maxlength="40"><button class="btn sm">Criar</button></form></div>
+   <div class="conv"><div class="conv-h"><h2># ${esc(sala)}</h2><span class="muted">${msgs.length} mensagem(ns)</span></div>
+    <div class="msgs" id="chat-msgs" onscroll="T.chatScroll(this)">${lista||`<div class="empty">Nenhuma mensagem em # ${esc(sala)} ainda.<br>Escreva a primeira abaixo.</div>`}</div>
+    <form class="composer" onsubmit="event.preventDefault();T.chatSend()">
+     <label class="f" style="flex:none">Falo como<select id="chat-prof" onchange="T.chatProf(this.value)">${profs(true).map(p=>opt(p.id,p.nome,UI.chatProf)).join("")}</select></label>
+     <textarea id="chat-txt" rows="2" placeholder="Mensagem para # ${esc(sala)} (Enter envia, Shift+Enter quebra linha)" oninput="T.ui2('chatDraft',this.value)" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();T.chatSend()}">${esc(UI.chatDraft||"")}</textarea>
+     <button class="btn pri">Enviar</button></form>
+    ${LOCAL?`<p class="muted" style="margin:8px 16px 0;font-size:12px">Modo local: as mensagens ficam só neste navegador. No Claude, o chat é compartilhado entre os sócios.</p>`:""}
+   </div></div>`;
+};
+function chatAfter(){
+  const box=$("#chat-msgs");if(box&&UI.chatStick!==false)box.scrollTop=box.scrollHeight;
+  const ult=real.chat.filter(m=>m.sala===UI.sala).reduce((x,m)=>String(m.em)>x?String(m.em):x,"");
+  const v=vistos();if(ult&&String(v[UI.sala]||"")<ult){v[UI.sala]=ult;lsSet("torque.chatVisto",v);renderNav()}
+}
+
 /* ---------- Ajustes ---------- */
 VIEWS.ajustes=()=>{
   const c=CFG.clinica;
@@ -673,19 +747,20 @@ VIEWS.ajustes=()=>{
    <div class="tbl-wrap"><table class="mini-t" id="t-prof"><thead><tr><th>Cor</th><th>Nome</th><th>CREFITO</th><th>Especialidade</th><th>Sócio</th><th>Cota do lucro %</th><th>Comissão % (não sócio)</th><th>Ativo</th></tr></thead><tbody>${CFG.profissionais.map(profRow).join("")}</tbody></table></div>
    <p class="muted" style="margin:0;font-size:12.5px">Sócios dividem o resultado pelas cotas (o padrão é 20% para cada um dos 5). Colaboradores recebem comissão sobre a própria produção.</p>
    <div><button class="btn pri">Salvar profissionais</button></div></form>
-  <form class="card grid" id="f-serv" onsubmit="event.preventDefault();T.saveServs(this)"><div class="card-h" style="margin:0"><h2>Serviços e valores</h2><button type="button" class="btn sm" onclick="T.addServRow()">+ Serviço</button></div>
-   <div class="tbl-wrap"><table class="mini-t" id="t-serv"><thead><tr><th>Serviço</th><th>Valor particular (R$)</th><th>Duração (min)</th><th></th></tr></thead><tbody>${CFG.servicos.map(servRow).join("")}</tbody></table></div>
+  <form class="card grid" id="f-serv" onsubmit="event.preventDefault();T.saveServs(this)"><div class="card-h" style="margin:0"><h2>Serviços, valores e cor na agenda</h2><button type="button" class="btn sm" onclick="T.addServRow()">+ Serviço</button></div>
+   <div class="tbl-wrap"><table class="mini-t" id="t-serv"><thead><tr><th>Cor</th><th>Serviço</th><th>Valor particular (R$)</th><th>Duração (min)</th><th></th></tr></thead><tbody>${CFG.servicos.map(servRow).join("")}</tbody></table></div>
    <div><button class="btn pri">Salvar serviços</button></div></form>
-  <form class="card grid" id="f-listas" onsubmit="event.preventDefault();T.saveListas(this)"><h2>Convênios e categorias</h2>
-   <div class="grid g3"><label class="f">Convênios atendidos (um por linha)<textarea id="l-conv" name="convenios" rows="8">${esc(CFG.convenios.join("\n"))}</textarea></label>
+  <form class="card grid" id="f-listas" onsubmit="event.preventDefault();T.saveListas(this)"><h2>Convênios, categorias e salas do chat</h2>
+   <div class="grid g4"><label class="f">Convênios atendidos (um por linha)<textarea id="l-conv" name="convenios" rows="8">${esc(CFG.convenios.join("\n"))}</textarea></label>
    <label class="f">Categorias de despesa<textarea id="l-desp" name="catDespesa" rows="8">${esc(CFG.catDespesa.join("\n"))}</textarea></label>
-   <label class="f">Categorias de receita<textarea id="l-rec" name="catReceita" rows="8">${esc(CFG.catReceita.join("\n"))}</textarea></label></div>
+   <label class="f">Categorias de receita<textarea id="l-rec" name="catReceita" rows="8">${esc(CFG.catReceita.join("\n"))}</textarea></label>
+   <label class="f">Salas do chat<textarea id="l-salas" name="salas" rows="8">${esc(CFG.salas.join("\n"))}</textarea></label></div>
    <div><button class="btn pri">Salvar listas</button></div></form>
   <div class="card grid"><h2>Cópia de segurança</h2><p class="muted" style="margin:0">${LOCAL?"Modo local: os dados ficam guardados só neste navegador. Baixe cópias com frequência.":"Os dados ficam no banco deste app, compartilhados entre os sócios que têm acesso. Mesmo assim, baixe uma cópia por mês."}</p>
    <div class="tools"><button class="btn" onclick="T.backup()">Baixar cópia (JSON)</button><label class="btn">Restaurar cópia<input type="file" id="imp" accept="application/json,.json" hidden onchange="T.restore(this.files[0])"></label></div></div>`;
 };
 const profRow=p=>`<tr data-id="${esc(p.id)}"><td><input type="color" name="cor" value="${esc(p.cor||"#888888")}" style="width:40px;padding:2px;height:32px"></td><td><input type="text" name="nome" value="${esc(p.nome)}" style="min-width:150px"></td><td><input type="text" name="crefito" value="${esc(p.crefito||"")}" style="width:110px"></td><td><input type="text" name="especialidade" value="${esc(p.especialidade||"")}" style="min-width:140px"></td><td><input type="checkbox" name="socio" ${p.socio?"checked":""}></td><td><input type="number" name="cota" value="${num(p.cota)}" min="0" max="100" step="0.5" style="width:80px"></td><td><input type="number" name="comissao" value="${num(p.comissao)}" min="0" max="100" step="0.5" style="width:80px"></td><td><input type="checkbox" name="ativo" ${p.ativo!==false?"checked":""}></td></tr>`;
-const servRow=s=>`<tr data-id="${esc(s.id)}"><td><input type="text" name="nome" value="${esc(s.nome)}" style="min-width:200px"></td><td><input type="number" name="valor" value="${num(s.valor)}" min="0" step="0.01" style="width:110px"></td><td><input type="number" name="duracao" value="${num(s.duracao)}" min="10" step="5" style="width:90px"></td><td><button type="button" class="btn sm ghost danger" onclick="this.closest('tr').remove()">Remover</button></td></tr>`;
+const servRow=s=>`<tr data-id="${esc(s.id)}"><td><input type="color" name="cor" value="${esc(s.cor||servCor(s.id))}" style="width:40px;padding:2px;height:32px" aria-label="Cor na agenda"></td><td><input type="text" name="nome" value="${esc(s.nome)}" style="min-width:200px"></td><td><input type="number" name="valor" value="${num(s.valor)}" min="0" step="0.01" style="width:110px"></td><td><input type="number" name="duracao" value="${num(s.duracao)}" min="10" step="5" style="width:90px"></td><td><button type="button" class="btn sm ghost danger" onclick="this.closest('tr').remove()">Remover</button></td></tr>`;
 
 /* ================= Painel lateral (formulários) ================= */
 function drawer(title,body,foot,onsubmit){
@@ -771,7 +846,13 @@ function openAppt(id,pre){
    </div>
    ${!id?`<fieldset><legend>Repetir (plano de sessões)</legend><div class="chips">${[1,2,3,4,5,6].map(d=>`<label class="chipc"><input type="checkbox" name="rep" value="${d}"> ${DOW[d]}</label>`).join("")}</div>
     <div class="grid g2" style="margin-top:10px"><label class="f">Total de sessões a criar<input type="number" id="ap-n" name="repN" min="1" max="60" value="10"></label><p class="muted" style="margin:0;font-size:12.5px;align-self:end">Marque os dias da semana (ex.: Seg e Qua) para criar todas as sessões de uma vez, no mesmo horário, a partir da data escolhida.</p></div></fieldset>`:""}
-   ${id&&p?`<div class="tools">${p.telefone?`<a class="btn wa" target="_blank" rel="noopener" href="${waLink(p.telefone,msgConfirma(a))}">Confirmar pelo WhatsApp</a>`:""}<button type="button" class="btn" onclick="T.close();T.go('paciente-${a.pacienteId}')">Abrir prontuário</button><button type="button" class="btn" onclick="T.openEvolucao('${a.pacienteId}',null,'${a.id}')">Registrar evolução</button></div>`:""}`,
+   ${id&&p?`<fieldset><legend>Contato do paciente</legend><div class="grid">
+    <div class="contato">${cbar(a)}<div style="min-width:0"><b>${esc(p.nome)}</b><div class="num tel-big">${p.telefone?esc(p.telefone):'<span class="muted">sem telefone cadastrado</span>'}</div><div class="muted" style="font-size:12.5px">${esc(confTxt(a.status))}${a.confirmacaoEm?" · confirmação pedida "+fmtD(a.confirmacaoEm):""}${a.lembreteEm?" · lembrete WhatsApp "+fmtD(a.lembreteEm):""}${a.smsEm?" · SMS "+fmtD(a.smsEm):""}</div></div></div>
+    ${p.telefone?`<div class="tools">${contatoBtns(a,p)}<button type="button" class="btn ghost" onclick="T.copiar('${esc(p.telefone)}','Número copiado.')">Copiar número</button><button type="button" class="btn ghost" onclick="T.copiarMsg('${a.id}')">Copiar lembrete</button></div>
+    <p class="muted" style="margin:0;font-size:12px">O SMS abre o aplicativo de mensagens do celular. Se não abrir, use "Copiar lembrete" e cole na mensagem.</p>`:`<button type="button" class="btn sm" onclick="T.openPaciente('${a.pacienteId}')">Cadastrar telefone</button>`}
+    ${["agendado","confirmado"].includes(a.status)?`<label class="f chk"><input type="checkbox" id="ap-conf" ${a.status==="confirmado"?"checked":""} onchange="this.form.elements.status.value=this.checked?'confirmado':'agendado'"> Paciente confirmou a consulta</label>`:""}
+   </div></fieldset>`:""}
+   ${id&&p?`<div class="tools"><button type="button" class="btn" onclick="T.close();T.go('paciente-${a.pacienteId}')">Abrir prontuário</button><button type="button" class="btn" onclick="T.openEvolucao('${a.pacienteId}',null,'${a.id}')">Registrar evolução</button></div>`:""}`,
    `${id?`<span class="lft">${confirmBtn("Excluir",`T.delAppt('${id}')`)}</span>`:""}<button type="button" class="btn" onclick="T.close()">Cancelar</button><button class="btn pri">Salvar</button>`,
    async f=>{
      const o=Object.assign({},a);["pacienteId","profId","servicoId","data","hora","tipo","status","obs"].forEach(k=>o[k]=fv(f,k));
@@ -1031,7 +1112,17 @@ const csv=rows=>"﻿"+rows.map(r=>r.map(v=>{const s=String(v??"");return /[;"\n]
 /* ================= Ações expostas ================= */
 window.T={
   go,today,setStatus,openPaciente,delPaciente,openAppt,delAppt,openAvaliacao,openEvolucao,openAdendo,openFin,pagar,delFin,openDocs,docPrev,docCopy,docSave,close:closeM,
-  ui(k,v){UI[k]=v;if(k==="agDate"||k==="agMode")calScrolled="";render()},
+  ui(k,v){UI[k]=v;if(k==="agDate"||k==="agMode")calScrolled="";if(k==="sala")UI.chatStick=true;render()},
+  ui2(k,v){UI[k]=v},
+  async toggleConf(id){const a=real.agenda.find(x=>x.id===id);if(!a){toast("Este é um agendamento de exemplo.");return}if(a.status==="agendado"){a.status="confirmado";a.confirmadoEm=new Date().toISOString()}else if(a.status==="confirmado"){a.status="agendado";a.confirmadoEm=""}else{toast("Este atendimento já está como "+ST_LBL[a.status].toLowerCase()+".");return}if(await save("agenda",a)){toast(a.status==="confirmado"?"Consulta confirmada.":"Confirmação desfeita.");if($("#dw")&&$("#dw .contato")){closeM();openAppt(id)}}},
+  async marca(id,campo){const a=real.agenda.find(x=>x.id===id);if(!a)return;a[campo]=new Date().toISOString();await save("agenda",a,true);setTimeout(render,600)},
+  async copiar(t,msg){try{await navigator.clipboard.writeText(t);toast(msg||"Copiado.")}catch(e){toast("Não foi possível copiar: "+t)}},
+  copiarMsg(id){const a=S().agenda.find(x=>x.id===id);if(a)T.copiar(msgLembrete(a),"Lembrete copiado. Cole no SMS ou no WhatsApp.")},
+  chatProf(v){UI.chatProf=v;lsSet("torque.chatProf",v)},
+  chatScroll(el){UI.chatStick=el.scrollHeight-el.scrollTop-el.clientHeight<60},
+  async chatSend(){const t=String(UI.chatDraft||"").trim();if(!t)return;if(t.length>2000){toast("Mensagem muito longa (máx. 2.000 caracteres).");return}const o={sala:UI.sala,texto:t,autorId:meuId(),profId:UI.chatProf,em:new Date().toISOString()};UI.chatDraft="";const el=$("#chat-txt");if(el)el.value="";UI.chatStick=true;if(!(await save("chat",o))){UI.chatDraft=t;if(el)el.value=t}},
+  async chatDel(id){if(await del("chat",id))toast("Mensagem apagada.")},
+  async novaSala(f){const n=fv(f,"nome").replace(/\s+/g," ").trim();if(!n)return;if(CFG.salas.some(x=>x.toLowerCase()===n.toLowerCase())){UI.sala=CFG.salas.find(x=>x.toLowerCase()===n.toLowerCase());render();return}CFG.salas=[...CFG.salas,n];if(await saveCfg()){UI.sala=n;render();toast("Sala # "+n+" criada.")}},
   agMove(n){UI.agDate=addDays(UI.agDate,UI.agMode==="dia"?n:7*n);calScrolled="";render()},
   calClick(e,col){const r=col.getBoundingClientRect();const m=toMin(CFG.horaIni)+Math.floor((e.clientY-r.top)/PX)*SLOT;openAppt(null,{data:col.dataset.d,profId:col.dataset.p,hora:fromMin(m)})},
   apPac(sel){const p=pac(sel.value);if(!p)return;const f=sel.form;if(p.profId)f.elements.profId.value=p.profId;f.elements.tipo.value=p.convenio?"convenio":"particular";T.apTipo(f.elements.tipo)},
@@ -1041,11 +1132,11 @@ window.T={
   addReteste(sel,pid){const k=sel.value;sel.value="";if(!k)return;const tb=$("#t-rt tbody");if($$("tr[data-k]",tb).some(tr=>tr.dataset.k===k)){toast("Este teste já está na lista.");return}tb.insertAdjacentHTML("beforeend",testRow(k,{},"re",statusTestes(pid)[k]||{}));$("#rt-wrap").hidden=false},
   addRow(tid,p){$("#"+tid+" tbody").insertAdjacentHTML("beforeend",p==="g"?gonRow():forRow())},
   addProfRow(){$("#t-prof tbody").insertAdjacentHTML("beforeend",profRow({id:"p"+uid(),nome:"",cor:"#4a8f87",socio:false,cota:0,comissao:40,ativo:true}))},
-  addServRow(){$("#t-serv tbody").insertAdjacentHTML("beforeend",servRow({id:"s"+uid(),nome:"",valor:0,duracao:50}))},
+  addServRow(){$("#t-serv tbody").insertAdjacentHTML("beforeend",servRow({id:"s"+uid(),nome:"",valor:0,duracao:50,cor:PAL[CFG.servicos.length%PAL.length]}))},
   async saveClinica(f){["nome","cnpj","telefone","endereco","cidade","email","instagram"].forEach(k=>CFG.clinica[k]=fv(f,k));CFG.horaIni=fv(f,"horaIni")||"07:00";CFG.horaFim=fv(f,"horaFim")||"21:00";if(toMin(CFG.horaFim)<=toMin(CFG.horaIni)){toast("O horário final precisa ser depois do inicial.");return}if(await saveCfg())toast("Dados da clínica salvos.")},
   async saveProfs(f){const L=$$("#t-prof tbody tr").map(tr=>{const g=n=>tr.querySelector(`[name=${n}]`);return{id:tr.dataset.id,nome:g("nome").value.trim(),crefito:g("crefito").value.trim(),especialidade:g("especialidade").value.trim(),cor:g("cor").value,socio:g("socio").checked,cota:num(g("cota").value),comissao:num(g("comissao").value),ativo:g("ativo").checked}}).filter(p=>p.nome);if(!L.length){toast("Cadastre ao menos um profissional.");return}CFG.profissionais=L;const sc=L.filter(p=>p.socio).reduce((x,p)=>x+p.cota,0);if(await saveCfg())toast(sc===100?"Profissionais salvos.":"Salvo. Atenção: as cotas dos sócios somam "+sc+"%.")},
-  async saveServs(f){const L=$$("#t-serv tbody tr").map(tr=>{const g=n=>tr.querySelector(`[name=${n}]`);return{id:tr.dataset.id,nome:g("nome").value.trim(),valor:num(g("valor").value),duracao:num(g("duracao").value)||50}}).filter(s=>s.nome);if(!L.length){toast("Cadastre ao menos um serviço.");return}CFG.servicos=L;if(await saveCfg())toast("Serviços salvos.")},
-  async saveListas(f){const sp=n=>fv(f,n).split("\n").map(x=>x.trim()).filter(Boolean);CFG.convenios=sp("convenios");CFG.catDespesa=sp("catDespesa");CFG.catReceita=sp("catReceita");if(await saveCfg())toast("Listas salvas.")},
+  async saveServs(f){const L=$$("#t-serv tbody tr").map(tr=>{const g=n=>tr.querySelector(`[name=${n}]`);return{id:tr.dataset.id,cor:g("cor").value,nome:g("nome").value.trim(),valor:num(g("valor").value),duracao:num(g("duracao").value)||50}}).filter(s=>s.nome);if(!L.length){toast("Cadastre ao menos um serviço.");return}CFG.servicos=L;if(await saveCfg())toast("Serviços salvos.")},
+  async saveListas(f){const sp=n=>fv(f,n).split("\n").map(x=>x.trim()).filter(Boolean);CFG.convenios=sp("convenios");CFG.catDespesa=sp("catDespesa");CFG.catReceita=sp("catReceita");const sl=sp("salas");if(sl.length)CFG.salas=sl;if(await saveCfg())toast("Listas salvas.")},
   async backup(){await download(`torque-backup-${today()}.json`,JSON.stringify({app:"torque-fisioterapia",versao:1,geradoEm:new Date().toISOString(),config:CFG,...real},null,1),"application/json")},
   async restore(file){if(!file)return;try{const d=JSON.parse(await file.text());if(d.app!=="torque-fisioterapia")throw 0;if(d.config){CFG=Object.assign(JSON.parse(JSON.stringify(DEF_CFG)),d.config);await saveCfg()}let n=0;for(const c of COLS)for(const o of d[c]||[]){if(await save(c,o,true))n++}render();toast(n+" registros restaurados.")}catch(e){toast("Arquivo inválido: escolha uma cópia gerada pelo Torque.")}},
   csvFin(){const m=UI.fMes;const L=S().financeiro.filter(f=>mesDe(f.data)===m).sort((a,b)=>a.data.localeCompare(b.data));download(`financeiro-${m}.csv`,csv([["Tipo","Vencimento","Descrição","Categoria","Forma","Valor","Status","Pago em","Profissional"],...L.map(f=>[f.tipo,fmtD(f.data),f.descricao,f.categoria,f.forma,String(num(f.valor)).replace(".",","),finStatus(f),fmtD(f.pagoEm),f.profId?prof(f.profId).nome:""])]),"text/csv")},
@@ -1054,7 +1145,7 @@ window.T={
 
 /* ================= Inicialização ================= */
 window.addEventListener("hashchange",()=>{if(route().v!=="paciente")UI.pTab="resumo";closeM();render();window.scrollTo(0,0)});
-function localLoad(){LOCAL=true;COLS.forEach(c=>real[c]=lsGet("torque."+c,[]));const c=lsGet("torque.config",null);if(c)CFG=Object.assign(JSON.parse(JSON.stringify(DEF_CFG)),c);$("#modo").textContent="Modo local (este navegador)"}
+function localLoad(){LOCAL=true;COLS.forEach(c=>real[c]=lsGet("torque."+c,[]));real.chat=lsGet("torque.chat",[]);const c=lsGet("torque.config",null);if(c)CFG=Object.assign(JSON.parse(JSON.stringify(DEF_CFG)),c);$("#modo").textContent="Modo local (este navegador)"}
 function ready(){loaded=true;render()}
 renderNav();
 (async()=>{
@@ -1064,7 +1155,8 @@ renderNav();
   if(!db){clearTimeout(timer);localLoad();ready();return}
   $("#modo").textContent="Banco compartilhado · sócios";
   const user=await window.claude.use("user").catch(()=>null);
-  if(user){const c=await user.can("data.write").catch(()=>null);if(c===false){canWrite=false;$("#modo").textContent="Acesso só de leitura"}}
+  if(user){const c=await user.can("data.write").catch(()=>null);if(c===false){canWrite=false;$("#modo").textContent="Acesso só de leitura"}ME=await user.id().catch(()=>null)}
+  db.collection("chat").orderBy("em","desc").limit(500).onSnapshot(s=>{real.chat=s.docs.map(d=>Object.assign({},d.data(),{id:d.id}));if(loaded){if(route().v==="chat")render();else renderNav()}},()=>{});
   db.doc("config/clinica").onSnapshot(d=>{if(d.exists){CFG=Object.assign(JSON.parse(JSON.stringify(DEF_CFG)),d.data());render()}},()=>{});
   let got=0;const seen={};
   COLS.forEach(c=>db.collection(c).onSnapshot(s=>{real[c]=s.docs.map(d=>Object.assign({},d.data(),{id:d.id}));if(!seen[c]){seen[c]=1;if(++got>=COLS.length){clearTimeout(timer);ready()}}else render()},()=>{if(!seen[c]){seen[c]=1;if(++got>=COLS.length){clearTimeout(timer);ready()}}}));
