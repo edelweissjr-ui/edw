@@ -3709,11 +3709,16 @@
       ["Pagaram em cartão", n("cartao"), "crédito ou débito", false, "cartao"],
       ["Pagaram à vista", n("avista"), pctF(n("avista"), f) + " dos fechados", false, "avista"]
     ]);
-    const funil = (el, linhas) => { const top = Math.max(1, linhas[0][2].length);
-      $(el).innerHTML = linhas.map(([k, nome, lista]) => { IND.listas[k] = lista; return `<button class="ind-f" data-ind="${k}" data-indtit="${esc(nome)}"><span class="n">${esc(nome)}</span><span class="t"><i style="width:${Math.max(1, (lista.length / top) * 100)}%"></i></span><span class="v"><b>${lista.length}</b><small>${pctF(lista.length, linhas[0][2].length)}</small></span></button>`; }).join(""); };
-    const P = L.oport;
-    funil("#indFunilLead", [["fl0", "Leads", P], ["fl1", "Em contato", P.filter((p) => etapaDe(p) !== "novo")], ["fl2", "Agendaram", L.agendados], ["fl3", "Compareceram (orçamento)", L.compareceram], ["fl5", "Fecharam", L.fecharam]]);
-    funil("#indFunilCli", [["fc0", "Fecharam", L.fecharam], ["fc1", "Pagaram entrada", L.entradaPaga], ["fc2", "Pagamento em dia", L.emDia], ["fc3", "Finalizaram", L.finalizaram]]);
+    const funil = (el, linhas, rodape) => { const top = Math.max(1, linhas[0][2].length);
+      $(el).innerHTML = linhas.map(([k, nome, lista, o]) => { o = o || {}; IND.listas[k] = lista; const base = o.base != null ? o.base : linhas[0][2].length, w = o.lado ? (base ? (lista.length / base) * 100 : 0) : (lista.length / top) * 100;
+        return `<button class="ind-f${o.lado ? " lado " + (o.cls || "") : ""}" data-ind="${k}" data-indtit="${esc(nome)}"${o.dica ? ` data-dica="${esc(nome + ": " + o.dica)}"` : ""}><span class="n">${esc(nome)}</span><span class="t"><i style="width:${Math.max(1, w)}%"></i></span><span class="v"><b>${lista.length}</b><small>${pctF(lista.length, base)}</small></span></button>`; }).join("") + (rodape ? `<div class="ind-rod">${rodape}</div>` : ""); };
+    const P = L.oport, orcados = L.compareceram.filter((p) => Number(p.valorApresentado || 0) > 0 || p.status !== "aberto");
+    funil("#indFunilLead", [["fl0", "Oportunidades de venda", P], ["fl0i", "Vieram por indicação", L.indicacao, { lado: 1, cls: "info", base: o, dica: "% das oportunidades" }], ["fl1", "Em contato", P.filter((p) => etapaDe(p) !== "novo")], ["fl2", "Agendados", L.agendados],
+      ["fl2f", "Faltaram", L.faltaram, { lado: 1, cls: "bad", base: n("agendados"), dica: "% dos agendados" }], ["fl2r", "Remarcaram", L.remarcaram, { lado: 1, cls: "warn", base: n("agendados"), dica: "% dos agendados" }], ["fl3", "Compareceram", L.compareceram], ["fl5", "Fecharam", L.fecharam]],
+      `Conversão <b>${pctF(f, o)}</b> (fecharam ÷ oportunidades) · Indicação <b>${pctF(n("indicacao"), o)}</b>`);
+    funil("#indFunilCli", [["fc0", "Compareceram", L.compareceram], ["fc0o", "Receberam orçamento", orcados], ["fc0f", "Follow-up de orçamento", L.follow, { lado: 1, cls: "warn", base: orcados.length, dica: "% dos orçamentos, ainda sem fechamento" }], ["fc1", "Fecharam", L.fecharam],
+      ["fc2", "Pagaram entrada", L.entradaPaga], ["fc3", "Pagamento em dia", L.emDia], ["fc3n", "Não pagaram", L.naoPagou, { lado: 1, cls: "bad", base: f, dica: "% dos fechados" }], ["fc4", "Finalizaram", L.finalizaram]],
+      `Conversão de quem compareceu <b>${pctF(f, n("compareceram"))}</b> · Ticket médio <b>${f ? brl(totalFech / f) : "—"}</b> · Em follow-up <b>${brl(follow$)}</b> · Inadimplência <b>${brl(inad)}</b>`);
     // meses (6, terminando no mês escolhido)
     const meses = Array.from({ length: 6 }, (_, i) => { const d = new Date(IND.mes + "-15"); d.setMonth(d.getMonth() - (5 - i)); return d.toISOString().slice(0, 7); });
     const rotM = (m) => new Date(m + "-15").toLocaleDateString("pt-BR", { month: "short" }).replace(".", "");

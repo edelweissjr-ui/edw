@@ -684,6 +684,12 @@ label.row>input[type=checkbox]{flex:none;margin-top:4px;width:17px;height:17px}
 .ind-f .n{color:var(--dim);font-size:13.5px;font-weight:600}.ind-f .t{height:22px;display:flex;justify-content:center}
 .ind-f .t i{display:block;height:100%;background:var(--s-interesse);border-radius:4px;min-width:3px}
 .ind-funil.cli .ind-f .t i{background:var(--s-fechado)}
+.ind-f.lado .n{padding-left:16px;font-weight:500;position:relative}
+.ind-f.lado .n::before{content:"";position:absolute;left:4px;top:50%;width:7px;height:7px;border-left:1.5px solid var(--line-2);border-bottom:1.5px solid var(--line-2);transform:translateY(-70%)}
+.ind-f.lado .t{height:13px}.ind-f.lado .t i{background:var(--dim)}
+.ind-funil .ind-f.lado.bad .t i{background:var(--bad)}.ind-funil .ind-f.lado.warn .t i{background:var(--warn)}.ind-funil .ind-f.lado.info .t i{background:var(--accent)}
+.ind-rod{line-height:1.7;padding-top:10px;margin-top:4px;border-top:1px solid var(--line);font-size:13.5px;color:var(--dim)}
+.ind-rod b{color:var(--fg);font-variant-numeric:tabular-nums}
 .ind-f .v{text-align:right;font-variant-numeric:tabular-nums}.ind-f .v small{color:var(--dim);margin-left:4px}
 .ind-fluxo .cd-bars i.b{background:var(--ind-saida)}
 .ind-conv .cd-bars i.a{background:var(--s-interesse)}
@@ -1002,8 +1008,8 @@ label.row>input[type=checkbox]{flex:none;margin-top:4px;width:17px;height:17px}
       <div class="row" style="margin:4px 0 8px"><h3 class="grow">Financeiro</h3><span class="tiny dim">entrada, forma de pagamento e situação ficam na ficha do cliente › Pagamento e campanha</span></div>
       <div class="kpis ind-kpis" id="indFin"></div>
       <div class="ind-grid">
-        <div class="card stack"><h3>Funil de leads</h3><div class="ind-funil" id="indFunilLead"></div></div>
-        <div class="card stack"><h3>Funil de clientes</h3><div class="ind-funil cli" id="indFunilCli"></div></div>
+        <div class="card stack"><h3>Funil de leads</h3><p class="tiny dim" style="margin:0">Etapas em % das oportunidades; desvios (recuados) em % da etapa de cima.</p><div class="ind-funil" id="indFunilLead"></div></div>
+        <div class="card stack"><h3>Funil de clientes</h3><p class="tiny dim" style="margin:0">De quem compareceu até a finalização. Desvios em % da etapa de cima.</p><div class="ind-funil cli" id="indFunilCli"></div></div>
         <div class="card stack"><div class="row"><h3 class="grow">Entradas × saídas por mês</h3><div class="legenda"><span><i style="background:var(--s-fechado)"></i>Entradas</span><span><i style="background:var(--ind-saida)"></i>Saídas</span></div></div><div class="pn-chart ind-fluxo" id="indFluxo" role="img" aria-label="Entradas e saídas por mês"></div></div>
         <div class="card stack"><div class="row"><h3 class="grow">Conversão por mês</h3><span class="tiny dim">fecharam ÷ leads do mês</span></div><div class="pn-chart" id="indConv" role="img" aria-label="Conversão por mês"></div></div>
         <div class="card stack"><h3>Como tomou conhecimento da clínica</h3><div class="mk-origens" id="indOrigem"></div></div>
