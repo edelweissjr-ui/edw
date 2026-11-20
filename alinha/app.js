@@ -10,6 +10,7 @@
      Ao publicar uma atualização, aumente a versão em package.json e registre em NOVIDADES. */
   let VERSAO = "2.5.0";
   const NOVIDADES = [
+    { v: "2.6.0", data: "nov/2026", itens: ["Tela Indicadores: oportunidades, agenda, conversão, ticket médio, funis de leads e clientes, follow-up, inadimplência, formas de pagamento, origem, campanhas e indicações", "Ficha do cliente: Pagamento e campanha (entrada, forma, condição, situação e valor em atraso)", "Lançamento de saídas e gráfico de entradas × saídas por mês"] },
     { v: "2.5.0", data: "nov/2026", itens: ["Painel do dia com todas as métricas clicáveis e as suas tarefas", "Check-list diário (Fazer, Fazendo, Feito), pendências, assinatura por operador, confetes e avaliação com nota", "Pacientes: lista com busca e ficha de cadastro com a linha do tempo; foto (câmera, arquivo ou WhatsApp), Instagram, CPF, vários telefones e nascimento", "Marketing reúne campanhas e métricas; ampulheta com quantidade e percentual; follow-up e resultados clicáveis", "SMS funcionando (QR code, app do celular ou Twilio/Zenvia), microfone com teste e gravação, novas unidades e memória dos dados (cópias diárias e fila sem internet)"] },
     { v: "2.4.0", data: "nov/2026", itens: ["Versículo do dia em pop-up para cada operador ao abrir o app (já pergunta quem está atendendo)", "Setores do atendimento (Comercial, Financeiro, Operacional e outros) com os nomes de quem atende, em Ajustes › Chat", "Transferir a conversa do WhatsApp para outro setor no próprio chat, com recado; filtro por setor e “Comigo”"] },
     { v: "2.3.0", data: "nov/2026", itens: ["Login com código de 6 números do Google Authenticator (opcional, em Ajustes › Segurança)", "Temas Esmeralda e Pérola, sem mudar a logomarca", "Foto do paciente do WhatsApp no círculo; palavras negativadas e correção ortográfica no chat", "Comercial em ampulheta (Funil Lead e Funil Cliente) com todos os números clicáveis; desempenho por CRC com metas", "Alerta do dia com os pacientes de maior chance; versículo diário; decisor, melhor horário, CRC e doutor na ficha"] },
@@ -393,11 +394,12 @@
         <div class="row"><button class="btn pri" id="gFechou">Fechou</button><button class="btn" id="gPerdeu">Não fechou</button>${p.status !== "aberto" ? `<button class="btn ghost" id="gReabrir">Voltar ao follow-up</button>` : ""}</div>
         <div class="tiny dim">Histórico: ${CAD.filter((d) => (p.toques || {})[d]).map((d) => `D${d} ${p.toques[d].status}`).join(" · ") || "nenhum toque ainda"}</div>
       </div>
+      ${pagamentoHTML(p)}
       ${timelinePacienteHTML(p)}
       <div class="row">${p.briefing ? `<button class="btn" id="gBriefing">Ver briefing</button>` : ""}<span class="grow"></span><button class="btn ghost" id="gApagar">Apagar paciente</button></div>
     </div></div>`;
     if (x && !x.fim) garantirMensagemIA(p, x.dia);
-    ligarTimelinePaciente(p);
+    ligarTimelinePaciente(p); ligarPagamento(p);
     ligarContato(p, "g", async () => { lerContato(p, "g"); await Store.salvar(p); $("#gDecisor").innerHTML = decisorResumo(p); toast("Ficha atualizada"); });
     ligarCadExtra(p, "g"); ligarFoto(p, "g", async () => { await Store.salvar(p); });
     $("#gCadSalvar").onclick = async () => { const c = soDig($("#gCpf").value); if (c && !cpfValido(c)) { $("#gCadSt").textContent = "Confira o CPF."; return; } lerCadExtra(p, "g"); await Store.salvar(p); $("#gCadSt").textContent = "✓ Salvo"; toast("Cadastro salvo"); };
@@ -1451,7 +1453,7 @@
   /* ------------------------------------------------------------ */
   /* Permissões: Administrador · Operacional · CRC                  */
   /* ------------------------------------------------------------ */
-  const TELAS = [["hoje", "Hoje"], ["whatsapp", "WhatsApp"], ["crm", "CRM (Funil Lead e Funil Cliente)"], ["consulta", "Consulta"], ["briefings", "Briefings"], ["followup", "Follow-up"], ["comercial", "Comercial (funil do mês)"], ["tratamentos", "Tratamentos e laboratório"], ["pacientes", "Pacientes"], ["resultados", "Marketing · por tratamento"], ["campanhas", "Marketing · campanhas"]];
+  const TELAS = [["hoje", "Hoje"], ["whatsapp", "WhatsApp"], ["crm", "CRM (Funil Lead e Funil Cliente)"], ["consulta", "Consulta"], ["briefings", "Briefings"], ["followup", "Follow-up"], ["comercial", "Comercial (funil do mês)"], ["indicadores", "Indicadores (comercial e financeiro)"], ["tratamentos", "Tratamentos e laboratório"], ["pacientes", "Pacientes"], ["resultados", "Marketing · por tratamento"], ["campanhas", "Marketing · campanhas"]];
   const ACOES = [["enviar_whatsapp", "Enviar mensagens pelo celular conectado"], ["enviar_sms", "Enviar SMS"], ["exportar", "Baixar cópia dos dados"]];
   const PAPEL_NOME = { admin: "Administrador", operacional: "Operacional", crc: "CRC" };
   const PERM_PADRAO = {
@@ -1821,6 +1823,7 @@
         ${camposContatoHTML(p, "l")}
         <div class="duo"><div><label class="f" for="lTrat">Tratamento de interesse</label>${sel("lTrat", [""].concat(TRAT.map((t) => t.nome)), trat)}</div>
           <div><label class="f" for="lOrig">Origem</label>${sel("lOrig", ["Anúncio Meta", "Instagram orgânico", "Indicação", "Google", "WhatsApp (Kommo)", "WhatsApp (celular)", "Passou na frente", "Outro"].concat(p.origem && !["Anúncio Meta", "Instagram orgânico", "Indicação", "Google", "WhatsApp (Kommo)", "WhatsApp (celular)", "Passou na frente", "Outro"].includes(p.origem) ? [p.origem] : []), p.origem || "")}</div></div>
+        <div><label class="f" for="lCamp">Campanha</label><input class="in" id="lCamp" value="${esc(p.campanha || "")}" placeholder="Ex.: Invisalign Black Friday"></div>
         <div class="duo"><div><label class="f" for="lEtapa">Etapa</label>${sel("lEtapa", ETAPAS.filter((e) => e.grupo === "lead").map((e) => e.nome), ETAPA[etapaDe(p)].nome)}</div>
           <div><label class="f" for="lAgenda">Data agendada</label><input class="in" type="date" id="lAgenda" value="${p.agendaPara ? String(p.agendaPara).slice(0, 10) : ""}"></div></div>
         <div><label class="f" for="lObs">Observações</label><input class="in" id="lObs" value="${esc(p.obs || "")}"></div>
@@ -1835,7 +1838,7 @@
     $("#btnFechar").onclick = fecharGaveta;
     ligarContato(p, "l"); ligarCadExtra(p, "l"); ligarFoto(p, "l", null);
     const ler = () => {
-      p.nome = $("#lNome").value.trim(); p.telefone = $("#lTel").value.trim(); p.email = $("#lEmail").value.trim(); lerContato(p, "l"); lerCadExtra(p, "l"); p.unidade = $("#lUni").value; p.origem = $("#lOrig").value; p.obs = $("#lObs").value.trim();
+      p.nome = $("#lNome").value.trim(); p.telefone = $("#lTel").value.trim(); p.email = $("#lEmail").value.trim(); lerContato(p, "l"); lerCadExtra(p, "l"); p.unidade = $("#lUni").value; p.origem = $("#lOrig").value; p.obs = $("#lObs").value.trim(); p.campanha = $("#lCamp").value.trim();
       const t = $("#lTrat").value; p.interesse = t; p.tratamento = t;
       const ag = $("#lAgenda").value; p.agendaPara = ag ? new Date(ag + "T12:00:00").toISOString() : undefined;
       const et = ETAPAS.find((e) => e.nome === $("#lEtapa").value);
@@ -3643,6 +3646,144 @@
     }
   });
 
+  /* ------------------------------------------------------------ */
+  /* Indicadores: comercial e financeiro                           */
+  /* ------------------------------------------------------------ */
+  const FORMAS_PAG = [["especie", "Espécie"], ["pix", "Pix"], ["credito", "Cartão de crédito"], ["debito", "Cartão de débito"], ["boleto", "Boleto"]];
+  const FORMA_NOME = Object.fromEntries(FORMAS_PAG);
+  const CAT_SAIDA = ["Laboratório", "Material", "Folha / pró-labore", "Aluguel", "Marketing", "Alinhadores", "Impostos", "Comissão", "Outros"];
+  const IND = { escopo: "mes", mes: new Date().toISOString().slice(0, 7), unidade: "", listas: {} };
+  const pagDe = (p) => p.pag || {};
+  const numBR = (v) => { const t = String(v ?? "").replace(/[^\d,.]/g, ""); return Number(t.includes(",") ? t.replace(/\./g, "").replace(",", ".") : t) || 0; };
+  const indNoPeriodo = (iso) => { if (!iso) return false; const k = new Date(iso).toISOString(); return IND.escopo === "tudo" ? true : IND.escopo === "ano" ? k.slice(0, 4) === IND.mes.slice(0, 4) : k.slice(0, 7) === IND.mes; };
+  const indUni = (x) => !IND.unidade || x.unidade === IND.unidade;
+  const finalizou = (p) => (p.trabalhos || []).some((t) => concluido(t));
+  const faltouAlgum = (p) => (p.faltas || 0) > 0 || etapaDe(p) === "faltou";
+  const remarcou = (p) => (p.faltas || 0) > 0 && !["faltou", "perdido"].includes(etapaDe(p));
+  const pctF = (a, b) => (b ? (Math.round((a / b) * 1000) / 10).toLocaleString("pt-BR") + "%" : "—");
+  function indNumeros() {
+    const P = PAC.filter((p) => indUni(p) && indNoPeriodo(entrouEm(p)));
+    const fech = P.filter((p) => p.status === "fechado");
+    const fechFin = PAC.filter((p) => p.status === "fechado" && indUni(p) && indNoPeriodo(p.fechadoEm));
+    const S = (AJ.saidas || []).filter((s) => indUni(s) && indNoPeriodo(s.data + "T12:00:00"));
+    const soma = (a, f) => a.reduce((t, x) => t + Number(f(x) || 0), 0);
+    const L = {
+      oport: P, agendados: P.filter((p) => ehCliente(p) || ["agendado", "faltou"].includes(etapaDe(p)) || p.agendadoEm), compareceram: P.filter(ehCliente),
+      faltaram: P.filter(faltouAlgum), remarcaram: P.filter(remarcou), fecharam: fech, follow: P.filter((p) => p.status === "aberto"),
+      naoPagou: fech.filter((p) => pagDe(p).situacao === "nao_pagou"), finalizaram: fech.filter(finalizou), indicacao: P.filter((p) => /indica/i.test(p.origem || "")),
+      especie: fech.filter((p) => pagDe(p).forma === "especie"), cartao: fech.filter((p) => ["credito", "debito"].includes(pagDe(p).forma)), avista: fech.filter((p) => pagDe(p).condicao === "avista"),
+      entradaPaga: fech.filter((p) => numBR(pagDe(p).entrada) > 0), emDia: fech.filter((p) => ["em_dia", "quitado"].includes(pagDe(p).situacao)), fechFin
+    };
+    const totalFech = soma(fech, (p) => p.valorFechado);
+    return { L, S, totalFech, entrada: soma(fechFin, (p) => numBR(pagDe(p).entrada)), saiu: soma(S, (s) => s.valor), inad: soma(L.naoPagou, (p) => numBR(pagDe(p).emAberto)), follow$: soma(L.follow, (p) => p.valorApresentado) };
+  }
+  function renderIndicadores() {
+    if (!$("#indMes").value) $("#indMes").value = IND.mes;
+    $$("#indUnidade button").forEach((b) => b.classList.toggle("on", b.dataset.u === IND.unidade));
+    $$("#indEscopo button").forEach((b) => b.classList.toggle("on", b.dataset.e === IND.escopo));
+    $("#indMes").classList.toggle("hide", IND.escopo === "tudo");
+    const { L, S, totalFech, entrada, saiu, inad, follow$ } = indNumeros(); IND.listas = L;
+    const n = (k) => L[k].length, o = n("oport"), f = n("fecharam");
+    $("#indPeriodo").textContent = IND.escopo === "tudo" ? "todo o histórico" : IND.escopo === "ano" ? "ano de " + IND.mes.slice(0, 4) : new Date(IND.mes + "-15").toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
+    const pill = (cls, t) => `<span class="pill ${cls}">${t}</span>`;
+    const conv = o ? f / o : 0, inadP = totalFech ? inad / totalFech : 0;
+    kpisClic("#indCom", [
+      ["Oportunidades de venda", o, "leads no período", true, "oport"],
+      ["Agendados", n("agendados"), `${n("compareceram")} compareceram`, false, "agendados"],
+      ["Faltaram", n("faltaram"), pctF(n("faltaram"), n("agendados")) + " dos agendados", false, "faltaram"],
+      ["Remarcaram", n("remarcaram"), "faltaram e voltaram a agendar", false, "remarcaram"],
+      ["Fecharam", f, brl(totalFech) + " em contratos", false, "fecharam"],
+      ["Conversão", pctF(f, o), `${pctF(f, n("compareceram"))} de quem compareceu ${o ? pill(conv >= 0.3 ? "good" : conv >= 0.15 ? "warn" : "bad", conv >= 0.3 ? "Boa" : conv >= 0.15 ? "Atenção" : "Baixa") : ""}`, false, "fecharam"],
+      ["Follow-up de orçamento", n("follow"), brl(follow$) + " em aberto", false, "follow"],
+      ["Finalizaram", n("finalizaram"), "tratamento concluído", false, "finalizaram"],
+      ["Vieram por indicação", n("indicacao"), pctF(n("indicacao"), o) + " das oportunidades", false, "indicacao"]
+    ]);
+    kpisClic("#indFin", [
+      ["Entrou de entrada", brl(entrada), `${L.fechFin.length} fechamentos no período`, true, "fechFin"],
+      ["Saiu", brl(saiu), `${S.length} lançamentos`, false, null],
+      ["Saldo", brl(entrada - saiu), pill(entrada - saiu >= 0 ? "good" : "bad", entrada - saiu >= 0 ? "Positivo" : "Negativo"), false, null],
+      ["Ticket médio", f ? brl(totalFech / f) : "—", "valor fechado ÷ fechamentos", false, "fecharam"],
+      ["Não pagaram", n("naoPagou"), pctF(n("naoPagou"), f) + " dos fechados", false, "naoPagou"],
+      ["Inadimplência", brl(inad), `${pctF(inad, totalFech)} do valor fechado ${pill(inadP > 0.05 ? "bad" : "good", inadP > 0.05 ? "Acima de 5%" : "Sob controle")}`, false, "naoPagou"],
+      ["Pagaram em espécie", n("especie"), pctF(n("especie"), f) + " dos fechados", false, "especie"],
+      ["Pagaram em cartão", n("cartao"), "crédito ou débito", false, "cartao"],
+      ["Pagaram à vista", n("avista"), pctF(n("avista"), f) + " dos fechados", false, "avista"]
+    ]);
+    const funil = (el, linhas) => { const top = Math.max(1, linhas[0][2].length);
+      $(el).innerHTML = linhas.map(([k, nome, lista]) => { IND.listas[k] = lista; return `<button class="ind-f" data-ind="${k}" data-indtit="${esc(nome)}"><span class="n">${esc(nome)}</span><span class="t"><i style="width:${Math.max(1, (lista.length / top) * 100)}%"></i></span><span class="v"><b>${lista.length}</b><small>${pctF(lista.length, linhas[0][2].length)}</small></span></button>`; }).join(""); };
+    const P = L.oport;
+    funil("#indFunilLead", [["fl0", "Leads", P], ["fl1", "Em contato", P.filter((p) => etapaDe(p) !== "novo")], ["fl2", "Agendaram", L.agendados], ["fl3", "Compareceram (orçamento)", L.compareceram], ["fl5", "Fecharam", L.fecharam]]);
+    funil("#indFunilCli", [["fc0", "Fecharam", L.fecharam], ["fc1", "Pagaram entrada", L.entradaPaga], ["fc2", "Pagamento em dia", L.emDia], ["fc3", "Finalizaram", L.finalizaram]]);
+    // meses (6, terminando no mês escolhido)
+    const meses = Array.from({ length: 6 }, (_, i) => { const d = new Date(IND.mes + "-15"); d.setMonth(d.getMonth() - (5 - i)); return d.toISOString().slice(0, 7); });
+    const rotM = (m) => new Date(m + "-15").toLocaleDateString("pt-BR", { month: "short" }).replace(".", "");
+    const ent = meses.map((m) => PAC.filter((p) => p.status === "fechado" && indUni(p) && noMes(p.fechadoEm, m)).reduce((t, p) => t + numBR(pagDe(p).entrada), 0));
+    const sai = meses.map((m) => (AJ.saidas || []).filter((s) => indUni(s) && String(s.data).startsWith(m)).reduce((t, s) => t + Number(s.valor || 0), 0));
+    const max = Math.max(1, ...ent, ...sai);
+    $("#indFluxo").innerHTML = `<div class="cd">${meses.map((m, i) => `<div class="cd-col" tabindex="0" data-dica="${esc(`${rotM(m)}: entradas ${brl(ent[i])} · saídas ${brl(sai[i])}`)}" aria-label="${esc(`${rotM(m)}: entradas ${brl(ent[i])}, saídas ${brl(sai[i])}`)}"><span class="cd-bars"><i class="a" style="height:${(ent[i] / max) * 100}%;background:var(--s-fechado)"></i><i class="b" style="height:${(sai[i] / max) * 100}%"></i></span><span class="cd-rot">${rotM(m)}</span></div>`).join("")}</div>`;
+    const cv = meses.map((m) => { const c = PAC.filter((p) => indUni(p) && noMes(entrouEm(p), m)); return { m, n: c.length, f: c.filter((p) => p.status === "fechado").length }; });
+    const maxC = Math.max(10, ...cv.map((x) => (x.n ? (x.f / x.n) * 100 : 0)));
+    $("#indConv").innerHTML = `<div class="cd">${cv.map((x) => { const v = x.n ? (x.f / x.n) * 100 : 0; return `<div class="cd-col" tabindex="0" data-dica="${esc(`${rotM(x.m)}: ${pctF(x.f, x.n)} · ${x.f} de ${x.n} leads fecharam`)}" aria-label="${esc(`${rotM(x.m)}: conversão ${pctF(x.f, x.n)}`)}"><span class="cd-bars"><i class="a" style="height:${(v / maxC) * 100}%;width:min(22px,60%)"></i></span><span class="cd-rot">${rotM(x.m)} · ${x.n ? Math.round(v) + "%" : "—"}</span></div>`; }).join("")}</div>`;
+    const barras = (el, pref, grupos, total, vazio) => { const mx = Math.max(1, ...grupos.map((g) => g[1].length));
+      $(el).innerHTML = grupos.length ? grupos.map(([nome, lista]) => { IND.listas[pref + nome] = lista; return `<button class="mk-lin" data-ind="${esc(pref + nome)}" data-indtit="${esc(nome)}" data-dica="${esc(`${nome}: ${lista.length} (${pctF(lista.length, total)})`)}"><span class="mk-n">${esc(nome)}</span><span class="mk-b"><i style="width:${(lista.length / mx) * 100}%"></i></span><span class="mk-v num">${lista.length}<small>${pctF(lista.length, total).replace(",0", "")}</small></span></button>`; }).join("") : `<span class="small dim">${vazio}</span>`; };
+    const agrupa = (lista, fn) => { const G = {}; lista.forEach((p) => { const k = fn(p); if (k) (G[k] = G[k] || []).push(p); }); return Object.entries(G).sort((a, b) => b[1].length - a[1].length).slice(0, 8); };
+    barras("#indOrigem", "o:", agrupa(P, (p) => p.origem || "Não informado"), o, "Nenhum lead no período.");
+    barras("#indCamp", "c:", agrupa(P, (p) => p.campanha || (/indica/i.test(p.origem || "") ? "" : "Sem campanha")), o, "Nenhum lead no período.");
+    const fp = FORMAS_PAG.map(([k, nome]) => [nome, L.fecharam.filter((p) => pagDe(p).forma === k)]).filter((g) => g[1].length);
+    if (n("avista")) fp.push(["À vista (qualquer forma)", L.avista]);
+    barras("#indPag", "p:", fp, f, "Informe a forma de pagamento na ficha de cada cliente que fechou.");
+    const ss = S.slice().sort((a, b) => (a.data < b.data ? 1 : -1));
+    $("#indSaiTotal").textContent = `${ss.length} · ${brl(saiu)}`;
+    $("#indSaidas").innerHTML = ss.length ? ss.slice(0, 40).map((s) => `<div class="it"><span class="grow"><b>${esc(s.descricao)}</b><span class="tiny dim"> · ${esc(s.categoria || "")} · ${esc(s.unidade || "")} · ${dataBR(s.data + "T12:00:00")}</span></span><b class="num">${brl(s.valor)}</b><button class="btn sm ghost" data-saidel="${esc(s.id)}" aria-label="Apagar saída">✕</button></div>`).join("") : `<span class="small dim">Nenhuma saída no período. Toque em + Saída para lançar.</span>`;
+  }
+  $("#indMes").addEventListener("change", (e) => { IND.mes = e.target.value || IND.mes; renderIndicadores(); });
+  $("#indUnidade").addEventListener("click", (e) => { const b = e.target.closest("[data-u]"); if (b) { IND.unidade = b.dataset.u; renderIndicadores(); } });
+  $("#indEscopo").addEventListener("click", (e) => { const b = e.target.closest("[data-e]"); if (b) { IND.escopo = b.dataset.e; renderIndicadores(); } });
+  $("#v-indicadores").addEventListener("click", async (e) => {
+    const d = e.target.closest("[data-saidel]");
+    if (d) { if (d.dataset.c !== "1") { d.dataset.c = "1"; d.textContent = "Apagar?"; return; } await Store.ajustes({ saidas: (AJ.saidas || []).filter((s) => s.id !== d.dataset.saidel) }); toast("Saída apagada"); renderIndicadores(); return; }
+    const b = e.target.closest("[data-ind],[data-lista]"); if (!b) return;
+    const k = b.dataset.ind || b.dataset.lista, tit = b.dataset.indtit || (b.querySelector(".label") || {}).textContent || "";
+    if (IND.listas[k]) abrirListaPacientes(tit, IND.listas[k], $("#indPeriodo").textContent);
+  });
+  $("#indNovaSaida").onclick = () => {
+    const hojeISO = new Date().toISOString().slice(0, 10);
+    $("#drawerHost").innerHTML = `<div class="veil" id="veil"><div class="drawer" role="dialog" aria-label="Nova saída">
+      <div class="row"><h2 class="grow" style="font-size:21px">Nova saída</h2><button class="btn sm ghost" id="btnFechar" aria-label="Fechar">✕</button></div>
+      <div class="card stack"><div><label class="f" for="sDesc">Descrição</label><input class="in" id="sDesc"></div>
+        <div class="duo"><div><label class="f" for="sValor">Valor (R$)</label><input class="in num" id="sValor" inputmode="decimal"></div><div><label class="f" for="sData">Data</label><input class="in" type="date" id="sData" value="${hojeISO}"></div></div>
+        <div class="duo"><div><label class="f" for="sCat">Categoria</label><select class="in" id="sCat">${CAT_SAIDA.map((c) => `<option>${esc(c)}</option>`).join("")}</select></div>
+          <div><label class="f" for="sUni">Unidade</label><select class="in" id="sUni">${[...new Set(["Caruaru", "Recife"].concat(AJ.unidades || []).map((u) => (typeof u === "string" ? u : u && u.nome)).filter(Boolean))].map((u) => `<option${u === IND.unidade ? " selected" : ""}>${esc(u)}</option>`).join("")}</select></div></div>
+        <div class="row"><button class="btn pri" id="sSalvar">Salvar saída</button><span class="small dim" id="sSt"></span></div></div></div></div>`;
+    $("#veil").addEventListener("click", (e) => { if (e.target.id === "veil") fecharGaveta(); });
+    $("#btnFechar").onclick = fecharGaveta; setTimeout(() => $("#sDesc").focus(), 30);
+    $("#sSalvar").onclick = async () => {
+      const s = { id: "s" + Date.now().toString(36), descricao: $("#sDesc").value.trim(), valor: numBR($("#sValor").value), data: $("#sData").value, categoria: $("#sCat").value, unidade: $("#sUni").value, criadoEm: new Date().toISOString() };
+      if (!s.descricao || !s.valor || !s.data) { $("#sSt").textContent = "Preencha descrição, valor e data."; return; }
+      await Store.ajustes({ saidas: (AJ.saidas || []).concat(s) }); toast("Saída lançada"); fecharGaveta(); renderIndicadores();
+    };
+  };
+  // ficha do cliente: pagamento e campanha
+  function pagamentoHTML(p) {
+    const g = pagDe(p), op = (lista, v) => lista.map(([k, n]) => `<option value="${k}"${k === (v || "") ? " selected" : ""}>${n}</option>`).join("");
+    return `<details class="card contato-det"${p.status === "fechado" && !g.forma ? " open" : ""}><summary><span class="label">Pagamento e campanha</span></summary><div class="stack" style="margin-top:10px">
+      <div class="duo"><div><label class="f" for="gCamp">Campanha</label><input class="in" id="gCamp" value="${esc(p.campanha || "")}" placeholder="Ex.: Invisalign Black Friday"></div>
+        <div><label class="f" for="gEnt">Entrada recebida (R$)</label><input class="in num" id="gEnt" inputmode="decimal" value="${g.entrada || ""}"></div></div>
+      <div class="duo"><div><label class="f" for="gForma">Forma de pagamento</label><select class="in" id="gForma">${op([["", "—"]].concat(FORMAS_PAG), g.forma)}</select></div>
+        <div><label class="f" for="gCond">Condição</label><select class="in" id="gCond">${op([["", "—"], ["avista", "À vista"], ["parcelado", "Parcelado"]], g.condicao)}</select></div></div>
+      <div class="duo"><div><label class="f" for="gSit">Situação do pagamento</label><select class="in" id="gSit">${op([["", "—"], ["em_dia", "Em dia"], ["quitado", "Quitado"], ["nao_pagou", "Não pagou"]], g.situacao)}</select></div>
+        <div><label class="f" for="gAberto">Valor em atraso (R$)</label><input class="in num" id="gAberto" inputmode="decimal" value="${g.emAberto || ""}"></div></div>
+      <div class="row"><button class="btn sm pri" id="gPagSalvar">Salvar pagamento</button><span class="small dim" id="gPagSt"></span></div></div></details>`;
+  }
+  function ligarPagamento(p) {
+    const b = $("#gPagSalvar"); if (!b) return;
+    b.onclick = async () => {
+      p.campanha = $("#gCamp").value.trim();
+      p.pag = { entrada: numBR($("#gEnt").value), forma: $("#gForma").value, condicao: $("#gCond").value, situacao: $("#gSit").value, emAberto: $("#gSit").value === "nao_pagou" ? numBR($("#gAberto").value) : 0, atualizadoEm: new Date().toISOString() };
+      await Store.salvar(p); $("#gPagSt").textContent = "✓ Salvo"; toast("Pagamento salvo");
+    };
+  }
+
   let vista = "painel";
   function mostrar(v) {
     if (v === "resultados" || v === "campanhas") { const aba = v === "resultados" ? "res" : "camp"; v = "marketing"; setTimeout(() => { abrirAba("mkt", aba); render(); }, 0); }
@@ -3669,6 +3810,7 @@
     if (vista === "checklist") renderChecklist();
     if (vista === "pacientes") renderPacientes();
     if (vista === "marketing") renderMarketing();
+    if (vista === "indicadores") renderIndicadores();
     if (vista === "comercial") renderComercial();
     if (vista === "crm") renderPipeline();
     if (vista === "tratamentos") renderTratamentos();
