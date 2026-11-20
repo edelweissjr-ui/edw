@@ -86,6 +86,13 @@ h2{font-size:15px;margin:0;text-wrap:balance}
 .frow .bar{height:100%;background:var(--accent);border-radius:4px;min-width:3px;transition:width .3s}
 .frow .num{font-variant-numeric:tabular-nums;text-align:right} .frow .num b{font-size:14px} .frow .num span{color:var(--muted);font-size:12px;margin-left:4px}
 .funnel.cli .bar{background:var(--s3)}
+.frow.side .name{padding-left:16px;font-weight:500;position:relative}
+.frow.side .name::before{content:"";position:absolute;left:4px;top:50%;width:7px;height:7px;border-left:1.5px solid var(--line);border-bottom:1.5px solid var(--line);transform:translateY(-70%)}
+.frow.side .track{height:14px}.frow.side .bar{background:var(--s-other);opacity:.85}
+.frow.side.bad .bar{background:var(--s8)}.frow.side.warn .bar{background:var(--s4)}.frow.side.info .bar{background:var(--s7)}
+.frow.side .num b{font-size:13px}
+.ffoot{line-height:1.7;padding-top:10px;margin-top:4px;border-top:1px solid var(--line);font-size:13px;color:var(--muted)}
+.ffoot b{color:var(--fg);font-variant-numeric:tabular-nums}
 .tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:var(--r);background:var(--surface)}
 table{border-collapse:collapse;width:100%;font-size:13px}
 th,td{padding:9px 12px;text-align:left;border-bottom:1px solid var(--line);white-space:nowrap}
@@ -153,8 +160,8 @@ fieldset label.chk{flex-direction:row;align-items:center;gap:8px;color:var(--fg)
     <div class="kpis" id="k-fin"></div>
 
     <div class="grid2">
-      <div class="card"><h2>Funil de leads</h2><p class="hint">Quantos chegaram a cada etapa e o percentual sobre as oportunidades.</p><div class="funnel" id="funil-leads"></div></div>
-      <div class="card"><h2>Funil de clientes</h2><p class="hint">Do fechamento até a finalização do tratamento.</p><div class="funnel cli" id="funil-cli"></div></div>
+      <div class="card"><h2>Funil de leads</h2><p class="hint">Todos os índices antes do fechamento. Etapas principais em % das oportunidades; os desvios (recuados) em % da etapa de cima.</p><div class="funnel" id="funil-leads"></div></div>
+      <div class="card"><h2>Funil de clientes</h2><p class="hint">De quem compareceu até a finalização do tratamento. Desvios em % da etapa de cima.</p><div class="funnel cli" id="funil-cli"></div></div>
     </div>
 
     <div class="grid2">
@@ -304,8 +311,9 @@ function metrics(){
 
 /* ---------- Render: dashboard ---------- */
 function kpi(lab,val,sub,cls,pill){return `<div class="kpi ${cls||""}"><span class="lab">${lab}</span><span class="val">${val}</span>${sub?`<span class="sub">${sub}</span>`:""}${pill?`<span class="pill ${pill[0]}">${pill[1]}</span>`:""}</div>`}
-function funnel(el,rows){const top=rows[0][1]||1;
-  $(el).innerHTML=rows.map(([n,v])=>`<div class="frow"><span class="name">${n}</span><div class="track"><div class="bar" style="width:${Math.max(1,v/top*100)}%"></div></div><span class="num"><b>${num(v)}</b><span>${pct(v/top)}</span></span></div>`).join("")}
+function funnel(el,rows,foot){const top=rows[0][1]||1;
+  $(el).innerHTML=rows.map(([n,v,o])=>{o=o||{};const base=o.base??top;const w=o.side?(base?v/base*100:0):v/top*100;
+    return `<div class="frow${o.side?" side "+(o.cls||""):""}"${o.tip?` title="${esc(o.tip)}"`:""}><span class="name">${n}</span><div class="track"><div class="bar" style="width:${Math.max(1,w)}%"></div></div><span class="num"><b>${num(v)}</b><span>${pct(base?v/base:NaN)}</span></span></div>`}).join("")+(foot?`<div class="ffoot">${foot}</div>`:"")}
 
 function renderPainel(){
   const m=metrics();
@@ -334,8 +342,26 @@ function renderPainel(){
     kpi("Pagaram à vista",num(m.avista),m.fechados?pct(m.avista/m.fechados)+" dos fechados":""),
   ].join("");
 
-  funnel("#funil-leads",ETAPAS.map(([k,l],i)=>[l==="Fechou"?"Fecharam":l,m.reached(i)]));
-  funnel("#funil-cli",[["Fecharam",m.fechados],["Pagaram entrada",m.entradaPaga],["Pagamento em dia",m.emDia],["Finalizaram",m.finalizados]]);
+  funnel("#funil-leads",[
+    ["Oportunidades de venda",m.oport],
+    ["Vieram por indicação",m.indicacao,{side:1,cls:"info",base:m.oport,tip:"% das oportunidades"}],
+    ["Contato feito",m.reached(1)],
+    ["Agendados",m.agendados],
+    ["Faltaram",m.faltaram,{side:1,cls:"bad",base:m.agendados,tip:"% dos agendados"}],
+    ["Remarcaram",m.remarcaram,{side:1,cls:"warn",base:m.agendados,tip:"% dos agendados"}],
+    ["Compareceram",m.compareceram],
+    ["Fecharam",m.fechados]],
+    `Conversão <b>${pct(m.conv)}</b> (fecharam ÷ oportunidades) · Indicação <b>${pct(m.oport?m.indicacao/m.oport:NaN)}</b>`);
+  funnel("#funil-cli",[
+    ["Compareceram",m.compareceram],
+    ["Receberam orçamento",m.reached(4)],
+    ["Follow-up de orçamento",m.follow.length,{side:1,cls:"warn",base:m.reached(4),tip:"% dos orçamentos, ainda sem fechamento"}],
+    ["Fecharam",m.fechados],
+    ["Pagaram entrada",m.entradaPaga],
+    ["Pagamento em dia",m.emDia],
+    ["Não pagaram",m.naoPagou.length,{side:1,cls:"bad",base:m.fechados,tip:"% dos fechados"}],
+    ["Finalizaram",m.finalizados]],
+    `Conversão de quem compareceu <b>${pct(m.convComp)}</b> · Ticket médio <b>${brl(m.ticket)}</b> · Em follow-up <b>${brl(m.follow.reduce((s,p)=>s+(+p.orcamento||0),0))}</b> · Inadimplência <b>${brl(m.inad)}</b>`);
 
   // follow-up & inadimplência tables
   $("#t-follow").innerHTML=table(m.follow.sort((a,b)=>(b.orcamento||0)-(a.orcamento||0)).slice(0,12),[["Paciente","nome"],["Unidade","unidade"],["Data",p=>fmtD(p.data)],["Origem","origem"],["Orçamento",p=>brl(p.orcamento),"n"],["Dias",p=>Math.max(0,Math.round((Date.now()-new Date(p.data+"T00:00"))/864e5)),"n"]],"Nenhum orçamento aguardando retorno.");
