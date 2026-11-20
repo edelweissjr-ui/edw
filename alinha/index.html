@@ -671,6 +671,23 @@ label.row>input[type=checkbox]{flex:none;margin-top:4px;width:17px;height:17px}
 .mk-kpis{grid-template-columns:repeat(4,minmax(0,1fr))}
 .mk-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
 .mk-origens{display:flex;flex-direction:column;gap:6px}
+/* Indicadores */
+:root{--ind-saida:#eb6834}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--ind-saida:#d95926}}
+:root[data-theme="dark"]{--ind-saida:#d95926}
+.ind-kpis{grid-template-columns:repeat(auto-fill,minmax(190px,1fr))}
+.ind-kpis .kpi .pill{margin-top:4px;display:inline-block}
+.ind-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,360px),1fr));gap:12px;margin-top:4px}
+.ind-funil{display:flex;flex-direction:column;gap:6px}
+.ind-f{display:grid;grid-template-columns:130px 1fr 84px;gap:10px;align-items:center;border:0;background:none;font:inherit;color:inherit;text-align:left;padding:3px 4px;border-radius:8px;cursor:pointer}
+.ind-f:hover,.ind-f:focus-visible{background:var(--surface-2)}
+.ind-f .n{color:var(--dim);font-size:13.5px;font-weight:600}.ind-f .t{height:22px;display:flex;justify-content:center}
+.ind-f .t i{display:block;height:100%;background:var(--s-interesse);border-radius:4px;min-width:3px}
+.ind-funil.cli .ind-f .t i{background:var(--s-fechado)}
+.ind-f .v{text-align:right;font-variant-numeric:tabular-nums}.ind-f .v small{color:var(--dim);margin-left:4px}
+.ind-fluxo .cd-bars i.b{background:var(--ind-saida)}
+.ind-conv .cd-bars i.a{background:var(--s-interesse)}
+@media (max-width:560px){.ind-f{grid-template-columns:96px 1fr 70px}.ind-kpis{grid-template-columns:1fr 1fr}}
 .mk-lin{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1.4fr) auto;gap:8px;align-items:center;border:0;background:none;padding:4px 6px;border-radius:8px;text-align:left;color:var(--fg);cursor:pointer}
 .mk-lin:hover,.mk-lin:focus-visible{background:var(--surface-2)}
 .mk-n{font-size:14px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -744,6 +761,7 @@ label.row>input[type=checkbox]{flex:none;margin-top:4px;width:17px;height:17px}
       <button data-v="crm"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="7" height="16" rx="1.5"/><rect x="14" y="4" width="7" height="10" rx="1.5"/></svg>CRM</button>
       <button data-v="pacientes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><path d="M16 4.6a3.5 3.5 0 0 1 0 6.8M18 14.6a6.5 6.5 0 0 1 3.5 5.4"/></svg>Pacientes</button>
       <button data-v="comercial"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 4h18l-7 8v6l-4 2v-8z"/></svg>Comercial</button>
+      <button data-v="indicadores"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 20h18"/><rect x="5" y="11" width="3" height="6" rx="1"/><rect x="10.5" y="6" width="3" height="11" rx="1"/><rect x="16" y="9" width="3" height="8" rx="1"/></svg>Indicadores</button>
       <button data-v="tratamentos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M7 3c-2 0-3.5 1.6-3.5 4 0 3 1.4 5 2 8 .5 2.5 1 6 2.5 6s1.6-4 2.5-6c.4-.9.9-1.3 1.5-1.3s1.1.4 1.5 1.3c.9 2 1 6 2.5 6s2-3.5 2.5-6c.6-3 2-5 2-8 0-2.4-1.5-4-3.5-4-1.8 0-2.8 1-5 1S8.8 3 7 3z"/></svg>Tratamentos</button>
       <button data-v="consulta"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0M12 17v5"/></svg>Consulta</button>
       <button data-v="briefings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 2h9l5 5v15H6z"/><path d="M14 2v6h6M9 13h7M9 17h5"/></svg>Briefings</button>
@@ -968,6 +986,30 @@ label.row>input[type=checkbox]{flex:none;margin-top:4px;width:17px;height:17px}
       <div class="painel" data-grupo="com" data-aba="equipe">
         <div class="card stack"><div class="row"><h3 class="grow">Desempenho por CRC</h3><span class="tiny dim">leads que entraram no mês, por CRC que atendeu · toque nos números para ver os nomes</span></div>
           <table class="tabela" id="equipeTabela"></table></div>
+      </div>
+    </section>
+
+    <!-- INDICADORES -->
+    <section class="view" id="v-indicadores">
+      <div class="head"><div><h1>Indicadores</h1><p>Comercial e financeiro da clínica, com os dados do CRM. Toque nos números para ver os nomes.</p></div></div>
+      <div class="row barra-abas">
+        <div class="chips" id="indEscopo"><button data-e="mes" class="on">Mês</button><button data-e="ano">Ano</button><button data-e="tudo">Tudo</button></div>
+        <input class="in" type="month" id="indMes" aria-label="Mês" style="width:auto">
+        <div class="chips" id="indUnidade" data-unidades="1"><button data-u="" class="on">Todas</button><button data-u="Caruaru">Caruaru</button><button data-u="Recife">Recife</button></div>
+        <span class="grow"></span><button class="btn sm" id="indNovaSaida">+ Saída</button></div>
+      <div class="row" style="margin:4px 0 8px"><h3 class="grow">Comercial</h3><span class="tiny dim" id="indPeriodo"></span></div>
+      <div class="kpis ind-kpis" id="indCom"></div>
+      <div class="row" style="margin:4px 0 8px"><h3 class="grow">Financeiro</h3><span class="tiny dim">entrada, forma de pagamento e situação ficam na ficha do cliente › Pagamento e campanha</span></div>
+      <div class="kpis ind-kpis" id="indFin"></div>
+      <div class="ind-grid">
+        <div class="card stack"><h3>Funil de leads</h3><div class="ind-funil" id="indFunilLead"></div></div>
+        <div class="card stack"><h3>Funil de clientes</h3><div class="ind-funil cli" id="indFunilCli"></div></div>
+        <div class="card stack"><div class="row"><h3 class="grow">Entradas × saídas por mês</h3><div class="legenda"><span><i style="background:var(--s-fechado)"></i>Entradas</span><span><i style="background:var(--ind-saida)"></i>Saídas</span></div></div><div class="pn-chart ind-fluxo" id="indFluxo" role="img" aria-label="Entradas e saídas por mês"></div></div>
+        <div class="card stack"><div class="row"><h3 class="grow">Conversão por mês</h3><span class="tiny dim">fecharam ÷ leads do mês</span></div><div class="pn-chart" id="indConv" role="img" aria-label="Conversão por mês"></div></div>
+        <div class="card stack"><h3>Como tomou conhecimento da clínica</h3><div class="mk-origens" id="indOrigem"></div></div>
+        <div class="card stack"><h3>Veio através de qual campanha</h3><div class="mk-origens" id="indCamp"></div></div>
+        <div class="card stack"><h3>Formas de pagamento (fechados)</h3><div class="mk-origens" id="indPag"></div></div>
+        <div class="card stack"><div class="row"><h3 class="grow">Saídas</h3><span class="tiny dim" id="indSaiTotal"></span></div><div class="lista-int" id="indSaidas"></div></div>
       </div>
     </section>
 

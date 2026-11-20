@@ -32,3 +32,7 @@ Site de página única, animado, da Weiss Odontologia (Caruaru e Recife).
 - Endereço: **https://alinha.weissodontologia.com.br** (outro subdomínio do site; o site continua em www.weissodontologia.com.br).
 - A pasta `alinha/` é um projeto próprio na Vercel (Root Directory: `alinha`), com login, banco de dados (Upstash Redis) e cópias automáticas. Veja `alinha/README.md`.
 - A pasta `alinha` não é publicada pelo GitHub Pages do site (`_config.yml`).
+
+## Indicadores
+- **Weiss Indicadores** (Artifact, atalho `/indicadores` no portal) e a tela **Indicadores** do Alinha (dados do CRM; entrada, forma e situação do pagamento ficam na ficha do cliente › Pagamento e campanha; saídas em + Saída).
+- **Clínica em Números** (`produtos/clinica-em-numeros/`): a versão sem marca para vender a outras clínicas. Veja o README da pasta.
