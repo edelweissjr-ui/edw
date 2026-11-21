@@ -5,9 +5,9 @@
 <style>
 /* Layout: barra lateral petróleo (logo + módulos) · área de trabalho clara · fichas e formulários abrem num painel lateral. */
 :root{
-  --bg:#f4f2ee; --surface:#ffffff; --surface-2:#ece9e4; --line:#dbd6cd; --fg:#1d2233; --muted:#5d6274;
-  --brand:#2e3a56; --accent:#5f5aa2; --accent-ink:#ffffff; --accent-soft:#e9e7f5;
-  --nav:#232c42; --nav-2:#303a55; --nav-fg:#eef0f6; --nav-muted:#a6abc2;
+  --bg:#f3efe9; --surface:#ffffff; --surface-2:#ebe5dd; --line:#dad2c7; --fg:#22273a; --muted:#5f6373;
+  --brand:#3b4560; --accent:#6c6795; --accent-ink:#ffffff; --accent-soft:#ebe8f2;
+  --nav:#2b3247; --nav-2:#3a4259; --nav-fg:#eeeff4; --nav-muted:#aaaebf;
   --ok:#1d7a4c; --ok-soft:#dbefe3; --warn:#9a5c00; --warn-soft:#fbefd8; --bad:#b3261e; --bad-soft:#f8e0de;
   --info:#2264b8; --info-soft:#dfeaf8; --off:#7b8785; --off-soft:#e9edec;
   --font-display:"Archivo","Inter",system-ui,sans-serif;
@@ -16,14 +16,14 @@
   --r:10px;
 }
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
-  --bg:#12141b; --surface:#1a1d27; --surface-2:#222634; --line:#323749; --fg:#e8e9f0; --muted:#a0a4b8;
-  --brand:#bcc0e2; --accent:#a9a4e3; --accent-ink:#15132b; --accent-soft:#2b2946;
+  --bg:#141519; --surface:#1c1d23; --surface-2:#25262e; --line:#363844; --fg:#ecebef; --muted:#a3a3b2;
+  --brand:#c3c7dc; --accent:#b2acd2; --accent-ink:#1a1828; --accent-soft:#2c2a3c;
   --nav:#0d0f16; --nav-2:#1c2030; --nav-fg:#e8e9f0; --nav-muted:#8f94ab;
   --ok:#6fcf97; --ok-soft:#12301f; --warn:#f0b35a; --warn-soft:#352610; --bad:#f2867e; --bad-soft:#3a1a19;
   --info:#7fb1f5; --info-soft:#14273f; --off:#8a9896; --off-soft:#1b2928; color-scheme:dark}}
 :root[data-theme="dark"]{
-  --bg:#12141b; --surface:#1a1d27; --surface-2:#222634; --line:#323749; --fg:#e8e9f0; --muted:#a0a4b8;
-  --brand:#bcc0e2; --accent:#a9a4e3; --accent-ink:#15132b; --accent-soft:#2b2946;
+  --bg:#141519; --surface:#1c1d23; --surface-2:#25262e; --line:#363844; --fg:#ecebef; --muted:#a3a3b2;
+  --brand:#c3c7dc; --accent:#b2acd2; --accent-ink:#1a1828; --accent-soft:#2c2a3c;
   --nav:#0d0f16; --nav-2:#1c2030; --nav-fg:#e8e9f0; --nav-muted:#8f94ab;
   --ok:#6fcf97; --ok-soft:#12301f; --warn:#f0b35a; --warn-soft:#352610; --bad:#f2867e; --bad-soft:#3a1a19;
   --info:#7fb1f5; --info-soft:#14273f; --off:#8a9896; --off-soft:#1b2928; color-scheme:dark}
@@ -33,7 +33,7 @@ html,body{min-height:100%}
 html{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;text-rendering:optimizeLegibility;-webkit-text-size-adjust:100%;text-size-adjust:100%}
 body{background:var(--bg);color:var(--fg);font-family:var(--font-body);font-size:15px;line-height:1.5;font-feature-settings:"kern" 1,"liga" 1,"cv11" 1;font-optical-sizing:auto}
 .btn,.seg button,.tabs button{min-height:38px}.btn.sm{min-height:30px}
-input[type=text],input[type=search],input[type=date],input[type=time],input[type=number],input[type=tel],input[type=email],select{min-height:40px}
+input[type=text],input[type=search],input[type=date],input[type=time],input[type=number],input[type=tel],input[type=email],input[type=password],input[type=url],select{min-height:40px}
 .mini-t input,.mini-t select,.pv,.eu select{min-height:32px}
 small,.muted{letter-spacing:.005em}
 th{font-size:11.5px}
@@ -78,7 +78,7 @@ main{min-width:0;padding-block:22px 60px;padding-left:max(16px,env(safe-area-ins
 .seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--surface)}
 .seg button{border:0;background:transparent;padding:7px 12px;cursor:pointer;font-weight:600;color:var(--muted)}
 .seg button.on{background:var(--brand);color:var(--surface)}
-input[type=text],input[type=search],input[type=date],input[type=time],input[type=number],input[type=tel],input[type=email],select,textarea{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 10px;width:100%;min-width:0}
+input[type=text],input[type=search],input[type=date],input[type=time],input[type=number],input[type=tel],input[type=email],input[type=password],input[type=url],select,textarea{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 10px;width:100%;min-width:0}
 textarea{min-height:70px;resize:vertical}
 .tools input,.tools select{width:auto}
 label.f{display:flex;flex-direction:column;gap:4px;font-size:12.5px;font-weight:600;color:var(--muted);min-width:0}
@@ -334,8 +334,8 @@ main{padding-bottom:84px}
 .preset{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--surface);border-radius:99px;padding:6px 12px 6px 8px;cursor:pointer;font-weight:500}
 .preset .sw{width:16px;height:16px;border-radius:50%;box-shadow:inset 0 0 0 1px rgba(0,0,0,.15)}.preset .sw+.sw{margin-left:-10px}
 .preset.on{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-soft)}
-.ident-tf{display:flex;flex-direction:column;align-items:center;gap:2px;color:#2e3a56}.ident-tf svg{width:54px;height:54px}.ident-tf b{letter-spacing:.24em;font-size:12px}.ident-tf small{font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:#5d6274}
-.ident-prev{background:#f4f2ee}
+.ident-tf{display:flex;flex-direction:column;align-items:center;gap:2px;color:#424e68}.ident-tf svg{width:54px;height:54px}.ident-tf b{letter-spacing:.24em;font-size:12px}.ident-tf small{font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:#5d6274}
+.ident-prev{background:#f3efe9}
 input[type=color]{width:100%;height:38px;padding:3px;border:1px solid var(--line);border-radius:8px;background:var(--surface)}
 .hero-marca{display:flex;align-items:center;gap:14px;padding:4px 2px}
 .hero-marca svg,.hero-marca img{width:52px;height:52px;flex:none;object-fit:contain}
@@ -356,9 +356,9 @@ legend{font-weight:700;font-size:13px;padding:0 6px;font-family:var(--font-displ
 .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(20px + env(safe-area-inset-bottom,0px));background:var(--fg);color:var(--bg);padding:10px 16px;border-radius:8px;z-index:60;font-weight:500;max-width:calc(100% - 32px)}
 /* Documento */
 .paper{background:#fff;color:#1b1b1b;border:1px solid var(--line);border-radius:6px;padding:36px 40px;font-family:Georgia,"Times New Roman",serif;font-size:14.5px;line-height:1.6;overflow-wrap:anywhere}
-.paper .lh{display:flex;align-items:center;gap:12px;border-bottom:2px solid #6b66b0;padding-bottom:12px;margin-bottom:22px;font-family:var(--font-body)}
+.paper .lh{display:flex;align-items:center;gap:12px;border-bottom:2px solid #918ba5;padding-bottom:12px;margin-bottom:22px;font-family:var(--font-body)}
 .paper .lh svg{width:44px;height:44px}
-.paper .lh b{font-family:var(--font-display);font-stretch:112%;font-size:18px;color:#2e3a56;display:block}
+.paper .lh b{font-family:var(--font-display);font-stretch:112%;font-size:18px;color:#424e68;display:block}
 .paper .lh small{color:#555;font-size:11.5px;display:block}
 .paper h4{text-align:center;font-family:var(--font-display);font-stretch:112%;letter-spacing:.08em;text-transform:uppercase;margin:6px 0 20px;font-size:16px}
 .paper .sig{margin-top:56px;text-align:center}
@@ -384,7 +384,7 @@ svg.chart text{fill:var(--muted);font-family:var(--font-mono);font-size:10px}
 <div class="app">
   <aside class="side">
     <div class="brand">
-      <svg viewBox="0 0 100 100" aria-hidden="true"><path d="M6 8h56v13H42v62H27V21H6z" fill="currentColor"/><path d="M47 21h49c-1.6 6-5.6 10.6-11 12H59v14h25c-1.2 4.6-4.6 8-9 9H59v38c-6.6-1.4-11-6.4-12-13z" fill="#aaa6dc"/></svg>
+      <svg viewBox="0 0 100 100" aria-hidden="true"><path d="M6 8h56v13H42v62H27V21H6z" fill="currentColor"/><path d="M47 21h49c-1.6 6-5.6 10.6-11 12H59v14h25c-1.2 4.6-4.6 8-9 9H59v38c-6.6-1.4-11-6.4-12-13z" fill="#b1aacb"/></svg>
       <div><b>TORQUE</b><small>Saúde e Reabilitação</small></div>
     </div>
     <nav class="nav" id="nav"></nav>
@@ -1185,7 +1185,7 @@ function extenso(v){
   const int=n=>{if(!n)return"zero";const mi=Math.floor(n/1e6),mil=Math.floor(n/1e3)%1e3,r=n%1e3,p=[];if(mi)p.push(mi===1?"um milhão":c3(mi)+" milhões");if(mil)p.push(mil===1?"mil":c3(mil)+" mil");if(r)p.push(c3(r));return p.length>1&&(r<100||r%100===0)&&r?p.slice(0,-1).join(" ")+" e "+p[p.length-1]:p.join(" ")};
   const cents=Math.round(num(v)*100),R=Math.floor(cents/100),C=cents%100;const out=[];if(R)out.push(int(R)+(R===1?" real":" reais"));if(C)out.push(int(C)+(C===1?" centavo":" centavos"));return out.join(" e ")||"zero reais";
 }
-const LOGO_DOC='<svg viewBox="0 0 100 100"><path d="M6 8h56v13H42v62H27V21H6z" fill="#2e3a56"/><path d="M47 21h49c-1.6 6-5.6 10.6-11 12H59v14h25c-1.2 4.6-4.6 8-9 9H59v38c-6.6-1.4-11-6.4-12-13z" fill="#8a86c0"/></svg>';
+const LOGO_DOC='<svg viewBox="0 0 100 100"><path d="M6 8h56v13H42v62H27V21H6z" fill="#424e68"/><path d="M47 21h49c-1.6 6-5.6 10.6-11 12H59v14h25c-1.2 4.6-4.6 8-9 9H59v38c-6.6-1.4-11-6.4-12-13z" fill="#918ba5"/></svg>';
 const DOCS={dec:"Declaração de comparecimento",ate:"Atestado fisioterapêutico",rec:"Recibo",rel:"Relatório fisioterapêutico",tcl:"Termo de consentimento"};
 function openDocs(pid,kind){
   const p=pac(pid);if(!p)return;kind=kind||"dec";if(!pode("prontuario")&&!["dec","rec"].includes(kind))kind="dec";
@@ -1228,7 +1228,7 @@ function docPrev(pid,kind){const el=$("#paper");if(el)el.innerHTML=docBody(pid,k
 async function docCopy(){const t=$("#paper").innerText;try{await navigator.clipboard.writeText(t);toast("Texto copiado.")}catch(e){const r=document.createRange();r.selectNodeContents($("#paper"));const s=getSelection();s.removeAllRanges();s.addRange(r);toast("Texto selecionado: use Ctrl+C para copiar.")}}
 async function docSave(pid,kind){
   const p=pac(pid);
-  const html=`<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>${esc(DOCS[kind])} - ${esc(p.nome)}</title><style>body{margin:0;background:#eee}.paper{background:#fff;color:#1b1b1b;max-width:800px;margin:20px auto;padding:56px 64px;font-family:Georgia,serif;font-size:15px;line-height:1.65}.lh{display:flex;align-items:center;gap:12px;border-bottom:2px solid #6b66b0;padding-bottom:12px;margin-bottom:24px;font-family:Arial,sans-serif}.lh svg{width:48px;height:48px}.lh b{font-size:19px;color:#2e3a56;display:block;letter-spacing:.02em}.lh small{color:#555;font-size:11.5px}h4{text-align:center;letter-spacing:.08em;text-transform:uppercase;font-family:Arial,sans-serif;margin:8px 0 22px}.sig{margin-top:60px;text-align:center}.sig div{border-top:1px solid #333;width:300px;margin:0 auto 4px}.foot{margin-top:34px;font-size:11px;color:#666;text-align:center;font-family:Arial,sans-serif}@media print{body{background:#fff}.paper{margin:0;padding:20mm}}</style></head><body><div class="paper">${docBody(pid,kind)}</div><script>window.onload=()=>window.print()<\/script></body></html>`;
+  const html=`<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>${esc(DOCS[kind])} - ${esc(p.nome)}</title><style>body{margin:0;background:#eee}.paper{background:#fff;color:#1b1b1b;max-width:800px;margin:20px auto;padding:56px 64px;font-family:Georgia,serif;font-size:15px;line-height:1.65}.lh{display:flex;align-items:center;gap:12px;border-bottom:2px solid #918ba5;padding-bottom:12px;margin-bottom:24px;font-family:Arial,sans-serif}.lh svg{width:48px;height:48px}.lh b{font-size:19px;color:#424e68;display:block;letter-spacing:.02em}.lh small{color:#555;font-size:11.5px}h4{text-align:center;letter-spacing:.08em;text-transform:uppercase;font-family:Arial,sans-serif;margin:8px 0 22px}.sig{margin-top:60px;text-align:center}.sig div{border-top:1px solid #333;width:300px;margin:0 auto 4px}.foot{margin-top:34px;font-size:11px;color:#666;text-align:center;font-family:Arial,sans-serif}@media print{body{background:#fff}.paper{margin:0;padding:20mm}}</style></head><body><div class="paper">${docBody(pid,kind)}</div><script>window.onload=()=>window.print()<\/script></body></html>`;
   await download(`${kind}-${p.nome.replace(/[^\wÀ-ú]+/g,"-").toLowerCase()}-${today()}.html`,html,"text/html");
 }
 async function download(filename,data,type){
@@ -1769,7 +1769,7 @@ function openAjuda(){const v=route().v,L=HELP[v]||[];
   <div class="tools"><button type="button" class="btn pri" onclick="T.close();T.go('assistente')">Perguntar ao assistente</button><button type="button" class="btn" onclick="T.close();T.go('chat')">Falar com a equipe</button></div>`,`<button type="button" class="btn" onclick="T.close()">Fechar</button>`,null)}
 
 /* ---------- Documentos: agenda do dia e relatório ---------- */
-function docShell(titulo,corpo){return `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>${esc(titulo)}</title><style>body{margin:0;background:#eee;font-family:Arial,sans-serif;color:#1b1b1b}.pg{background:#fff;max-width:900px;margin:20px auto;padding:40px 48px}.lh{display:flex;align-items:center;gap:12px;border-bottom:2px solid #6b66b0;padding-bottom:10px;margin-bottom:18px}.lh svg{width:44px;height:44px}.lh b{font-size:18px;color:#2e3a56;display:block}.lh small{color:#555;font-size:11.5px}h1{font-size:18px;margin:0 0 4px}h2{font-size:14px;margin:20px 0 6px;color:#2e3a56}table{border-collapse:collapse;width:100%;font-size:12.5px}th,td{border-bottom:1px solid #ddd;padding:6px 8px;text-align:left}th{background:#f3f3f3}td.r,th.r{text-align:right}.muted{color:#666;font-size:12px}@media print{body{background:#fff}.pg{margin:0;padding:12mm}}</style></head><body><div class="pg"><div class="lh">${logoDoc()}<div><b>${esc(CFG.clinica.nome)}</b><small>${esc([CFG.clinica.endereco,CFG.clinica.cidade,CFG.clinica.telefone].filter(Boolean).join(" · "))}</small></div></div>${corpo}</div><script>window.onload=()=>window.print()<\/script></body></html>`}
+function docShell(titulo,corpo){return `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>${esc(titulo)}</title><style>body{margin:0;background:#eee;font-family:Arial,sans-serif;color:#1b1b1b}.pg{background:#fff;max-width:900px;margin:20px auto;padding:40px 48px}.lh{display:flex;align-items:center;gap:12px;border-bottom:2px solid #918ba5;padding-bottom:10px;margin-bottom:18px}.lh svg{width:44px;height:44px}.lh b{font-size:18px;color:#424e68;display:block}.lh small{color:#555;font-size:11.5px}h1{font-size:18px;margin:0 0 4px}h2{font-size:14px;margin:20px 0 6px;color:#424e68}table{border-collapse:collapse;width:100%;font-size:12.5px}th,td{border-bottom:1px solid #ddd;padding:6px 8px;text-align:left}th{background:#f3f3f3}td.r,th.r{text-align:right}.muted{color:#666;font-size:12px}@media print{body{background:#fff}.pg{margin:0;padding:12mm}}</style></head><body><div class="pg"><div class="lh">${logoDoc()}<div><b>${esc(CFG.clinica.nome)}</b><small>${esc([CFG.clinica.endereco,CFG.clinica.cidade,CFG.clinica.telefone].filter(Boolean).join(" · "))}</small></div></div>${corpo}</div><script>window.onload=()=>window.print()<\/script></body></html>`}
 function baixarAgenda(){const d=UI.agDate,s=S(),fer=feriado(d);
   const corpo=`<h1>Agenda de ${esc(dLong(d))}${fer?" · "+esc(fer):""}</h1><div class="muted">Gerada em ${new Date().toLocaleString("pt-BR")}</div>${profs().map(p=>{const L=s.agenda.filter(a=>a.data===d&&a.profId===p.id&&a.status!=="cancelado").sort((a,b)=>a.hora.localeCompare(b.hora));return L.length?`<h2>${esc(p.nome)}</h2><table><thead><tr><th>Hora</th><th>Paciente</th><th>Telefone</th><th>Procedimento</th><th>Sala</th><th>Status</th></tr></thead><tbody>${L.map(a=>{const pp=pac(a.pacienteId)||{};return `<tr><td>${esc(a.hora)}</td><td>${esc(pp.nome||"")}</td><td>${esc(pp.telefone||"")}</td><td>${esc(serv(a.servicoId).nome)}${a.modalidade==="teleconsulta"?" (teleconsulta)":""}</td><td>${esc(a.sala||"")}</td><td>${esc(ST_LBL[a.status])}</td></tr>`}).join("")}</tbody></table>`:""}).join("")||"<p>Nenhum agendamento.</p>"}${(s.notas.find(n=>n.id===d)||{}).texto?`<h2>Observações do dia</h2><p>${esc(s.notas.find(n=>n.id===d).texto)}</p>`:""}`;
   download(`agenda-${d}.html`,docShell("Agenda "+fmtD(d),corpo),"text/html")}
@@ -1866,7 +1866,7 @@ function ddItens(){const I=[["pacientes","T.openPaciente()","Novo paciente"],["a
 
 /* ---------- Identidade visual ---------- */
 function logoDoc(){return CFG.logo?`<img src="${CFG.logo}" alt="" style="width:48px;height:48px;object-fit:contain">`:LOGO_DOC}
-function renderBrand(){const b=$(".brand");if(!b)return;const m=CFG.marca||{};b.innerHTML=(CFG.logo?`<img src="${CFG.logo}" alt="" class="brand-img">`:`<svg viewBox="0 0 100 100" aria-hidden="true"><path d="M6 8h56v13H42v62H27V21H6z" fill="currentColor"/><path d="M47 21h49c-1.6 6-5.6 10.6-11 12H59v14h25c-1.2 4.6-4.6 8-9 9H59v38c-6.6-1.4-11-6.4-12-13z" fill="#aaa6dc"/></svg>`)+`<div><b>${esc(m.titulo||"TORQUE")}</b><small>${esc(m.sub??"Saúde e Reabilitação")}</small></div>`}
+function renderBrand(){const b=$(".brand");if(!b)return;const m=CFG.marca||{};b.innerHTML=(CFG.logo?`<img src="${CFG.logo}" alt="" class="brand-img">`:`<svg viewBox="0 0 100 100" aria-hidden="true"><path d="M6 8h56v13H42v62H27V21H6z" fill="currentColor"/><path d="M47 21h49c-1.6 6-5.6 10.6-11 12H59v14h25c-1.2 4.6-4.6 8-9 9H59v38c-6.6-1.4-11-6.4-12-13z" fill="#b1aacb"/></svg>`)+`<div><b>${esc(m.titulo||"TORQUE")}</b><small>${esc(m.sub??"Saúde e Reabilitação")}</small></div>`}
 function lerLogo(file){return new Promise((res,rej)=>{const fr=new FileReader();fr.onerror=rej;fr.onload=()=>{const img=new Image();img.onerror=rej;img.onload=()=>{const k=Math.min(1,256/Math.max(img.width,img.height)),c=document.createElement("canvas");c.width=Math.round(img.width*k);c.height=Math.round(img.height*k);c.getContext("2d").drawImage(img,0,0,c.width,c.height);let d=c.toDataURL("image/png");if(d.length>180000)d=c.toDataURL("image/webp",.85);res(d)};img.src=fr.result};fr.readAsDataURL(file)})}
 function cardIdentidade(){const m=CFG.marca||{};return `<form class="card grid" id="f-marca" onsubmit="event.preventDefault();T.saveMarca(this)"><h2>Identidade visual</h2>
   <div class="ident"><div class="ident-prev">${CFG.logo?`<img src="${CFG.logo}" alt="Logomarca atual">`:`<span class="muted">Logomarca padrão Torque</span>`}</div>
@@ -2029,7 +2029,7 @@ const NOVAS_ACOES2={
 
 /* ================= Configurações em seções, horários, mensagens, assinatura, cores da marca ================= */
 let ME_NOME="";
-const COR_P="#2e3a56",COR_D="#5f5aa2";
+const COR_P="#3b4560",COR_D="#6c6795";
 const tfMark=(t,f)=>`<svg viewBox="0 0 100 100" aria-hidden="true"><path d="M6 8h56v13H42v62H27V21H6z" fill="${t}"/><path d="M47 21h49c-1.6 6-5.6 10.6-11 12H59v14h25c-1.2 4.6-4.6 8-9 9H59v38c-6.6-1.4-11-6.4-12-13z" fill="${f}"/></svg>`;
 const PRESETS=[["torque","Torque (logomarca)",COR_P,COR_D],["azul","Azul clínico","#1e3a5f","#2b7fd6"],["verde","Verde saúde","#1f4d3a","#1f9d6b"],["petroleo","Petróleo e laranja","#0e3a39","#d9561f"],["grafite","Grafite e dourado","#26272b","#a8822f"],["vinho","Vinho e rosa","#4a1f2e","#c2456b"],["roxo","Roxo","#3b2a5c","#8a5bd6"]];
 const FUNDOS=[["","Bege da marca"],["neutro","Cinza neutro"],["frio","Azulado"],["branco","Branco"]];
@@ -2042,7 +2042,7 @@ function aplicarTema(){let st=$("#tema-marca");if(!st){st=document.createElement
   st.textContent=(claro?`:root{${claro}}`:"")+(escuro?`@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){${escuro}}}:root[data-theme="dark"]{${escuro}}`:"")}
 cardIdentidade=function(){const m=CFG.marca||{},c=CFG.cores||{},adm=pode("ajustes",2),pa=c.principal||COR_P,de=c.destaque||COR_D,atual=(PRESETS.find(x=>x[2]===pa&&x[3]===de)||[""])[0];
   return `<form class="card grid" id="f-marca" onsubmit="event.preventDefault();T.saveMarca(this)"><h2>Identidade visual e cores do painel</h2>
-  <div class="ident"><div class="ident-prev">${CFG.logo?`<img src="${CFG.logo}" alt="Logomarca enviada">`:`<div class="ident-tf">${tfMark("#2e3a56","#8a86c0")}<b>TORQUE</b><small>Saúde e Reabilitação</small></div>`}</div>
+  <div class="ident"><div class="ident-prev">${CFG.logo?`<img src="${CFG.logo}" alt="Logomarca enviada">`:`<div class="ident-tf">${tfMark("#424e68","#918ba5")}<b>TORQUE</b><small>Saúde e Reabilitação</small></div>`}</div>
   <div class="grid g3" style="flex:1;min-width:240px"><label class="f">Nome na barra lateral<input type="text" id="mk-t" name="titulo" value="${esc(m.titulo||"TORQUE")}" maxlength="24"></label><label class="f">Subtítulo<input type="text" id="mk-s" name="sub" value="${esc(m.sub??"Saúde e Reabilitação")}" maxlength="30"></label><label class="f">Lema<input type="text" id="mk-l" name="slogan" value="${esc(m.slogan??"Movimento que transforma")}" maxlength="40"></label>
   ${adm?`<div class="tools spanall"><label class="btn">Enviar outra logomarca<input type="file" id="mk-f" accept="image/png,image/jpeg,image/webp,image/svg+xml" hidden onchange="T.logoUp(this.files[0])"></label>${CFG.logo?`<button type="button" class="btn" onclick="T.usarTonsLogo()">Usar os tons da logomarca enviada</button><button type="button" class="btn ghost danger" onclick="T.logoDel()">Voltar à marca Torque</button>`:""}</div>`:""}</div></div>
   <h3>Temas prontos</h3><div class="presets">${PRESETS.map(([k,l,p,d])=>`<button type="button" class="preset ${k===atual?"on":""}" ${adm?`onclick="T.aplicarPreset('${k}')"`:"disabled"}><span class="sw" style="background:${p}"></span><span class="sw" style="background:${d}"></span><span>${esc(l)}</span></button>`).join("")}</div>

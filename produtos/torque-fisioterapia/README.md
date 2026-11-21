@@ -51,3 +51,10 @@ Abre com dados de exemplo, só na tela; eles somem quando o primeiro paciente re
 - **Configurações em seções:** Agenda (horários por profissional e dia, com intervalo; fora do horário fica sombreado), Clínica e equipe, Prontuário e documentos (assinatura em imagem nos documentos), Financeiro e dados (avisos de vencimento, exportações, cópia de segurança), WhatsApp e lembretes (textos editáveis com variáveis, diagnóstico e histórico de envios), Segurança da conta e Plano e cobrança.
 - **Finanças:** meta mensal de faturamento, faturamento por janela (30, 90 e 120 dias) e resumo de repasses.
 - **Leitura:** fontes com suavização e tamanho base de 15 px; campos e botões com altura mínima para toque.
+
+## Demonstração para clientes
+- Link público: https://torque-saude-demo.vercel.app (também https://torque-demo-bice.vercel.app). Projeto `torque-demo` na Vercel.
+- Login de demonstração: usuário **admin**, senha **admin**. A tela de login é só uma porta de entrada da demonstração, não protege dados.
+- Roda só no navegador do visitante (sem banco compartilhado), com dados fictícios. Os botões "Recomeçar demonstração" e "Sair" ficam no topo. Os recursos de IA não funcionam fora do Claude.
+- `demo/` é gerado a partir do `index.html`. Para atualizar, gere de novo e publique na Vercel.
+- Paleta medida na logomarca: azul-ardósia #424e68, lilás #918ba5, fundo bege.
