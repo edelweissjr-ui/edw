@@ -6,7 +6,10 @@ import Anthropic from "@anthropic-ai/sdk";
 
 const RURL = (process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL || "").replace(/\/$/, "");
 const RTOK = process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN || "";
-const P = "kin:";
+/* Cada sistema hospedado tem o próprio espaço de dados. Mesmo que dois projetos sejam ligados
+   ao mesmo banco por engano, as chaves de um nunca se misturam com as do outro. */
+const INSTANCIA = String(process.env.KINESIS_INSTANCIA || process.env.VERCEL_PROJECT_ID || "local").replace(/[^\w-]/g, "").slice(0, 60) || "local";
+const P = "kin:" + INSTANCIA + ":";
 const SESSAO_DIAS = 30;
 
 const COLS = new Set(["pacientes", "agenda", "registros", "financeiro", "chat", "estoque", "movest", "guias", "pesquisas", "modelos", "espera", "bloqueios", "notas", "auditoria", "leads", "faturas", "config", "licenca"]);
