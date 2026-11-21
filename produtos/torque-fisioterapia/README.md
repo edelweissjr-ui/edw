@@ -44,3 +44,10 @@ Abre com dados de exemplo, só na tela; eles somem quando o primeiro paciente re
 - **CRM / Comercial**: funil em quadros (novo lead, em contato, avaliação agendada, proposta, ganho, perdido) com arrastar e soltar, temperatura, valor, responsável, próximo contato, histórico de contatos, motivo da perda, conversão em paciente com agendamento da avaliação; follow-up de hoje e atrasados; leads por origem; aba Relacionamento (CRC) com reativação, aniversariantes, pós-alta e pacotes acabando.
 - **Identidade visual** (Ajustes): envio da logomarca e nome da barra lateral; a logomarca vai para os documentos.
 - Regras do banco: só administradores (editores) gravam usuários e configurações; só o titular grava licença e faturas. As demais permissões por setor são aplicadas pela própria página.
+
+## Identidade Torque e configurações
+- **Marca:** Torque Saúde e Reabilitação, com o monograma TF redesenhado em vetor (T azul-marinho, F lilás) e o lema "Movimento que transforma". Paleta da logomarca: azul-marinho #2e3a56, lilás #5f5aa2 e fundo bege #f4f2ee, com versão escura.
+- **Cores do painel:** 7 temas prontos, cor principal, cor de destaque, cor própria do menu lateral e tom de fundo. Ao enviar outra logomarca, o sistema extrai os tons dela.
+- **Configurações em seções:** Agenda (horários por profissional e dia, com intervalo; fora do horário fica sombreado), Clínica e equipe, Prontuário e documentos (assinatura em imagem nos documentos), Financeiro e dados (avisos de vencimento, exportações, cópia de segurança), WhatsApp e lembretes (textos editáveis com variáveis, diagnóstico e histórico de envios), Segurança da conta e Plano e cobrança.
+- **Finanças:** meta mensal de faturamento, faturamento por janela (30, 90 e 120 dias) e resumo de repasses.
+- **Leitura:** fontes com suavização e tamanho base de 15 px; campos e botões com altura mínima para toque.

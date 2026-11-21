@@ -1,13 +1,13 @@
 <title>Torque Fisioterapia</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@112,600;112,800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@112,600;112,800&family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&family=JetBrains+Mono:wght@400;600&display=swap">
 <style>
 /* Layout: barra lateral petróleo (logo + módulos) · área de trabalho clara · fichas e formulários abrem num painel lateral. */
 :root{
-  --bg:#f2f5f4; --surface:#ffffff; --surface-2:#e8eeec; --line:#d3dcd9; --fg:#132220; --muted:#5a6b68;
-  --brand:#0e3a39; --accent:#d9561f; --accent-ink:#ffffff; --accent-soft:#fbe5d9;
-  --nav:#0c2b2a; --nav-2:#143d3b; --nav-fg:#e7f0ee; --nav-muted:#93b0ab;
+  --bg:#f4f2ee; --surface:#ffffff; --surface-2:#ece9e4; --line:#dbd6cd; --fg:#1d2233; --muted:#5d6274;
+  --brand:#2e3a56; --accent:#5f5aa2; --accent-ink:#ffffff; --accent-soft:#e9e7f5;
+  --nav:#232c42; --nav-2:#303a55; --nav-fg:#eef0f6; --nav-muted:#a6abc2;
   --ok:#1d7a4c; --ok-soft:#dbefe3; --warn:#9a5c00; --warn-soft:#fbefd8; --bad:#b3261e; --bad-soft:#f8e0de;
   --info:#2264b8; --info-soft:#dfeaf8; --off:#7b8785; --off-soft:#e9edec;
   --font-display:"Archivo","Inter",system-ui,sans-serif;
@@ -16,21 +16,28 @@
   --r:10px;
 }
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
-  --bg:#0a1514; --surface:#10201f; --surface-2:#172b29; --line:#24403d; --fg:#e4eeec; --muted:#97aeaa;
-  --brand:#7fd1c7; --accent:#f07a43; --accent-ink:#1a0c05; --accent-soft:#3a2216;
-  --nav:#061110; --nav-2:#0f2422; --nav-fg:#e4eeec; --nav-muted:#86a39f;
+  --bg:#12141b; --surface:#1a1d27; --surface-2:#222634; --line:#323749; --fg:#e8e9f0; --muted:#a0a4b8;
+  --brand:#bcc0e2; --accent:#a9a4e3; --accent-ink:#15132b; --accent-soft:#2b2946;
+  --nav:#0d0f16; --nav-2:#1c2030; --nav-fg:#e8e9f0; --nav-muted:#8f94ab;
   --ok:#6fcf97; --ok-soft:#12301f; --warn:#f0b35a; --warn-soft:#352610; --bad:#f2867e; --bad-soft:#3a1a19;
   --info:#7fb1f5; --info-soft:#14273f; --off:#8a9896; --off-soft:#1b2928; color-scheme:dark}}
 :root[data-theme="dark"]{
-  --bg:#0a1514; --surface:#10201f; --surface-2:#172b29; --line:#24403d; --fg:#e4eeec; --muted:#97aeaa;
-  --brand:#7fd1c7; --accent:#f07a43; --accent-ink:#1a0c05; --accent-soft:#3a2216;
-  --nav:#061110; --nav-2:#0f2422; --nav-fg:#e4eeec; --nav-muted:#86a39f;
+  --bg:#12141b; --surface:#1a1d27; --surface-2:#222634; --line:#323749; --fg:#e8e9f0; --muted:#a0a4b8;
+  --brand:#bcc0e2; --accent:#a9a4e3; --accent-ink:#15132b; --accent-soft:#2b2946;
+  --nav:#0d0f16; --nav-2:#1c2030; --nav-fg:#e8e9f0; --nav-muted:#8f94ab;
   --ok:#6fcf97; --ok-soft:#12301f; --warn:#f0b35a; --warn-soft:#352610; --bad:#f2867e; --bad-soft:#3a1a19;
   --info:#7fb1f5; --info-soft:#14273f; --off:#8a9896; --off-soft:#1b2928; color-scheme:dark}
 *{box-sizing:border-box}
 [hidden]{display:none!important}
 html,body{min-height:100%}
-body{background:var(--bg);color:var(--fg);font-family:var(--font-body);font-size:14px;line-height:1.45}
+html{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;text-rendering:optimizeLegibility;-webkit-text-size-adjust:100%;text-size-adjust:100%}
+body{background:var(--bg);color:var(--fg);font-family:var(--font-body);font-size:15px;line-height:1.5;font-feature-settings:"kern" 1,"liga" 1,"cv11" 1;font-optical-sizing:auto}
+.btn,.seg button,.tabs button{min-height:38px}.btn.sm{min-height:30px}
+input[type=text],input[type=search],input[type=date],input[type=time],input[type=number],input[type=tel],input[type=email],select{min-height:40px}
+.mini-t input,.mini-t select,.pv,.eu select{min-height:32px}
+small,.muted{letter-spacing:.005em}
+th{font-size:11.5px}
+::selection{background:var(--accent-soft);color:var(--fg)}
 body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:30;background:var(--nav)}
 button,input,select,textarea{font:inherit;color:inherit}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
@@ -45,13 +52,13 @@ h3{font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;
 .side{background:var(--nav);color:var(--nav-fg);position:sticky;top:env(safe-area-inset-top,0px);height:calc(100vh - env(safe-area-inset-top,0px));display:flex;flex-direction:column;gap:18px;padding-block:20px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:16px;z-index:20}
 .brand{display:flex;align-items:center;gap:10px}
 .brand svg{width:40px;height:40px;flex:none}
-.brand b{font-family:var(--font-display);font-stretch:112%;font-weight:800;font-size:17px;letter-spacing:.02em;line-height:1;display:block}
-.brand small{display:block;color:var(--nav-muted);font-size:11px;letter-spacing:.14em;text-transform:uppercase;margin-top:3px}
+.brand b{font-family:var(--font-body);font-weight:600;font-size:17px;letter-spacing:.24em;line-height:1;display:block}
+.brand small{display:block;color:var(--nav-muted);font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;margin-top:4px;white-space:nowrap}
 .nav{display:flex;flex-direction:column;gap:2px}
-.nav a{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:8px;color:var(--nav-muted);text-decoration:none;font-weight:500;white-space:nowrap}
+.nav a{display:flex;align-items:center;gap:10px;padding:8px 10px;font-size:14px;border-radius:8px;color:var(--nav-muted);text-decoration:none;font-weight:500;white-space:nowrap}
 .nav a svg{width:18px;height:18px;flex:none;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .nav a:hover{background:var(--nav-2);color:var(--nav-fg)}
-.nav a.on{background:var(--nav-2);color:var(--nav-fg);box-shadow:inset 3px 0 0 #f07a43}
+.nav a.on{background:var(--nav-2);color:var(--nav-fg);box-shadow:inset 3px 0 0 var(--accent)}
 .side-foot{margin-top:auto;font-size:12px;color:var(--nav-muted);display:flex;flex-direction:column;gap:6px}
 .side-foot .pill{align-self:flex-start}
 /* Área principal */
@@ -108,7 +115,7 @@ td.r,th.r{text-align:right}
 .li small.tel{font-size:12px;color:var(--fg)}
 .contato{display:flex;gap:12px;align-items:center}.contato .cbar{height:56px;width:8px}
 .tel-big{font-size:17px;font-weight:600;user-select:all}
-.nb{font-style:normal;margin-left:auto;background:#f07a43;color:#1a0c05;border-radius:99px;font-size:11px;font-weight:700;padding:1px 7px;line-height:1.5}
+.nb{font-style:normal;margin-left:auto;background:var(--accent);color:var(--accent-ink);border-radius:99px;font-size:11px;font-weight:700;padding:1px 7px;line-height:1.5}
 /* Chat */
 .chat{display:grid;grid-template-columns:230px minmax(0,1fr);gap:14px;align-items:start}
 .rooms{display:flex;flex-direction:column;gap:2px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:8px}
@@ -303,6 +310,39 @@ main{padding-bottom:84px}
 .ident-prev img{max-width:100%;max-height:100%;object-fit:contain}
 .brand-img{width:40px;height:40px;object-fit:contain;border-radius:8px;flex:none;background:#fff}
 .usel{position:relative}
+/* Configurações, horários, marca */
+.aj{display:grid;grid-template-columns:260px minmax(0,1fr);gap:16px;align-items:start}
+.ajnav{display:flex;flex-direction:column;gap:2px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:8px;position:sticky;top:calc(70px + env(safe-area-inset-top,0px))}
+.ajg{font-size:10.5px;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);font-weight:600;margin:10px 10px 4px}.ajg:first-child{margin-top:4px}
+.ajnav button{display:flex;flex-direction:column;align-items:flex-start;gap:1px;border:0;background:none;text-align:left;padding:8px 10px;border-radius:8px;cursor:pointer;color:var(--fg)}
+.ajnav button small{color:var(--muted);font-size:11.5px}.ajnav button:hover{background:var(--surface-2)}
+.ajnav button.on{background:var(--accent-soft);box-shadow:inset 3px 0 0 var(--accent)}
+.aj-c{min-width:0}
+@media (max-width:860px){.aj{grid-template-columns:minmax(0,1fr)}.ajnav{position:static;flex-direction:row;overflow-x:auto}.ajnav .ajg{display:none}.ajnav button{flex:none}.ajnav button small{display:none}}
+.hor{display:flex;flex-direction:column;gap:8px}
+.hrow{display:grid;grid-template-columns:minmax(150px,1.2fr) minmax(90px,1fr) auto minmax(90px,1fr) minmax(110px,.8fr);gap:10px;align-items:center;border:1px solid var(--line);border-radius:9px;padding:8px 12px}
+.hrow .slot{flex-direction:row;align-items:center;gap:6px;white-space:nowrap}.hrow .slot input{width:88px}
+.hrow .fech{display:none}.hrow.off .fech{display:inline}.hrow.off input[type=time],.hrow.off .slot{opacity:.4}
+@media (max-width:620px){.hrow{grid-template-columns:1fr 1fr}.hrow>label.chk{grid-column:1/-1}.hrow>span.muted{display:none}}
+.fora{position:absolute;left:0;right:0;z-index:0;pointer-events:none;background:color-mix(in srgb,var(--muted) 11%,transparent)}
+.fora span{display:block;text-align:center;padding-top:10px;font-size:12px;color:var(--muted);font-weight:600}
+.jan{display:grid;grid-template-columns:1fr auto auto auto;gap:4px 12px;align-items:baseline;padding:6px 0;border-bottom:1px solid var(--line)}.jan:last-child{border-bottom:0}.jan .dl{margin:0}
+.prev{display:block;margin-top:4px;font-weight:400;line-height:1.4}
+.assin{max-height:42px;max-width:180px;background:#fff;border-radius:4px;padding:2px}
+.chev{margin-left:auto;font-size:18px}
+.presets{display:flex;flex-wrap:wrap;gap:8px}
+.preset{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--surface);border-radius:99px;padding:6px 12px 6px 8px;cursor:pointer;font-weight:500}
+.preset .sw{width:16px;height:16px;border-radius:50%;box-shadow:inset 0 0 0 1px rgba(0,0,0,.15)}.preset .sw+.sw{margin-left:-10px}
+.preset.on{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-soft)}
+.ident-tf{display:flex;flex-direction:column;align-items:center;gap:2px;color:#2e3a56}.ident-tf svg{width:54px;height:54px}.ident-tf b{letter-spacing:.24em;font-size:12px}.ident-tf small{font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:#5d6274}
+.ident-prev{background:#f4f2ee}
+input[type=color]{width:100%;height:38px;padding:3px;border:1px solid var(--line);border-radius:8px;background:var(--surface)}
+.hero-marca{display:flex;align-items:center;gap:14px;padding:4px 2px}
+.hero-marca svg,.hero-marca img{width:52px;height:52px;flex:none;object-fit:contain}
+.hero-marca b{display:block;font-weight:600;letter-spacing:.26em;font-size:20px;color:var(--brand);line-height:1}
+.hero-marca span{display:block;font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);margin-top:5px}
+.hero-marca em{display:block;font-style:normal;font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--accent);margin-top:4px}
+.brand svg{color:var(--nav-fg)}
 /* Painel lateral (modal) */
 .ov{position:fixed;inset:0;background:rgba(5,15,14,.45);z-index:40;display:flex;justify-content:flex-end}
 .drawer{background:var(--bg);width:min(760px,100%);height:100%;overflow:auto;display:flex;flex-direction:column;box-shadow:-10px 0 30px rgba(0,0,0,.2)}
@@ -316,9 +356,9 @@ legend{font-weight:700;font-size:13px;padding:0 6px;font-family:var(--font-displ
 .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(20px + env(safe-area-inset-bottom,0px));background:var(--fg);color:var(--bg);padding:10px 16px;border-radius:8px;z-index:60;font-weight:500;max-width:calc(100% - 32px)}
 /* Documento */
 .paper{background:#fff;color:#1b1b1b;border:1px solid var(--line);border-radius:6px;padding:36px 40px;font-family:Georgia,"Times New Roman",serif;font-size:14.5px;line-height:1.6;overflow-wrap:anywhere}
-.paper .lh{display:flex;align-items:center;gap:12px;border-bottom:2px solid #d9561f;padding-bottom:12px;margin-bottom:22px;font-family:var(--font-body)}
+.paper .lh{display:flex;align-items:center;gap:12px;border-bottom:2px solid #6b66b0;padding-bottom:12px;margin-bottom:22px;font-family:var(--font-body)}
 .paper .lh svg{width:44px;height:44px}
-.paper .lh b{font-family:var(--font-display);font-stretch:112%;font-size:18px;color:#0e3a39;display:block}
+.paper .lh b{font-family:var(--font-display);font-stretch:112%;font-size:18px;color:#2e3a56;display:block}
 .paper .lh small{color:#555;font-size:11.5px;display:block}
 .paper h4{text-align:center;font-family:var(--font-display);font-stretch:112%;letter-spacing:.08em;text-transform:uppercase;margin:6px 0 20px;font-size:16px}
 .paper .sig{margin-top:56px;text-align:center}
@@ -334,7 +374,7 @@ svg.chart text{fill:var(--muted);font-family:var(--font-mono);font-size:10px}
   .nav{flex-direction:row}
   .nav a span{display:none}
   .nav a.on span{display:inline}
-  .nav a.on{box-shadow:inset 0 -3px 0 #f07a43}
+  .nav a.on{box-shadow:inset 0 -3px 0 var(--accent)}
   .cal{max-height:none}
 }
 @media (max-width:620px){.g2,.g3,.g4{grid-template-columns:minmax(0,1fr)}.span2,.span3{grid-column:auto}.kv{grid-template-columns:minmax(0,1fr)}.kv dt{margin-top:6px}.paper{padding:22px 18px}}
@@ -344,8 +384,8 @@ svg.chart text{fill:var(--muted);font-family:var(--font-mono);font-size:10px}
 <div class="app">
   <aside class="side">
     <div class="brand">
-      <svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="23" fill="#143d3b"/><path d="M36.99 16.5 A15 15 0 1 1 16.5 11.01" fill="none" stroke="#f07a43" stroke-width="3.6" stroke-linecap="round"/><polygon points="21.2,8.4 14.2,7.2 17.6,14.6" fill="#f07a43"/><rect x="16.5" y="17" width="15" height="4.2" rx="1" fill="#e7f0ee"/><rect x="21.9" y="17" width="4.2" height="15.5" rx="1" fill="#e7f0ee"/></svg>
-      <div><b>TORQUE</b><small>Fisioterapia</small></div>
+      <svg viewBox="0 0 100 100" aria-hidden="true"><path d="M6 8h56v13H42v62H27V21H6z" fill="currentColor"/><path d="M47 21h49c-1.6 6-5.6 10.6-11 12H59v14h25c-1.2 4.6-4.6 8-9 9H59v38c-6.6-1.4-11-6.4-12-13z" fill="#aaa6dc"/></svg>
+      <div><b>TORQUE</b><small>Saúde e Reabilitação</small></div>
     </div>
     <nav class="nav" id="nav"></nav>
     <div class="side-foot"><span id="modo" class="pill">Carregando…</span><span>Prontuário conforme Res. COFFITO 414/2012 · LGPD</span></div>
@@ -386,7 +426,7 @@ function toast(m){clearTimeout(toastT);let el=$(".toast");if(!el){el=document.cr
 
 /* ================= Configuração padrão ================= */
 const DEF_CFG={
-  clinica:{nome:"Torque Fisioterapia",cnpj:"",endereco:"",cidade:"",telefone:"",email:"",instagram:""},
+  clinica:{nome:"Torque Saúde e Reabilitação",cnpj:"",endereco:"",cidade:"",telefone:"",email:"",instagram:""},
   horaIni:"07:00",horaFim:"21:00",
   profissionais:[
     {id:"p1",nome:"Sócio(a) 1",crefito:"",especialidade:"Ortopedia e Traumatologia",cor:"#d9561f",socio:true,cota:20,comissao:0,ativo:true},
@@ -459,7 +499,7 @@ const confCor=st=>st==="confirmado"||st==="espera"||st==="atendido"?"var(--ok)":
 const confTxt=st=>st==="confirmado"?"Paciente confirmou":st==="espera"?"Paciente chegou (em espera)":st==="atendido"?"Atendido":st==="faltou"?"Faltou":st==="cancelado"?"Cancelado":"Aguardando confirmação: clique para marcar como confirmado";
 const pac=id=>S().pacientes.find(p=>p.id===id);
 const pacNome=id=>(pac(id)||{}).nome||"Paciente removido";
-const UI={agDate:today(),agMode:"dia",agProf:"",agCancel:false,pBusca:"",pSit:"ativo",pTab:"resumo",fMes:mesDe(today()),fTipo:"todos",fStatus:"todos",rMes:mesDe(today()),fPer:"mes",fTab:"painel",rPer:"mes",agSala:"",agStatus:"",agServ:"",agBusca:"",agNotaOpen:false,eTab:"itens",eBusca:"",eCat:"",eArq:false,gBusca:"",gSit:"",gOp:"",auCol:"",auProf:"",auBusca:"",modSel:"",iaPac:"",iaDraft:"",fichaUlt:"",verComo:"",uTab:"lista",cTab:"funil",cBusca:"",cEt:"",cOrig:""};
+const UI={agDate:today(),agMode:"dia",agProf:"",agCancel:false,pBusca:"",pSit:"ativo",pTab:"resumo",fMes:mesDe(today()),fTipo:"todos",fStatus:"todos",rMes:mesDe(today()),fPer:"mes",fTab:"painel",rPer:"mes",agSala:"",agStatus:"",agServ:"",agBusca:"",agNotaOpen:false,eTab:"itens",eBusca:"",eCat:"",eArq:false,gBusca:"",gSit:"",gOp:"",auCol:"",auProf:"",auBusca:"",modSel:"",iaPac:"",iaDraft:"",fichaUlt:"",ajSec:"agenda",ajProf:"",verComo:"",uTab:"lista",cTab:"funil",cBusca:"",cEt:"",cOrig:""};
 
 async function save(col,obj,quiet,sys){
   if(!canWrite){toast("Seu acesso é só de leitura.");return false}
@@ -550,11 +590,11 @@ async function setStatus(id,st){
   a.status=st;if(await save("agenda",a,true)){await syncReceita(a);render();toast("Marcado como "+ST_LBL[st].toLowerCase()+".");if(st==="atendido"&&pode("prontuario",2)&&!real.registros.some(r=>r.agendaId===id))setTimeout(()=>openEvolucao(a.pacienteId,null,id),250)}
 }
 function waLink(tel,msg){let d=digits(tel);if(!d)return"";if(d.length<=11)d="55"+d;return"https://wa.me/"+d+"?text="+encodeURIComponent(msg)}
-function msgLembrete(a){const p=pac(a.pacienteId)||{},c=CFG.clinica,pn=(p.nome||"").replace(/^Exemplo · /,"").split(" ")[0];const quando=a.data===addDays(today(),1)?"amanhã ("+dLong(a.data).toLowerCase()+")":a.data===today()?"hoje":dLong(a.data).toLowerCase();return `Olá, ${pn}! Lembrete da ${c.nome}: ${quando} às ${a.hora} você tem ${serv(a.servicoId).nome.toLowerCase()} com ${prof(a.profId).nome}.${c.endereco?" Endereço: "+c.endereco+".":""} Venha com roupa confortável e chegue 10 minutos antes. Se precisar remarcar, responda esta mensagem.`}
+function msgLembrete(a){const _t=tplAg("lembrete",a);if(_t)return _t;const p=pac(a.pacienteId)||{},c=CFG.clinica,pn=(p.nome||"").replace(/^Exemplo · /,"").split(" ")[0];const quando=a.data===addDays(today(),1)?"amanhã ("+dLong(a.data).toLowerCase()+")":a.data===today()?"hoje":dLong(a.data).toLowerCase();return `Olá, ${pn}! Lembrete da ${c.nome}: ${quando} às ${a.hora} você tem ${serv(a.servicoId).nome.toLowerCase()} com ${prof(a.profId).nome}.${c.endereco?" Endereço: "+c.endereco+".":""} Venha com roupa confortável e chegue 10 minutos antes. Se precisar remarcar, responda esta mensagem.`}
 function smsLink(tel,msg){let d=digits(tel);if(!d)return"";if(d.length<=11)d="55"+d;return"sms:+"+d+"?body="+encodeURIComponent(msg)}
 function contatoBtns(a,p,sm){if(!p||!p.telefone)return"";const c=sm?"btn sm":"btn";return `<a class="${c} wa" target="_blank" rel="noopener" href="${waLink(p.telefone,msgConfirma(a))}" onclick="T.marca('${a.id}','confirmacaoEm')" title="Pedir confirmação pelo WhatsApp">WhatsApp</a><a class="${c}" target="_blank" rel="noopener" href="${waLink(p.telefone,msgLembrete(a))}" onclick="T.marca('${a.id}','lembreteEm')" title="Enviar lembrete pelo WhatsApp">Lembrete</a><a class="${c}" href="${smsLink(p.telefone,msgLembrete(a))}" onclick="T.marca('${a.id}','smsEm')" title="Enviar lembrete por SMS (abre o app de mensagens do celular)">SMS</a>`}
 const cbar=a=>`<button type="button" class="cbar" style="--cb:${confCor(a.status)}" title="${esc(confTxt(a.status))}" aria-label="${esc(confTxt(a.status))}" onclick="event.stopPropagation();T.toggleConf('${a.id}')"></button>`;
-function msgConfirma(a){const p=pac(a.pacienteId)||{};const pr=prof(a.profId);return `Olá, ${(p.nome||"").replace(/^Exemplo · /,"").split(" ")[0]}! Aqui é da ${CFG.clinica.nome}. Confirmando seu atendimento de ${serv(a.servicoId).nome.toLowerCase()} com ${pr.nome} em ${dLong(a.data).toLowerCase()} às ${a.hora}. Responda 1 para CONFIRMAR ou 2 para REMARCAR.`}
+function msgConfirma(a){const _t=tplAg("confirmacao",a);if(_t)return _t;const p=pac(a.pacienteId)||{};const pr=prof(a.profId);return `Olá, ${(p.nome||"").replace(/^Exemplo · /,"").split(" ")[0]}! Aqui é da ${CFG.clinica.nome}. Confirmando seu atendimento de ${serv(a.servicoId).nome.toLowerCase()} com ${pr.nome} em ${dLong(a.data).toLowerCase()} às ${a.hora}. Responda 1 para CONFIRMAR ou 2 para REMARCAR.`}
 
 /* ================= Navegação ================= */
 const ICONS={
@@ -616,7 +656,7 @@ VIEWS.inicio=()=>{
   const semEvo=s.agenda.filter(a=>a.status==="atendido"&&a.data>=addDays(t,-30)&&!s.registros.some(r=>r.agendaId===a.id));
   const niver=s.pacientes.filter(p=>{if(!p.nascimento)return false;for(let i=0;i<7;i++){if(addDays(t,i).slice(5)===p.nascimento.slice(5))return true}return false});
   const venc=s.financeiro.filter(f=>finStatus(f)==="vencido");
-  return `<div class="head"><div><h1>${esc(dLong(t))}</h1><div class="sub">${hoje.length} atendimento(s) hoje · ${ativos.length} paciente(s) em tratamento</div></div>
+  return `${heroMarca()}<div class="head"><div><h1>${esc(dLong(t))}</h1><div class="sub">${hoje.length} atendimento(s) hoje · ${ativos.length} paciente(s) em tratamento</div></div>
   <div class="tools"><button class="btn" onclick="T.openPaciente()">+ Paciente</button><button class="btn pri" onclick="T.openAppt()">+ Agendar</button></div></div>
   ${guiaHtml()}
   <div class="kpis">
@@ -663,7 +703,7 @@ VIEWS.agenda=()=>{
   const colHtml=cols.map(c=>{
     let evs=s.agenda.filter(a=>a.data===c.data&&a.profId===c.prof&&(UI.agCancel||a.status!=="cancelado"||UI.agStatus==="cancelado")&&(!UI.agSala||a.sala===UI.agSala)&&(!UI.agStatus||a.status===UI.agStatus)&&(!UI.agServ||a.servicoId===UI.agServ)).map(a=>({a,s:toMin(a.hora),e:toMin(a.hora)+num(a.duracao||50)}));
     layoutLanes(evs);
-    return `<div class="cal-col" style="height:${H}px;--slot:${PX}px" data-d="${c.data}" data-p="${c.prof}" onclick="T.calClick(event,this)">${bloqHtml(c,ini,ppm)}${evs.map(e=>{const p=pac(e.a.pacienteId)||{},pr=prof(e.a.profId);const top=(e.s-ini)*ppm,h=Math.max(22,(e.e-e.s)*ppm-2),w=100/e.n;
+    return `<div class="cal-col" style="height:${H}px;--slot:${PX}px" data-d="${c.data}" data-p="${c.prof}" onclick="T.calClick(event,this)">${foraHtml(c,ini,fim)}${bloqHtml(c,ini,ppm)}${evs.map(e=>{const p=pac(e.a.pacienteId)||{},pr=prof(e.a.profId);const top=(e.s-ini)*ppm,h=Math.max(22,(e.e-e.s)*ppm-2),w=100/e.n;
       return `<div class="ev ${e.a.status}" style="--sc:${esc(servCor(e.a.servicoId))};--cb:${confCor(e.a.status)};top:${top}px;height:${h}px;left:calc(${w*e.lane}% + 2px);width:calc(${w}% - 4px)" onclick="event.stopPropagation();T.openAppt('${e.a.id}')" title="${esc(e.a.hora+" "+(p.nome||"")+(p.telefone?" · "+p.telefone:"")+" · "+serv(e.a.servicoId).nome+" · "+ST_LBL[e.a.status])}">${cbar(e.a)}<b>${esc(e.a.hora)} ${esc((p.nome||"Paciente removido").replace("Exemplo · ",""))}</b><small>${esc(serv(e.a.servicoId).nome)}${e.a.modalidade==="teleconsulta"?" · Tele":""}${e.a.sala?" · "+esc(e.a.sala):""}${e.a.status!=="agendado"?" · "+ST_LBL[e.a.status]:""}</small>${p.telefone?`<small class="num">${esc(p.telefone)}</small>`:""}</div>`}).join("")}</div>`}).join("");
   const count=s.agenda.filter(a=>(UI.agMode==="dia"?a.data===UI.agDate:cols.some(c=>c.data===a.data&&a.profId===UI.agProf))&&a.status!=="cancelado").length;
   return `<div class="head"><div><h1>Agenda</h1><div class="sub">${UI.agMode==="dia"?esc(dLong(UI.agDate))+(feriado(UI.agDate)?" · <b style='color:var(--bad)'>Feriado: "+esc(feriado(UI.agDate))+"</b>":""):"Semana de "+fmtD(cols[0].data)+" a "+fmtD(cols[cols.length-1].data)} · ${count} agendamento(s)</div></div>
@@ -950,9 +990,9 @@ function openAppt(id,pre){
        while(made<n&&guard<500){if(rep.includes(parseD(d).getDay())){const c=Object.assign({},o,{data:d});delete c.id;if(!(await save("agenda",c,true)))return;made++}d=addDays(d,1);guard++}
        closeM();render();toast(made+" sessões agendadas.");return;
      }
-     const blq=bloqueado(o);
+     const blq=bloqueado(o),fora=foraHorario(o);
      const conflito=S().agenda.find(x=>x.id!==o.id&&x.profId===o.profId&&x.data===o.data&&x.status!=="cancelado"&&toMin(x.hora)<toMin(o.hora)+o.duracao&&toMin(o.hora)<toMin(x.hora)+num(x.duracao||50));
-     if(await save("agenda",o,true)){await syncReceita(o);closeM();render();toast(blq?"Salvo. Atenção: horário bloqueado ("+(blq.motivo||"bloqueio")+").":conflito?"Salvo. Atenção: horário coincide com "+pacNome(conflito.pacienteId)+".":"Agendamento salvo.");if(o.status==="atendido"&&a.status!=="atendido"&&pode("prontuario",2)&&!real.registros.some(r=>r.agendaId===o.id))setTimeout(()=>openEvolucao(o.pacienteId,null,o.id),250)}
+     if(await save("agenda",o,true)){await syncReceita(o);closeM();render();toast(fora?"Salvo. Atenção: fora do horário de atendimento de "+prof(o.profId).nome+".":blq?"Salvo. Atenção: horário bloqueado ("+(blq.motivo||"bloqueio")+").":conflito?"Salvo. Atenção: horário coincide com "+pacNome(conflito.pacienteId)+".":"Agendamento salvo.");if(o.status==="atendido"&&a.status!=="atendido"&&pode("prontuario",2)&&!real.registros.some(r=>r.agendaId===o.id))setTimeout(()=>openEvolucao(o.pacienteId,null,o.id),250)}
    });
 }
 async function delAppt(id){const fin=real.financeiro.find(f=>f.agendaId===id&&f.status!=="pago");if(await del("agenda",id)){if(fin)await del("financeiro",fin.id,true);closeM();toast("Agendamento excluído.")}}
@@ -1145,7 +1185,7 @@ function extenso(v){
   const int=n=>{if(!n)return"zero";const mi=Math.floor(n/1e6),mil=Math.floor(n/1e3)%1e3,r=n%1e3,p=[];if(mi)p.push(mi===1?"um milhão":c3(mi)+" milhões");if(mil)p.push(mil===1?"mil":c3(mil)+" mil");if(r)p.push(c3(r));return p.length>1&&(r<100||r%100===0)&&r?p.slice(0,-1).join(" ")+" e "+p[p.length-1]:p.join(" ")};
   const cents=Math.round(num(v)*100),R=Math.floor(cents/100),C=cents%100;const out=[];if(R)out.push(int(R)+(R===1?" real":" reais"));if(C)out.push(int(C)+(C===1?" centavo":" centavos"));return out.join(" e ")||"zero reais";
 }
-const LOGO_DOC='<svg viewBox="0 0 48 48"><circle cx="24" cy="24" r="23" fill="#0e3a39"/><path d="M36.99 16.5 A15 15 0 1 1 16.5 11.01" fill="none" stroke="#f07a43" stroke-width="3.6" stroke-linecap="round"/><polygon points="21.2,8.4 14.2,7.2 17.6,14.6" fill="#f07a43"/><rect x="16.5" y="17" width="15" height="4.2" rx="1" fill="#ffffff"/><rect x="21.9" y="17" width="4.2" height="15.5" rx="1" fill="#ffffff"/></svg>';
+const LOGO_DOC='<svg viewBox="0 0 100 100"><path d="M6 8h56v13H42v62H27V21H6z" fill="#2e3a56"/><path d="M47 21h49c-1.6 6-5.6 10.6-11 12H59v14h25c-1.2 4.6-4.6 8-9 9H59v38c-6.6-1.4-11-6.4-12-13z" fill="#8a86c0"/></svg>';
 const DOCS={dec:"Declaração de comparecimento",ate:"Atestado fisioterapêutico",rec:"Recibo",rel:"Relatório fisioterapêutico",tcl:"Termo de consentimento"};
 function openDocs(pid,kind){
   const p=pac(pid);if(!p)return;kind=kind||"dec";if(!pode("prontuario")&&!["dec","rec"].includes(kind))kind="dec";
@@ -1168,7 +1208,7 @@ function openDocs(pid,kind){
 function docBody(pid,kind){
   const p=pac(pid),g=n=>{const el=$("#dw [name="+n+"]");return el?el.value:""},pr=prof(g("pr")),c=CFG.clinica;
   const nomeP=esc(p.nome),cpf=p.cpf?`, CPF ${esc(p.cpf)}`:"";
-  const sig=`<div class="sig"><div></div><b>${esc(pr.nome)}</b><br>Fisioterapeuta${pr.crefito?" · CREFITO "+esc(pr.crefito):""}</div>`;
+  const sig=`<div class="sig">${pr.id&&(CFG.assinaturas||{})[pr.id]?`<img src="${CFG.assinaturas[pr.id]}" alt="" style="max-height:60px;max-width:220px;display:block;margin:0 auto -6px">`:""}<div></div><b>${esc(pr.nome)}</b><br>Fisioterapeuta${pr.crefito?" · CREFITO "+esc(pr.crefito):""}</div>`;
   const local=`<p style="text-align:right;margin-top:26px">${esc(c.cidade||"")}${c.cidade?", ":""}${dExt(g("d")||today())}.</p>`;
   let h="";
   if(kind==="dec")h=`<h4>Declaração de comparecimento</h4><p>Declaro, para os devidos fins, que <b>${nomeP}</b>${cpf} esteve presente nesta clínica no dia <b>${fmtD(g("d"))}</b>, das <b>${esc(g("h1"))}</b> às <b>${esc(g("h2"))}</b>, para atendimento fisioterapêutico.</p>`;
@@ -1182,13 +1222,13 @@ function docBody(pid,kind){
     ${ue?`<p><b>Evolução:</b> dor ${av?"de EVA "+esc(av.eva)+" ":""}para EVA ${esc(ue.evaPos??ue.evaPre)}/10. ${esc(ue.a||"")}</p><p><b>Conduta:</b> ${esc(ue.p||"Manter tratamento.")}</p>`:""}
     <p>Coloco-me à disposição para esclarecimentos.</p>`}
   if(kind==="tcl")h=`<h4>Termo de consentimento livre e esclarecido</h4><p>Eu, <b>${nomeP}</b>${cpf}, declaro que fui informado(a) de forma clara sobre a avaliação e o tratamento fisioterapêutico proposto, seus objetivos, benefícios esperados, possíveis desconfortos e alternativas, e que posso interromper o tratamento a qualquer momento.</p><p>Autorizo a <b>${esc(c.nome)}</b> a registrar e guardar meus dados pessoais e de saúde em prontuário eletrônico, exclusivamente para a prestação do atendimento, comunicação sobre minhas consultas e cumprimento de obrigações legais, conforme a Lei 13.709/2018 (LGPD) e a Resolução COFFITO 414/2012. Sei que posso pedir acesso, correção ou informações sobre o uso desses dados.</p><div class="sig"><div></div>${nomeP}<br>Paciente ou responsável</div>`;
-  return `<div class="lh">${logoDoc()}<div><b>${esc(c.nome)}</b><small>${esc([c.endereco,c.cidade].filter(Boolean).join(" · "))}${c.telefone?" · "+esc(c.telefone):""}${c.cnpj?" · CNPJ "+esc(c.cnpj):""}</small></div></div>${h}${local}${sig}<div class="foot">${esc(c.nome)}${c.instagram?" · "+esc(c.instagram):""}${c.email?" · "+esc(c.email):""}</div>`;
+  return `<div class="lh">${logoDoc()}<div><b>${esc(c.nome)}</b><small>${esc([c.endereco,c.cidade].filter(Boolean).join(" · "))}${c.telefone?" · "+esc(c.telefone):""}${c.cnpj?" · CNPJ "+esc(c.cnpj):""}</small></div></div>${h}${local}${sig}<div class="foot">${esc((CFG.marca||{}).slogan??"Movimento que transforma")} · ${esc(c.nome)}${c.instagram?" · "+esc(c.instagram):""}${c.email?" · "+esc(c.email):""}</div>`;
 }
 function docPrev(pid,kind){const el=$("#paper");if(el)el.innerHTML=docBody(pid,kind)}
 async function docCopy(){const t=$("#paper").innerText;try{await navigator.clipboard.writeText(t);toast("Texto copiado.")}catch(e){const r=document.createRange();r.selectNodeContents($("#paper"));const s=getSelection();s.removeAllRanges();s.addRange(r);toast("Texto selecionado: use Ctrl+C para copiar.")}}
 async function docSave(pid,kind){
   const p=pac(pid);
-  const html=`<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>${esc(DOCS[kind])} - ${esc(p.nome)}</title><style>body{margin:0;background:#eee}.paper{background:#fff;color:#1b1b1b;max-width:800px;margin:20px auto;padding:56px 64px;font-family:Georgia,serif;font-size:15px;line-height:1.65}.lh{display:flex;align-items:center;gap:12px;border-bottom:2px solid #d9561f;padding-bottom:12px;margin-bottom:24px;font-family:Arial,sans-serif}.lh svg{width:48px;height:48px}.lh b{font-size:19px;color:#0e3a39;display:block;letter-spacing:.02em}.lh small{color:#555;font-size:11.5px}h4{text-align:center;letter-spacing:.08em;text-transform:uppercase;font-family:Arial,sans-serif;margin:8px 0 22px}.sig{margin-top:60px;text-align:center}.sig div{border-top:1px solid #333;width:300px;margin:0 auto 4px}.foot{margin-top:34px;font-size:11px;color:#666;text-align:center;font-family:Arial,sans-serif}@media print{body{background:#fff}.paper{margin:0;padding:20mm}}</style></head><body><div class="paper">${docBody(pid,kind)}</div><script>window.onload=()=>window.print()<\/script></body></html>`;
+  const html=`<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>${esc(DOCS[kind])} - ${esc(p.nome)}</title><style>body{margin:0;background:#eee}.paper{background:#fff;color:#1b1b1b;max-width:800px;margin:20px auto;padding:56px 64px;font-family:Georgia,serif;font-size:15px;line-height:1.65}.lh{display:flex;align-items:center;gap:12px;border-bottom:2px solid #6b66b0;padding-bottom:12px;margin-bottom:24px;font-family:Arial,sans-serif}.lh svg{width:48px;height:48px}.lh b{font-size:19px;color:#2e3a56;display:block;letter-spacing:.02em}.lh small{color:#555;font-size:11.5px}h4{text-align:center;letter-spacing:.08em;text-transform:uppercase;font-family:Arial,sans-serif;margin:8px 0 22px}.sig{margin-top:60px;text-align:center}.sig div{border-top:1px solid #333;width:300px;margin:0 auto 4px}.foot{margin-top:34px;font-size:11px;color:#666;text-align:center;font-family:Arial,sans-serif}@media print{body{background:#fff}.paper{margin:0;padding:20mm}}</style></head><body><div class="paper">${docBody(pid,kind)}</div><script>window.onload=()=>window.print()<\/script></body></html>`;
   await download(`${kind}-${p.nome.replace(/[^\wÀ-ú]+/g,"-").toLowerCase()}-${today()}.html`,html,"text/html");
 }
 async function download(filename,data,type){
@@ -1316,7 +1356,7 @@ function openBloqueio(id){
      const n=num(fv(f,"rep"))||1;for(let i=0;i<n;i++){const c=Object.assign({},o);if(i){c.data=addDays(o.data,7*i);delete c.id}if(!(await save("bloqueios",c,true)))return}closeM();render();toast(n>1?n+" bloqueios criados.":"Horário bloqueado.")});
 }
 function bloqueado(o){return S().bloqueios.find(b=>b.data===o.data&&(!b.profId||b.profId===o.profId)&&toMin(b.horaIni)<toMin(o.hora)+num(o.duracao||50)&&toMin(o.hora)<toMin(b.horaFim))}
-function msgTele(a){const p=pac(a.pacienteId)||{};return `Olá, ${(p.nome||"").replace(/^Exemplo · /,"").split(" ")[0]}! Sua teleconsulta com ${prof(a.profId).nome} (${CFG.clinica.nome}) é em ${dLong(a.data).toLowerCase()} às ${a.hora}. No horário, entre por este link: ${a.link} . Use fones de ouvido e fique num local iluminado e reservado.`}
+function msgTele(a){const _t=tplAg("tele",a);if(_t)return _t;const p=pac(a.pacienteId)||{};return `Olá, ${(p.nome||"").replace(/^Exemplo · /,"").split(" ")[0]}! Sua teleconsulta com ${prof(a.profId).nome} (${CFG.clinica.nome}) é em ${dLong(a.data).toLowerCase()} às ${a.hora}. No horário, entre por este link: ${a.link} . Use fones de ouvido e fique num local iluminado e reservado.`}
 
 /* ---------- Pacientes: alertas ---------- */
 function alertas(p){const a=[],t=today();if(p.whatsappOk)a.push(["ok","WhatsApp autorizado"]);if(!p.telefone)a.push(["warn","Sem telefone"]);if(!p.lgpd)a.push(["warn","Sem consentimento LGPD"]);
@@ -1420,7 +1460,7 @@ VIEWS.financeiro=()=>{
     body=`<div class="grid g2"><div class="card"><h2>Fluxo de caixa mensal</h2><p class="muted sub2">Receitas, despesas e saldo por mês</p>${chartFluxo(R.fim,6)}</div>
     <div class="card"><h2>Receita acumulada vs. meta</h2><p class="muted sub2">Evolução de ${esc(mesNome(R.fim.slice(0,7)))} em relação à meta</p>${chartMeta(R.fim.slice(0,7))}</div>
     <div class="card"><h2>Composição por forma de pagamento</h2><p class="muted sub2">Receitas recebidas no período</p>${hbars(Object.entries(porForma).sort((a,b)=>b[1]-a[1]),brl)}</div>
-    <div class="card"><h2>Receita por categoria</h2><p class="muted sub2">Receitas recebidas no período</p>${hbars(Object.entries(porCat).sort((a,b)=>b[1]-a[1]),brl)}</div></div>`;
+    <div class="card"><h2>Receita por categoria</h2><p class="muted sub2">Receitas recebidas no período</p>${hbars(Object.entries(porCat).sort((a,b)=>b[1]-a[1]),brl)}</div></div>`+finExtras(R,c);
   }else if(tab==="inad"){
     const g={};inad.forEach(f=>{const k=f.pacienteId||"sem";(g[k]=g[k]||[]).push(f)});
     const rows=Object.entries(g).map(([k,L])=>({k,L,v:L.reduce((x,f)=>x+num(f.valor),0),dias:Math.max(...L.map(f=>Math.round((parseD(hoje)-parseD(f.data))/864e5)))})).sort((a,b)=>b.v-a.v);
@@ -1579,7 +1619,7 @@ function openOperadoras(){
 const opRow=o=>`<tr><td><input type="text" class="on" value="${esc(o.nome||"")}" style="min-width:150px"></td><td><input type="text" class="oa" value="${esc(o.ans||"")}" style="width:110px"></td><td><input type="text" class="oc" value="${esc(o.codPrestador||"")}" style="width:130px"></td><td><input type="number" class="op" value="${esc(o.prazo||"")}" style="width:90px"></td><td><button type="button" class="btn sm ghost danger" onclick="this.closest('tr').remove()">Remover</button></td></tr>`;
 
 /* ---------- Satisfação do paciente (NPS) ---------- */
-const msgNps=p=>`Olá, ${String((p||{}).nome||"").replace(/^Exemplo · /,"").split(" ")[0]}! Obrigado por escolher a ${CFG.clinica.nome}. De 0 a 10, quanto você recomendaria nossa clínica a um amigo ou familiar? Se puder, conte o motivo da nota. Sua resposta nos ajuda a melhorar.`;
+const msgNps=p=>tpl("nps",varsPac(p))||`Olá, ${String((p||{}).nome||"").replace(/^Exemplo · /,"").split(" ")[0]}! Obrigado por escolher a ${CFG.clinica.nome}. De 0 a 10, quanto você recomendaria nossa clínica a um amigo ou familiar? Se puder, conte o motivo da nota. Sua resposta nos ajuda a melhorar.`;
 VIEWS.satisfacao=()=>{
   const s=S(),k=npsCalc(s.pesquisas),L=[...s.pesquisas].sort((a,b)=>String(b.enviadaEm).localeCompare(String(a.enviadaEm)));
   const cor=n=>n===""||n==null?"":num(n)>=9?"pago":num(n)>=7?"pendente":"vencido";
@@ -1607,7 +1647,7 @@ function md(t){const inl=s=>esc(s).replace(/\*\*(.+?)\*\*/g,"<b>$1</b>").replace
   String(t||"").split("\n").forEach(l=>{const h=l.match(/^(#{1,4})\s+(.*)/),ul=l.match(/^\s*[-*•]\s+(.*)/),ol=l.match(/^\s*\d+[.)]\s+(.*)/);
     if(h){close();out.push(`<h4>${inl(h[2])}</h4>`)}else if(ul){if(list!=="ul"){close();out.push("<ul>");list="ul"}out.push(`<li>${inl(ul[1])}</li>`)}else if(ol){if(list!=="ol"){close();out.push("<ol>");list="ol"}out.push(`<li>${inl(ol[1])}</li>`)}else if(!l.trim())close();else{close();out.push(`<p>${inl(l)}</p>`)}});close();return out.join("")}
 const IA={msgs:[],busy:false,evid:{q:"",out:""},bula:{q:"",out:""},ok:null};
-const IA_BASE="Você é o assistente clínico da clínica Torque Fisioterapia, no Brasil. Responda em português do Brasil, de forma objetiva e prática, para fisioterapeutas. Baseie-se em evidências científicas e diretrizes atuais, diga quando a evidência é fraca ou controversa e lembre que a decisão clínica é do profissional. Não invente referências: cite apenas estudos e diretrizes que você tem segurança de que existem.";
+const IA_BASE="Você é o assistente clínico da clínica Torque Saúde e Reabilitação, no Brasil. Responda em português do Brasil, de forma objetiva e prática, para fisioterapeutas. Baseie-se em evidências científicas e diretrizes atuais, diga quando a evidência é fraca ou controversa e lembre que a decisão clínica é do profissional. Não invente referências: cite apenas estudos e diretrizes que você tem segurança de que existem.";
 function iaIndisp(){return IA.ok===false?`<div class="alert warn"><div><b>Os recursos de IA não estão disponíveis aqui.</b><span class="muted">Eles funcionam quando o Torque é aberto no Claude, com permissão para perguntar ao Claude.</span></div></div>`:""}
 function pacContexto(pid){const p=pac(pid);if(!p)return"";const s=S(),av=s.registros.filter(r=>r.pacienteId===pid&&r.tipo==="avaliacao").sort((a,b)=>b.data.localeCompare(a.data))[0],ev=s.registros.filter(r=>r.pacienteId===pid&&r.tipo==="evolucao").sort((a,b)=>b.data.localeCompare(a.data)).slice(0,3),st=statusTestes(pid),pos=Object.keys(st).filter(k=>st[k].d==="+"||st[k].e==="+").map(k=>tName(k)+" ("+[st[k].d==="+"?"D":"",st[k].e==="+"?"E":""].filter(Boolean).join("/")+")");
   return `\n\nDados do paciente (sem identificação): ${p.sexo==="F"?"mulher":p.sexo==="M"?"homem":"pessoa"}, ${p.nascimento?idade(p.nascimento)+" anos":"idade não informada"}. Diagnóstico médico: ${p.diagnosticoMedico||"não informado"}${p.cid?" (CID "+p.cid+")":""}. Sessões realizadas: ${sessoesFeitas(pid)}.${av?` Avaliação de ${fmtD(av.data)}: queixa "${av.queixa||""}", EVA ${av.eva}/10, diagnóstico cinético-funcional "${av.diagnosticoFisio||""}", objetivos "${av.objetivos||""}", conduta "${av.conduta||""}".`:""}${pos.length?" Testes ainda positivos: "+pos.join(", ")+".":""}${ev.length?" Últimas evoluções: "+ev.map(e=>`${fmtD(e.data)} EVA ${e.evaPre}→${e.evaPos}, técnicas ${(e.tecnicas||[]).join(", ")}; ${e.a||""}`).join(" | "):""}`}
@@ -1729,7 +1769,7 @@ function openAjuda(){const v=route().v,L=HELP[v]||[];
   <div class="tools"><button type="button" class="btn pri" onclick="T.close();T.go('assistente')">Perguntar ao assistente</button><button type="button" class="btn" onclick="T.close();T.go('chat')">Falar com a equipe</button></div>`,`<button type="button" class="btn" onclick="T.close()">Fechar</button>`,null)}
 
 /* ---------- Documentos: agenda do dia e relatório ---------- */
-function docShell(titulo,corpo){return `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>${esc(titulo)}</title><style>body{margin:0;background:#eee;font-family:Arial,sans-serif;color:#1b1b1b}.pg{background:#fff;max-width:900px;margin:20px auto;padding:40px 48px}.lh{display:flex;align-items:center;gap:12px;border-bottom:2px solid #d9561f;padding-bottom:10px;margin-bottom:18px}.lh svg{width:44px;height:44px}.lh b{font-size:18px;color:#0e3a39;display:block}.lh small{color:#555;font-size:11.5px}h1{font-size:18px;margin:0 0 4px}h2{font-size:14px;margin:20px 0 6px;color:#0e3a39}table{border-collapse:collapse;width:100%;font-size:12.5px}th,td{border-bottom:1px solid #ddd;padding:6px 8px;text-align:left}th{background:#f3f3f3}td.r,th.r{text-align:right}.muted{color:#666;font-size:12px}@media print{body{background:#fff}.pg{margin:0;padding:12mm}}</style></head><body><div class="pg"><div class="lh">${logoDoc()}<div><b>${esc(CFG.clinica.nome)}</b><small>${esc([CFG.clinica.endereco,CFG.clinica.cidade,CFG.clinica.telefone].filter(Boolean).join(" · "))}</small></div></div>${corpo}</div><script>window.onload=()=>window.print()<\/script></body></html>`}
+function docShell(titulo,corpo){return `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>${esc(titulo)}</title><style>body{margin:0;background:#eee;font-family:Arial,sans-serif;color:#1b1b1b}.pg{background:#fff;max-width:900px;margin:20px auto;padding:40px 48px}.lh{display:flex;align-items:center;gap:12px;border-bottom:2px solid #6b66b0;padding-bottom:10px;margin-bottom:18px}.lh svg{width:44px;height:44px}.lh b{font-size:18px;color:#2e3a56;display:block}.lh small{color:#555;font-size:11.5px}h1{font-size:18px;margin:0 0 4px}h2{font-size:14px;margin:20px 0 6px;color:#2e3a56}table{border-collapse:collapse;width:100%;font-size:12.5px}th,td{border-bottom:1px solid #ddd;padding:6px 8px;text-align:left}th{background:#f3f3f3}td.r,th.r{text-align:right}.muted{color:#666;font-size:12px}@media print{body{background:#fff}.pg{margin:0;padding:12mm}}</style></head><body><div class="pg"><div class="lh">${logoDoc()}<div><b>${esc(CFG.clinica.nome)}</b><small>${esc([CFG.clinica.endereco,CFG.clinica.cidade,CFG.clinica.telefone].filter(Boolean).join(" · "))}</small></div></div>${corpo}</div><script>window.onload=()=>window.print()<\/script></body></html>`}
 function baixarAgenda(){const d=UI.agDate,s=S(),fer=feriado(d);
   const corpo=`<h1>Agenda de ${esc(dLong(d))}${fer?" · "+esc(fer):""}</h1><div class="muted">Gerada em ${new Date().toLocaleString("pt-BR")}</div>${profs().map(p=>{const L=s.agenda.filter(a=>a.data===d&&a.profId===p.id&&a.status!=="cancelado").sort((a,b)=>a.hora.localeCompare(b.hora));return L.length?`<h2>${esc(p.nome)}</h2><table><thead><tr><th>Hora</th><th>Paciente</th><th>Telefone</th><th>Procedimento</th><th>Sala</th><th>Status</th></tr></thead><tbody>${L.map(a=>{const pp=pac(a.pacienteId)||{};return `<tr><td>${esc(a.hora)}</td><td>${esc(pp.nome||"")}</td><td>${esc(pp.telefone||"")}</td><td>${esc(serv(a.servicoId).nome)}${a.modalidade==="teleconsulta"?" (teleconsulta)":""}</td><td>${esc(a.sala||"")}</td><td>${esc(ST_LBL[a.status])}</td></tr>`}).join("")}</tbody></table>`:""}).join("")||"<p>Nenhum agendamento.</p>"}${(s.notas.find(n=>n.id===d)||{}).texto?`<h2>Observações do dia</h2><p>${esc(s.notas.find(n=>n.id===d).texto)}</p>`:""}`;
   download(`agenda-${d}.html`,docShell("Agenda "+fmtD(d),corpo),"text/html")}
@@ -1826,11 +1866,11 @@ function ddItens(){const I=[["pacientes","T.openPaciente()","Novo paciente"],["a
 
 /* ---------- Identidade visual ---------- */
 function logoDoc(){return CFG.logo?`<img src="${CFG.logo}" alt="" style="width:48px;height:48px;object-fit:contain">`:LOGO_DOC}
-function renderBrand(){const b=$(".brand");if(!b)return;const m=CFG.marca||{};b.innerHTML=(CFG.logo?`<img src="${CFG.logo}" alt="" class="brand-img">`:`<svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="23" fill="#143d3b"/><path d="M36.99 16.5 A15 15 0 1 1 16.5 11.01" fill="none" stroke="#f07a43" stroke-width="3.6" stroke-linecap="round"/><polygon points="21.2,8.4 14.2,7.2 17.6,14.6" fill="#f07a43"/><rect x="16.5" y="17" width="15" height="4.2" rx="1" fill="#e7f0ee"/><rect x="21.9" y="17" width="4.2" height="15.5" rx="1" fill="#e7f0ee"/></svg>`)+`<div><b>${esc(m.titulo||"TORQUE")}</b><small>${esc(m.sub??"Fisioterapia")}</small></div>`}
+function renderBrand(){const b=$(".brand");if(!b)return;const m=CFG.marca||{};b.innerHTML=(CFG.logo?`<img src="${CFG.logo}" alt="" class="brand-img">`:`<svg viewBox="0 0 100 100" aria-hidden="true"><path d="M6 8h56v13H42v62H27V21H6z" fill="currentColor"/><path d="M47 21h49c-1.6 6-5.6 10.6-11 12H59v14h25c-1.2 4.6-4.6 8-9 9H59v38c-6.6-1.4-11-6.4-12-13z" fill="#aaa6dc"/></svg>`)+`<div><b>${esc(m.titulo||"TORQUE")}</b><small>${esc(m.sub??"Saúde e Reabilitação")}</small></div>`}
 function lerLogo(file){return new Promise((res,rej)=>{const fr=new FileReader();fr.onerror=rej;fr.onload=()=>{const img=new Image();img.onerror=rej;img.onload=()=>{const k=Math.min(1,256/Math.max(img.width,img.height)),c=document.createElement("canvas");c.width=Math.round(img.width*k);c.height=Math.round(img.height*k);c.getContext("2d").drawImage(img,0,0,c.width,c.height);let d=c.toDataURL("image/png");if(d.length>180000)d=c.toDataURL("image/webp",.85);res(d)};img.src=fr.result};fr.readAsDataURL(file)})}
 function cardIdentidade(){const m=CFG.marca||{};return `<form class="card grid" id="f-marca" onsubmit="event.preventDefault();T.saveMarca(this)"><h2>Identidade visual</h2>
   <div class="ident"><div class="ident-prev">${CFG.logo?`<img src="${CFG.logo}" alt="Logomarca atual">`:`<span class="muted">Logomarca padrão Torque</span>`}</div>
-  <div class="grid g2" style="flex:1;min-width:240px"><label class="f">Nome na barra lateral<input type="text" id="mk-t" name="titulo" value="${esc(m.titulo||"TORQUE")}" maxlength="24"></label><label class="f">Subtítulo<input type="text" id="mk-s" name="sub" value="${esc(m.sub??"Fisioterapia")}" maxlength="30"></label>
+  <div class="grid g2" style="flex:1;min-width:240px"><label class="f">Nome na barra lateral<input type="text" id="mk-t" name="titulo" value="${esc(m.titulo||"TORQUE")}" maxlength="24"></label><label class="f">Subtítulo<input type="text" id="mk-s" name="sub" value="${esc(m.sub??"Saúde e Reabilitação")}" maxlength="30"></label>
   <label class="btn" style="justify-self:start">Enviar logomarca (PNG, JPG ou SVG)<input type="file" id="mk-f" accept="image/png,image/jpeg,image/webp,image/svg+xml" hidden onchange="T.logoUp(this.files[0])"></label>${CFG.logo?`<button type="button" class="btn ghost danger" style="justify-self:start" onclick="T.logoDel()">Voltar à logomarca padrão</button>`:""}</div></div>
   <p class="muted" style="margin:0;font-size:12.5px">A logomarca aparece na barra lateral e no cabeçalho dos documentos (atestado, recibo, relatório, agenda impressa). Use imagem quadrada ou horizontal, de preferência com fundo transparente.</p>
   <div><button class="btn pri">Salvar identidade</button></div></form>`}
@@ -1903,7 +1943,7 @@ const ORIG_LEAD=["Instagram","WhatsApp","Google","Site","Facebook / Meta Ads","I
 const MOTIVOS_PERDA=["Preço","Não respondeu","Escolheu outra clínica","Distância / horário","Convênio não atendido","Desistiu do tratamento","Outro"];
 const leadAberto=l=>!["ganho","perdido"].includes(l.etapa);
 const ET_PILL={novo:"agendado",contato:"confirmado",avaliacao:"espera",proposta:"pendente",ganho:"pago",perdido:"vencido"};
-const msgLead=l=>`Olá, ${String(l.nome||"").replace(/^Exemplo · /,"").split(" ")[0]}! Aqui é da ${CFG.clinica.nome}. ${l.servicoId?`Sobre ${serv(l.servicoId).nome.toLowerCase()}: `:""}podemos agendar sua avaliação esta semana? Temos horários de manhã, tarde e noite.`;
+const msgLead=l=>tpl("lead",Object.assign(varsPac(l),{procedimento:l.servicoId?serv(l.servicoId).nome.toLowerCase():"fisioterapia"}))||`Olá, ${String(l.nome||"").replace(/^Exemplo · /,"").split(" ")[0]}! Aqui é da ${CFG.clinica.nome}. ${l.servicoId?`Sobre ${serv(l.servicoId).nome.toLowerCase()}: `:""}podemos agendar sua avaliação esta semana? Temos horários de manhã, tarde e noite.`;
 function cardLead(l){const t=today();return `<div class="kcard t-${esc(l.temperatura||"morno")}" draggable="true" ondragstart="event.dataTransfer.setData('text/plain','${l.id}')" onclick="T.openLead('${l.id}')"><b>${esc(l.nome)}</b>${l.servicoId?`<small>${esc(serv(l.servicoId).nome)}</small>`:""}<div class="kmeta">${l.origem?`<span class="chip">${esc(l.origem)}</span>`:""}${num(l.valor)?`<span class="num">${brl(l.valor)}</span>`:""}</div>${l.proximoContato&&leadAberto(l)?`<small style="color:${l.proximoContato<t?"var(--bad)":l.proximoContato===t?"var(--warn)":"var(--muted)"}">Retorno ${l.proximoContato<t?"atrasado ":""}${fmtD(l.proximoContato).slice(0,5)}</small>`:""}${l.etapa==="perdido"&&l.motivoPerda?`<small class="muted">${esc(l.motivoPerda)}</small>`:""}<div class="kfoot">${l.responsavel?`<span><span class="dot" style="--pc:${esc(prof(l.responsavel).cor)}"></span> ${esc(prof(l.responsavel).nome)}</span>`:"<span></span>"}<span class="kmv">${ETAPAS.findIndex(e=>e[0]===l.etapa)>0?`<button type="button" class="ib sm" onclick="event.stopPropagation();T.moverLead('${l.id}',-1)" aria-label="Etapa anterior">‹</button>`:""}${ETAPAS.findIndex(e=>e[0]===l.etapa)<ETAPAS.length-1?`<button type="button" class="ib sm" onclick="event.stopPropagation();T.moverLead('${l.id}',1)" aria-label="Próxima etapa">›</button>`:""}</span></div></div>`}
 VIEWS.crm=()=>{
   const s=S(),t=today(),R=periodo("mes"),R3=periodo("3m"),L=s.leads,ed=pode("crm",2),tab=UI.cTab||"funil";
@@ -1987,6 +2027,137 @@ const NOVAS_ACOES2={
   csvLeads(){download(`leads-${today()}.csv`,csv([["Nome","Telefone","E-mail","Origem","Interesse","Etapa","Valor","Próximo contato","Responsável","Entrada","Motivo da perda"],...S().leads.map(l=>[l.nome,l.telefone,l.email,l.origem,l.servicoId?serv(l.servicoId).nome:"",etapaNome(l.etapa),String(num(l.valor)).replace(".",","),fmtD(l.proximoContato),l.responsavel?prof(l.responsavel).nome:"",fmtD(l.criadoEm),l.motivoPerda||""])]),"text/csv")}
 };
 
+/* ================= Configurações em seções, horários, mensagens, assinatura, cores da marca ================= */
+let ME_NOME="";
+const COR_P="#2e3a56",COR_D="#5f5aa2";
+const tfMark=(t,f)=>`<svg viewBox="0 0 100 100" aria-hidden="true"><path d="M6 8h56v13H42v62H27V21H6z" fill="${t}"/><path d="M47 21h49c-1.6 6-5.6 10.6-11 12H59v14h25c-1.2 4.6-4.6 8-9 9H59v38c-6.6-1.4-11-6.4-12-13z" fill="${f}"/></svg>`;
+const PRESETS=[["torque","Torque (logomarca)",COR_P,COR_D],["azul","Azul clínico","#1e3a5f","#2b7fd6"],["verde","Verde saúde","#1f4d3a","#1f9d6b"],["petroleo","Petróleo e laranja","#0e3a39","#d9561f"],["grafite","Grafite e dourado","#26272b","#a8822f"],["vinho","Vinho e rosa","#4a1f2e","#c2456b"],["roxo","Roxo","#3b2a5c","#8a5bd6"]];
+const FUNDOS=[["","Bege da marca"],["neutro","Cinza neutro"],["frio","Azulado"],["branco","Branco"]];
+function aplicarTema(){let st=$("#tema-marca");if(!st){st=document.createElement("style");st.id="tema-marca";document.head.appendChild(st)}const c=CFG.cores||{};let claro="",escuro="";const H=(o,l,s)=>hsl2hex(o.h,s===undefined?o.s:s,l);
+  if(c.principal&&c.destaque){const P=hex2hsl(c.principal),D=hex2hsl(c.destaque);
+    claro+=`--brand:${H(P,clamp(P.l,14,32))};--nav:${H(P,clamp(P.l,10,20),Math.min(P.s,60))};--nav-2:${H(P,clamp(P.l,10,20)+8,Math.min(P.s,55))};--nav-muted:${H(P,74,Math.min(P.s,25))};--accent:${H(D,clamp(D.l,32,45))};--accent-soft:${H(D,93,Math.min(D.s,80))};--accent-ink:#ffffff;`;
+    escuro+=`--brand:${H(P,74,Math.min(P.s,55))};--nav:${H(P,6,Math.min(P.s,40))};--nav-2:${H(P,12,Math.min(P.s,40))};--nav-muted:${H(P,66,Math.min(P.s,22))};--accent:${H(D,66)};--accent-soft:${H(D,17,Math.min(D.s,50))};--accent-ink:${H(D,9)};`}
+  if(c.menu){const M=hex2hsl(c.menu),cl=M.l>58;claro+=`--nav:${c.menu};--nav-2:${H(M,cl?M.l-8:M.l+8)};--nav-fg:${cl?"#1d2233":"#eef0f6"};--nav-muted:${cl?H(M,34,Math.min(M.s,30)):H(M,74,Math.min(M.s,25))};`;escuro+=`--nav:${H(M,Math.min(M.l,9))};--nav-2:${H(M,Math.min(M.l,9)+7)};--nav-fg:#e8e9f0;`}
+  const FU={neutro:["#f3f4f6","#e8eaee","#d6d9df"],frio:["#eff3f8","#e2e9f1","#cfd9e5"],branco:["#ffffff","#f1f2f4","#e1e3e7"]}[c.fundo];if(FU)claro+=`--bg:${FU[0]};--surface-2:${FU[1]};--line:${FU[2]};`;
+  st.textContent=(claro?`:root{${claro}}`:"")+(escuro?`@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){${escuro}}}:root[data-theme="dark"]{${escuro}}`:"")}
+cardIdentidade=function(){const m=CFG.marca||{},c=CFG.cores||{},adm=pode("ajustes",2),pa=c.principal||COR_P,de=c.destaque||COR_D,atual=(PRESETS.find(x=>x[2]===pa&&x[3]===de)||[""])[0];
+  return `<form class="card grid" id="f-marca" onsubmit="event.preventDefault();T.saveMarca(this)"><h2>Identidade visual e cores do painel</h2>
+  <div class="ident"><div class="ident-prev">${CFG.logo?`<img src="${CFG.logo}" alt="Logomarca enviada">`:`<div class="ident-tf">${tfMark("#2e3a56","#8a86c0")}<b>TORQUE</b><small>Saúde e Reabilitação</small></div>`}</div>
+  <div class="grid g3" style="flex:1;min-width:240px"><label class="f">Nome na barra lateral<input type="text" id="mk-t" name="titulo" value="${esc(m.titulo||"TORQUE")}" maxlength="24"></label><label class="f">Subtítulo<input type="text" id="mk-s" name="sub" value="${esc(m.sub??"Saúde e Reabilitação")}" maxlength="30"></label><label class="f">Lema<input type="text" id="mk-l" name="slogan" value="${esc(m.slogan??"Movimento que transforma")}" maxlength="40"></label>
+  ${adm?`<div class="tools spanall"><label class="btn">Enviar outra logomarca<input type="file" id="mk-f" accept="image/png,image/jpeg,image/webp,image/svg+xml" hidden onchange="T.logoUp(this.files[0])"></label>${CFG.logo?`<button type="button" class="btn" onclick="T.usarTonsLogo()">Usar os tons da logomarca enviada</button><button type="button" class="btn ghost danger" onclick="T.logoDel()">Voltar à marca Torque</button>`:""}</div>`:""}</div></div>
+  <h3>Temas prontos</h3><div class="presets">${PRESETS.map(([k,l,p,d])=>`<button type="button" class="preset ${k===atual?"on":""}" ${adm?`onclick="T.aplicarPreset('${k}')"`:"disabled"}><span class="sw" style="background:${p}"></span><span class="sw" style="background:${d}"></span><span>${esc(l)}</span></button>`).join("")}</div>
+  <h3>Cores personalizadas</h3><div class="grid g4"><label class="f">Cor principal (títulos e menu)<input type="color" id="mk-p" name="principal" value="${esc(pa)}" ${adm?"":"disabled"}></label><label class="f">Cor de destaque (botões)<input type="color" id="mk-d" name="destaque" value="${esc(de)}" ${adm?"":"disabled"}></label>
+  <label class="f">Cor do menu lateral<span style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="mk-mc" name="menuOn" ${c.menu?"checked":""} ${adm?"":"disabled"} aria-label="Usar cor própria no menu"><input type="color" id="mk-m" name="menu" value="${esc(c.menu||"#232c42")}" ${adm?"":"disabled"}></span><small>marque para usar uma cor própria</small></label>
+  <label class="f">Fundo das telas<select id="mk-fu" name="fundo" ${adm?"":"disabled"}>${FUNDOS.map(x=>opt(x[0],x[1],c.fundo||"")).join("")}</select></label></div>
+  <p class="muted" style="margin:0;font-size:12.5px">As cores valem para toda a equipe, nos temas claro e escuro. O sistema ajusta sozinho o tom de cada cor para manter a leitura. A logomarca também aparece no painel e no cabeçalho dos documentos.</p>
+  ${adm?`<div class="tools"><button class="btn pri">Salvar identidade e cores</button>${CFG.cores?`<button type="button" class="btn ghost" onclick="T.coresPadrao()">Cores da marca Torque</button>`:""}</div>`:""}</form>`};
+function heroMarca(){const m=CFG.marca||{},sl=m.slogan??"Movimento que transforma";return `<div class="hero-marca">${CFG.logo?`<img src="${CFG.logo}" alt="">`:tfMark("var(--brand)","var(--accent)")}<div><b>${esc(m.titulo||"TORQUE")}</b><span>${esc(m.sub??"Saúde e Reabilitação")}</span>${sl?`<em>${esc(sl)}</em>`:""}</div></div>`}
+
+/* ---------- Cores da marca ---------- */
+function hex2hsl(hx){const n=parseInt(String(hx).replace("#",""),16),r=(n>>16&255)/255,g=(n>>8&255)/255,b=(n&255)/255,mx=Math.max(r,g,b),mn=Math.min(r,g,b),l=(mx+mn)/2;let h=0,s=0;if(mx!==mn){const d=mx-mn;s=l>.5?d/(2-mx-mn):d/(mx+mn);h=mx===r?(g-b)/d+(g<b?6:0):mx===g?(b-r)/d+2:(r-g)/d+4;h*=60}return{h,s:s*100,l:l*100}}
+function hsl2hex(h,s,l){s/=100;l/=100;const k=n=>(n+h/30)%12,a=s*Math.min(l,1-l),f=n=>l-a*Math.max(-1,Math.min(k(n)-3,Math.min(9-k(n),1)));return"#"+[f(0),f(8),f(4)].map(x=>Math.round(x*255).toString(16).padStart(2,"0")).join("")}
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+function extrairCores(src){return new Promise(res=>{const img=new Image();img.onload=()=>{try{const c=document.createElement("canvas");c.width=c.height=64;const g=c.getContext("2d");g.drawImage(img,0,0,64,64);const d=g.getImageData(0,0,64,64).data,bins={};
+    for(let i=0;i<d.length;i+=4){if(d[i+3]<180)continue;const hx="#"+[d[i],d[i+1],d[i+2]].map(v=>v.toString(16).padStart(2,"0")).join(""),h=hex2hsl(hx);if(h.s<20||h.l<7||h.l>94)continue;const k=Math.round(h.h/20)%18,b=bins[k]||(bins[k]={n:0,r:0,g:0,b:0});b.n++;b.r+=d[i];b.g+=d[i+1];b.b+=d[i+2]}
+    const B=Object.entries(bins).map(([k,v])=>({k:+k,n:v.n,hex:"#"+[v.r,v.g,v.b].map(x=>Math.round(x/v.n).toString(16).padStart(2,"0")).join("")})).sort((a,b)=>b.n-a.n);if(!B.length)return res(null);
+    const a=B[0],b=B.find(x=>x!==a&&Math.min(Math.abs(x.k-a.k),18-Math.abs(x.k-a.k))>=3&&x.n>=a.n*.04);let P=a.hex,Dd;
+    if(b){Dd=b.hex;if(hex2hsl(P).l>hex2hsl(Dd).l)[P,Dd]=[Dd,P]}else{const h=hex2hsl(P);P=hsl2hex(h.h,Math.min(h.s,60),24);Dd=hsl2hex(h.h,Math.max(h.s,55),48)}
+    res({principal:P,destaque:Dd})}catch(e){res(null)}};img.onerror=()=>res(null);img.src=src})}
+const _renderBrand=renderBrand;renderBrand=function(){_renderBrand();aplicarTema()};
+
+/* ---------- Horários de atendimento por profissional ---------- */
+const DIAS=["Domingo","Segunda","Terça","Quarta","Quinta","Sexta","Sábado"];
+const HOR_PAD={0:{on:false,ini:"08:00",fim:"12:00",slot:30},1:{on:true,ini:"07:00",fim:"19:00",slot:30},2:{on:true,ini:"07:00",fim:"19:00",slot:30},3:{on:true,ini:"07:00",fim:"19:00",slot:30},4:{on:true,ini:"07:00",fim:"19:00",slot:30},5:{on:true,ini:"07:00",fim:"19:00",slot:30},6:{on:true,ini:"08:00",fim:"12:00",slot:30}};
+function horDe(pid){const h=(CFG.horarios||{})[pid]||{},o={};for(let d=0;d<7;d++)o[d]=Object.assign({},HOR_PAD[d],h[d]||{});return o}
+function foraHtml(c,ini,fim){const h=horDe(c.prof)[parseD(c.data).getDay()],k=PX/SLOT;if(!h.on)return `<div class="fora" style="top:0;height:${(fim-ini)*k}px"><span>Fechado</span></div>`;const a=toMin(h.ini),b=toMin(h.fim);let s="";if(a>ini)s+=`<div class="fora" style="top:0;height:${(Math.min(a,fim)-ini)*k}px"></div>`;if(b<fim)s+=`<div class="fora" style="top:${(Math.max(b,ini)-ini)*k}px;height:${(fim-Math.max(b,ini))*k}px"></div>`;return s}
+function foraHorario(o){const h=horDe(o.profId)[parseD(o.data).getDay()];if(!h.on)return true;return toMin(o.hora)<toMin(h.ini)||toMin(o.hora)+num(o.duracao||50)>toMin(h.fim)}
+function horariosForm(){const P=profs(true);if(!P.some(p=>p.id===UI.ajProf))UI.ajProf=(P[0]||{}).id;const h=horDe(UI.ajProf),dis=pode("ajustes",2)?"":"disabled";
+  return `<form class="card grid" id="f-hor" onsubmit="event.preventDefault();T.saveHorarios(this)"><h2>Horários de atendimento</h2>
+  <label class="f" style="max-width:380px">Profissional<select id="hor-p" onchange="T.ui('ajProf',this.value)">${P.map(p=>opt(p.id,p.nome+(p.especialidade?" · "+p.especialidade:""),UI.ajProf)).join("")}</select></label>
+  <div class="hor">${[0,1,2,3,4,5,6].map(d=>`<div class="hrow ${h[d].on?"":"off"}"><label class="f chk"><input type="checkbox" name="on${d}" ${h[d].on?"checked":""} ${dis} onchange="this.closest('.hrow').classList.toggle('off',!this.checked)"> ${DIAS[d]}<span class="muted fech"> · Fechado</span></label><input type="time" name="ini${d}" value="${esc(h[d].ini)}" step="900" ${dis} aria-label="${DIAS[d]}: início"><span class="muted">às</span><input type="time" name="fim${d}" value="${esc(h[d].fim)}" step="900" ${dis} aria-label="${DIAS[d]}: fim"><label class="f slot">Intervalo (min)<input type="number" name="slot${d}" min="5" max="120" step="5" value="${esc(h[d].slot)}" ${dis}></label></div>`).join("")}</div>
+  ${dis?"":`<div class="tools"><button class="btn pri">Salvar horários</button><button type="button" class="btn" onclick="T.copiarHorarios()">Copiar para todos os profissionais</button></div>`}
+  <p class="muted" style="margin:0;font-size:12.5px">Fora do horário, a agenda fica sombreada e o sistema avisa ao agendar. O intervalo define de quanto em quanto tempo o clique na agenda marca o horário.</p></form>`}
+function horLer(f){const o={};for(let d=0;d<7;d++){const e=f.elements;o[d]={on:e["on"+d].checked,ini:e["ini"+d].value||"08:00",fim:e["fim"+d].value||"18:00",slot:Math.max(5,num(e["slot"+d].value)||30)};if(o[d].on&&toMin(o[d].fim)<=toMin(o[d].ini))return{erro:DIAS[d]}}return o}
+
+/* ---------- Mensagens de WhatsApp e lembretes ---------- */
+const TPL_PAD={confirmacao:"Olá, {nome}! Aqui é da {clinica}. Confirmando seu atendimento de {procedimento} com {profissional} em {data} às {hora}. Responda 1 para CONFIRMAR ou 2 para REMARCAR.",lembrete:"Olá, {nome}! Lembrete da {clinica}: {quando} às {hora} você tem {procedimento} com {profissional}. Endereço: {endereco}. Venha com roupa confortável e chegue 10 minutos antes. Se precisar remarcar, responda esta mensagem.",tele:"Olá, {nome}! Sua teleconsulta com {profissional} ({clinica}) é em {data} às {hora}. No horário, entre por este link: {link} . Use fones de ouvido e fique num local iluminado e reservado.",nps:"Olá, {nome}! Obrigado por escolher a {clinica}. De 0 a 10, quanto você recomendaria nossa clínica a um amigo ou familiar? Se puder, conte o motivo da nota. Sua resposta nos ajuda a melhorar.",lead:"Olá, {nome}! Aqui é da {clinica}. Sobre {procedimento}: podemos agendar sua avaliação esta semana? Temos horários de manhã, tarde e noite."};
+const TPL_LBL=[["confirmacao","Confirmação de consulta"],["lembrete","Lembrete (WhatsApp e SMS)"],["tele","Link da teleconsulta"],["nps","Pesquisa de satisfação (NPS)"],["lead","Primeiro contato com lead (CRM)"]];
+function tpl(k,v){const t=(CFG.msgs||{})[k];if(!t)return"";return t.replace(/\{(\w+)\}/g,(m,x)=>v[x]===undefined?m:v[x])}
+function varsAg(a){const p=pac(a.pacienteId)||{},c=CFG.clinica;return{nome:String(p.nome||"").replace(/^Exemplo · /,"").split(" ")[0],paciente:p.nome||"",data:dLong(a.data).toLowerCase(),hora:a.hora,profissional:prof(a.profId).nome,procedimento:serv(a.servicoId).nome.toLowerCase(),clinica:c.nome,endereco:c.endereco||"",telefone:c.telefone||"",link:a.link||"",quando:a.data===addDays(today(),1)?"amanhã ("+dLong(a.data).toLowerCase()+")":a.data===today()?"hoje":dLong(a.data).toLowerCase()}}
+const varsPac=p=>({nome:String((p||{}).nome||"").replace(/^Exemplo · /,"").split(" ")[0],paciente:(p||{}).nome||"",clinica:CFG.clinica.nome,endereco:CFG.clinica.endereco||"",telefone:CFG.clinica.telefone||""});
+const tplAg=(k,a)=>tpl(k,varsAg(a));
+function msgsForm(){const adm=pode("ajustes",2),M=CFG.msgs||{},ex=S().agenda[0];const ap=t=>ex?t.replace(/\{(\w+)\}/g,(m,x)=>{const v=varsAg(Object.assign({link:"https://meet.jit.si/Torque-exemplo"},ex));return v[x]===undefined?m:v[x]}):t;
+  return `<form class="card grid" id="f-msgs" onsubmit="event.preventDefault();T.saveMsgs(this)"><h2>Mensagens automáticas</h2><p class="muted" style="margin:0">Edite os textos usados nos botões de WhatsApp, lembrete e SMS. Variáveis: <code>{nome}</code> <code>{paciente}</code> <code>{data}</code> <code>{quando}</code> <code>{hora}</code> <code>{profissional}</code> <code>{procedimento}</code> <code>{clinica}</code> <code>{endereco}</code> <code>{telefone}</code> <code>{link}</code>.</p>
+  ${TPL_LBL.map(([k,l])=>{const v=M[k]||TPL_PAD[k];return `<label class="f">${esc(l)}<textarea name="${k}" rows="3" ${adm?"":"disabled"}>${esc(v)}</textarea><small class="muted prev">Exemplo: ${esc(ap(v))}</small></label>`}).join("")}
+  ${adm?`<div class="tools"><button class="btn pri">Salvar mensagens</button><button type="button" class="btn ghost" onclick="T.msgsPadrao()">Restaurar textos padrão</button></div>`:""}</form>`}
+function historicoMsgs(){const s=S(),t=today(),lim=addDays(t,-30),ev=[];s.agenda.forEach(a=>[["confirmacaoEm","Confirmação (WhatsApp)"],["lembreteEm","Lembrete (WhatsApp)"],["smsEm","Lembrete (SMS)"]].forEach(([k,l])=>{if(a[k]&&String(a[k]).slice(0,10)>=lim)ev.push({em:a[k],l,a})}));ev.sort((x,y)=>String(y.em).localeCompare(String(x.em)));
+  const prox=s.agenda.filter(a=>a.data>=t&&a.data<=addDays(t,7)&&["agendado","confirmado"].includes(a.status)),semAviso=prox.filter(a=>!a.lembreteEm&&!a.smsEm&&!a.confirmacaoEm&&a.status!=="confirmado").length,semTel=s.pacientes.filter(p=>(p.situacao||"ativo")==="ativo"&&!p.telefone).length,semAut=s.pacientes.filter(p=>(p.situacao||"ativo")==="ativo"&&p.telefone&&!p.whatsappOk).length;
+  return `<div class="card"><h2>Diagnóstico</h2><div class="kpis"><div class="kpi"><span>Consultas nos próximos 7 dias sem aviso</span><b style="color:${semAviso?"var(--warn)":"var(--ok)"}">${semAviso}</b><small>de ${prox.length} agendada(s)</small></div><div class="kpi"><span>Pacientes ativos sem telefone</span><b>${semTel}</b></div><div class="kpi"><span>Sem autorização de WhatsApp</span><b>${semAut}</b><small>marque no cadastro do paciente</small></div></div></div>
+  <div class="card"><h2>Histórico de envios (30 dias)</h2>${ev.length?`<div class="tbl-wrap"><table><thead><tr><th>Enviado em</th><th>Tipo</th><th>Paciente</th><th>Consulta</th></tr></thead><tbody>${ev.slice(0,60).map(e=>`<tr><td class="num">${new Date(e.em).toLocaleString("pt-BR",{dateStyle:"short",timeStyle:"short"})}</td><td>${esc(e.l)}</td><td>${esc(pacNome(e.a.pacienteId))}</td><td class="num">${fmtD(e.a.data)} ${esc(e.a.hora)}</td></tr>`).join("")}</tbody></table></div>`:'<div class="empty">Nenhum envio registrado. Os envios aparecem aqui quando alguém usa os botões de WhatsApp, Lembrete ou SMS.</div>'}
+  <p class="muted" style="font-size:12.5px;margin:10px 0 0">O registro marca o clique no botão. A mensagem em si é enviada pelo WhatsApp ou pelo app de SMS do aparelho.</p></div>`}
+
+/* ---------- Prontuário e documentos: assinatura ---------- */
+function assinaturaForm(){const P=profs(true),A=CFG.assinaturas||{},adm=pode("ajustes",2);return `<div class="card grid"><h2>Assinatura nos documentos</h2><p class="muted" style="margin:0">Envie a imagem da assinatura de cada profissional, com fundo branco ou transparente. Ela aparece sobre a linha de assinatura em atestados, declarações, recibos e relatórios, junto do nome e do CREFITO.</p>
+  <div class="tbl-wrap"><table><thead><tr><th>Profissional</th><th>CREFITO</th><th>Assinatura</th><th></th></tr></thead><tbody>${P.map(p=>`<tr><td>${esc(p.nome)}</td><td>${esc(p.crefito||"—")}</td><td>${A[p.id]?`<img src="${A[p.id]}" alt="Assinatura de ${esc(p.nome)}" class="assin">`:'<span class="muted">sem assinatura</span>'}</td><td class="r">${adm?`<label class="btn sm">Enviar<input type="file" accept="image/*" hidden onchange="T.assinUp('${p.id}',this.files[0])"></label>${A[p.id]?` <button class="btn sm ghost danger" onclick="T.assinDel('${p.id}')">Remover</button>`:""}`:""}</td></tr>`).join("")}</tbody></table></div>
+  <p class="muted" style="margin:0;font-size:12.5px">É uma assinatura em imagem. Para validade jurídica de documento eletrônico, assine o PDF com certificado digital ICP-Brasil.</p></div>`}
+
+/* ---------- Financeiro e dados ---------- */
+function avisosForm(){const adm=pode("ajustes",2);return `<form class="card grid" onsubmit="event.preventDefault();T.saveAvisos(this)"><h2>Avisos e exportação</h2><div class="grid g3"><label class="f">Avisar contas a vencer com antecedência de (dias)<input type="number" id="av-d" name="avisoDias" min="0" max="30" value="${num(CFG.avisoDias??3)}" ${adm?"":"disabled"}></label><label class="f">Meta de receita mensal (R$)<input type="number" id="av-m" name="metaReceita" min="0" step="100" value="${num(CFG.metaReceita)||""}" ${adm?"":"disabled"}></label></div>
+  <div class="tools">${adm?`<button class="btn pri">Salvar avisos</button>`:""}${pode("financeiro")?`<button type="button" class="btn" onclick="T.csvFin()">Exportar finanças (planilha)</button>`:""}${pode("relatorios")?`<button type="button" class="btn" onclick="T.csvAgenda()">Exportar atendimentos</button>`:""}${pode("crm")?`<button type="button" class="btn" onclick="T.csvLeads()">Exportar leads</button>`:""}</div></form>`}
+const _pendExtras=pendExtras;pendExtras=function(){const n=num(CFG.avisoDias??3),t=today();const L=S().financeiro.filter(f=>f.status!=="pago"&&f.data>=t&&f.data<=addDays(t,n));
+  return _pendExtras()+(n&&L.length&&pode("financeiro")?`<div class="alert"><div><b>${L.length} conta(s) vencendo nos próximos ${n} dia(s)</b><span class="muted">${brl(L.filter(f=>f.tipo==="despesa").reduce((x,f)=>x+num(f.valor),0))} a pagar · ${brl(L.filter(f=>f.tipo==="receita").reduce((x,f)=>x+num(f.valor),0))} a receber.</span> <a href="#financeiro">Ver finanças</a></div></div>`:"")};
+
+/* ---------- Segurança e plano ---------- */
+function segurancaCard(){const u=meuUsuario();return `<div class="card"><h2>Seu acesso</h2><dl class="kv"><dt>Conta</dt><dd>${esc(ME_NOME||(LOCAL?"Modo local (este navegador)":"Conta do Claude"))}</dd><dt>Perfil</dt><dd>${esc(papelNome(papelAtual()))}${OWNER&&!LOCAL?" · titular da conta":""}</dd><dt>Profissional vinculado</dt><dd>${u&&u.profId?esc(prof(u.profId).nome):"—"}</dd></dl></div>
+  <div class="card"><h2>Login e senha</h2><ul><li>Cada pessoa entra com a própria conta do Claude. O Torque não tem senha separada.</li><li>Proteja a conta do Claude com senha forte e, se disponível, verificação em duas etapas.</li><li>Não compartilhe logins: cada um tem o próprio perfil e aparece na Auditoria.</li><li>Ao desligar alguém, desative o usuário em Usuários e permissões e remova o acesso no botão Compartilhar.</li></ul></div>
+  <div class="card"><h2>Proteção de dados (LGPD)</h2><ul><li>O prontuário fica restrito aos perfis clínicos (Permissões por setor).</li><li>Toda criação, alteração e exclusão fica registrada na Auditoria.</li><li>Registre o consentimento no cadastro de cada paciente.</li><li>Baixe uma cópia de segurança por mês, em Financeiro e dados.</li></ul><div class="tools"><a class="btn" href="#usuarios">Usuários e permissões</a><a class="btn" href="#auditoria">Auditoria</a></div></div>`}
+function planoResumo(){return `<div class="card"><h2>Plano e cobrança</h2><dl class="kv"><dt>Plano</dt><dd>${esc(planoAtual().nome)}</dd><dt>Usuários</dt><dd>${usados()} de ${num(LIC.limite)} liberados</dd><dt>Valor mensal</dt><dd>${brl(valorMensal())}</dd><dt>Vencimento</dt><dd>${LIC.vencimento?fmtD(LIC.vencimento):"—"}</dd></dl><div class="tools" style="margin-top:10px"><a class="btn pri" href="#plano">Abrir plano, faturas e limite</a><a class="btn" href="#usuarios">Usuários e permissões</a></div></div>`}
+
+/* ---------- Tela de configurações ---------- */
+const AJ_SEC=[["agenda","Agenda","Horários de atendimento"],["clinica","Clínica e equipe","Nome, logo, cores, equipe e serviços"],["prontuario","Prontuário e documentos","Modelos e assinatura"],["financeiro","Financeiro e dados","Listas, avisos e exportação"],["whatsapp","WhatsApp e lembretes","Mensagens e histórico"],["seguranca","Segurança da conta","Acesso e LGPD"],["plano","Plano e cobrança","Assinatura, usuários e faturas"]];
+const _ajustesBase=VIEWS.ajustes;
+VIEWS.ajustes=()=>{const h=_ajustesBase();const M={iden:'<form class="card grid" id="f-marca"',links:'<div class="card"><div class="tools"><a class="btn" href="#usuarios">',clin:'<form class="card grid" id="f-clin"',extra:'<form class="card grid" id="f-extra"',prof:'<form class="card grid" id="f-prof"',serv:'<form class="card grid" id="f-serv"',listas:'<form class="card grid" id="f-listas"',bkp:'<div class="card grid"><h2>Cópia de segurança</h2>'},ord=Object.keys(M);
+  const part=k=>{const i=h.indexOf(M[k]);if(i<0)return"";let j=h.length;ord.forEach(o=>{const x=h.indexOf(M[o]);if(x>i&&x<j)j=x});return h.slice(i,j)};
+  const sec=AJ_SEC.some(x=>x[0]===UI.ajSec)?UI.ajSec:"agenda";
+  const C={agenda:horariosForm()+part("extra"),clinica:part("clin")+part("iden")+part("prof")+part("serv"),prontuario:`<div class="card"><h2>Modelos de prontuário</h2><p class="muted" style="margin:4px 0 10px">Fichas personalizadas por especialidade (Pilates, pélvica, neurofuncional e as da clínica).</p><a class="btn" href="#modelos">Abrir modelos de prontuário</a></div>`+assinaturaForm(),financeiro:avisosForm()+part("listas")+part("bkp"),whatsapp:msgsForm()+historicoMsgs(),seguranca:segurancaCard(),plano:planoResumo()}[sec];
+  return `<div class="head"><div><h1>Configurações</h1><div class="sub">Clínica, agenda, documentos, mensagens, segurança e plano</div></div></div>
+  <div class="aj"><nav class="ajnav" aria-label="Seções das configurações"><div class="ajg">Configurações da clínica</div>${AJ_SEC.slice(0,4).map(btnSec(sec)).join("")}<div class="ajg">Configurações do profissional</div>${AJ_SEC.slice(4,6).map(btnSec(sec)).join("")}<div class="ajg">Plano e cobrança</div>${AJ_SEC.slice(6).map(btnSec(sec)).join("")}</nav><div class="grid aj-c">${C}</div></div>`};
+const btnSec=sec=>([k,l,d])=>`<button type="button" class="${k===sec?"on":""}" onclick="T.ui('ajSec','${k}')"><b>${l}</b><small>${d}</small></button>`;
+
+/* ---------- Painel: guia recolhível ---------- */
+guiaHtml=function(){const P=guiaPassos(),ok=P.filter(p=>p[2]).length;if(ok===P.length||lsGet("torque.guiaOff",false))return"";const min=lsGet("torque.guiaMin",false);
+  return `<div class="card guia"><div class="card-h"><div><h2>Bem-vindo(a) ao Torque!</h2><div class="muted">Conclua os primeiros passos para deixar a clínica pronta para atender.</div></div><div class="tools"><button class="btn sm ghost" onclick="T.guiaOff()">Pular guia</button><button class="btn sm" onclick="T.guiaMin()" aria-label="${min?"Mostrar":"Recolher"} os passos" aria-expanded="${!min}">${min?"▾":"▴"}</button></div></div>
+  <div class="bar" style="height:6px"><i style="width:${ok/P.length*100}%"></i></div><div class="muted" style="font-size:12.5px;margin:6px 0 ${min?0:10}px">${ok} de ${P.length} concluídos</div>
+  ${min?"":`<div class="passos">${P.map((p,i)=>`<a class="passo ${p[2]?"ok":""}" href="#${p[3]}" onclick="${p[3]==="ajustes"?`T.UI.ajSec='${["clinica","agenda","agenda","clinica"][i]||"clinica"}'`:""}"><span class="pc">${p[2]?"✓":i+1}</span><span><b>${i+1}. ${esc(p[0])}</b><small>${esc(p[1])}</small></span><span class="muted chev">›</span></a>`).join("")}</div>`}</div>`};
+
+/* ---------- Finanças: meta, janelas e repasses ---------- */
+function finExtras(R,c){const F=S().financeiro,t=today(),rec=(a,b)=>F.filter(f=>{const d=String(f.pagoEm||f.data).slice(0,10);return f.tipo==="receita"&&f.status==="pago"&&d>=a&&d<=b}).reduce((x,f)=>x+num(f.valor),0);
+  const jan=[30,90,120].map(n=>{const cur=rec(addDays(t,-n+1),t),ant=rec(addDays(t,-2*n+1),addDays(t,-n));return{n,cur,ant,pct:ant?(cur-ant)/ant*100:(cur?100:0)}});
+  const meta=num(CFG.metaReceita),m=mesDe(t),recM=rec(m+"-01",t),pm=meta?Math.min(100,recM/meta*100):0;
+  const rep=CFG.profissionais.filter(p=>!p.socio&&num(p.comissao)>0).reduce((x,p)=>x+c.recPag.filter(f=>f.profId===p.id).reduce((y,f)=>y+num(f.valor),0)*num(p.comissao)/100,0),nv=c.recPag.filter(f=>f.profId).length;
+  return `<div class="grid g2"><div class="card"><h2>Meta mensal de faturamento</h2>${meta?`<p class="muted sub2">${esc(mesNome(m))}: ${brl(recM)} de ${brl(meta)} (${Math.round(recM/meta*100)}%)</p>`:`<p class="sub2">${pode("ajustes",2)?`<a href="#" onclick="event.preventDefault();T.openMeta()">Definir meta mensal</a>`:"Peça a um administrador para definir a meta."}</p>`}<div class="bar" style="height:10px"><i style="width:${pm}%;${pm>=100?"background:var(--ok)":""}"></i></div><p class="muted" style="font-size:12.5px;margin:8px 0 0">${meta?(recM>=meta?"Meta atingida!":"Faltam "+brl(meta-recM)+".")+(pode("ajustes",2)?` <a href="#" onclick="event.preventDefault();T.openMeta()">Alterar meta</a>`:""):"Sem meta configurada."}</p></div>
+  <div class="card"><h2>Faturamento por janela</h2><p class="muted sub2">Recebido, comparado com o período anterior de igual tamanho</p>${jan.map(j=>`<div class="jan"><span>Últimos ${j.n} dias</span><b class="num">${brl(j.cur)}</b><small class="muted num">antes ${brl(j.ant)}</small><small class="dl ${j.pct>0.05?"g":j.pct<-0.05?"b":""} num">${j.pct>0.05?"↗":j.pct<-0.05?"↘":"→"} ${Math.abs(j.pct).toLocaleString("pt-BR",{maximumFractionDigits:1})}%</small></div>`).join("")}</div></div>
+  <div class="card"><h2>Repasse aos profissionais</h2><p class="muted sub2">Sobre as receitas recebidas no período, por profissional</p><b class="num" style="font-size:22px">${brl(rep)}</b><p class="muted" style="font-size:12.5px;margin:4px 0 0">${nv} receita(s) vinculada(s) a profissionais no período. <a href="#" onclick="event.preventDefault();T.ui('fTab','rep')">Ver detalhes na aba Repasses</a></p></div>`}
+
+/* ---------- Ações ---------- */
+const NOVAS_ACOES3={
+  guiaMin(){lsSet("torque.guiaMin",!lsGet("torque.guiaMin",false));render()},
+  calClick(e,col){const r=col.getBoundingClientRect(),off=(e.clientY-r.top)/PX*SLOT,h=horDe(col.dataset.p)[parseD(col.dataset.d).getDay()],sl=num(h.slot)||30,m=toMin(CFG.horaIni)+Math.floor(off/sl)*sl;openAppt(null,{data:col.dataset.d,profId:col.dataset.p,hora:fromMin(m)})},
+  async saveHorarios(f){const o=horLer(f);if(o.erro){toast("Confira o horário de "+o.erro+": o fim precisa ser depois do início.");return}CFG.horarios=Object.assign({},CFG.horarios,{[UI.ajProf]:o});CFG.horariosOk=true;if(await saveCfg())toast("Horários de "+prof(UI.ajProf).nome+" salvos.")},
+  async copiarHorarios(){const f=$("#f-hor"),o=horLer(f);if(o.erro){toast("Confira o horário de "+o.erro+".");return}const H={};profs(true).forEach(p=>H[p.id]=JSON.parse(JSON.stringify(o)));CFG.horarios=H;CFG.horariosOk=true;if(await saveCfg())toast("Horários copiados para todos os profissionais.")},
+  async saveMsgs(f){const o={};TPL_LBL.forEach(([k])=>{const v=fv(f,k);if(v&&v!==TPL_PAD[k])o[k]=v});CFG.msgs=o;if(await saveCfg()){render();toast("Mensagens salvas.")}},
+  async msgsPadrao(){CFG.msgs={};if(await saveCfg()){render();toast("Textos padrão restaurados.")}},
+  async saveAvisos(f){CFG.avisoDias=num(fv(f,"avisoDias"));CFG.metaReceita=num(fv(f,"metaReceita"));if(await saveCfg())toast("Avisos salvos.")},
+  async assinUp(pid,file){if(!file)return;try{const d=await lerLogo(file);CFG.assinaturas=Object.assign({},CFG.assinaturas,{[pid]:d});if(await saveCfg()){render();toast("Assinatura salva.")}}catch(e){toast("Não foi possível ler a imagem.")}},
+  async assinDel(pid){const A=Object.assign({},CFG.assinaturas);delete A[pid];CFG.assinaturas=A;if(await saveCfg()){render();toast("Assinatura removida.")}},
+  openMeta(){drawer("Meta mensal de faturamento",`<label class="f">Meta de receita recebida por mês (R$)<input type="number" id="mt-v" name="meta" min="0" step="100" value="${num(CFG.metaReceita)||""}"></label><p class="muted" style="margin:0">A meta aparece em Finanças, com o gráfico de receita acumulada e a barra de progresso do mês.</p>`,`<button type="button" class="btn" onclick="T.close()">Cancelar</button><button class="btn pri">Salvar meta</button>`,async f=>{CFG.metaReceita=num(fv(f,"meta"));if(await saveCfg()){closeM();render();toast("Meta salva.")}})},
+  async saveMarca(f){CFG.marca={titulo:fv(f,"titulo")||"TORQUE",sub:fv(f,"sub"),slogan:fv(f,"slogan")};const p=fv(f,"principal"),d=fv(f,"destaque"),c={};if(p&&d&&(p!==COR_P||d!==COR_D)){c.principal=p;c.destaque=d}if(fv(f,"menuOn"))c.menu=fv(f,"menu");if(fv(f,"fundo"))c.fundo=fv(f,"fundo");CFG.cores=Object.keys(c).length?c:null;if(await saveCfg()){renderBrand();render();toast("Identidade e cores salvas.")}},
+  async aplicarPreset(k){const x=PRESETS.find(y=>y[0]===k);if(!x)return;const old=CFG.cores||{},c={};if(k!=="torque"){c.principal=x[2];c.destaque=x[3]}if(old.fundo)c.fundo=old.fundo;CFG.cores=Object.keys(c).length?c:null;if(await saveCfg()){renderBrand();render();toast("Tema "+x[1]+" aplicado.")}},
+  async logoUp(file){if(!file)return;try{const d=await lerLogo(file);if(d.length>400000){toast("Imagem muito grande. Use um arquivo menor.");return}CFG.logo=d;const c=await extrairCores(d);if(c)CFG.cores=c;if(await saveCfg()){renderBrand();render();toast(c?"Logomarca atualizada e tons aplicados ao sistema.":"Logomarca atualizada.")}}catch(e){toast("Não foi possível ler a imagem.")}},
+  async usarTonsLogo(){if(!CFG.logo)return;const c=await extrairCores(CFG.logo);if(!c){toast("Não encontrei cores marcantes na logomarca. Escolha as cores manualmente.");return}CFG.cores=c;if(await saveCfg()){renderBrand();render();toast("Tons da logomarca aplicados.")}},
+  async coresPadrao(){CFG.cores=null;if(await saveCfg()){renderBrand();render();toast("Cores padrão restauradas.")}}
+};
+
 /* ================= Ações expostas ================= */
 window.T={
   go,today,setStatus,openPaciente,delPaciente,openAppt,delAppt,openAvaliacao,openEvolucao,openAdendo,openFin,pagar,delFin,openDocs,docPrev,docCopy,docSave,close:closeM,
@@ -2019,7 +2190,7 @@ window.T={
   async restore(file){if(!file)return;try{const d=JSON.parse(await file.text());if(d.app!=="torque-fisioterapia")throw 0;if(d.config){CFG=Object.assign(JSON.parse(JSON.stringify(DEF_CFG)),d.config);await saveCfg()}let n=0;for(const c of [...COLS,...EXTRA])for(const o of d[c]||[]){if(await save(c,o,true))n++}render();toast(n+" registros restaurados.")}catch(e){toast("Arquivo inválido: escolha uma cópia gerada pelo Torque.")}}
 };
 
-Object.assign(window.T,NOVAS_ACOES,NOVAS_ACOES2);
+Object.assign(window.T,NOVAS_ACOES,NOVAS_ACOES2,NOVAS_ACOES3);
 
 /* ================= Inicialização ================= */
 window.addEventListener("hashchange",()=>{if(route().v!=="paciente")UI.pTab="resumo";closeM();render();window.scrollTo(0,0)});
@@ -2036,7 +2207,7 @@ renderNav();
   if(!db){clearTimeout(timer);localLoad();ready();return}
   $("#modo").textContent="Banco compartilhado · sócios";
   const user=await window.claude.use("user").catch(()=>null);
-  if(user){const c=await user.can("data.write").catch(()=>null);if(c===false){canWrite=false;$("#modo").textContent="Acesso só de leitura"}ME=await user.id().catch(()=>null);OWNER=!!(await user.isOwner().catch(()=>false));USERCAP=user}else OWNER=false;
+  if(user){const c=await user.can("data.write").catch(()=>null);if(c===false){canWrite=false;$("#modo").textContent="Acesso só de leitura"}ME=await user.id().catch(()=>null);OWNER=!!(await user.isOwner().catch(()=>false));USERCAP=user;user.me().then(m=>{ME_NOME=(m&&m.name)||""}).catch(()=>{})}else OWNER=false;
   db.collection("chat").orderBy("em","desc").limit(500).onSnapshot(s=>{real.chat=s.docs.map(d=>Object.assign({},d.data(),{id:d.id}));if(loaded){if(route().v==="chat")render();else renderNav()}},()=>{});
   EXTRA.forEach(c=>{let q=db.collection(c);if(c==="auditoria")q=q.orderBy("em","desc").limit(400);q.onSnapshot(sn=>{real[c]=sn.docs.map(d=>Object.assign({},d.data(),{id:d.id}));if(c==="usuarios"){USU_OK=true;const u=meuUsuario();if(u&&u.profId&&lsGet("torque.chatProf",null)===null)UI.chatProf=u.profId;if(loaded)renderTop()}if(loaded)render()},()=>{if(c==="usuarios"){USU_OK=true;if(loaded)render()}})});
   db.doc("licenca/atual").onSnapshot(d=>{LIC=Object.assign(JSON.parse(JSON.stringify(LIC_PAD)),d.exists?d.data():{});if(loaded)render()},()=>{});
