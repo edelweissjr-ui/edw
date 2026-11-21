@@ -36,3 +36,11 @@ Abre com dados de exemplo, só na tela; eles somem quando o primeiro paciente re
 - **Auditoria:** registro de quem criou, alterou ou excluiu cada registro.
 - **Geral:** busca global (Ctrl K), botão + para criar, sino de pendências, tema claro/escuro, "Você" (profissional atual), botões "Preciso de ajuda" e "Chat interno".
 - Fora do escopo: vídeo próprio para teleconsulta, agendamento online pelo paciente (exige página pública), envio automático de WhatsApp/SMS e XML TISS.
+
+## Acesso por setor, licenças e CRM
+- **Usuários e permissões** (Sistema): cada pessoa é cadastrada com um setor: Administrador/Sócio, Fisioterapeuta, Financeiro, Comercial, Estoque, Recepcionista ou CRC. A matriz de permissões define, por área, Sem acesso / Ver / Editar. "Ver o sistema como" mostra a tela de cada setor. Quem abre o link sem cadastro vê "Acesso aguardando liberação".
+- **Prontuário clínico** (avaliações, evoluções, fichas, linha do tempo, relatório clínico) fica, por padrão, só com fisioterapeutas e administradores (LGPD e sigilo COFFITO).
+- **Plano e licenças** (monetização): tabela de planos com preço de venda, plano atual, número de usuários liberados (o sistema bloqueia novos usuários acima do limite), preço por usuário adicional, vencimento, tolerância, modo leitura quando vencida, link de pagamento e Pix, faturas mensais (marcar como paga renova o vencimento). Só o titular da conta altera.
+- **CRM / Comercial**: funil em quadros (novo lead, em contato, avaliação agendada, proposta, ganho, perdido) com arrastar e soltar, temperatura, valor, responsável, próximo contato, histórico de contatos, motivo da perda, conversão em paciente com agendamento da avaliação; follow-up de hoje e atrasados; leads por origem; aba Relacionamento (CRC) com reativação, aniversariantes, pós-alta e pacotes acabando.
+- **Identidade visual** (Ajustes): envio da logomarca e nome da barra lateral; a logomarca vai para os documentos.
+- Regras do banco: só administradores (editores) gravam usuários e configurações; só o titular grava licença e faturas. As demais permissões por setor são aplicadas pela própria página.

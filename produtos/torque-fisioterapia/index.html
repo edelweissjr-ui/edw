@@ -275,6 +275,34 @@ main{padding-bottom:84px}
 .iam{max-width:min(760px,92%);padding:10px 14px;border-radius:12px;overflow-wrap:anywhere}.iam.user{align-self:flex-end;background:var(--accent-soft);white-space:pre-wrap}.iam.assistant{align-self:flex-start;background:var(--surface-2)}
 .mdx h4{font-family:var(--font-display);font-stretch:112%;font-size:15px;margin:14px 0 6px}.mdx h4:first-child{margin-top:0}.mdx p{margin:0 0 8px}.mdx ul,.mdx ol{margin:0 0 8px;padding-left:20px}.mdx li{margin:2px 0}.mdx code{font-family:var(--font-mono);font-size:12.5px;background:var(--surface-2);padding:1px 4px;border-radius:4px}
 .card ul{margin:6px 0 0;padding-left:18px}
+/* CRM, acesso, plano, identidade */
+.card.grid{align-content:start}
+.kanban{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(230px,1fr);gap:10px;overflow-x:auto;padding-bottom:6px}
+.kcol{background:var(--surface-2);border-radius:var(--r);padding:8px;display:flex;flex-direction:column;gap:8px;min-height:180px;border:2px solid transparent}
+.kcol.over{border-color:var(--accent)}
+.kh{display:flex;justify-content:space-between;gap:6px;align-items:center;padding:2px 4px 4px;font-size:13px}
+.k-ganho .kh b{color:var(--ok)}.k-perdido .kh b{color:var(--bad)}
+.kcard{background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--warn);border-radius:8px;padding:8px 10px;cursor:grab;display:flex;flex-direction:column;gap:3px;font-size:13px}
+.kcard:hover{box-shadow:0 2px 8px rgba(0,0,0,.12)}
+.kcard.t-quente{border-left-color:var(--bad)}.kcard.t-frio{border-left-color:var(--info)}
+.kcard small{font-size:11.5px;color:var(--muted)}
+.kmeta{display:flex;gap:6px;flex-wrap:wrap;align-items:center}.kmeta .chip{font-size:11px;padding:1px 7px}
+.kfoot{display:flex;justify-content:space-between;align-items:center;font-size:11.5px;color:var(--muted);gap:6px}
+.kmv{display:flex;gap:4px}.ib.sm{width:24px;height:24px;font-size:15px;border-radius:6px}
+.kempty{font-size:12px;text-align:center;padding:16px 4px}
+.pend{max-width:620px;margin:40px auto}.pend h1{margin-bottom:10px}
+.lic{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.perm th,.perm td{text-align:center;white-space:nowrap}.perm td:first-child,.perm th:first-child{text-align:left;position:sticky;left:0;background:var(--surface);z-index:1}.perm th:first-child{background:var(--surface-2)}
+.pv{width:auto;padding:4px 6px;font-size:12.5px}.pv0{color:var(--muted)}.pv1{color:var(--info)}.pv2{color:var(--ok);font-weight:600}
+.planos{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}
+.plano{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px;display:flex;flex-direction:column;gap:6px;align-items:flex-start}
+.plano.on{border:2px solid var(--accent);background:var(--accent-soft)}
+.plano .preco{font-size:22px;font-weight:600}.plano .preco small{font-size:12px;color:var(--muted);font-weight:400}
+.ident{display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+.ident-prev{width:120px;height:120px;border:1px dashed var(--line);border-radius:12px;display:grid;place-items:center;background:var(--surface-2);text-align:center;padding:8px;font-size:12px}
+.ident-prev img{max-width:100%;max-height:100%;object-fit:contain}
+.brand-img{width:40px;height:40px;object-fit:contain;border-radius:8px;flex:none;background:#fff}
+.usel{position:relative}
 /* Painel lateral (modal) */
 .ov{position:fixed;inset:0;background:rgba(5,15,14,.45);z-index:40;display:flex;justify-content:flex-end}
 .drawer{background:var(--bg);width:min(760px,100%);height:100%;overflow:auto;display:flex;flex-direction:column;box-shadow:-10px 0 30px rgba(0,0,0,.2)}
@@ -414,13 +442,13 @@ const pill=s=>`<span class="pill st-${esc(s)}">${esc(ST_LBL[s]||s)}</span>`;
 /* ================= Estado e dados ================= */
 let LOCAL=false, db=null, canWrite=true, loaded=false;
 const COLS=["pacientes","agenda","registros","financeiro"];
-const EXTRA=["estoque","movest","guias","pesquisas","modelos","espera","bloqueios","notas","auditoria"];
+const EXTRA=["estoque","movest","guias","pesquisas","modelos","espera","bloqueios","notas","auditoria","leads","usuarios","faturas"];
 const real={pacientes:[],agenda:[],registros:[],financeiro:[],chat:[]};EXTRA.forEach(c=>real[c]=[]);
 let ME=null;
 let CFG=JSON.parse(JSON.stringify(DEF_CFG));
 let DEMO=null;
 const isDemo=()=>COLS.every(c=>!real[c].length);
-const S=()=>{if(!isDemo())return real;const d=DEMO||(DEMO=buildDemo()),o=Object.assign({},d);EXTRA.forEach(c=>o[c]=real[c].length?real[c]:(d[c]||[]));o.notas=real.notas;o.auditoria=real.auditoria;o.modelos=real.modelos;return o};
+const S=()=>{if(!isDemo())return real;const d=DEMO||(DEMO=buildDemo()),o=Object.assign({},d);EXTRA.forEach(c=>o[c]=real[c].length?real[c]:(d[c]||[]));o.notas=real.notas;o.auditoria=real.auditoria;o.modelos=real.modelos;o.usuarios=real.usuarios;o.faturas=real.faturas;return o};
 const profs=(all)=>CFG.profissionais.filter(p=>all||p.ativo!==false);
 const prof=id=>CFG.profissionais.find(p=>p.id===id)||{nome:"—",cor:"#888",crefito:""};
 const serv=id=>CFG.servicos.find(s=>s.id===id)||{nome:"Atendimento",valor:0,duracao:50};
@@ -431,10 +459,11 @@ const confCor=st=>st==="confirmado"||st==="espera"||st==="atendido"?"var(--ok)":
 const confTxt=st=>st==="confirmado"?"Paciente confirmou":st==="espera"?"Paciente chegou (em espera)":st==="atendido"?"Atendido":st==="faltou"?"Faltou":st==="cancelado"?"Cancelado":"Aguardando confirmação: clique para marcar como confirmado";
 const pac=id=>S().pacientes.find(p=>p.id===id);
 const pacNome=id=>(pac(id)||{}).nome||"Paciente removido";
-const UI={agDate:today(),agMode:"dia",agProf:"",agCancel:false,pBusca:"",pSit:"ativo",pTab:"resumo",fMes:mesDe(today()),fTipo:"todos",fStatus:"todos",rMes:mesDe(today()),fPer:"mes",fTab:"painel",rPer:"mes",agSala:"",agStatus:"",agServ:"",agBusca:"",agNotaOpen:false,eTab:"itens",eBusca:"",eCat:"",eArq:false,gBusca:"",gSit:"",gOp:"",auCol:"",auProf:"",auBusca:"",modSel:"",iaPac:"",iaDraft:"",fichaUlt:""};
+const UI={agDate:today(),agMode:"dia",agProf:"",agCancel:false,pBusca:"",pSit:"ativo",pTab:"resumo",fMes:mesDe(today()),fTipo:"todos",fStatus:"todos",rMes:mesDe(today()),fPer:"mes",fTab:"painel",rPer:"mes",agSala:"",agStatus:"",agServ:"",agBusca:"",agNotaOpen:false,eTab:"itens",eBusca:"",eCat:"",eArq:false,gBusca:"",gSit:"",gOp:"",auCol:"",auProf:"",auBusca:"",modSel:"",iaPac:"",iaDraft:"",fichaUlt:"",verComo:"",uTab:"lista",cTab:"funil",cBusca:"",cEt:"",cOrig:""};
 
-async function save(col,obj,quiet){
+async function save(col,obj,quiet,sys){
   if(!canWrite){toast("Seu acesso é só de leitura.");return false}
+  if(!sys&&COL_MOD[col]&&!pode(COL_MOD[col],2)){toast("Seu perfil ("+papelNome(papelAtual())+") não pode alterar "+((MODS.find(m=>m[0]===COL_MOD[col])||[])[1]||"esta área").toLowerCase()+".");return false}
   if(String(obj.id||"").startsWith("ex_")||String(obj.pacienteId||"").startsWith("ex_")){toast("Este é um registro de exemplo. Cadastre um paciente real para começar.");return false}
   obj.id=obj.id||uid();obj.atualizadoEm=new Date().toISOString();if(!obj.criadoEm)obj.criadoEm=obj.atualizadoEm;
   const clean=JSON.parse(JSON.stringify(obj));
@@ -442,8 +471,9 @@ async function save(col,obj,quiet){
   const existia=real[col].some(x=>x.id===clean.id);
   try{await db.collection(col).doc(clean.id).set(clean);if(!IMPORTANDO)audit(col,clean,existia?"alterou":"criou");return true}catch(e){toast("Não foi possível salvar ("+(e.code||e.message||"erro")+"). Tente de novo.");return false}
 }
-async function del(col,id){
+async function del(col,id,sys){
   if(!canWrite){toast("Seu acesso é só de leitura.");return false}
+  if(!sys&&COL_MOD[col]&&!pode(COL_MOD[col],2)){toast("Seu perfil ("+papelNome(papelAtual())+") não pode excluir aqui.");return false}
   if(String(id).startsWith("ex_")){toast("Registros de exemplo somem sozinhos quando você cadastra o primeiro paciente.");return false}
   const alvo=real[col].find(x=>x.id===id)||{id};
   if(LOCAL){real[col]=real[col].filter(x=>x.id!==id);lsSet("torque."+col,real[col]);audit(col,alvo,"excluiu");render();return true}
@@ -451,6 +481,7 @@ async function del(col,id){
 }
 async function saveCfg(){
   if(!canWrite){toast("Seu acesso é só de leitura.");return false}
+  if(!pode("ajustes",2)){toast("Só administradores alteram as configurações.");return false}
   const ac=()=>audit("config",{id:"clinica",nome:"Configurações da clínica"},"alterou");
   if(LOCAL){lsSet("torque.config",CFG);ac();render();return true}
   try{await db.doc("config/clinica").set(JSON.parse(JSON.stringify(CFG)));ac();return true}catch(e){toast("Sem permissão para alterar as configurações.");return false}
@@ -500,6 +531,7 @@ function buildDemo(){
   D.guias=[{id:"ex_g0",numero:"2026-000184",operadora:"Unimed",pacienteId:"ex_p0",carteirinha:"0 123 456789012345 6",tipoGuia:"SP/SADT",procedimento:"Sessão de fisioterapia",tuss:"",sessoesAut:10,senha:"A98213",emissao:addDays(t,-25),validade:addDays(t,8),valor:660,situacao:"aberta"},{id:"ex_g1",numero:"2026-000151",operadora:"Cassi",pacienteId:"ex_p3",tipoGuia:"SP/SADT",procedimento:"Fisioterapia neurológica",sessoesAut:20,senha:"C55120",emissao:addDays(t,-60),validade:addDays(t,-2),valor:1430,situacao:"parcial",valorRecebido:1287,valorGlosado:143,motivoGlosa:"Sessão sem assinatura do paciente"},{id:"ex_g2",numero:"2026-000162",operadora:"Bradesco Saúde",pacienteId:"ex_p2",tipoGuia:"SP/SADT",procedimento:"Fisioterapia ortopédica",sessoesAut:10,senha:"B77311",emissao:addDays(t,-40),validade:addDays(t,20),valor:660,situacao:"paga",valorRecebido:660}];
   D.pesquisas=[[0,"p1",10,"Atendimento excelente, já sinto muita diferença."],[1,"p2",9,""],[2,"p1",8,"Gostaria de mais horários à noite."],[5,"p2",10,""],[6,"p5",6,"Atraso de 15 minutos no início da aula."],[7,"p1",""]].map((r,i)=>({id:"ex_n"+i,pacienteId:"ex_p"+r[0],profId:r[1],nota:r[2],comentario:r[3]||"",enviadaEm:addDays(t,-12+i*2)}));
   D.espera=[{id:"ex_w0",nome:"Exemplo · Joana Prado",telefone:"(81) 90000-0101",servicoId:"s6",profId:"p5",periodo:"Noite",obs:"Prefere terças e quintas",criadoEm:addDays(t,-4)},{id:"ex_w1",pacienteId:"ex_p7",servicoId:"s2",profId:"p1",periodo:"Manhã",obs:"Quer antecipar a sessão",criadoEm:addDays(t,-1)}];
+  D.leads=[["Exemplo · Patrícia Gomes","Instagram","s6","novo","quente",720,0,""],["Exemplo · Roberto Lins","Google","s2","contato","morno",1200,-1,""],["Exemplo · Camila Rocha","Indicação de paciente","s5","avaliacao","quente",1600,2,""],["Exemplo · Diego Farias","WhatsApp","s3","proposta","morno",1400,-3,""],["Exemplo · Helena Barros","Indicação médica","s10","ganho","quente",1500,null,"ex_p1"],["Exemplo · Marcos Vieira","Facebook / Meta Ads","s6","perdido","frio",600,null,""],["Exemplo · Luana Prado","Instagram","s7","contato","frio",900,1,""]].map((r,i)=>({id:"ex_l"+i,nome:r[0],telefone:"(81) 90000-02"+String(10+i),origem:r[1],servicoId:r[2],etapa:r[3],temperatura:r[4],valor:r[5],proximoContato:r[6]===null?"":addDays(t,r[6]),pacienteId:r[7],responsavel:["p1","p2","p4","p2","p1","p5","p5"][i],criadoEm:addDays(t,-20+i*3),fechadoEm:["ganho","perdido"].includes(r[3])?addDays(t,-2):"",motivoPerda:r[3]==="perdido"?"Preço":"",historico:[{em:addDays(t,-5),canal:"WhatsApp",texto:"Pediu informações sobre valores e horários.",prof:"p1"}]}));
   D.bloqueios=[{id:"ex_b0",data:t,horaIni:"12:00",horaFim:"13:00",profId:"",motivo:"Almoço"}];
   return D;
 }
@@ -510,12 +542,12 @@ const finStatus=f=>f.status==="pago"?"pago":(f.data<today()?"vencido":"pendente"
 async function syncReceita(a){
   const fin=real.financeiro.find(f=>f.agendaId===a.id);
   if(a.status==="atendido"&&a.tipo!=="pacote"&&num(a.valor)>0){
-    if(!fin){const p=pac(a.pacienteId)||{};await save("financeiro",{tipo:"receita",data:a.data,descricao:serv(a.servicoId).nome+" — "+(p.nome||""),categoria:a.tipo==="convenio"?"Convênio":"Atendimento",valor:num(a.valor),forma:a.tipo==="convenio"?"Convênio":"",status:"pendente",pacienteId:a.pacienteId,profId:a.profId,agendaId:a.id,convenio:a.tipo==="convenio"?(p.convenio||""):""},true)}
-  }else if(fin&&fin.status!=="pago"){await del("financeiro",fin.id)}
+    if(!fin){const p=pac(a.pacienteId)||{};await save("financeiro",{tipo:"receita",data:a.data,descricao:serv(a.servicoId).nome+" — "+(p.nome||""),categoria:a.tipo==="convenio"?"Convênio":"Atendimento",valor:num(a.valor),forma:a.tipo==="convenio"?"Convênio":"",status:"pendente",pacienteId:a.pacienteId,profId:a.profId,agendaId:a.id,convenio:a.tipo==="convenio"?(p.convenio||""):""},true,true)}
+  }else if(fin&&fin.status!=="pago"){await del("financeiro",fin.id,true)}
 }
 async function setStatus(id,st){
   const a=real.agenda.find(x=>x.id===id);if(!a){if(String(id).startsWith("ex_"))toast("Este é um agendamento de exemplo.");return}
-  a.status=st;if(await save("agenda",a,true)){await syncReceita(a);render();toast("Marcado como "+ST_LBL[st].toLowerCase()+".");if(st==="atendido"&&!real.registros.some(r=>r.agendaId===id))setTimeout(()=>openEvolucao(a.pacienteId,null,id),250)}
+  a.status=st;if(await save("agenda",a,true)){await syncReceita(a);render();toast("Marcado como "+ST_LBL[st].toLowerCase()+".");if(st==="atendido"&&pode("prontuario",2)&&!real.registros.some(r=>r.agendaId===id))setTimeout(()=>openEvolucao(a.pacienteId,null,id),250)}
 }
 function waLink(tel,msg){let d=digits(tel);if(!d)return"";if(d.length<=11)d="55"+d;return"https://wa.me/"+d+"?text="+encodeURIComponent(msg)}
 function msgLembrete(a){const p=pac(a.pacienteId)||{},c=CFG.clinica,pn=(p.nome||"").replace(/^Exemplo · /,"").split(" ")[0];const quando=a.data===addDays(today(),1)?"amanhã ("+dLong(a.data).toLowerCase()+")":a.data===today()?"hoje":dLong(a.data).toLowerCase();return `Olá, ${pn}! Lembrete da ${c.nome}: ${quando} às ${a.hora} você tem ${serv(a.servicoId).nome.toLowerCase()} com ${prof(a.profId).nome}.${c.endereco?" Endereço: "+c.endereco+".":""} Venha com roupa confortável e chegue 10 minutos antes. Se precisar remarcar, responda esta mensagem.`}
@@ -539,15 +571,18 @@ const ICONS={
   bulas:'<rect x="3" y="8.5" width="18" height="7" rx="3.5" transform="rotate(-45 12 12)"/><path d="M9.5 9.5l5 5"/>',
   migracao:'<path d="M12 15V3M7 8l5-5 5 5"/><path d="M4 15v4a2 2 0 002 2h12a2 2 0 002-2v-4"/>',
   auditoria:'<path d="M12 3l8 3v6c0 4.5-3.4 8.3-8 9-4.6-.7-8-4.5-8-9V6z"/><path d="M9 12l2 2 4-4"/>',
+  crm:'<path d="M3 4h18l-7 8v6l-4 2v-8z"/>',
+  usuarios:'<circle cx="9" cy="7" r="3.5"/><path d="M2.5 20c.8-3.6 3.4-5.5 6.5-5.5 1.6 0 3 .5 4.2 1.4"/><rect x="14" y="14" width="7" height="6" rx="1"/><path d="M15.5 14v-1.5a2 2 0 014 0V14"/>',
+  plano:'<rect x="2.5" y="5" width="19" height="14" rx="2"/><path d="M2.5 10h19M6 15h4"/>',
   financeiro:'<rect x="2.5" y="6" width="19" height="13" rx="2"/><circle cx="12" cy="12.5" r="2.8"/><path d="M6 9.5v6M18 9.5v6"/>',
   relatorios:'<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>',
   ajustes:'<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 00.3 1.8l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.7 1.7 0 00-1.8-.3 1.7 1.7 0 00-1 1.5V21a2 2 0 11-4 0v-.1a1.7 1.7 0 00-1.1-1.5 1.7 1.7 0 00-1.8.3l-.1.1a2 2 0 11-2.8-2.8l.1-.1a1.7 1.7 0 00.3-1.8 1.7 1.7 0 00-1.5-1H3a2 2 0 110-4h.1a1.7 1.7 0 001.5-1.1 1.7 1.7 0 00-.3-1.8l-.1-.1a2 2 0 112.8-2.8l.1.1a1.7 1.7 0 001.8.3H9a1.7 1.7 0 001-1.5V3a2 2 0 114 0v.1a1.7 1.7 0 001 1.5 1.7 1.7 0 001.8-.3l.1-.1a2 2 0 112.8 2.8l-.1.1a1.7 1.7 0 00-.3 1.8V9a1.7 1.7 0 001.5 1H21a2 2 0 110 4h-.1a1.7 1.7 0 00-1.5 1z"/>'
 };
-const NAVG=[["Clínica",[["inicio","Painel"],["agenda","Agenda"],["pacientes","Pacientes"],["modelos","Modelos de prontuário"],["chat","Chat interno"]]],["Gestão",[["financeiro","Finanças"],["relatorios","Relatórios"],["estoque","Estoque"],["tiss","Convênios (TISS)"],["satisfacao","Satisfação do paciente"]]],["Conhecimento",[["assistente","Assistente IA"],["evidencias","Evidências"],["bulas","Bulas"]]],["Sistema",[["migracao","Migração de dados"],["auditoria","Auditoria"],["ajustes","Ajustes"]]]];
+const NAVG=[["Clínica",[["inicio","Painel"],["agenda","Agenda"],["pacientes","Pacientes"],["modelos","Modelos de prontuário"],["chat","Chat interno"]]],["Gestão",[["crm","CRM / Comercial"],["financeiro","Finanças"],["relatorios","Relatórios"],["estoque","Estoque"],["tiss","Convênios (TISS)"],["satisfacao","Satisfação do paciente"]]],["Conhecimento",[["assistente","Assistente IA"],["evidencias","Evidências"],["bulas","Bulas"]]],["Sistema",[["migracao","Migração de dados"],["auditoria","Auditoria"],["usuarios","Usuários e permissões"],["plano","Plano e licenças"],["ajustes","Ajustes"]]]];
 const NAV=NAVG.flatMap(g=>g[1]);
 function route(){const h=(location.hash||"#inicio").slice(1);if(h.startsWith("paciente-"))return{v:"paciente",id:h.slice(9)};return{v:NAV.some(n=>n[0]===h)?h:"inicio"}}
 function go(h){if(location.hash==="#"+h)render();else location.hash=h}
-function renderNav(){const r=route().v;const cur=r==="paciente"?"pacientes":r;const nl=naoLidas();$("#nav").innerHTML=NAVG.map(([g,L])=>`<div class="ng">${g}</div>`+L.map(([k,l])=>`<a href="#${k}" class="${cur===k?"on":""}" title="${l}"><svg viewBox="0 0 24 24">${ICONS[k]}</svg><span>${l}</span>${k==="chat"&&nl?`<i class="nb">${nl}</i>`:""}</a>`).join("")).join("");updTop()}
+function renderNav(){const r=route().v;const cur=r==="paciente"?"pacientes":r;const nl=naoLidas();$("#nav").innerHTML=NAVG.map(([g,L0])=>{const L=L0.filter(([k])=>pode(VIEW_MOD[k]));return L.length?`<div class="ng">${g}</div>`+L.map(([k,l])=>`<a href="#${k}" class="${cur===k?"on":""}" title="${l}"><svg viewBox="0 0 24 24">${ICONS[k]}</svg><span>${l}</span>${k==="chat"&&nl?`<i class="nb">${nl}</i>`:""}</a>`).join(""):""}).join("");updTop()}
 
 function render(){
   if(!loaded)return;
@@ -555,7 +590,10 @@ function render(){
   const main=$("#main"),ae=document.activeElement;
   const fid=ae&&ae.id&&main.contains(ae)?ae.id:null,sel=fid&&typeof ae.selectionStart==="number"?[ae.selectionStart,ae.selectionEnd]:null;
   const r=route();
-  let html=isDemo()?`<div class="banner"><div><b>Você está vendo dados de exemplo.</b> <span class="muted">Eles somem quando o primeiro paciente real for cadastrado. Antes, ajuste os nomes dos sócios em Ajustes.</span></div><div class="tools"><button class="btn sm" onclick="T.go('ajustes')">Configurar clínica</button><button class="btn pri sm" onclick="T.openPaciente()">Cadastrar 1º paciente</button></div></div>`:"";
+  if(!LOCAL&&!OWNER&&!USU_OK){main.innerHTML='<div class="empty">Carregando permissões…</div>';return}
+  if(papelAtual()==="pendente"){main.innerHTML=telaPendente();return}
+  if(!pode(VIEW_MOD[r.v]||"inicio")){main.innerHTML=bannerAcesso()+telaSemAcesso();return}
+  let html=bannerAcesso()+(isDemo()&&pode("pacientes",2)?`<div class="banner"><div><b>Você está vendo dados de exemplo.</b> <span class="muted">Eles somem quando o primeiro paciente real for cadastrado. Antes, ajuste os nomes dos sócios em Ajustes.</span></div><div class="tools"><button class="btn sm" onclick="T.go('ajustes')">Configurar clínica</button><button class="btn pri sm" onclick="T.openPaciente()">Cadastrar 1º paciente</button></div></div>`:"");
   html+=(VIEWS[r.v]||VIEWS.inicio)(r.id);
   main.innerHTML=html;
   if(fid){const el=document.getElementById(fid);if(el){el.focus();if(sel)try{el.setSelectionRange(sel[0],sel[1])}catch(e){}}}
@@ -584,17 +622,17 @@ VIEWS.inicio=()=>{
   <div class="kpis">
    <div class="kpi"><span>Atendimentos no mês</span><b>${at}</b><small>${fl} falta(s)</small></div>
    ${(()=>{const L=s.agenda.filter(a=>a.data>=addDays(t,-30)&&a.data<=t),x=L.filter(a=>a.status==="atendido").length,y=L.filter(a=>a.status==="faltou").length;return `<div class="kpi"><span>Comparecimento (30 dias)</span><b>${x+y?Math.round(x/(x+y)*100)+"%":"—"}</b><small>${y} falta(s) · meta acima de 90%</small></div>`})()}
-   <div class="kpi"><span>Recebido no mês</span><b>${brl(rec)}</b><small>receitas pagas</small></div>
-   <div class="kpi"><span>A receber</span><b>${brl(aRec)}</b><small>particular e convênios</small></div>
+   ${pode("financeiro")?`<div class="kpi"><span>Recebido no mês</span><b>${brl(rec)}</b><small>receitas pagas</small></div>
+   <div class="kpi"><span>A receber</span><b>${brl(aRec)}</b><small>particular e convênios</small></div>`:`<div class="kpi"><span>Pacientes em tratamento</span><b>${ativos.length}</b><small>situação ativa</small></div><div class="kpi"><span>Atendimentos hoje</span><b>${hoje.length}</b><small>na agenda</small></div>`}
   </div>
   <div class="cols">
    <div class="card"><div class="card-h"><h2>Agenda de hoje</h2><button class="btn sm ghost" onclick="T.go('agenda')">Abrir agenda</button></div>
-    ${hoje.length?`<div class="list">${hoje.map(liAppt).join("")}</div>`:`<div class="empty">Nenhum atendimento hoje.<br><button class="btn sm" style="margin-top:8px" onclick="T.openAppt()">Agendar</button></div>`}
+    ${!pode("agenda")?'<div class="empty">Seu perfil não acessa a agenda.</div>':hoje.length?`<div class="list">${hoje.map(liAppt).join("")}</div>`:`<div class="empty">Nenhum atendimento hoje.<br><button class="btn sm" style="margin-top:8px" onclick="T.openAppt()">Agendar</button></div>`}
    </div>
    <div class="card"><h2 style="margin-bottom:12px">Pendências</h2>
-    ${semEvo.length?`<div class="alert bad"><div><b>${semEvo.length} atendimento(s) sem evolução</b><span class="muted">O prontuário precisa do registro de cada sessão.</span><div class="chips" style="margin-top:6px">${semEvo.slice(0,6).map(a=>`<button class="btn sm" onclick="T.openEvolucao('${a.pacienteId}',null,'${a.id}')">${esc(pacNome(a.pacienteId).replace("Exemplo · ",""))} · ${fmtD(a.data).slice(0,5)}</button>`).join("")}</div></div></div>`:""}
+    ${semEvo.length&&pode("prontuario")?`<div class="alert bad"><div><b>${semEvo.length} atendimento(s) sem evolução</b><span class="muted">O prontuário precisa do registro de cada sessão.</span><div class="chips" style="margin-top:6px">${semEvo.slice(0,6).map(a=>`<button class="btn sm" onclick="T.openEvolucao('${a.pacienteId}',null,'${a.id}')">${esc(pacNome(a.pacienteId).replace("Exemplo · ",""))} · ${fmtD(a.data).slice(0,5)}</button>`).join("")}</div></div></div>`:""}
     ${acabando.length?`<div class="alert warn"><div><b>Pacotes/guias acabando</b>${acabando.map(p=>`<div><a href="#paciente-${p.id}">${esc(p.nome)}</a> · ${sessoesFeitas(p.id)}/${p.sessoesPrevistas} sessões</div>`).join("")}<span class="muted">Hora de reavaliar e renovar.</span></div></div>`:""}
-    ${venc.length?`<div class="alert warn"><div><b>${venc.length} conta(s) vencida(s)</b><span class="muted">${brl(venc.reduce((x,f)=>x+num(f.valor),0))} em aberto.</span> <a href="#financeiro">Ver financeiro</a></div></div>`:""}
+    ${venc.length&&pode("financeiro")?`<div class="alert warn"><div><b>${venc.length} conta(s) vencida(s)</b><span class="muted">${brl(venc.reduce((x,f)=>x+num(f.valor),0))} em aberto.</span> <a href="#financeiro">Ver financeiro</a></div></div>`:""}
     ${niver.length?`<div class="alert ok"><div><b>Aniversariantes da semana</b>${niver.map(p=>`<div>${esc(p.nome)} · ${fmtD(p.nascimento).slice(0,5)} ${p.telefone?`<a target="_blank" rel="noopener" href="${waLink(p.telefone,`Feliz aniversário, ${p.nome.replace("Exemplo · ","").split(" ")[0]}! Toda a equipe da ${CFG.clinica.nome} deseja muita saúde e movimento. 🎉`)}">parabenizar</a>`:""}</div>`).join("")}</div></div>`:""}
     ${pendExtras()}
     ${!semEvo.length&&!acabando.length&&!venc.length&&!niver.length&&!pendExtras()?`<div class="empty">Tudo em dia.</div>`:""}
@@ -608,8 +646,8 @@ function liAppt(a){
   <div class="m"><b><a href="#paciente-${a.pacienteId}" style="color:inherit;text-decoration:none">${esc(p.nome||"Paciente removido")}</a></b><small><span class="dot" style="--pc:${esc(servCor(a.servicoId))}"></span> ${esc(serv(a.servicoId).nome)} · ${esc(pr.nome)}${a.tipo==="convenio"?" · "+esc(p.convenio||"Convênio"):a.tipo==="pacote"?" · Pacote":""}</small>${p.telefone?`<small class="num tel">${esc(p.telefone)}${a.lembreteEm||a.smsEm?' · <span style="color:var(--ok)">lembrete enviado</span>':""}</small>`:""}</div>
   <div class="a">${pill(a.status)}
    ${["agendado","confirmado"].includes(a.status)?contatoBtns(a,p,1):""}
-   ${["agendado","confirmado"].includes(a.status)?`<button class="btn sm" onclick="T.setStatus('${a.id}','espera')">Chegou</button>`:""}${["agendado","confirmado","espera"].includes(a.status)?`<button class="btn sm" onclick="T.setStatus('${a.id}','atendido')">Atendido</button><button class="btn sm" onclick="T.setStatus('${a.id}','faltou')">Faltou</button>`:""}
-   ${a.status==="atendido"&&!evo?`<button class="btn sm pri" onclick="T.openEvolucao('${a.pacienteId}',null,'${a.id}')">Evoluir</button>`:""}
+   ${["agendado","confirmado"].includes(a.status)&&pode("agenda",2)?`<button class="btn sm" onclick="T.setStatus('${a.id}','espera')">Chegou</button>`:""}${["agendado","confirmado","espera"].includes(a.status)&&pode("agenda",2)?`<button class="btn sm" onclick="T.setStatus('${a.id}','atendido')">Atendido</button><button class="btn sm" onclick="T.setStatus('${a.id}','faltou')">Faltou</button>`:""}
+   ${a.status==="atendido"&&!evo&&pode("prontuario",2)?`<button class="btn sm pri" onclick="T.openEvolucao('${a.pacienteId}',null,'${a.id}')">Evoluir</button>`:""}
    <button class="btn sm ghost" onclick="T.openAppt('${a.id}')" aria-label="Editar">Editar</button></div></div>`;
 }
 
@@ -662,16 +700,16 @@ VIEWS.paciente=(id)=>{
   const ag=s.agenda.filter(a=>a.pacienteId===id).sort((a,b)=>(b.data+b.hora).localeCompare(a.data+a.hora));
   const fin=s.financeiro.filter(x=>x.pacienteId===id).sort((a,b)=>b.data.localeCompare(a.data));
   const prox=ag.filter(a=>a.data>=today()&&["agendado","confirmado"].includes(a.status)).sort((a,b)=>(a.data+a.hora).localeCompare(b.data+b.hora))[0];
-  const tab=UI.pTab;
+  let tab=UI.pTab;
   const fichas=S().registros.filter(r=>r.pacienteId===id&&r.tipo==="ficha").sort((a,b)=>b.data.localeCompare(a.data));
-  const T_=[["resumo","Resumo"],["linha","Linha do tempo"],["fichas",`Fichas (${fichas.length})`],["avaliacoes",`Avaliações (${avs.length})`],["evolucoes",`Evoluções (${evs.length})`],["agenda",`Agenda (${ag.length})`],["financeiro","Financeiro"]];
+  const T_=[["resumo","Resumo"],["linha","Linha do tempo"],["fichas",`Fichas (${fichas.length})`],["avaliacoes",`Avaliações (${avs.length})`],["evolucoes",`Evoluções (${evs.length})`],["agenda",`Agenda (${ag.length})`],["financeiro","Financeiro"]].filter(([k])=>pode(TAB_MOD[k]));if(!T_.some(x=>x[0]===tab))tab="resumo";
   let body="";
   if(tab==="resumo"){
     const pts=[...avs.map(a=>({d:a.data,v:a.eva})),...evs.map(e=>({d:e.data,v:e.evaPre}))].filter(x=>x.v!==undefined&&x.v!==""&&x.v!==null).sort((a,b)=>a.d.localeCompare(b.d));
     const av=avs[0];
-    body=`<div class="cols"><div class="grid">
+    body=`<div class="cols"><div class="grid">${pode("prontuario")?`
      <div class="card"><h2 style="margin-bottom:10px">Evolução da dor (EVA 0–10)</h2>${pts.length>1?evaChart(pts):`<div class="empty">A curva aparece a partir de dois registros de dor (avaliação e evoluções).</div>`}</div>
-     <div class="card"><div class="card-h"><h2>Última avaliação</h2>${av?`<span class="muted">${fmtD(av.data)} · ${esc(prof(av.profId).nome)}</span>`:""}</div>${av?`<dl class="kv"><dt>Diagnóstico cinético-funcional</dt><dd>${esc(av.diagnosticoFisio||"—")}</dd><dt>Objetivos</dt><dd>${esc(av.objetivos||"—")}</dd><dt>Conduta</dt><dd>${esc(av.conduta||"—")}</dd><dt>Plano</dt><dd>${esc((av.sessoes?av.sessoes+" sessões":"")+(av.frequencia?" · "+av.frequencia:""))||"—"}</dd></dl>`:`<div class="empty">Sem avaliação registrada.<br><button class="btn pri sm" style="margin-top:8px" onclick="T.openAvaliacao('${id}')">Fazer avaliação</button></div>`}</div>
+     <div class="card"><div class="card-h"><h2>Última avaliação</h2>${av?`<span class="muted">${fmtD(av.data)} · ${esc(prof(av.profId).nome)}</span>`:""}</div>${av?`<dl class="kv"><dt>Diagnóstico cinético-funcional</dt><dd>${esc(av.diagnosticoFisio||"—")}</dd><dt>Objetivos</dt><dd>${esc(av.objetivos||"—")}</dd><dt>Conduta</dt><dd>${esc(av.conduta||"—")}</dd><dt>Plano</dt><dd>${esc((av.sessoes?av.sessoes+" sessões":"")+(av.frequencia?" · "+av.frequencia:""))||"—"}</dd></dl>`:`<div class="empty">Sem avaliação registrada.<br><button class="btn pri sm" style="margin-top:8px" onclick="T.openAvaliacao('${id}')">Fazer avaliação</button></div>`}</div>`:`<div class="card empty">Avaliações, evoluções e curva de dor ficam visíveis só para perfis com acesso ao prontuário clínico.</div>`}
     </div>
     <div class="card"><h2 style="margin-bottom:10px">Dados do paciente</h2><dl class="kv">
      <dt>Nascimento</dt><dd>${fmtD(p.nascimento)||"—"}${p.nascimento?" ("+idade(p.nascimento)+" anos)":""}</dd>
@@ -701,7 +739,7 @@ VIEWS.paciente=(id)=>{
    <div class="info"><h1>${esc(p.nome)}</h1><div class="meta"><span>${p.nascimento?idade(p.nascimento)+" anos":""}</span><span>${esc(p.convenio||"Particular")}</span><span><span class="dot" style="--pc:${esc(pr.cor)}"></span> ${esc(pr.nome)}</span>${pill(p.situacao||"ativo")}${prox?`<span>Próxima: ${fmtD(prox.data)} às ${esc(prox.hora)}</span>`:""}</div>
    ${pv?`<div style="margin-top:8px;max-width:360px"><div class="muted" style="font-size:12.5px">${f} de ${pv} sessões realizadas</div><div class="bar" style="margin-top:4px"><i style="width:${Math.min(100,f/pv*100)}%"></i></div></div>`:""}</div>
    <div class="tools">${p.telefone?`<a class="btn wa" target="_blank" rel="noopener" href="${waLink(p.telefone,"Olá, "+p.nome.replace("Exemplo · ","").split(" ")[0]+"! Aqui é da "+CFG.clinica.nome+".")}">WhatsApp</a>`:""}
-    <button class="btn" onclick="T.openPaciente('${id}')">Editar</button><button class="btn" onclick="T.openDocs('${id}')">Documentos</button><button class="btn" onclick="T.openFicha('${id}')">+ Ficha</button><button class="btn" onclick="T.openAvaliacao('${id}')">+ Avaliação</button><button class="btn" onclick="T.openAppt(null,{pacienteId:'${id}'})">Agendar</button><button class="btn pri" onclick="T.openEvolucao('${id}')">+ Evolução</button></div></div></div>
+    ${pode("pacientes",2)?`<button class="btn" onclick="T.openPaciente('${id}')">Editar</button>`:""}${pode("prontuario")||pode("financeiro")?`<button class="btn" onclick="T.openDocs('${id}')">Documentos</button>`:""}${pode("prontuario",2)?`<button class="btn" onclick="T.openFicha('${id}')">+ Ficha</button><button class="btn" onclick="T.openAvaliacao('${id}')">+ Avaliação</button>`:""}${pode("agenda",2)?`<button class="btn" onclick="T.openAppt(null,{pacienteId:'${id}'})">Agendar</button>`:""}${pode("prontuario",2)?`<button class="btn pri" onclick="T.openEvolucao('${id}')">+ Evolução</button>`:""}</div></div></div>
   <div class="tabs">${T_.map(([k,l])=>`<button class="${tab===k?"on":""}" onclick="T.ui('pTab','${k}')">${l}</button>`).join("")}</div>
   <div class="grid">${body}</div>`;
 };
@@ -770,6 +808,8 @@ function chatAfter(){
 VIEWS.ajustes=()=>{
   const c=CFG.clinica;
   return `<div class="head"><div><h1>Ajustes</h1><div class="sub">Clínica, sócios, serviços, convênios e cópias de segurança</div></div></div>
+  ${cardIdentidade()}
+  <div class="card"><div class="tools"><a class="btn" href="#usuarios">Usuários e permissões</a><a class="btn" href="#plano">Plano e licenças</a></div></div>
   <form class="card grid" id="f-clin" onsubmit="event.preventDefault();T.saveClinica(this)"><h2>Dados da clínica</h2>
    <div class="grid g3"><label class="f">Nome<input type="text" id="c-nome" name="nome" value="${esc(c.nome)}"></label><label class="f">CNPJ<input type="text" id="c-cnpj" name="cnpj" value="${esc(c.cnpj)}"></label><label class="f">Telefone / WhatsApp<input type="tel" id="c-tel" name="telefone" value="${esc(c.telefone)}"></label>
    <label class="f span2">Endereço<input type="text" id="c-end" name="endereco" value="${esc(c.endereco)}"></label><label class="f">Cidade/UF<input type="text" id="c-cid" name="cidade" value="${esc(c.cidade)}"></label>
@@ -898,7 +938,7 @@ function openAppt(id,pre){
     ${a.modalidade==="teleconsulta"&&a.link?`<div class="tools"><a class="btn pri" target="_blank" rel="noopener" href="${esc(a.link)}">Entrar na sala de vídeo</a>${p.telefone?`<a class="btn wa" target="_blank" rel="noopener" href="${waLink(p.telefone,msgTele(a))}">Enviar link ao paciente</a>`:""}</div>`:""}
     ${["agendado","confirmado"].includes(a.status)?`<label class="f chk"><input type="checkbox" id="ap-conf" ${a.status==="confirmado"?"checked":""} onchange="this.form.elements.status.value=this.checked?'confirmado':'agendado'"> Paciente confirmou a consulta</label>`:""}
    </div></fieldset>`:""}
-   ${id&&p?`<div class="tools"><button type="button" class="btn" onclick="T.close();T.go('paciente-${a.pacienteId}')">Abrir prontuário</button><button type="button" class="btn" onclick="T.openEvolucao('${a.pacienteId}',null,'${a.id}')">Registrar evolução</button></div>`:""}`,
+   ${id&&p?`<div class="tools"><button type="button" class="btn" onclick="T.close();T.go('paciente-${a.pacienteId}')">Abrir prontuário</button>${pode("prontuario",2)?`<button type="button" class="btn" onclick="T.openEvolucao('${a.pacienteId}',null,'${a.id}')">Registrar evolução</button>`:""}</div>`:""}`,
    `${id?`<span class="lft">${confirmBtn("Excluir",`T.delAppt('${id}')`)}</span>`:""}<button type="button" class="btn" onclick="T.close()">Cancelar</button><button class="btn pri">Salvar</button>`,
    async f=>{
      const o=Object.assign({},a);["pacienteId","profId","servicoId","data","hora","tipo","status","obs","sala","modalidade","link"].forEach(k=>o[k]=fv(f,k));if(o.modalidade==="teleconsulta"&&!o.link)o.link="https://meet.jit.si/Torque-"+uid();
@@ -912,10 +952,10 @@ function openAppt(id,pre){
      }
      const blq=bloqueado(o);
      const conflito=S().agenda.find(x=>x.id!==o.id&&x.profId===o.profId&&x.data===o.data&&x.status!=="cancelado"&&toMin(x.hora)<toMin(o.hora)+o.duracao&&toMin(o.hora)<toMin(x.hora)+num(x.duracao||50));
-     if(await save("agenda",o,true)){await syncReceita(o);closeM();render();toast(blq?"Salvo. Atenção: horário bloqueado ("+(blq.motivo||"bloqueio")+").":conflito?"Salvo. Atenção: horário coincide com "+pacNome(conflito.pacienteId)+".":"Agendamento salvo.");if(o.status==="atendido"&&a.status!=="atendido"&&!real.registros.some(r=>r.agendaId===o.id))setTimeout(()=>openEvolucao(o.pacienteId,null,o.id),250)}
+     if(await save("agenda",o,true)){await syncReceita(o);closeM();render();toast(blq?"Salvo. Atenção: horário bloqueado ("+(blq.motivo||"bloqueio")+").":conflito?"Salvo. Atenção: horário coincide com "+pacNome(conflito.pacienteId)+".":"Agendamento salvo.");if(o.status==="atendido"&&a.status!=="atendido"&&pode("prontuario",2)&&!real.registros.some(r=>r.agendaId===o.id))setTimeout(()=>openEvolucao(o.pacienteId,null,o.id),250)}
    });
 }
-async function delAppt(id){const fin=real.financeiro.find(f=>f.agendaId===id&&f.status!=="pago");if(await del("agenda",id)){if(fin)await del("financeiro",fin.id);closeM();toast("Agendamento excluído.")}}
+async function delAppt(id){const fin=real.financeiro.find(f=>f.agendaId===id&&f.status!=="pago");if(await del("agenda",id)){if(fin)await del("financeiro",fin.id,true);closeM();toast("Agendamento excluído.")}}
 
 /* ---------- Avaliação ---------- */
 const gonRow=(r={})=>`<tr><td><input type="text" name="g_a" value="${esc(r.a||"")}" placeholder="Ombro"></td><td><input type="text" name="g_b" value="${esc(r.b||"")}" placeholder="Flexão"></td><td><input type="number" name="g_d" value="${esc(r.d||"")}" style="width:70px"></td><td><input type="number" name="g_e" value="${esc(r.e||"")}" style="width:70px"></td></tr>`;
@@ -1108,7 +1148,7 @@ function extenso(v){
 const LOGO_DOC='<svg viewBox="0 0 48 48"><circle cx="24" cy="24" r="23" fill="#0e3a39"/><path d="M36.99 16.5 A15 15 0 1 1 16.5 11.01" fill="none" stroke="#f07a43" stroke-width="3.6" stroke-linecap="round"/><polygon points="21.2,8.4 14.2,7.2 17.6,14.6" fill="#f07a43"/><rect x="16.5" y="17" width="15" height="4.2" rx="1" fill="#ffffff"/><rect x="21.9" y="17" width="4.2" height="15.5" rx="1" fill="#ffffff"/></svg>';
 const DOCS={dec:"Declaração de comparecimento",ate:"Atestado fisioterapêutico",rec:"Recibo",rel:"Relatório fisioterapêutico",tcl:"Termo de consentimento"};
 function openDocs(pid,kind){
-  const p=pac(pid);if(!p)return;kind=kind||"dec";
+  const p=pac(pid);if(!p)return;kind=kind||"dec";if(!pode("prontuario")&&!["dec","rec"].includes(kind))kind="dec";
   const ult=S().agenda.filter(a=>a.pacienteId===pid&&a.status==="atendido").sort((a,b)=>(b.data+b.hora).localeCompare(a.data+a.hora))[0];
   const pago=S().financeiro.filter(f=>f.pacienteId===pid&&f.tipo==="receita"&&f.status==="pago").sort((a,b)=>b.data.localeCompare(a.data))[0];
   const fields={
@@ -1119,7 +1159,7 @@ function openDocs(pid,kind){
     tcl:`<label class="f">Data<input type="date" id="do-d" name="d" value="${today()}"></label>`
   };
   drawer("Documentos · "+esc(p.nome),`
-   <div class="seg" style="flex-wrap:wrap;align-self:flex-start">${Object.entries(DOCS).map(([k,l])=>`<button type="button" class="${k===kind?"on":""}" onclick="T.openDocs('${pid}','${k}')">${l}</button>`).join("")}</div>
+   <div class="seg" style="flex-wrap:wrap;align-self:flex-start">${Object.entries(DOCS).filter(([k])=>pode("prontuario")||["dec","rec"].includes(k)).map(([k,l])=>`<button type="button" class="${k===kind?"on":""}" onclick="T.openDocs('${pid}','${k}')">${l}</button>`).join("")}</div>
    <div class="grid g3" id="doc-f" oninput="T.docPrev('${pid}','${kind}')">${fields[kind]}<label class="f">Assinado por<select id="do-pr" name="pr">${profs(true).map(x=>opt(x.id,x.nome,p.profId)).join("")}</select></label></div>
    <div class="paper" id="paper"></div>`,
    `<button type="button" class="btn" onclick="T.docCopy()">Copiar texto</button><button type="button" class="btn pri" onclick="T.docSave('${pid}','${kind}')">Baixar para imprimir</button>`,null);
@@ -1142,7 +1182,7 @@ function docBody(pid,kind){
     ${ue?`<p><b>Evolução:</b> dor ${av?"de EVA "+esc(av.eva)+" ":""}para EVA ${esc(ue.evaPos??ue.evaPre)}/10. ${esc(ue.a||"")}</p><p><b>Conduta:</b> ${esc(ue.p||"Manter tratamento.")}</p>`:""}
     <p>Coloco-me à disposição para esclarecimentos.</p>`}
   if(kind==="tcl")h=`<h4>Termo de consentimento livre e esclarecido</h4><p>Eu, <b>${nomeP}</b>${cpf}, declaro que fui informado(a) de forma clara sobre a avaliação e o tratamento fisioterapêutico proposto, seus objetivos, benefícios esperados, possíveis desconfortos e alternativas, e que posso interromper o tratamento a qualquer momento.</p><p>Autorizo a <b>${esc(c.nome)}</b> a registrar e guardar meus dados pessoais e de saúde em prontuário eletrônico, exclusivamente para a prestação do atendimento, comunicação sobre minhas consultas e cumprimento de obrigações legais, conforme a Lei 13.709/2018 (LGPD) e a Resolução COFFITO 414/2012. Sei que posso pedir acesso, correção ou informações sobre o uso desses dados.</p><div class="sig"><div></div>${nomeP}<br>Paciente ou responsável</div>`;
-  return `<div class="lh">${LOGO_DOC}<div><b>${esc(c.nome)}</b><small>${esc([c.endereco,c.cidade].filter(Boolean).join(" · "))}${c.telefone?" · "+esc(c.telefone):""}${c.cnpj?" · CNPJ "+esc(c.cnpj):""}</small></div></div>${h}${local}${sig}<div class="foot">${esc(c.nome)}${c.instagram?" · "+esc(c.instagram):""}${c.email?" · "+esc(c.email):""}</div>`;
+  return `<div class="lh">${logoDoc()}<div><b>${esc(c.nome)}</b><small>${esc([c.endereco,c.cidade].filter(Boolean).join(" · "))}${c.telefone?" · "+esc(c.telefone):""}${c.cnpj?" · CNPJ "+esc(c.cnpj):""}</small></div></div>${h}${local}${sig}<div class="foot">${esc(c.nome)}${c.instagram?" · "+esc(c.instagram):""}${c.email?" · "+esc(c.email):""}</div>`;
 }
 function docPrev(pid,kind){const el=$("#paper");if(el)el.innerHTML=docBody(pid,kind)}
 async function docCopy(){const t=$("#paper").innerText;try{await navigator.clipboard.writeText(t);toast("Texto copiado.")}catch(e){const r=document.createRange();r.selectNodeContents($("#paper"));const s=getSelection();s.removeAllRanges();s.addRange(r);toast("Texto selecionado: use Ctrl+C para copiar.")}}
@@ -1494,7 +1534,7 @@ function openMov(itemId,tipo){
      const o=Object.assign({},it);if(tipo==="entrada"){o.saldo=num(o.saldo)+q;if(fv(f,"custo"))o.custo=num(fv(f,"custo"))}else if(tipo==="saida"){if(q>num(o.saldo)){toast("A saída é maior que o saldo ("+num(o.saldo)+").");return}o.saldo=num(o.saldo)-q}else o.saldo=q;
      const m={itemId:it.id,tipo,qtd:q,data:fv(f,"data")||today(),motivo:fv(f,"motivo"),pacienteId:f.elements.pacienteId?fv(f,"pacienteId"):"",profId:euProf()};
      if(!(await save("movest",m,true)))return;if(!(await save("estoque",o,true)))return;
-     if(tipo==="entrada"&&fv(f,"fin")&&num(o.custo)*q>0)await save("financeiro",{tipo:"despesa",data:m.data,descricao:"Compra: "+it.nome+" ("+q+" "+(it.unidade||"")+")",categoria:"Material de consumo",valor:+(num(o.custo)*q).toFixed(2),forma:"",status:"pendente",pagoEm:"",centroCusto:""},true);
+     if(tipo==="entrada"&&fv(f,"fin")&&num(o.custo)*q>0)await save("financeiro",{tipo:"despesa",data:m.data,descricao:"Compra: "+it.nome+" ("+q+" "+(it.unidade||"")+")",categoria:"Material de consumo",valor:+(num(o.custo)*q).toFixed(2),forma:"",status:"pendente",pagoEm:"",centroCusto:""},true,true);
      closeM();render();toast("Movimentação registrada.")});
 }
 
@@ -1527,7 +1567,7 @@ function openGuia(id){
    ${id?`<p class="muted" style="margin:0">Sessões realizadas na validade: <b>${sessGuia(g)}${g.sessoesAut?" de "+esc(g.sessoesAut):""}</b>.</p>`:""}`,
    `${id?`<span class="lft">${confirmBtn("Excluir guia",`T.delGuia('${id}')`)}</span>`:""}<button type="button" class="btn" onclick="T.close()">Cancelar</button><button class="btn pri">Salvar</button>`,
    async f=>{const o=Object.assign({},g);["numero","operadora","tipoGuia","pacienteId","carteirinha","procedimento","tuss","senha","emissao","validade","lote","situacao","motivoGlosa"].forEach(k=>o[k]=fv(f,k));["sessoesAut","valor","valorRecebido","valorGlosado"].forEach(k=>o[k]=fv(f,k)===""?"":num(fv(f,k)));
-     if(!o.pacienteId){toast("Escolha o paciente.");return}if(await save("guias",o,true)){if(o.validade){const p=real.pacientes.find(x=>x.id===o.pacienteId);if(p&&p.validadeGuia!==o.validade&&o.situacao==="aberta"){p.validadeGuia=o.validade;await save("pacientes",p,true)}}closeM();render();toast("Guia salva.")}});
+     if(!o.pacienteId){toast("Escolha o paciente.");return}if(await save("guias",o,true)){if(o.validade){const p=real.pacientes.find(x=>x.id===o.pacienteId);if(p&&p.validadeGuia!==o.validade&&o.situacao==="aberta"){p.validadeGuia=o.validade;await save("pacientes",p,true,true)}}closeM();render();toast("Guia salva.")}});
 }
 function openOperadoras(){
   const pr=CFG.prestador||{};
@@ -1641,7 +1681,7 @@ async function migImportar(){
   MIGS.res={ok,erros};MIGS.rows=null;render();toast(ok+" registro(s) importado(s).")}
 
 /* ---------- Auditoria ---------- */
-const COL_LBL={pacientes:"Pacientes",agenda:"Agenda",registros:"Prontuário",financeiro:"Finanças",estoque:"Estoque",movest:"Estoque (movimentos)",guias:"Convênios (TISS)",pesquisas:"Satisfação",modelos:"Modelos de prontuário",espera:"Lista de espera",bloqueios:"Bloqueios de agenda",config:"Configurações",migracao:"Migração de dados"};
+const COL_LBL={pacientes:"Pacientes",agenda:"Agenda",registros:"Prontuário",financeiro:"Finanças",estoque:"Estoque",movest:"Estoque (movimentos)",guias:"Convênios (TISS)",pesquisas:"Satisfação",modelos:"Modelos de prontuário",espera:"Lista de espera",bloqueios:"Bloqueios de agenda",config:"Configurações",migracao:"Migração de dados",leads:"CRM",usuarios:"Usuários",faturas:"Faturas"};
 VIEWS.auditoria=()=>{const q=UI.auBusca.toLowerCase().trim();const L=S().auditoria.filter(a=>(!UI.auCol||a.col===UI.auCol)&&(!UI.auProf||a.profId===UI.auProf)&&(!q||String(a.resumo).toLowerCase().includes(q))).sort((a,b)=>String(b.em).localeCompare(String(a.em))).slice(0,300);
   const ac={criou:"pago",alterou:"pendente",excluiu:"vencido",importou:"agendado"};
   return `<div class="head"><div><h1>Auditoria</h1><div class="sub">Quem criou, alterou ou excluiu cada registro (LGPD e COFFITO)</div></div></div>
@@ -1655,13 +1695,13 @@ const ICO_SUN='<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="
 function renderTop(){const t=$("#topbar");if(!t)return;
   t.innerHTML=`<div class="tb-in"><div class="gsearch"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input type="search" id="gs" placeholder="Buscar paciente ou seção" autocomplete="off" oninput="T.gs(this.value)" onfocus="T.gs(this.value)" onkeydown="T.gsKey(event)" onblur="setTimeout(()=>{const r=document.getElementById('gs-res');if(r)r.hidden=true},180)"><kbd>Ctrl K</kbd><div class="gs-res" id="gs-res" hidden></div></div>
   <div class="tb-act"><label class="eu"><span>Você:</span><select id="eu-sel" onchange="T.chatProf(this.value)">${profs(true).map(p=>opt(p.id,p.nome,euProf())).join("")}</select></label>
-   <div class="dd"><button type="button" class="ib" onclick="T.dd()" aria-label="Criar novo" title="Criar">+</button><div class="dd-m" id="dd-add" hidden><button onclick="T.dd();T.openPaciente()">Novo paciente</button><button onclick="T.dd();T.openAppt()">Novo agendamento</button><button onclick="T.dd();T.openFin(null,'receita')">Nova receita</button><button onclick="T.dd();T.openFin(null,'despesa','pendente')">Nova despesa</button><button onclick="T.dd();T.openPesquisa()">Pesquisa de satisfação</button><button onclick="T.dd();T.openItem()">Item de estoque</button></div></div>
+   <div class="dd"><button type="button" class="ib" onclick="T.dd()" aria-label="Criar novo" title="Criar">+</button><div class="dd-m" id="dd-add" hidden>${ddItens()}</div></div>
    <button type="button" class="ib" onclick="T.go('inicio')" aria-label="Pendências" title="Pendências">${ICO_BELL}<i class="nb" id="bell-n" hidden></i></button>
    <button type="button" class="ib" onclick="T.tema()" aria-label="Alternar tema claro ou escuro" title="Tema">${ICO_SUN}</button></div></div>`;updTop()}
 function updTop(){const b=$("#bell-n");if(b){const n=contaPend();b.hidden=!n;b.textContent=n}const fc=$("#fab-chat-n");if(fc){const n=naoLidas();fc.hidden=!n;fc.textContent=n}}
 function gsRes(q){q=String(q||"").trim().toLowerCase();if(!q)return[];const qd=digits(q),R=[];
-  S().pacientes.filter(p=>p.nome.toLowerCase().includes(q)||(qd.length>=3&&(digits(p.cpf).includes(qd)||digits(p.telefone).includes(qd)))).slice(0,6).forEach(p=>R.push({t:"Paciente",l:p.nome,s:[p.convenio||"Particular",p.telefone].filter(Boolean).join(" · "),h:"paciente-"+p.id}));
-  NAV.filter(([k,l])=>normH(l).includes(normH(q))).forEach(([k,l])=>R.push({t:"Seção",l,s:"",h:k}));return R}
+  (pode("pacientes")?S().pacientes:[]).filter(p=>p.nome.toLowerCase().includes(q)||(qd.length>=3&&(digits(p.cpf).includes(qd)||digits(p.telefone).includes(qd)))).slice(0,6).forEach(p=>R.push({t:"Paciente",l:p.nome,s:[p.convenio||"Particular",p.telefone].filter(Boolean).join(" · "),h:"paciente-"+p.id}));
+  NAV.filter(([k,l])=>normH(l).includes(normH(q))&&pode(VIEW_MOD[k])).forEach(([k,l])=>R.push({t:"Seção",l,s:"",h:k}));return R}
 const HELP={
   inicio:["O painel mostra a agenda do dia, os indicadores do mês e as pendências.","O guia de primeiros passos some quando tudo estiver concluído (ou clique em Pular guia)."],
   agenda:["Clique num horário vazio para agendar. A barra ao lado do nome fica verde quando o paciente confirma (clique nela).","Use Bloquear horário para almoço, reuniões e férias. Feriados nacionais aparecem no cabeçalho.","Quando o paciente chegar, marque Chegou: ele entra em Em espera."],
@@ -1679,14 +1719,17 @@ const HELP={
   migracao:["Baixe o modelo CSV, preencha ou exporte do sistema antigo e envie. Confira a ligação das colunas antes de importar."],
   auditoria:["Cada criação, alteração e exclusão fica registrada com o profissional escolhido em Você."],
   chat:["Converse com a equipe por salas. Registros clínicos vão no prontuário."],
-  ajustes:["Dados da clínica, salas, horários, sócios, serviços, convênios, metas e cópia de segurança."]};
+  ajustes:["Dados da clínica, identidade visual, salas, horários, sócios, serviços, convênios, metas e cópia de segurança."],
+  crm:["Cadastre cada contato como lead, arraste o card entre as etapas e marque o próximo contato.","Relacionamento (CRC) lista pacientes para reativar, aniversariantes, pós-alta e pacotes acabando."],
+  usuarios:["Cadastre cada pessoa com o setor. O que cada setor vê e altera fica em Permissões por setor.","Use “Ver o sistema como” para conferir a tela de cada setor."],
+  plano:["Defina o plano, o número de usuários liberados e o vencimento. Gere a fatura e marque como paga para renovar."]};
 function openAjuda(){const v=route().v,L=HELP[v]||[];
   drawer("Preciso de ajuda",`${L.length?`<div class="card"><h3>Nesta tela</h3><ul>${L.map(x=>`<li>${esc(x)}</li>`).join("")}</ul></div>`:""}
   <div class="card"><h3>Atalhos</h3><ul><li><b>Ctrl K</b> (ou ⌘K): buscar paciente ou seção.</li><li><b>+</b> no topo: criar paciente, agendamento, receita ou despesa.</li><li>O sino mostra as pendências do dia.</li><li><b>Você</b>: escolha seu nome para assinar o chat e a auditoria.</li></ul></div>
   <div class="tools"><button type="button" class="btn pri" onclick="T.close();T.go('assistente')">Perguntar ao assistente</button><button type="button" class="btn" onclick="T.close();T.go('chat')">Falar com a equipe</button></div>`,`<button type="button" class="btn" onclick="T.close()">Fechar</button>`,null)}
 
 /* ---------- Documentos: agenda do dia e relatório ---------- */
-function docShell(titulo,corpo){return `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>${esc(titulo)}</title><style>body{margin:0;background:#eee;font-family:Arial,sans-serif;color:#1b1b1b}.pg{background:#fff;max-width:900px;margin:20px auto;padding:40px 48px}.lh{display:flex;align-items:center;gap:12px;border-bottom:2px solid #d9561f;padding-bottom:10px;margin-bottom:18px}.lh svg{width:44px;height:44px}.lh b{font-size:18px;color:#0e3a39;display:block}.lh small{color:#555;font-size:11.5px}h1{font-size:18px;margin:0 0 4px}h2{font-size:14px;margin:20px 0 6px;color:#0e3a39}table{border-collapse:collapse;width:100%;font-size:12.5px}th,td{border-bottom:1px solid #ddd;padding:6px 8px;text-align:left}th{background:#f3f3f3}td.r,th.r{text-align:right}.muted{color:#666;font-size:12px}@media print{body{background:#fff}.pg{margin:0;padding:12mm}}</style></head><body><div class="pg"><div class="lh">${LOGO_DOC}<div><b>${esc(CFG.clinica.nome)}</b><small>${esc([CFG.clinica.endereco,CFG.clinica.cidade,CFG.clinica.telefone].filter(Boolean).join(" · "))}</small></div></div>${corpo}</div><script>window.onload=()=>window.print()<\/script></body></html>`}
+function docShell(titulo,corpo){return `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>${esc(titulo)}</title><style>body{margin:0;background:#eee;font-family:Arial,sans-serif;color:#1b1b1b}.pg{background:#fff;max-width:900px;margin:20px auto;padding:40px 48px}.lh{display:flex;align-items:center;gap:12px;border-bottom:2px solid #d9561f;padding-bottom:10px;margin-bottom:18px}.lh svg{width:44px;height:44px}.lh b{font-size:18px;color:#0e3a39;display:block}.lh small{color:#555;font-size:11.5px}h1{font-size:18px;margin:0 0 4px}h2{font-size:14px;margin:20px 0 6px;color:#0e3a39}table{border-collapse:collapse;width:100%;font-size:12.5px}th,td{border-bottom:1px solid #ddd;padding:6px 8px;text-align:left}th{background:#f3f3f3}td.r,th.r{text-align:right}.muted{color:#666;font-size:12px}@media print{body{background:#fff}.pg{margin:0;padding:12mm}}</style></head><body><div class="pg"><div class="lh">${logoDoc()}<div><b>${esc(CFG.clinica.nome)}</b><small>${esc([CFG.clinica.endereco,CFG.clinica.cidade,CFG.clinica.telefone].filter(Boolean).join(" · "))}</small></div></div>${corpo}</div><script>window.onload=()=>window.print()<\/script></body></html>`}
 function baixarAgenda(){const d=UI.agDate,s=S(),fer=feriado(d);
   const corpo=`<h1>Agenda de ${esc(dLong(d))}${fer?" · "+esc(fer):""}</h1><div class="muted">Gerada em ${new Date().toLocaleString("pt-BR")}</div>${profs().map(p=>{const L=s.agenda.filter(a=>a.data===d&&a.profId===p.id&&a.status!=="cancelado").sort((a,b)=>a.hora.localeCompare(b.hora));return L.length?`<h2>${esc(p.nome)}</h2><table><thead><tr><th>Hora</th><th>Paciente</th><th>Telefone</th><th>Procedimento</th><th>Sala</th><th>Status</th></tr></thead><tbody>${L.map(a=>{const pp=pac(a.pacienteId)||{};return `<tr><td>${esc(a.hora)}</td><td>${esc(pp.nome||"")}</td><td>${esc(pp.telefone||"")}</td><td>${esc(serv(a.servicoId).nome)}${a.modalidade==="teleconsulta"?" (teleconsulta)":""}</td><td>${esc(a.sala||"")}</td><td>${esc(ST_LBL[a.status])}</td></tr>`}).join("")}</tbody></table>`:""}).join("")||"<p>Nenhum agendamento.</p>"}${(s.notas.find(n=>n.id===d)||{}).texto?`<h2>Observações do dia</h2><p>${esc(s.notas.find(n=>n.id===d).texto)}</p>`:""}`;
   download(`agenda-${d}.html`,docShell("Agenda "+fmtD(d),corpo),"text/html")}
@@ -1746,6 +1789,204 @@ const NOVAS_ACOES={
   csvAgenda(){const R=periodo(UI.rPer);const L=S().agenda.filter(a=>inR(a.data,R)).sort((a,b)=>(a.data+a.hora).localeCompare(b.data+b.hora));download(`atendimentos-${R.ini}-a-${R.fim}.csv`,csv([["Data","Hora","Paciente","Convênio","Profissional","Procedimento","Sala","Modalidade","Cobrança","Valor","Status"],...L.map(a=>[fmtD(a.data),a.hora,pacNome(a.pacienteId),(pac(a.pacienteId)||{}).convenio||"Particular",prof(a.profId).nome,serv(a.servicoId).nome,a.sala||"",a.modalidade||"presencial",a.tipo,String(num(a.valor)).replace(".",","),ST_LBL[a.status]])]),"text/csv")}
 };
 
+/* ================= Acesso por setor, usuários, licença, CRM e identidade visual ================= */
+const PAPEIS=[["admin","Administrador / Sócio"],["fisio","Fisioterapeuta"],["financeiro","Financeiro"],["comercial","Comercial"],["estoque","Estoque"],["recepcao","Recepcionista"],["crc","CRC (relacionamento)"]];
+const papelNome=k=>(PAPEIS.find(p=>p[0]===k)||[k,k==="pendente"?"Aguardando liberação":k])[1];
+const MODS=[["inicio","Painel"],["agenda","Agenda"],["pacientes","Cadastro de pacientes"],["prontuario","Prontuário clínico"],["modelos","Modelos de prontuário"],["chat","Chat interno"],["crm","CRM / Comercial"],["financeiro","Finanças"],["relatorios","Relatórios"],["estoque","Estoque"],["tiss","Convênios (TISS)"],["satisfacao","Satisfação do paciente"],["ia","Assistente, evidências e bulas"],["migracao","Migração de dados"],["auditoria","Auditoria"],["ajustes","Configurações"]];
+const PERM_PAD={
+  fisio:{inicio:2,agenda:2,pacientes:2,prontuario:2,modelos:2,chat:2,crm:0,financeiro:0,relatorios:0,estoque:1,tiss:1,satisfacao:1,ia:2,migracao:0,auditoria:0,ajustes:0},
+  financeiro:{inicio:1,agenda:1,pacientes:1,prontuario:0,modelos:0,chat:2,crm:1,financeiro:2,relatorios:2,estoque:1,tiss:2,satisfacao:1,ia:0,migracao:0,auditoria:1,ajustes:0},
+  comercial:{inicio:1,agenda:2,pacientes:2,prontuario:0,modelos:0,chat:2,crm:2,financeiro:1,relatorios:1,estoque:0,tiss:0,satisfacao:2,ia:0,migracao:0,auditoria:0,ajustes:0},
+  estoque:{inicio:1,agenda:0,pacientes:0,prontuario:0,modelos:0,chat:2,crm:0,financeiro:0,relatorios:0,estoque:2,tiss:0,satisfacao:0,ia:0,migracao:0,auditoria:0,ajustes:0},
+  recepcao:{inicio:2,agenda:2,pacientes:2,prontuario:0,modelos:0,chat:2,crm:1,financeiro:2,relatorios:0,estoque:1,tiss:1,satisfacao:2,ia:0,migracao:0,auditoria:0,ajustes:0},
+  crc:{inicio:1,agenda:2,pacientes:2,prontuario:0,modelos:0,chat:2,crm:2,financeiro:0,relatorios:1,estoque:0,tiss:0,satisfacao:2,ia:0,migracao:0,auditoria:0,ajustes:0}};
+const VIEW_MOD={inicio:"inicio",agenda:"agenda",pacientes:"pacientes",paciente:"pacientes",modelos:"modelos",chat:"chat",crm:"crm",financeiro:"financeiro",relatorios:"relatorios",estoque:"estoque",tiss:"tiss",satisfacao:"satisfacao",assistente:"ia",evidencias:"ia",bulas:"ia",migracao:"migracao",auditoria:"auditoria",ajustes:"ajustes",usuarios:"ajustes",plano:"ajustes"};
+const COL_MOD={pacientes:"pacientes",agenda:"agenda",espera:"agenda",bloqueios:"agenda",notas:"agenda",registros:"prontuario",modelos:"modelos",chat:"chat",leads:"crm",financeiro:"financeiro",estoque:"estoque",movest:"estoque",guias:"tiss",pesquisas:"satisfacao",usuarios:"ajustes",faturas:"ajustes"};
+const TAB_MOD={resumo:"pacientes",linha:"prontuario",fichas:"prontuario",avaliacoes:"prontuario",evolucoes:"prontuario",agenda:"agenda",financeiro:"financeiro"};
+let OWNER=true,USERCAP=null,USU_OK=false;const NOMES={};
+const LIC_PAD={plano:"clinica",limite:5,adicional:39,vencimento:"",tolerancia:7,bloquearVencida:false,linkPagamento:"",pix:"",obs:"",planos:[{id:"solo",nome:"Solo",usuarios:1,preco:89},{id:"clinica",nome:"Clínica",usuarios:5,preco:249},{id:"clinicaplus",nome:"Clínica+",usuarios:10,preco:399},{id:"rede",nome:"Rede",usuarios:30,preco:890}]};
+let LIC=JSON.parse(JSON.stringify(LIC_PAD));
+function papelReal(){if(LOCAL||OWNER)return"admin";const u=meuUsuario();return u&&u.ativo!==false?u.papel:"pendente"}
+function papelAtual(){const r=papelReal();return r==="admin"&&UI.verComo?UI.verComo:r}
+const meuUsuario=()=>ME?real.usuarios.find(x=>x.accountId===ME):null;
+const licVencida=()=>!!LIC.vencimento&&today()>addDays(LIC.vencimento,num(LIC.tolerancia));
+const souDono=()=>LOCAL||OWNER;
+function nivel(mod){const p=papelAtual();if(p==="pendente")return 0;let v=p==="admin"?2:((((CFG.permissoes||{})[p]||{})[mod])??((PERM_PAD[p]||{})[mod]||0));if(licVencida()&&LIC.bloquearVencida&&!souDono())v=Math.min(v,1);return v}
+const pode=(mod,l)=>nivel(mod)>=(l||1);
+const usados=()=>1+real.usuarios.filter(u=>u.ativo!==false).length;
+const planoAtual=()=>(LIC.planos||[]).find(p=>p.id===LIC.plano)||{id:"",nome:"Personalizado",usuarios:num(LIC.limite),preco:0};
+const valorMensal=()=>{const p=planoAtual();return num(p.preco)+Math.max(0,num(LIC.limite)-num(p.usuarios))*num(LIC.adicional)};
+function nomeConta(id){if(!id)return"";if(NOMES[id]===undefined&&USERCAP){NOMES[id]="";USERCAP.profiles([id]).then(ps=>{const p=ps&&ps[id];NOMES[id]=(p&&p.name)||"";if(NOMES[id])render()}).catch(()=>{})}return NOMES[id]||""}
+function telaPendente(){return `<div class="card pend"><h1>Acesso aguardando liberação</h1><p>Sua conta ainda não foi liberada no sistema da ${esc(CFG.clinica.nome)}. Peça a um administrador para cadastrar você em <b>Sistema › Usuários e permissões</b>, com o setor em que você trabalha.</p>${ME?`<p class="muted">Se pedirem, informe o código da sua conta: <code class="num" style="user-select:all">${esc(ME)}</code></p>`:""}</div>`}
+function telaSemAcesso(){const ini=NAV.find(([k])=>pode(VIEW_MOD[k]));return `<div class="card empty"><h2>Seu perfil não tem acesso a esta área</h2><p>Perfil: <b>${esc(papelNome(papelAtual()))}</b>. Peça a um administrador para ajustar as permissões do seu setor.</p>${ini?`<a class="btn" href="#${ini[0]}">Ir para ${esc(ini[1])}</a>`:""}</div>`}
+function bannerAcesso(){let h="";if(UI.verComo)h+=`<div class="banner"><div><b>Visualizando como ${esc(papelNome(UI.verComo))}.</b> <span class="muted">Assim a tela aparece para esse setor.</span></div><button class="btn sm" onclick="T.verComo('')">Voltar ao meu perfil</button></div>`;
+  if(LIC.vencimento){const d=Math.round((parseD(LIC.vencimento)-parseD(today()))/864e5);if(licVencida())h+=`<div class="alert bad"><div><b>Assinatura vencida em ${fmtD(LIC.vencimento)}.</b> ${LIC.bloquearVencida&&!souDono()?"O sistema está em modo leitura até a regularização. ":""}<a href="#plano">Ver plano e pagar</a></div></div>`;else if(d<=5&&pode("ajustes"))h+=`<div class="alert warn"><div><b>${d<0?"Assinatura vencida, em tolerância":"A assinatura vence "+(d===0?"hoje":"em "+d+" dia(s)")}.</b> <a href="#plano">Ver plano e pagar</a></div></div>`}
+  return h}
+function ddItens(){const I=[["pacientes","T.openPaciente()","Novo paciente"],["agenda","T.openAppt()","Novo agendamento"],["crm","T.openLead()","Novo lead (CRM)"],["financeiro","T.openFin(null,'receita')","Nova receita"],["financeiro","T.openFin(null,'despesa','pendente')","Nova despesa"],["satisfacao","T.openPesquisa()","Pesquisa de satisfação"],["estoque","T.openItem()","Item de estoque"]];return I.filter(i=>pode(i[0],2)).map(i=>`<button onclick="T.dd();${i[1]}">${i[2]}</button>`).join("")||'<span class="muted" style="padding:8px">Sem permissão para criar.</span>'}
+
+/* ---------- Identidade visual ---------- */
+function logoDoc(){return CFG.logo?`<img src="${CFG.logo}" alt="" style="width:48px;height:48px;object-fit:contain">`:LOGO_DOC}
+function renderBrand(){const b=$(".brand");if(!b)return;const m=CFG.marca||{};b.innerHTML=(CFG.logo?`<img src="${CFG.logo}" alt="" class="brand-img">`:`<svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="23" fill="#143d3b"/><path d="M36.99 16.5 A15 15 0 1 1 16.5 11.01" fill="none" stroke="#f07a43" stroke-width="3.6" stroke-linecap="round"/><polygon points="21.2,8.4 14.2,7.2 17.6,14.6" fill="#f07a43"/><rect x="16.5" y="17" width="15" height="4.2" rx="1" fill="#e7f0ee"/><rect x="21.9" y="17" width="4.2" height="15.5" rx="1" fill="#e7f0ee"/></svg>`)+`<div><b>${esc(m.titulo||"TORQUE")}</b><small>${esc(m.sub??"Fisioterapia")}</small></div>`}
+function lerLogo(file){return new Promise((res,rej)=>{const fr=new FileReader();fr.onerror=rej;fr.onload=()=>{const img=new Image();img.onerror=rej;img.onload=()=>{const k=Math.min(1,256/Math.max(img.width,img.height)),c=document.createElement("canvas");c.width=Math.round(img.width*k);c.height=Math.round(img.height*k);c.getContext("2d").drawImage(img,0,0,c.width,c.height);let d=c.toDataURL("image/png");if(d.length>180000)d=c.toDataURL("image/webp",.85);res(d)};img.src=fr.result};fr.readAsDataURL(file)})}
+function cardIdentidade(){const m=CFG.marca||{};return `<form class="card grid" id="f-marca" onsubmit="event.preventDefault();T.saveMarca(this)"><h2>Identidade visual</h2>
+  <div class="ident"><div class="ident-prev">${CFG.logo?`<img src="${CFG.logo}" alt="Logomarca atual">`:`<span class="muted">Logomarca padrão Torque</span>`}</div>
+  <div class="grid g2" style="flex:1;min-width:240px"><label class="f">Nome na barra lateral<input type="text" id="mk-t" name="titulo" value="${esc(m.titulo||"TORQUE")}" maxlength="24"></label><label class="f">Subtítulo<input type="text" id="mk-s" name="sub" value="${esc(m.sub??"Fisioterapia")}" maxlength="30"></label>
+  <label class="btn" style="justify-self:start">Enviar logomarca (PNG, JPG ou SVG)<input type="file" id="mk-f" accept="image/png,image/jpeg,image/webp,image/svg+xml" hidden onchange="T.logoUp(this.files[0])"></label>${CFG.logo?`<button type="button" class="btn ghost danger" style="justify-self:start" onclick="T.logoDel()">Voltar à logomarca padrão</button>`:""}</div></div>
+  <p class="muted" style="margin:0;font-size:12.5px">A logomarca aparece na barra lateral e no cabeçalho dos documentos (atestado, recibo, relatório, agenda impressa). Use imagem quadrada ou horizontal, de preferência com fundo transparente.</p>
+  <div><button class="btn pri">Salvar identidade</button></div></form>`}
+
+/* ---------- Usuários e permissões ---------- */
+VIEWS.usuarios=()=>{const adm=pode("ajustes",2),lim=num(LIC.limite)||1,us=usados(),tab=UI.uTab||"lista",L=[...real.usuarios].sort((a,b)=>String(a.nome||"").localeCompare(String(b.nome||""),"pt-BR"));
+  const strip=`<div class="card lic"><div><b>Plano ${esc(planoAtual().nome)}</b> · <span class="num">${us}</span> de <span class="num">${lim}</span> usuário(s) liberado(s)<div class="bar" style="margin-top:6px;max-width:420px"><i style="width:${Math.min(100,us/lim*100)}%;${us>=lim?"background:var(--bad)":""}"></i></div></div><a class="btn sm" href="#plano">${souDono()?"Alterar plano e limite":"Ver plano"}</a></div>`;
+  let body="";
+  if(tab==="lista")body=`<div class="tbl-wrap"><table><thead><tr><th>Usuário</th><th>Setor / perfil</th><th>Profissional vinculado</th><th>Situação</th><th></th></tr></thead><tbody>
+   <tr><td><b>Titular da conta</b><div class="muted" style="font-size:12px">dono do sistema, acesso total</div></td><td>${pill("ativo").replace(/>[^<]+</,">"+papelNome("admin")+"<")}</td><td>—</td><td>${pill("ativo").replace(/>[^<]+</,">Ativo<")}</td><td></td></tr>
+   ${L.map(u=>`<tr><td><b>${esc(nomeConta(u.accountId)||u.nome||"Sem nome")}</b>${u.nome&&nomeConta(u.accountId)&&u.nome!==nomeConta(u.accountId)?`<div class="muted" style="font-size:12px">${esc(u.nome)}</div>`:""}${!u.accountId?`<div style="font-size:12px;color:var(--warn)">conta do Claude não vinculada</div>`:""}</td><td>${esc(papelNome(u.papel))}</td><td>${u.profId?`<span class="dot" style="--pc:${esc(prof(u.profId).cor)}"></span> ${esc(prof(u.profId).nome)}`:"—"}</td><td>${u.ativo!==false?'<span class="pill st-pago">Ativo</span>':'<span class="pill st-inativo">Inativo</span>'}</td><td class="r">${adm?`<button class="btn sm" onclick="T.openUsuario('${u.id}')">Editar</button>`:""}</td></tr>`).join("")}</tbody></table></div>
+   <div class="card"><h3>Como liberar o acesso de alguém</h3><ol style="margin:6px 0 0;padding-left:20px"><li>Compartilhe o link do sistema pelo botão <b>Compartilhar</b> do Claude. Sócios entram como editores; a equipe, com permissão para usar a página.</li><li>Cadastre a pessoa aqui em <b>+ Adicionar usuário</b>, escolhendo o setor.</li><li>Quem abrir o link sem estar cadastrado vê “Acesso aguardando liberação”.</li></ol></div>`;
+  else body=`<div class="tools"><label class="f" style="width:260px">Ver o sistema como<select id="u-ver" onchange="T.verComo(this.value)">${opt("","Meu perfil",UI.verComo||"")}${PAPEIS.filter(p=>p[0]!=="admin").map(p=>opt(p[0],p[1],UI.verComo||"")).join("")}</select></label><span class="muted" style="align-self:flex-end">Use para conferir o que cada setor enxerga.</span></div>
+   <form id="f-perm" onsubmit="event.preventDefault();T.savePerm()"><div class="tbl-wrap"><table class="mini-t perm"><thead><tr><th>Área</th>${PAPEIS.map(p=>`<th>${esc(p[1])}</th>`).join("")}</tr></thead><tbody>${MODS.map(([m,ml])=>`<tr><td><b>${esc(ml)}</b></td>${PAPEIS.map(([p])=>{if(p==="admin")return `<td><span class="pill st-pago">Editar</span></td>`;const v=(((CFG.permissoes||{})[p]||{})[m])??((PERM_PAD[p]||{})[m]||0);return `<td><select data-p="${p}" data-m="${m}" class="pv pv${v}" ${adm?"":"disabled"} aria-label="${esc(ml)}: ${esc(papelNome(p))}" onchange="this.className='pv pv'+this.value">${opt(0,"Sem acesso",v)}${opt(1,"Ver",v)}${opt(2,"Editar",v)}</select></td>`}).join("")}</tr>`).join("")}</tbody></table></div>
+   ${adm?`<div class="tools" style="margin-top:12px"><button class="btn pri">Salvar permissões</button><button type="button" class="btn ghost" onclick="T.permPadrao()">Restaurar padrão</button></div>`:""}</form>
+   <p class="muted" style="font-size:12.5px">“Prontuário clínico” cobre avaliações, evoluções, fichas, linha do tempo e documentos clínicos. Por padrão só fisioterapeutas e administradores veem, como pedem a LGPD e o sigilo profissional (COFFITO). Quem só tem acesso ao cadastro vê os dados de contato, a agenda e o financeiro do paciente, se o setor permitir.</p>`;
+  return `<div class="head"><div><h1>Usuários e permissões</h1><div class="sub">Quem acessa o sistema e o que cada setor pode ver e alterar</div></div>${adm?`<div class="tools"><button class="btn pri" onclick="T.openUsuario()">+ Adicionar usuário</button></div>`:""}</div>
+  ${strip}<div class="tabs"><button class="${tab==="lista"?"on":""}" onclick="T.ui('uTab','lista')">Usuários (${L.length+1})</button><button class="${tab==="perm"?"on":""}" onclick="T.ui('uTab','perm')">Permissões por setor</button></div>${body}`};
+function openUsuario(id){
+  const u=id?Object.assign({},real.usuarios.find(x=>x.id===id)):{papel:"recepcao",ativo:true};
+  drawer(id?"Editar usuário":"Adicionar usuário",`<div class="grid g2">
+   ${USERCAP&&!LOCAL?`<div class="f spanall"><span>Pessoa (conta do Claude)</span><div class="usel"><input type="search" id="us-q" placeholder="Digite o nome para buscar na organização" autocomplete="off" oninput="T.uBusca(this.value)" onfocus="T.uBusca(this.value)"><div id="us-res" class="gs-res" hidden></div></div><small id="us-sel">${u.accountId?"Vinculado a: <b>"+esc(nomeConta(u.accountId)||u.accountId)+"</b>":"Nenhuma conta escolhida"}</small></div>`:""}
+   <input type="hidden" name="accountId" id="us-acc" value="${esc(u.accountId||"")}">
+   <label class="f">Nome de exibição<input type="text" id="us-nome" name="nome" value="${esc(u.nome||"")}" placeholder="ex.: Ana (recepção)"></label>
+   <label class="f">Setor / perfil<select id="us-papel" name="papel">${PAPEIS.map(p=>opt(p[0],p[1],u.papel)).join("")}</select></label>
+   <label class="f">Profissional vinculado (opcional)<select id="us-prof" name="profId">${opt("","—",u.profId)}${profs(true).map(p=>opt(p.id,p.nome,u.profId)).join("")}</select></label>
+   ${USERCAP&&!LOCAL?`<label class="f">Código da conta (se a busca não encontrar)<input type="text" id="us-cod" name="codigo" value="${esc(u.accountId||"")}" placeholder="a pessoa vê o código na tela de acesso pendente" oninput="document.getElementById('us-acc').value=this.value.trim()"></label>`:""}
+   <label class="f chk spanall"><input type="checkbox" id="us-at" name="ativo" ${u.ativo!==false?"checked":""}> Usuário ativo (conta no limite do plano)</label></div>
+   <p class="muted" style="margin:0;font-size:12.5px">Plano ${esc(planoAtual().nome)}: ${usados()} de ${num(LIC.limite)} usuário(s) em uso, contando o titular.</p>`,
+   `${id?`<span class="lft">${confirmBtn("Remover usuário",`T.delUsuario('${id}')`)}</span>`:""}<button type="button" class="btn" onclick="T.close()">Cancelar</button><button class="btn pri">Salvar</button>`,
+   async f=>{const o=Object.assign({},u);["accountId","nome","papel","profId"].forEach(k=>o[k]=fv(f,k));o.ativo=fv(f,"ativo");
+     if(!o.nome&&!o.accountId){toast("Escolha a pessoa ou informe o nome.");return}
+     const entra=o.ativo&&(!id||u.ativo===false);if(entra&&usados()>=num(LIC.limite)){toast(`Limite do plano atingido (${num(LIC.limite)} usuários). ${souDono()?"Aumente o limite em Plano e licenças.":"Peça ao titular para liberar mais usuários."}`);return}
+     if(o.accountId&&real.usuarios.some(x=>x.id!==o.id&&x.accountId===o.accountId)){toast("Essa conta já está cadastrada.");return}
+     if(await save("usuarios",o,true)){closeM();render();toast("Usuário salvo.")}});
+}
+
+/* ---------- Plano e licenças (monetização) ---------- */
+VIEWS.plano=()=>{const own=souDono(),pl=planoAtual(),lim=num(LIC.limite),us=usados(),fat=[...real.faturas].sort((a,b)=>String(b.competencia).localeCompare(String(a.competencia)));
+  const d=LIC.vencimento?Math.round((parseD(LIC.vencimento)-parseD(today()))/864e5):null;
+  const st=!LIC.vencimento?["agendado","Sem vencimento"]:licVencida()?["vencido","Vencida"]:d<0?["pendente","Em tolerância"]:d<=5?["pendente","Vence em "+d+" dia(s)"]:["pago","Em dia"];
+  const dis=own?"":"disabled";
+  return `<div class="head"><div><h1>Plano e licenças</h1><div class="sub">Assinatura do sistema, usuários liberados e cobrança</div></div></div>
+  <div class="kpis"><div class="kpi"><span>Plano</span><b>${esc(pl.nome)}</b><small>${num(pl.usuarios)} usuário(s) incluídos</small></div><div class="kpi"><span>Usuários liberados</span><b style="color:${us>=lim?"var(--bad)":""}">${us}/${lim}</b><small>em uso / limite</small></div><div class="kpi"><span>Valor mensal</span><b>${brl(valorMensal())}</b><small>${lim>num(pl.usuarios)?(lim-num(pl.usuarios))+" adicional(is) × "+brl(LIC.adicional):"sem adicionais"}</small></div><div class="kpi"><span>Vencimento</span><b>${LIC.vencimento?fmtD(LIC.vencimento):"—"}</b><span class="pill st-${st[0]}">${st[1]}</span></div></div>
+  <div class="planos">${(LIC.planos||[]).map(p=>`<div class="plano ${p.id===LIC.plano?"on":""}"><h2>${esc(p.nome)}</h2><div class="num preco">${brl(p.preco)}<small>/mês</small></div><div class="muted">${num(p.usuarios)} usuário(s)</div>${own?`<button class="btn ${p.id===LIC.plano?"":"pri"} sm" ${p.id===LIC.plano?"disabled":""} onclick="T.escolherPlano('${p.id}')">${p.id===LIC.plano?"Plano atual":"Selecionar"}</button>`:p.id===LIC.plano?'<span class="pill st-pago">Plano atual</span>':""}</div>`).join("")}</div>
+  <div class="grid g2">
+  <form class="card grid" onsubmit="event.preventDefault();T.saveLic(this)"><h2>Licença desta clínica</h2>${own?"":`<p class="muted" style="margin:0">Só o titular da conta altera a licença.</p>`}
+   <div class="grid g2"><label class="f">Plano<select id="lc-pl" name="plano" ${dis}>${(LIC.planos||[]).map(p=>opt(p.id,p.nome,LIC.plano)).join("")}</select></label><label class="f">Usuários liberados<input type="number" id="lc-lim" name="limite" min="1" value="${lim}" ${dis}></label>
+   <label class="f">Preço por usuário adicional (R$)<input type="number" id="lc-ad" name="adicional" step="0.01" min="0" value="${num(LIC.adicional)}" ${dis}></label><label class="f">Vencimento da assinatura<input type="date" id="lc-v" name="vencimento" value="${esc(LIC.vencimento||"")}" ${dis}></label>
+   <label class="f">Tolerância após vencer (dias)<input type="number" id="lc-t" name="tolerancia" min="0" value="${num(LIC.tolerancia)}" ${dis}></label><label class="f chk" style="align-self:end"><input type="checkbox" id="lc-b" name="bloquearVencida" ${LIC.bloquearVencida?"checked":""} ${dis}> Modo leitura quando vencida</label>
+   <label class="f spanall">Link de pagamento (Mercado Pago, Asaas, PagSeguro, Stripe…)<input type="text" id="lc-link" name="linkPagamento" value="${esc(LIC.linkPagamento||"")}" placeholder="https://" ${dis}></label>
+   <label class="f spanall">Chave Pix para pagamento<input type="text" id="lc-pix" name="pix" value="${esc(LIC.pix||"")}" ${dis}></label></div>
+   ${own?`<div><button class="btn pri">Salvar licença</button></div>`:""}</form>
+  <div class="card grid"><div class="card-h" style="margin:0"><h2>Faturas</h2>${own?`<button class="btn sm pri" onclick="T.gerarFatura()">Gerar fatura do mês</button>`:""}</div>
+   ${(LIC.linkPagamento||LIC.pix)&&fat.some(x=>x.status!=="pago")?`<div class="tools">${LIC.linkPagamento?`<a class="btn pri" target="_blank" rel="noopener" href="${esc(LIC.linkPagamento)}">Pagar assinatura</a>`:""}${LIC.pix?`<button class="btn" onclick="T.copiar('${esc(LIC.pix)}','Chave Pix copiada.')">Copiar chave Pix</button>`:""}</div>`:""}
+   ${fat.length?`<div class="tbl-wrap"><table><thead><tr><th>Competência</th><th class="r">Valor</th><th>Vencimento</th><th>Situação</th><th></th></tr></thead><tbody>${fat.map(x=>`<tr><td>${esc(mesNome(x.competencia))}</td><td class="r num">${brl(x.valor)}</td><td class="num">${fmtD(x.vencimento)}</td><td>${x.status==="pago"?`<span class="pill st-pago">Paga ${fmtD(x.pagoEm)}</span>`:x.vencimento<today()?'<span class="pill st-vencido">Vencida</span>':'<span class="pill st-pendente">Em aberto</span>'}</td><td class="r">${own&&x.status!=="pago"?`<button class="btn sm" onclick="T.pagarFatura('${x.id}')">Marcar paga</button>`:""}${own?` <button class="btn sm ghost danger" onclick="T.delFatura('${x.id}')">Excluir</button>`:""}</td></tr>`).join("")}</tbody></table></div>`:`<div class="empty">Nenhuma fatura gerada.</div>`}</div></div>
+  ${own?`<form class="card grid" onsubmit="event.preventDefault();T.savePlanos(this)"><h2>Tabela de planos (preço de venda)</h2><div class="tbl-wrap"><table class="mini-t" id="t-planos"><thead><tr><th>Plano</th><th>Usuários incluídos</th><th>Preço mensal (R$)</th><th></th></tr></thead><tbody>${(LIC.planos||[]).map(planoRow).join("")}</tbody></table></div><div class="tools"><button type="button" class="btn sm" onclick="document.querySelector('#t-planos tbody').insertAdjacentHTML('beforeend',T.planoRow({}))">+ Plano</button><button class="btn pri">Salvar tabela</button></div>
+   <p class="muted" style="margin:0;font-size:12.5px">Os valores iniciais são só sugestões; ajuste à sua estratégia comercial.</p></form>
+  <div class="card"><h2>Como vender o Torque para outras clínicas</h2><ol style="margin:8px 0 0;padding-left:20px"><li>Cada clínica cliente recebe a própria cópia do sistema, com banco de dados separado. Você continua titular e as clínicas entram como usuários.</li><li>Aqui você define o plano, quantos usuários ficam liberados e o vencimento. Ao passar do limite, o sistema não deixa cadastrar mais usuários.</li><li>Gere a fatura do mês. A clínica paga pelo seu link de pagamento ou Pix, e você marca a fatura como paga: o vencimento avança um mês.</li><li>Com "Modo leitura quando vencida" ligado, após a tolerância a clínica consulta os dados mas não altera nada, até regularizar.</li></ol>
+   <p class="muted" style="margin:10px 0 0;font-size:12.5px">Cobrança automática no cartão, com liberação e bloqueio sem intervenção, exige um servidor próprio com gateway de pagamento (como o Alinha já tem). Esse é o próximo passo para escalar a venda.</p></div>`:""}`};
+const planoRow=p=>`<tr><td><input type="hidden" class="pid" value="${esc(p.id||"pl"+uid())}"><input type="text" class="pn" value="${esc(p.nome||"")}" style="min-width:140px"></td><td><input type="number" class="pu" min="1" value="${esc(p.usuarios||1)}" style="width:90px"></td><td><input type="number" class="pp" min="0" step="0.01" value="${esc(p.preco||0)}" style="width:110px"></td><td><button type="button" class="btn sm ghost danger" onclick="this.closest('tr').remove()">Remover</button></td></tr>`;
+async function saveLicDoc(){if(!souDono()){toast("Só o titular da conta altera a licença.");return false}
+  if(LOCAL){lsSet("torque.licenca",LIC);render();return true}try{await db.doc("licenca/atual").set(JSON.parse(JSON.stringify(LIC)));audit("config",{id:"licenca",nome:"Licença: plano "+planoAtual().nome+", "+LIC.limite+" usuários"},"alterou");return true}catch(e){toast("Não foi possível salvar a licença.");return false}}
+const addMes=(d,n)=>{const x=parseD(d);x.setMonth(x.getMonth()+n);return iso(x)};
+
+/* ---------- CRM / Comercial e relacionamento (CRC) ---------- */
+const ETAPAS=[["novo","Novo lead"],["contato","Em contato"],["avaliacao","Avaliação agendada"],["proposta","Proposta enviada"],["ganho","Fechado (ganho)"],["perdido","Perdido"]];
+const etapaNome=k=>(ETAPAS.find(e=>e[0]===k)||[k,k])[1];
+const ORIG_LEAD=["Instagram","WhatsApp","Google","Site","Facebook / Meta Ads","Indicação de paciente","Indicação médica","Convênio","Evento / palestra","Passou na frente","Outro"];
+const MOTIVOS_PERDA=["Preço","Não respondeu","Escolheu outra clínica","Distância / horário","Convênio não atendido","Desistiu do tratamento","Outro"];
+const leadAberto=l=>!["ganho","perdido"].includes(l.etapa);
+const ET_PILL={novo:"agendado",contato:"confirmado",avaliacao:"espera",proposta:"pendente",ganho:"pago",perdido:"vencido"};
+const msgLead=l=>`Olá, ${String(l.nome||"").replace(/^Exemplo · /,"").split(" ")[0]}! Aqui é da ${CFG.clinica.nome}. ${l.servicoId?`Sobre ${serv(l.servicoId).nome.toLowerCase()}: `:""}podemos agendar sua avaliação esta semana? Temos horários de manhã, tarde e noite.`;
+function cardLead(l){const t=today();return `<div class="kcard t-${esc(l.temperatura||"morno")}" draggable="true" ondragstart="event.dataTransfer.setData('text/plain','${l.id}')" onclick="T.openLead('${l.id}')"><b>${esc(l.nome)}</b>${l.servicoId?`<small>${esc(serv(l.servicoId).nome)}</small>`:""}<div class="kmeta">${l.origem?`<span class="chip">${esc(l.origem)}</span>`:""}${num(l.valor)?`<span class="num">${brl(l.valor)}</span>`:""}</div>${l.proximoContato&&leadAberto(l)?`<small style="color:${l.proximoContato<t?"var(--bad)":l.proximoContato===t?"var(--warn)":"var(--muted)"}">Retorno ${l.proximoContato<t?"atrasado ":""}${fmtD(l.proximoContato).slice(0,5)}</small>`:""}${l.etapa==="perdido"&&l.motivoPerda?`<small class="muted">${esc(l.motivoPerda)}</small>`:""}<div class="kfoot">${l.responsavel?`<span><span class="dot" style="--pc:${esc(prof(l.responsavel).cor)}"></span> ${esc(prof(l.responsavel).nome)}</span>`:"<span></span>"}<span class="kmv">${ETAPAS.findIndex(e=>e[0]===l.etapa)>0?`<button type="button" class="ib sm" onclick="event.stopPropagation();T.moverLead('${l.id}',-1)" aria-label="Etapa anterior">‹</button>`:""}${ETAPAS.findIndex(e=>e[0]===l.etapa)<ETAPAS.length-1?`<button type="button" class="ib sm" onclick="event.stopPropagation();T.moverLead('${l.id}',1)" aria-label="Próxima etapa">›</button>`:""}</span></div></div>`}
+VIEWS.crm=()=>{
+  const s=S(),t=today(),R=periodo("mes"),R3=periodo("3m"),L=s.leads,ed=pode("crm",2),tab=UI.cTab||"funil";
+  const novos=L.filter(l=>inR(l.criadoEm,R)).length,gan=L.filter(l=>l.etapa==="ganho"&&inR(l.fechadoEm,R)).length,per=L.filter(l=>l.etapa==="perdido"&&inR(l.fechadoEm,R)).length,neg=L.filter(leadAberto).reduce((x,l)=>x+num(l.valor),0),atras=L.filter(l=>leadAberto(l)&&l.proximoContato&&l.proximoContato<t);
+  let body="";
+  if(tab==="funil"){
+    const org={};L.filter(l=>inR(l.criadoEm,R3)).forEach(l=>{const k=l.origem||"Não informado";org[k]=org[k]||{n:0,g:0};org[k].n++;if(l.etapa==="ganho")org[k].g++});
+    body=`<div class="kanban">${ETAPAS.map(([k,lb])=>{const C=L.filter(l=>l.etapa===k&&(leadAberto(l)||inR(l.fechadoEm,R3))).sort((a,b)=>String(a.proximoContato||"9").localeCompare(String(b.proximoContato||"9")));const tot=C.reduce((x,l)=>x+num(l.valor),0);return `<div class="kcol k-${k}" ondragover="event.preventDefault();this.classList.add('over')" ondragleave="this.classList.remove('over')" ondrop="this.classList.remove('over');T.leadDrop(event,'${k}')"><div class="kh"><b>${lb}</b><span class="muted num">${C.length}${tot?" · "+brlK(tot):""}</span></div>${C.map(cardLead).join("")||'<div class="muted kempty">Arraste um card para cá</div>'}</div>`}).join("")}</div>
+    <div class="grid g2"><div class="card"><h2>Leads por origem</h2><p class="muted sub2">Últimos 3 meses · conversão em paciente</p>${Object.keys(org).length?`<div class="tbl-wrap"><table class="mini-t"><thead><tr><th>Origem</th><th class="r">Leads</th><th class="r">Fechados</th><th class="r">Conversão</th></tr></thead><tbody>${Object.entries(org).sort((a,b)=>b[1].n-a[1].n).map(([k,v])=>`<tr><td>${esc(k)}</td><td class="r num">${v.n}</td><td class="r num">${v.g}</td><td class="r num">${Math.round(v.g/v.n*100)}%</td></tr>`).join("")}</tbody></table></div>`:'<div class="empty">Sem leads no período.</div>'}</div>
+    <div class="card"><h2>Motivos de perda</h2><p class="muted sub2">Últimos 3 meses</p>${hbars(Object.entries(L.filter(l=>l.etapa==="perdido"&&inR(l.fechadoEm,R3)).reduce((o,l)=>{const k=l.motivoPerda||"Não informado";o[k]=(o[k]||0)+1;return o},{})).sort((a,b)=>b[1]-a[1]),v=>v,"var(--bad)")}</div></div>`;
+  }else if(tab==="lista"){
+    const q=UI.cBusca.toLowerCase().trim();const F=L.filter(l=>(!UI.cEt||l.etapa===UI.cEt)&&(!UI.cOrig||l.origem===UI.cOrig)&&(!q||String(l.nome).toLowerCase().includes(q)||digits(l.telefone).includes(digits(q)||"x"))).sort((a,b)=>String(b.criadoEm).localeCompare(String(a.criadoEm)));
+    body=`<div class="tools"><input type="search" id="c-busca" placeholder="Buscar por nome ou telefone" value="${esc(UI.cBusca)}" oninput="T.ui('cBusca',this.value)" style="width:240px;max-width:100%"><select id="c-et" onchange="T.ui('cEt',this.value)">${opt("","Todas as etapas",UI.cEt)}${ETAPAS.map(e=>opt(e[0],e[1],UI.cEt)).join("")}</select><select id="c-orig" onchange="T.ui('cOrig',this.value)">${opt("","Todas as origens",UI.cOrig)}${ORIG_LEAD.map(o=>opt(o,o,UI.cOrig)).join("")}</select><button class="btn ghost" onclick="T.csvLeads()">Exportar CSV</button></div>
+    ${F.length?`<div class="tbl-wrap"><table><thead><tr><th>Lead</th><th>Origem</th><th>Interesse</th><th>Etapa</th><th class="r">Valor</th><th>Próximo contato</th><th>Responsável</th><th>Entrada</th></tr></thead><tbody>${F.map(l=>`<tr class="click" onclick="T.openLead('${l.id}')"><td><b>${esc(l.nome)}</b><div class="muted num" style="font-size:12px">${esc(l.telefone||"")}</div></td><td>${esc(l.origem||"")}</td><td>${esc(l.servicoId?serv(l.servicoId).nome:"")}</td><td><span class="pill st-${ET_PILL[l.etapa]||"agendado"}">${esc(etapaNome(l.etapa))}</span></td><td class="r num">${num(l.valor)?brl(l.valor):""}</td><td class="num" style="color:${leadAberto(l)&&l.proximoContato&&l.proximoContato<t?"var(--bad)":""}">${fmtD(l.proximoContato)}</td><td>${l.responsavel?esc(prof(l.responsavel).nome):""}</td><td class="num">${fmtD(l.criadoEm)}</td></tr>`).join("")}</tbody></table></div>`:'<div class="card empty">Nenhum lead neste filtro.</div>'}`;
+  }else if(tab==="follow"){
+    const F=L.filter(l=>leadAberto(l)&&l.proximoContato&&l.proximoContato<=addDays(t,1)).sort((a,b)=>a.proximoContato.localeCompare(b.proximoContato)),sem=L.filter(l=>leadAberto(l)&&!l.proximoContato);
+    const li=l=>`<div class="li"><div class="m"><b>${esc(l.nome)}</b><small>${esc(etapaNome(l.etapa))}${l.servicoId?" · "+esc(serv(l.servicoId).nome):""}${(l.historico||[]).length?" · último contato "+fmtD(l.historico[l.historico.length-1].em):""}</small><small class="num" style="color:${l.proximoContato&&l.proximoContato<t?"var(--bad)":"var(--muted)"}">${l.proximoContato?(l.proximoContato<t?"Atrasado desde ":l.proximoContato===t?"Hoje · ":"Amanhã · ")+fmtD(l.proximoContato):"Sem data de retorno"}</small></div><div class="a">${l.telefone?`<a class="btn sm wa" target="_blank" rel="noopener" href="${waLink(l.telefone,msgLead(l))}">WhatsApp</a>`:""}<button class="btn sm" onclick="T.openLead('${l.id}')">Registrar contato</button></div></div>`;
+    body=`<div class="grid g2"><div class="card"><h2>Retornos de hoje e atrasados</h2>${F.length?`<div class="list">${F.map(li).join("")}</div>`:'<div class="empty">Nenhum retorno pendente. Ótimo!</div>'}</div><div class="card"><h2>Leads sem data de retorno</h2><p class="muted sub2">Defina o próximo contato para nenhum lead esfriar.</p>${sem.length?`<div class="list">${sem.map(li).join("")}</div>`:'<div class="empty">Todos os leads têm retorno marcado.</div>'}</div></div>`;
+  }else{
+    const ult={},fut={};s.agenda.forEach(a=>{if(a.status==="atendido"&&(!ult[a.pacienteId]||a.data>ult[a.pacienteId]))ult[a.pacienteId]=a.data;if(a.data>=t&&["agendado","confirmado"].includes(a.status))fut[a.pacienteId]=1});
+    const reat=s.pacientes.filter(p=>(p.situacao||"ativo")!=="inativo"&&ult[p.id]&&ult[p.id]<addDays(t,-30)&&!fut[p.id]).sort((a,b)=>ult[b.id].localeCompare(ult[a.id])).slice(0,30);
+    const alta=s.pacientes.filter(p=>p.situacao==="alta").slice(0,20),mes=t.slice(5,7),niv=s.pacientes.filter(p=>p.nascimento&&p.nascimento.slice(5,7)===mes).sort((a,b)=>a.nascimento.slice(8).localeCompare(b.nascimento.slice(8)));
+    const pac_=p=>String(p.nome).replace("Exemplo · ","").split(" ")[0];
+    const li=(p,sub,msg,extra)=>`<div class="li"><div class="m"><b><a href="#paciente-${p.id}" style="color:inherit;text-decoration:none">${esc(p.nome)}</a></b><small>${sub}</small></div><div class="a">${p.telefone?`<a class="btn sm wa" target="_blank" rel="noopener" href="${waLink(p.telefone,msg)}">WhatsApp</a>`:""}${extra||""}</div></div>`;
+    body=`<div class="grid g2"><div class="card"><h2>Reativação</h2><p class="muted sub2">Pacientes sem sessão há mais de 30 dias e sem agendamento futuro</p>${reat.length?`<div class="list">${reat.map(p=>li(p,"Última sessão em "+fmtD(ult[p.id]),`Olá, ${pac_(p)}! Aqui é da ${CFG.clinica.nome}. Sentimos sua falta! Como você está? Quer agendar uma sessão para darmos continuidade ao seu tratamento?`,pode("agenda",2)?`<button class="btn sm" onclick="T.openAppt(null,{pacienteId:'${p.id}'})">Agendar</button>`:"")).join("")}</div>`:'<div class="empty">Nenhum paciente para reativar.</div>'}</div>
+    <div class="card"><h2>Aniversariantes de ${esc(MESES[+mes-1])}</h2>${niv.length?`<div class="list">${niv.map(p=>li(p,"Dia "+p.nascimento.slice(8),`Feliz aniversário, ${pac_(p)}! Toda a equipe da ${CFG.clinica.nome} deseja muita saúde e movimento. 🎉`)).join("")}</div>`:'<div class="empty">Nenhum aniversariante neste mês.</div>'}</div>
+    <div class="card"><h2>Pós-alta</h2><p class="muted sub2">Ofereça manutenção (Pilates, retorno preventivo) e peça a avaliação da clínica</p>${alta.length?`<div class="list">${alta.map(p=>li(p,ult[p.id]?"Última sessão em "+fmtD(ult[p.id]):"Alta registrada",`Olá, ${pac_(p)}! Aqui é da ${CFG.clinica.nome}. Como você está depois da alta? Para manter os resultados, temos aulas de Pilates e retornos preventivos. Quer saber mais?`,pode("satisfacao",2)?`<button class="btn sm" onclick="T.openPesquisa()">Pesquisa NPS</button>`:"")).join("")}</div>`:'<div class="empty">Nenhum paciente com alta.</div>'}</div>
+    <div class="card"><h2>Pacotes e guias acabando</h2>${(()=>{const A=s.pacientes.filter(p=>(p.situacao||"ativo")==="ativo"&&num(p.sessoesPrevistas)>0&&num(p.sessoesPrevistas)-sessoesFeitas(p.id)<=2);return A.length?`<div class="list">${A.map(p=>li(p,`${sessoesFeitas(p.id)} de ${p.sessoesPrevistas} sessões`,`Olá, ${pac_(p)}! Seu pacote de sessões na ${CFG.clinica.nome} está terminando. Quer renovar para continuar evoluindo?`)).join("")}</div>`:'<div class="empty">Nenhum pacote acabando.</div>'})()}</div></div>`;
+  }
+  return `<div class="head"><div><h1>CRM · Comercial</h1><div class="sub">Leads, funil de vendas, follow-up e relacionamento com pacientes</div></div>${ed?`<div class="tools"><button class="btn pri" onclick="T.openLead()">+ Novo lead</button></div>`:""}</div>
+  <div class="kpis"><div class="kpi"><span>Leads no mês</span><b>${novos}</b></div><div class="kpi"><span>Conversão no mês</span><b>${gan+per?Math.round(gan/(gan+per)*100)+"%":"—"}</b><small>${gan} fechado(s) · ${per} perdido(s)</small></div><div class="kpi"><span>Em negociação</span><b>${brl(neg)}</b><small>${L.filter(leadAberto).length} lead(s) abertos</small></div><div class="kpi"><span>Retornos atrasados</span><b style="color:${atras.length?"var(--bad)":""}">${atras.length}</b></div></div>
+  <div class="tabs">${[["funil","Funil"],["lista","Lista"],["follow",`Follow-up${atras.length?" ("+atras.length+")":""}`],["relac","Relacionamento (CRC)"]].map(([k,l])=>`<button class="${tab===k?"on":""}" onclick="T.ui('cTab','${k}')">${l}</button>`).join("")}</div>${body}`;
+};
+function openLead(id){
+  const l=id?Object.assign({},S().leads.find(x=>x.id===id)):{etapa:"novo",temperatura:"morno",responsavel:euProf(),proximoContato:today(),origem:"Instagram"};
+  const H=[...(l.historico||[])].reverse();
+  drawer(id?esc(l.nome):"Novo lead",`<div class="grid g3">
+   <label class="f span2">Nome *<input type="text" id="ld-n" name="nome" value="${esc(l.nome||"")}"></label><label class="f">Telefone / WhatsApp<input type="tel" id="ld-t" name="telefone" value="${esc(l.telefone||"")}"></label>
+   <label class="f">Origem<select id="ld-o" name="origem">${ORIG_LEAD.map(o=>opt(o,o,l.origem)).join("")}</select></label><label class="f">Interesse<select id="ld-s" name="servicoId">${opt("","—",l.servicoId)}${CFG.servicos.map(x=>opt(x.id,x.nome,l.servicoId)).join("")}</select></label><label class="f">Convênio<select id="ld-c" name="convenio">${opt("","Particular",l.convenio)}${CFG.convenios.map(c=>opt(c,c,l.convenio)).join("")}</select></label>
+   <label class="f">Etapa<select id="ld-e" name="etapa" onchange="document.getElementById('ld-mp-l').hidden=this.value!=='perdido'">${ETAPAS.map(e=>opt(e[0],e[1],l.etapa)).join("")}</select></label><label class="f">Temperatura<select id="ld-tp" name="temperatura">${[["frio","Frio"],["morno","Morno"],["quente","Quente"]].map(e=>opt(e[0],e[1],l.temperatura)).join("")}</select></label><label class="f">Valor estimado (R$)<input type="number" id="ld-v" name="valor" step="0.01" value="${esc(l.valor??"")}"></label>
+   <label class="f">Responsável<select id="ld-r" name="responsavel">${opt("","—",l.responsavel)}${profs(true).map(p=>opt(p.id,p.nome,l.responsavel)).join("")}</select></label><label class="f">Próximo contato<input type="date" id="ld-p" name="proximoContato" value="${esc(l.proximoContato||"")}"></label><label class="f">E-mail<input type="email" id="ld-m" name="email" value="${esc(l.email||"")}"></label>
+   <label class="f spanall" id="ld-mp-l" ${l.etapa==="perdido"?"":"hidden"}>Motivo da perda<select id="ld-mp" name="motivoPerda">${opt("","—",l.motivoPerda)}${MOTIVOS_PERDA.map(m=>opt(m,m,l.motivoPerda)).join("")}</select></label>
+   <label class="f spanall">Observações<textarea id="ld-ob" name="obs" rows="2">${esc(l.obs||"")}</textarea></label></div>
+   <fieldset><legend>Registrar contato</legend><div class="grid g3"><label class="f">Canal<select id="ld-ct" name="canal">${["WhatsApp","Ligação","Presencial","Instagram (direct)","E-mail","Anotação"].map(c=>opt(c,c,"WhatsApp")).join("")}</select></label><label class="f span2">O que foi conversado<input type="text" id="ld-tx" name="texto" placeholder="ex.: pediu valores do pacote; retornar sexta"></label></div></fieldset>
+   ${H.length?`<div class="card"><h3>Histórico</h3><div class="list">${H.map(h=>`<div class="li"><div class="m"><b>${esc(h.canal)} · ${fmtD(h.em)}</b><small style="white-space:normal">${esc(h.texto)}</small></div><span class="muted" style="font-size:12px">${esc(prof(h.prof).nome)}</span></div>`).join("")}</div></div>`:""}
+   ${id?`<div class="tools">${l.telefone?`<a class="btn wa" target="_blank" rel="noopener" href="${waLink(l.telefone,msgLead(l))}">WhatsApp</a>`:""}${l.pacienteId?`<button type="button" class="btn" onclick="T.close();T.go('paciente-${l.pacienteId}')">Abrir paciente</button>`:pode("pacientes",2)?`<button type="button" class="btn pri" onclick="T.converterLead('${l.id}')">Converter em paciente e agendar avaliação</button>`:""}</div>`:""}`,
+   `${id?`<span class="lft">${confirmBtn("Excluir lead",`T.delLead('${id}')`)}</span>`:""}<button type="button" class="btn" onclick="T.close()">Cancelar</button><button class="btn pri">Salvar</button>`,
+   async f=>{const o=Object.assign({},l);["nome","telefone","origem","servicoId","convenio","etapa","temperatura","responsavel","proximoContato","email","motivoPerda","obs"].forEach(k=>o[k]=fv(f,k));o.valor=fv(f,"valor")===""?"":num(fv(f,"valor"));
+     if(!o.nome){toast("Informe o nome do lead.");return}if(o.etapa!=="perdido")o.motivoPerda="";
+     if(o.etapa!==l.etapa&&!leadAberto(o))o.fechadoEm=today();if(leadAberto(o))o.fechadoEm="";
+     const tx=fv(f,"texto");if(tx)o.historico=[...(l.historico||[]),{em:today(),canal:fv(f,"canal"),texto:tx,prof:euProf()}];
+     if(await save("leads",o,true)){closeM();render();toast(tx?"Contato registrado.":"Lead salvo.")}});
+}
+async function moverLeadPara(id,et){const l=real.leads.find(x=>x.id===id);if(!l){toast("Este é um lead de exemplo.");return}if(l.etapa===et)return;const o=Object.assign({},l,{etapa:et});if(!leadAberto(o))o.fechadoEm=today();else o.fechadoEm="";if(await save("leads",o)){toast("Movido para "+etapaNome(et)+".");if(et==="perdido"&&!o.motivoPerda)setTimeout(()=>openLead(id),200)}}
+
+/* ---------- Ações ---------- */
+const NOVAS_ACOES2={
+  openUsuario,openLead,planoRow,
+  verComo(p){UI.verComo=p;renderTop();render()},
+  uBusca(q){const box=$("#us-res");if(!box||!USERCAP)return;USERCAP.search(String(q||"")).then(L=>{box.hidden=!L.length;box.innerHTML=L.slice(0,8).map(p=>`<a href="#" onmousedown="event.preventDefault();T.uSel('${esc(p.id)}',this.dataset.n)" data-n="${esc(p.name||"")}"><b>${esc(p.name||"Sem nome")}</b>${p.guest?'<span class="muted">convidado(a)</span>':""}</a>`).join("")}).catch(()=>{box.hidden=true})},
+  uSel(id,nome){$("#us-acc").value=id;const c=$("#us-cod");if(c)c.value=id;$("#us-sel").innerHTML="Vinculado a: <b>"+esc(nome||id)+"</b>";const n=$("#us-nome");if(n&&!n.value)n.value=nome||"";const r=$("#us-res");if(r)r.hidden=true;NOMES[id]=nome||""},
+  async delUsuario(id){if(await del("usuarios",id)){closeM();toast("Usuário removido.")}},
+  async savePerm(){const P=JSON.parse(JSON.stringify(CFG.permissoes||{}));$$("#f-perm select.pv").forEach(s=>{(P[s.dataset.p]=P[s.dataset.p]||{})[s.dataset.m]=+s.value});CFG.permissoes=P;if(await saveCfg())toast("Permissões salvas.")},
+  async permPadrao(){CFG.permissoes={};if(await saveCfg()){render();toast("Permissões padrão restauradas.")}},
+  async escolherPlano(id){const p=(LIC.planos||[]).find(x=>x.id===id);if(!p)return;LIC.plano=id;if(num(LIC.limite)<num(p.usuarios))LIC.limite=num(p.usuarios);if(await saveLicDoc()){render();toast("Plano "+p.nome+" selecionado.")}},
+  async saveLic(f){const n=num(fv(f,"limite"));if(n<usados()){toast(`Há ${usados()} usuários ativos. Desative alguns antes de reduzir o limite.`);return}Object.assign(LIC,{plano:fv(f,"plano"),limite:Math.max(1,n),adicional:num(fv(f,"adicional")),vencimento:fv(f,"vencimento"),tolerancia:num(fv(f,"tolerancia")),bloquearVencida:fv(f,"bloquearVencida"),linkPagamento:fv(f,"linkPagamento"),pix:fv(f,"pix")});if(await saveLicDoc()){render();toast("Licença salva.")}},
+  async savePlanos(){const L=$$("#t-planos tbody tr").map(tr=>({id:tr.querySelector(".pid").value,nome:tr.querySelector(".pn").value.trim(),usuarios:Math.max(1,num(tr.querySelector(".pu").value)),preco:num(tr.querySelector(".pp").value)})).filter(p=>p.nome);if(!L.length){toast("Mantenha ao menos um plano.");return}LIC.planos=L;if(!L.some(p=>p.id===LIC.plano))LIC.plano=L[0].id;if(await saveLicDoc()){render();toast("Tabela de planos salva.")}},
+  async gerarFatura(){if(!souDono())return;const c=mesDe(today());if(real.faturas.some(x=>x.competencia===c)){toast("A fatura de "+mesNome(c)+" já existe.");return}if(await save("faturas",{competencia:c,valor:valorMensal(),vencimento:LIC.vencimento||addDays(today(),5),status:"pendente",plano:planoAtual().nome,usuarios:num(LIC.limite)},true)){render();toast("Fatura gerada.")}},
+  async pagarFatura(id){const x=real.faturas.find(f=>f.id===id);if(!x||!souDono())return;const o=Object.assign({},x,{status:"pago",pagoEm:today()});if(await save("faturas",o,true)){LIC.vencimento=addMes(LIC.vencimento&&LIC.vencimento>today()?LIC.vencimento:x.vencimento||today(),1);await saveLicDoc();render();toast("Fatura paga. Novo vencimento: "+fmtD(LIC.vencimento)+".")}},
+  async delFatura(id){if(souDono()&&await del("faturas",id))toast("Fatura excluída.")},
+  async saveMarca(f){CFG.marca={titulo:fv(f,"titulo")||"TORQUE",sub:fv(f,"sub")};if(await saveCfg()){renderBrand();toast("Identidade salva.")}},
+  async logoUp(file){if(!file)return;try{const d=await lerLogo(file);if(d.length>400000){toast("Imagem muito grande. Use um arquivo menor.");return}CFG.logo=d;if(await saveCfg()){renderBrand();render();toast("Logomarca atualizada.")}}catch(e){toast("Não foi possível ler a imagem.")}},
+  async logoDel(){CFG.logo="";if(await saveCfg()){renderBrand();render();toast("Logomarca padrão restaurada.")}},
+  leadDrop(e,et){e.preventDefault();const id=e.dataTransfer.getData("text/plain");if(id)moverLeadPara(id,et)},
+  moverLead(id,d){const l=S().leads.find(x=>x.id===id);if(!l)return;const i=ETAPAS.findIndex(e=>e[0]===l.etapa)+d;if(i>=0&&i<ETAPAS.length)moverLeadPara(id,ETAPAS[i][0])},
+  async delLead(id){if(await del("leads",id)){closeM();toast("Lead excluído.")}},
+  async converterLead(id){const l=real.leads.find(x=>x.id===id);if(!l){toast("Este é um lead de exemplo.");return}const ori={"Indicação médica":"Indicação médica","Indicação de paciente":"Indicação de paciente","Instagram":"Instagram","Google":"Google","Convênio":"Convênio","Passou na frente":"Passou na frente"}[l.origem]||"Outro";
+    const p={nome:l.nome,telefone:l.telefone||"",email:l.email||"",convenio:l.convenio||"",comoConheceu:ori,situacao:"ativo",whatsappOk:!!l.telefone,profId:l.responsavel||(profs()[0]||{}).id,obs:l.obs||""};
+    if(!(await save("pacientes",p,true)))return;const o=Object.assign({},l,{pacienteId:p.id,etapa:l.etapa==="ganho"?"ganho":"avaliacao"});await save("leads",o,true);closeM();render();toast("Paciente cadastrado. Agende a avaliação.");
+    if(pode("agenda",2))setTimeout(()=>openAppt(null,{pacienteId:p.id,servicoId:(CFG.servicos[0]||{}).id,profId:p.profId}),200)},
+  csvLeads(){download(`leads-${today()}.csv`,csv([["Nome","Telefone","E-mail","Origem","Interesse","Etapa","Valor","Próximo contato","Responsável","Entrada","Motivo da perda"],...S().leads.map(l=>[l.nome,l.telefone,l.email,l.origem,l.servicoId?serv(l.servicoId).nome:"",etapaNome(l.etapa),String(num(l.valor)).replace(".",","),fmtD(l.proximoContato),l.responsavel?prof(l.responsavel).nome:"",fmtD(l.criadoEm),l.motivoPerda||""])]),"text/csv")}
+};
+
 /* ================= Ações expostas ================= */
 window.T={
   go,today,setStatus,openPaciente,delPaciente,openAppt,delAppt,openAvaliacao,openEvolucao,openAdendo,openFin,pagar,delFin,openDocs,docPrev,docCopy,docSave,close:closeM,
@@ -1778,12 +2019,12 @@ window.T={
   async restore(file){if(!file)return;try{const d=JSON.parse(await file.text());if(d.app!=="torque-fisioterapia")throw 0;if(d.config){CFG=Object.assign(JSON.parse(JSON.stringify(DEF_CFG)),d.config);await saveCfg()}let n=0;for(const c of [...COLS,...EXTRA])for(const o of d[c]||[]){if(await save(c,o,true))n++}render();toast(n+" registros restaurados.")}catch(e){toast("Arquivo inválido: escolha uma cópia gerada pelo Torque.")}}
 };
 
-Object.assign(window.T,NOVAS_ACOES);
+Object.assign(window.T,NOVAS_ACOES,NOVAS_ACOES2);
 
 /* ================= Inicialização ================= */
 window.addEventListener("hashchange",()=>{if(route().v!=="paciente")UI.pTab="resumo";closeM();render();window.scrollTo(0,0)});
-function localLoad(){LOCAL=true;COLS.forEach(c=>real[c]=lsGet("torque."+c,[]));real.chat=lsGet("torque.chat",[]);EXTRA.forEach(c=>real[c]=lsGet("torque."+c,[]));const c=lsGet("torque.config",null);if(c)CFG=Object.assign(JSON.parse(JSON.stringify(DEF_CFG)),c);$("#modo").textContent="Modo local (este navegador)"}
-function ready(){loaded=true;renderTop();render()}
+function localLoad(){LOCAL=true;COLS.forEach(c=>real[c]=lsGet("torque."+c,[]));real.chat=lsGet("torque.chat",[]);EXTRA.forEach(c=>real[c]=lsGet("torque."+c,[]));LIC=Object.assign(JSON.parse(JSON.stringify(LIC_PAD)),lsGet("torque.licenca",{}));const c=lsGet("torque.config",null);if(c)CFG=Object.assign(JSON.parse(JSON.stringify(DEF_CFG)),c);$("#modo").textContent="Modo local (este navegador)"}
+function ready(){loaded=true;renderBrand();renderTop();render()}
 try{const tm=localStorage.getItem("torque.tema");if(tm)document.documentElement.dataset.theme=JSON.parse(tm)}catch(e){}
 document.addEventListener("keydown",e=>{if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==="k"){e.preventDefault();const i=$("#gs");if(i)i.focus()}});
 document.addEventListener("click",e=>{const m=$("#dd-add");if(m&&!m.hidden&&!e.target.closest(".dd"))m.hidden=true});
@@ -1795,10 +2036,11 @@ renderNav();
   if(!db){clearTimeout(timer);localLoad();ready();return}
   $("#modo").textContent="Banco compartilhado · sócios";
   const user=await window.claude.use("user").catch(()=>null);
-  if(user){const c=await user.can("data.write").catch(()=>null);if(c===false){canWrite=false;$("#modo").textContent="Acesso só de leitura"}ME=await user.id().catch(()=>null)}
+  if(user){const c=await user.can("data.write").catch(()=>null);if(c===false){canWrite=false;$("#modo").textContent="Acesso só de leitura"}ME=await user.id().catch(()=>null);OWNER=!!(await user.isOwner().catch(()=>false));USERCAP=user}else OWNER=false;
   db.collection("chat").orderBy("em","desc").limit(500).onSnapshot(s=>{real.chat=s.docs.map(d=>Object.assign({},d.data(),{id:d.id}));if(loaded){if(route().v==="chat")render();else renderNav()}},()=>{});
-  EXTRA.forEach(c=>{let q=db.collection(c);if(c==="auditoria")q=q.orderBy("em","desc").limit(400);q.onSnapshot(sn=>{real[c]=sn.docs.map(d=>Object.assign({},d.data(),{id:d.id}));if(loaded)render()},()=>{})});
-  db.doc("config/clinica").onSnapshot(d=>{if(d.exists){CFG=Object.assign(JSON.parse(JSON.stringify(DEF_CFG)),d.data());if(loaded)renderTop();render()}},()=>{});
+  EXTRA.forEach(c=>{let q=db.collection(c);if(c==="auditoria")q=q.orderBy("em","desc").limit(400);q.onSnapshot(sn=>{real[c]=sn.docs.map(d=>Object.assign({},d.data(),{id:d.id}));if(c==="usuarios"){USU_OK=true;const u=meuUsuario();if(u&&u.profId&&lsGet("torque.chatProf",null)===null)UI.chatProf=u.profId;if(loaded)renderTop()}if(loaded)render()},()=>{if(c==="usuarios"){USU_OK=true;if(loaded)render()}})});
+  db.doc("licenca/atual").onSnapshot(d=>{LIC=Object.assign(JSON.parse(JSON.stringify(LIC_PAD)),d.exists?d.data():{});if(loaded)render()},()=>{});
+  db.doc("config/clinica").onSnapshot(d=>{if(d.exists){CFG=Object.assign(JSON.parse(JSON.stringify(DEF_CFG)),d.data());renderBrand();if(loaded)renderTop();render()}},()=>{});
   let got=0;const seen={};
   COLS.forEach(c=>db.collection(c).onSnapshot(s=>{real[c]=s.docs.map(d=>Object.assign({},d.data(),{id:d.id}));if(!seen[c]){seen[c]=1;if(++got>=COLS.length){clearTimeout(timer);ready()}}else render()},()=>{if(!seen[c]){seen[c]=1;if(++got>=COLS.length){clearTimeout(timer);ready()}}}));
 })();
