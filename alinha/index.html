@@ -693,6 +693,13 @@ label.row>input[type=checkbox]{flex:none;margin-top:4px;width:17px;height:17px}
 .ind-f .v{text-align:right;font-variant-numeric:tabular-nums}.ind-f .v small{color:var(--dim);margin-left:4px}
 .ind-fluxo .cd-bars i.b{background:var(--ind-saida)}
 .ind-conv .cd-bars i.a{background:var(--s-interesse)}
+.crm-ind{display:flex;flex-wrap:wrap;gap:8px;align-items:stretch;margin-bottom:12px}
+.crm-ind .ci-tit{flex-basis:100%;font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--dim);font-weight:700}
+.ci{display:flex;flex-direction:column;gap:1px;min-width:108px;flex:1 1 108px;text-align:left;font:inherit;color:inherit;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:8px 11px;cursor:pointer}
+.ci:hover,.ci:focus-visible{border-color:var(--accent)}
+.ci span{font-size:12px;color:var(--dim);font-weight:600}.ci b{font-size:19px}.ci small{font-size:12px;color:var(--dim)}
+.ci.hl{border-color:var(--accent);background:var(--accent-soft)}.ci.ok b{color:var(--good)}.ci.bad b{color:var(--bad)}.ci.warn b{color:var(--warn)}
+@media (max-width:560px){.ci{flex-basis:calc(50% - 4px)}}
 @media (max-width:560px){.ind-f{grid-template-columns:96px 1fr 70px}.ind-kpis{grid-template-columns:1fr 1fr}}
 .mk-lin{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1.4fr) auto;gap:8px;align-items:center;border:0;background:none;padding:4px 6px;border-radius:8px;text-align:left;color:var(--fg);cursor:pointer}
 .mk-lin:hover,.mk-lin:focus-visible{background:var(--surface-2)}
@@ -864,8 +871,8 @@ label.row>input[type=checkbox]{flex:none;margin-top:4px;width:17px;height:17px}
         <input class="in" id="comBusca" placeholder="Buscar nome, telefone ou e-mail" style="width:210px">
         <div class="chips" id="crmUnidade" data-unidades="1"><button data-u="" class="on">Todas</button><button data-u="Caruaru">Caruaru</button><button data-u="Recife">Recife</button></div></div>
       <div id="pipeline" class="pipeline">
-        <div class="painel" data-grupo="crm" data-aba="lead"><div class="pipe" id="pipeLead"></div></div>
-        <div class="painel" data-grupo="crm" data-aba="cliente"><div class="pipe" id="pipeCliente"></div></div>
+        <div class="painel" data-grupo="crm" data-aba="lead"><div class="crm-ind" id="crmIndLead"></div><div class="pipe" id="pipeLead"></div></div>
+        <div class="painel" data-grupo="crm" data-aba="cliente"><div class="crm-ind" id="crmIndCliente"></div><div class="pipe" id="pipeCliente"></div></div>
       </div>
     </section>
 
@@ -999,10 +1006,10 @@ label.row>input[type=checkbox]{flex:none;margin-top:4px;width:17px;height:17px}
     <section class="view" id="v-indicadores">
       <div class="head"><div><h1>Indicadores</h1><p>Comercial e financeiro da clínica, com os dados do CRM. Toque nos números para ver os nomes.</p></div></div>
       <div class="row barra-abas">
-        <div class="chips" id="indEscopo"><button data-e="mes" class="on">Mês</button><button data-e="ano">Ano</button><button data-e="tudo">Tudo</button></div>
-        <input class="in" type="month" id="indMes" aria-label="Mês" style="width:auto">
+        <div class="chips" id="indEscopo"><button data-e="mes" class="on">Mês</button><button data-e="90">90 dias</button><button data-e="ano">Ano</button><button data-e="tudo">Tudo</button><button data-e="periodo">Período</button></div>
+        <input class="in" type="month" id="indMes" aria-label="Mês" style="width:auto"><input class="in ind-per hide" type="date" id="indDe" aria-label="De" style="width:auto"><input class="in ind-per hide" type="date" id="indAte" aria-label="Até" style="width:auto">
         <div class="chips" id="indUnidade" data-unidades="1"><button data-u="" class="on">Todas</button><button data-u="Caruaru">Caruaru</button><button data-u="Recife">Recife</button></div>
-        <span class="grow"></span><button class="btn sm" id="indNovaSaida">+ Saída</button></div>
+        <span class="grow"></span><button class="btn sm ghost" id="indCsv">Baixar planilha</button><button class="btn sm" id="indNovaSaida">+ Saída</button></div>
       <div class="row" style="margin:4px 0 8px"><h3 class="grow">Comercial</h3><span class="tiny dim" id="indPeriodo"></span></div>
       <div class="kpis ind-kpis" id="indCom"></div>
       <div class="row" style="margin:4px 0 8px"><h3 class="grow">Financeiro</h3><span class="tiny dim">entrada, forma de pagamento e situação ficam na ficha do cliente › Pagamento e campanha</span></div>
@@ -1014,7 +1021,10 @@ label.row>input[type=checkbox]{flex:none;margin-top:4px;width:17px;height:17px}
         <div class="card stack"><div class="row"><h3 class="grow">Conversão por mês</h3><span class="tiny dim">fecharam ÷ leads do mês</span></div><div class="pn-chart" id="indConv" role="img" aria-label="Conversão por mês"></div></div>
         <div class="card stack"><h3>Como tomou conhecimento da clínica</h3><div class="mk-origens" id="indOrigem"></div></div>
         <div class="card stack"><h3>Veio através de qual campanha</h3><div class="mk-origens" id="indCamp"></div></div>
+        <div class="card stack"><div class="row"><h3 class="grow">Agenda</h3><span class="tiny dim">toque para ver os nomes</span></div><div class="pn-chart" id="indAgenda" role="img" aria-label="Agendados, compareceram, faltaram e remarcaram"></div></div>
         <div class="card stack"><h3>Formas de pagamento (fechados)</h3><div class="mk-origens" id="indPag"></div></div>
+        <div class="card stack"><div class="row"><h3 class="grow">Follow-up de orçamento</h3><span class="tiny dim" id="indFollowTit"></span></div><table class="tabela" id="indFollowTab"></table></div>
+        <div class="card stack"><div class="row"><h3 class="grow">Inadimplência</h3><span class="tiny dim">clientes que não pagaram · toque para abrir a ficha</span></div><table class="tabela" id="indInadTab"></table></div>
         <div class="card stack"><div class="row"><h3 class="grow">Saídas</h3><span class="tiny dim" id="indSaiTotal"></span></div><div class="lista-int" id="indSaidas"></div></div>
       </div>
     </section>
