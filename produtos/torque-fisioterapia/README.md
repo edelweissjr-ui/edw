@@ -21,3 +21,18 @@ Sistema de gestão para a clínica Torque Fisioterapia (5 sócios), com os módu
 - **Ajustes:** dados da clínica, sócios e colaboradores (CREFITO, cota, comissão), serviços e valores, convênios, categorias e cópia de segurança (JSON).
 
 Abre com dados de exemplo, só na tela; eles somem quando o primeiro paciente real é cadastrado.
+
+## Módulos de gestão (inspirados no Livive)
+- **Painel:** guia de primeiros passos (8 etapas), comparecimento em 30 dias e pendências (evoluções, contas vencidas, estoque baixo, guias vencendo, lista de espera).
+- **Agenda:** salas de atendimento, status "Em espera" (paciente chegou), lista de espera, bloqueio de horário, feriados nacionais e locais, observações do dia, filtros por sala, status e procedimento, busca por nome/CPF, teleconsulta com link de vídeo (Jitsi Meet) e agenda do dia para baixar e imprimir.
+- **Modelos de prontuário:** fichas personalizadas por especialidade. Padrões: Pilates (avaliação inicial com PAR-Q e evolução da aula), fisioterapia pélvica (PERFECT) e neurofuncional (Berg, TUG, Ashworth). Duplique e edite os campos (texto, número, data, sim/não, lista, múltipla escolha, escala 0–10).
+- **Finanças:** período com comparação, recebido, a receber, pago, a pagar, saldo, ticket médio, inadimplência, projeção; abas Painel (fluxo de caixa de 6 meses, receita acumulada vs. meta, forma de pagamento, categoria), Inadimplência (cobrança por WhatsApp), Contas, Categorias, Centros de custo e Repasses.
+- **Relatórios:** períodos (mês, mês anterior, 3 e 6 meses, ano) com comparação, atendimentos por situação, novos pacientes em 12 meses, NPS por mês, comparativo por profissional, divisão entre sócios; CSV e relatório para PDF.
+- **Estoque:** itens com mínimo, validade e custo; entradas, saídas, ajustes e movimentações; alerta de baixo estoque e vencimento; compra lançada como despesa.
+- **Convênios (TISS):** guias com senha, sessões autorizadas x realizadas, validade, valor, glosa e situação; operadoras e dados do prestador. Não gera o XML TISS.
+- **Satisfação do paciente:** pesquisa NPS enviada pelo WhatsApp, registro da nota e do comentário, NPS, nota média e distribuição.
+- **Conhecimento (IA do Claude):** Assistente clínico (pode usar o resumo do prontuário, sem nome), Evidências (síntese com referências e links para PubMed/SciELO) e Bulas (o que importa para a fisioterapia). Funciona quando aberto no Claude.
+- **Migração de dados:** importa CSV ou Excel de pacientes, profissionais, agendamentos, histórico de prontuário e financeiro, com modelo CSV e ligação das colunas.
+- **Auditoria:** registro de quem criou, alterou ou excluiu cada registro.
+- **Geral:** busca global (Ctrl K), botão + para criar, sino de pendências, tema claro/escuro, "Você" (profissional atual), botões "Preciso de ajuda" e "Chat interno".
+- Fora do escopo: vídeo próprio para teleconsulta, agendamento online pelo paciente (exige página pública), envio automático de WhatsApp/SMS e XML TISS.
