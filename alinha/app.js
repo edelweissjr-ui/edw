@@ -10,6 +10,7 @@
      Ao publicar uma atualização, aumente a versão em package.json e registre em NOVIDADES. */
   let VERSAO = "2.5.0";
   const NOVIDADES = [
+    { v: "2.7.0", data: "nov/2026", itens: ["CRM: índices do mês no topo do Funil Lead (oportunidades, indicação, agendados, faltaram, remarcaram, compareceram, conversão) e do Funil Cliente (follow-up, fecharam, ticket médio, não pagaram, finalizaram, formas de pagamento)", "Indicadores: períodos de 90 dias e personalizado, gráfico da agenda, listas de follow-up de orçamento e de inadimplência, baixar planilha e editar saídas"] },
     { v: "2.6.0", data: "nov/2026", itens: ["Tela Indicadores: oportunidades, agenda, conversão, ticket médio, funis de leads e clientes, follow-up, inadimplência, formas de pagamento, origem, campanhas e indicações", "Ficha do cliente: Pagamento e campanha (entrada, forma, condição, situação e valor em atraso)", "Lançamento de saídas e gráfico de entradas × saídas por mês"] },
     { v: "2.5.0", data: "nov/2026", itens: ["Painel do dia com todas as métricas clicáveis e as suas tarefas", "Check-list diário (Fazer, Fazendo, Feito), pendências, assinatura por operador, confetes e avaliação com nota", "Pacientes: lista com busca e ficha de cadastro com a linha do tempo; foto (câmera, arquivo ou WhatsApp), Instagram, CPF, vários telefones e nascimento", "Marketing reúne campanhas e métricas; ampulheta com quantidade e percentual; follow-up e resultados clicáveis", "SMS funcionando (QR code, app do celular ou Twilio/Zenvia), microfone com teste e gravação, novas unidades e memória dos dados (cópias diárias e fila sem internet)"] },
     { v: "2.4.0", data: "nov/2026", itens: ["Versículo do dia em pop-up para cada operador ao abrir o app (já pergunta quem está atendendo)", "Setores do atendimento (Comercial, Financeiro, Operacional e outros) com os nomes de quem atende, em Ajustes › Chat", "Transferir a conversa do WhatsApp para outro setor no próprio chat, com recado; filtro por setor e “Comigo”"] },
@@ -1755,6 +1756,7 @@
     $("#pipeCliente").innerHTML = grupoHTML("cliente") || `<div class="vazio">Nenhuma etapa do Funil Cliente no filtro.</div>`;
     const qtd = (g) => lista.filter((p) => ETAPA[etapaDe(p)].grupo === g && recente(p)).length;
     $("#crmQtdLead").textContent = qtd("lead"); $("#crmQtdCliente").textContent = qtd("cliente");
+    indicesCRM();
     const n = nFiltros(); $("#crmFiltroN").textContent = n || ""; $("#crmFiltroN").classList.toggle("hide", !n); $("#btnCrmLimpar").classList.toggle("hide", !n);
   }
   $("#btnCrmFiltro").addEventListener("click", abrirFiltros);
@@ -3655,17 +3657,21 @@
   const IND = { escopo: "mes", mes: new Date().toISOString().slice(0, 7), unidade: "", listas: {} };
   const pagDe = (p) => p.pag || {};
   const numBR = (v) => { const t = String(v ?? "").replace(/[^\d,.]/g, ""); return Number(t.includes(",") ? t.replace(/\./g, "").replace(",", ".") : t) || 0; };
-  const indNoPeriodo = (iso) => { if (!iso) return false; const k = new Date(iso).toISOString(); return IND.escopo === "tudo" ? true : IND.escopo === "ano" ? k.slice(0, 4) === IND.mes.slice(0, 4) : k.slice(0, 7) === IND.mes; };
-  const indUni = (x) => !IND.unidade || x.unidade === IND.unidade;
+  const indNoPeriodo = (iso, E = IND) => { if (!iso) return false; const k = new Date(iso).toISOString();
+    if (E.escopo === "tudo") return true; if (E.escopo === "ano") return k.slice(0, 4) === E.mes.slice(0, 4);
+    if (E.escopo === "90") return Date.now() - new Date(iso).getTime() <= 90 * DIA;
+    if (E.escopo === "periodo") { const d = k.slice(0, 10); return (!E.de || d >= E.de) && (!E.ate || d <= E.ate); }
+    return k.slice(0, 7) === E.mes; };
+  const indUni = (x, E = IND) => !E.unidade || x.unidade === E.unidade;
   const finalizou = (p) => (p.trabalhos || []).some((t) => concluido(t));
   const faltouAlgum = (p) => (p.faltas || 0) > 0 || etapaDe(p) === "faltou";
   const remarcou = (p) => (p.faltas || 0) > 0 && !["faltou", "perdido"].includes(etapaDe(p));
   const pctF = (a, b) => (b ? (Math.round((a / b) * 1000) / 10).toLocaleString("pt-BR") + "%" : "—");
-  function indNumeros() {
-    const P = PAC.filter((p) => indUni(p) && indNoPeriodo(entrouEm(p)));
+  function indNumeros(E = IND) {
+    const P = PAC.filter((p) => indUni(p, E) && indNoPeriodo(entrouEm(p), E));
     const fech = P.filter((p) => p.status === "fechado");
-    const fechFin = PAC.filter((p) => p.status === "fechado" && indUni(p) && indNoPeriodo(p.fechadoEm));
-    const S = (AJ.saidas || []).filter((s) => indUni(s) && indNoPeriodo(s.data + "T12:00:00"));
+    const fechFin = PAC.filter((p) => p.status === "fechado" && indUni(p, E) && indNoPeriodo(p.fechadoEm, E));
+    const S = (AJ.saidas || []).filter((s) => indUni(s, E) && indNoPeriodo(s.data + "T12:00:00", E));
     const soma = (a, f) => a.reduce((t, x) => t + Number(f(x) || 0), 0);
     const L = {
       oport: P, agendados: P.filter((p) => ehCliente(p) || ["agendado", "faltou"].includes(etapaDe(p)) || p.agendadoEm), compareceram: P.filter(ehCliente),
@@ -3677,14 +3683,32 @@
     const totalFech = soma(fech, (p) => p.valorFechado);
     return { L, S, totalFech, entrada: soma(fechFin, (p) => numBR(pagDe(p).entrada)), saiu: soma(S, (s) => s.valor), inad: soma(L.naoPagou, (p) => numBR(pagDe(p).emAberto)), follow$: soma(L.follow, (p) => p.valorApresentado) };
   }
+  // índices do mês no topo de cada funil do CRM (Funil Lead e Funil Cliente)
+  const CRMI = { listas: {} };
+  function indicesCRM() {
+    const E = { escopo: "mes", mes: new Date().toISOString().slice(0, 7), unidade: CRMS.unidade };
+    const { L, totalFech, inad, follow$ } = indNumeros(E), n = (k) => L[k].length, o = n("oport"), f = n("fecharam"); CRMI.listas = L;
+    const it = (k, rot, val, sub, cls) => `<button class="ci${cls ? " " + cls : ""}" data-crmi="${k}" data-crmitit="${esc(rot)}"><span>${esc(rot)}</span><b class="num">${val}</b>${sub ? `<small>${sub}</small>` : ""}</button>`;
+    const mes = new Date().toLocaleDateString("pt-BR", { month: "long" });
+    $("#crmIndLead").innerHTML = `<span class="ci-tit">Índices de ${mes}</span>` + [
+      it("oport", "Oportunidades", o, "leads no mês", "hl"), it("indicacao", "Indicação", n("indicacao"), pctF(n("indicacao"), o)), it("agendados", "Agendados", n("agendados"), pctF(n("agendados"), o)),
+      it("faltaram", "Faltaram", n("faltaram"), pctF(n("faltaram"), n("agendados")) + " dos agend.", "bad"), it("remarcaram", "Remarcaram", n("remarcaram"), pctF(n("remarcaram"), n("agendados")) + " dos agend.", "warn"),
+      it("compareceram", "Compareceram", n("compareceram"), pctF(n("compareceram"), n("agendados")) + " dos agend."), it("fecharam", "Conversão", pctF(f, o), `${f} fecharam`, "ok")].join("");
+    $("#crmIndCliente").innerHTML = `<span class="ci-tit">Índices de ${mes}</span>` + [
+      it("compareceram", "Compareceram", n("compareceram"), "viraram clientes", "hl"), it("follow", "Follow-up", n("follow"), brl(follow$), "warn"), it("fecharam", "Fecharam", f, pctF(f, n("compareceram")) + " conversão", "ok"),
+      it("fecharam", "Ticket médio", f ? brl(totalFech / f) : "—", brl(totalFech) + " no total"), it("naoPagou", "Não pagaram", n("naoPagou"), brl(inad) + " em atraso", "bad"), it("finalizaram", "Finalizaram", n("finalizaram"), "tratamento concluído"),
+      it("fecharam", "Espécie · Cartão · À vista", `${n("especie")} · ${n("cartao")} · ${n("avista")}`, "formas de pagamento")].join("");
+  }
+  $("#v-crm").addEventListener("click", (e) => { const b = e.target.closest("[data-crmi]"); if (b && CRMI.listas[b.dataset.crmi]) abrirListaPacientes(b.dataset.crmitit, CRMI.listas[b.dataset.crmi], "leads que entraram neste mês"); });
   function renderIndicadores() {
     if (!$("#indMes").value) $("#indMes").value = IND.mes;
     $$("#indUnidade button").forEach((b) => b.classList.toggle("on", b.dataset.u === IND.unidade));
     $$("#indEscopo button").forEach((b) => b.classList.toggle("on", b.dataset.e === IND.escopo));
-    $("#indMes").classList.toggle("hide", IND.escopo === "tudo");
+    $("#indMes").classList.toggle("hide", !["mes", "ano"].includes(IND.escopo)); $$(".ind-per").forEach((x) => x.classList.toggle("hide", IND.escopo !== "periodo"));
+    $("#indCsv").classList.toggle("hide", !pode("exportar"));
     const { L, S, totalFech, entrada, saiu, inad, follow$ } = indNumeros(); IND.listas = L;
     const n = (k) => L[k].length, o = n("oport"), f = n("fecharam");
-    $("#indPeriodo").textContent = IND.escopo === "tudo" ? "todo o histórico" : IND.escopo === "ano" ? "ano de " + IND.mes.slice(0, 4) : new Date(IND.mes + "-15").toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
+    $("#indPeriodo").textContent = IND.escopo === "tudo" ? "todo o histórico" : IND.escopo === "90" ? "últimos 90 dias" : IND.escopo === "periodo" ? `${IND.de ? dataBR(IND.de + "T12:00:00") : "início"} a ${IND.ate ? dataBR(IND.ate + "T12:00:00") : "hoje"}` : IND.escopo === "ano" ? "ano de " + IND.mes.slice(0, 4) : new Date(IND.mes + "-15").toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
     const pill = (cls, t) => `<span class="pill ${cls}">${t}</span>`;
     const conv = o ? f / o : 0, inadP = totalFech ? inad / totalFech : 0;
     kpisClic("#indCom", [
@@ -3737,37 +3761,62 @@
     const fp = FORMAS_PAG.map(([k, nome]) => [nome, L.fecharam.filter((p) => pagDe(p).forma === k)]).filter((g) => g[1].length);
     if (n("avista")) fp.push(["À vista (qualquer forma)", L.avista]);
     barras("#indPag", "p:", fp, f, "Informe a forma de pagamento na ficha de cada cliente que fechou.");
+    // agenda
+    const ag = [["Agendados", L.agendados, "var(--s-interesse)"], ["Compareceram", L.compareceram, "var(--s-fechado)"], ["Faltaram", L.faltaram, "var(--bad)"], ["Remarcaram", L.remarcaram, "var(--warn)"]], mxA = Math.max(1, ...ag.map((x) => x[1].length));
+    $("#indAgenda").innerHTML = `<div class="cd">${ag.map(([nome, lista, cor], i) => { IND.listas["ag" + i] = lista; return `<button class="cd-col" data-ind="ag${i}" data-indtit="${esc(nome)}" data-dica="${esc(`${nome}: ${lista.length}`)}" aria-label="${esc(`${nome}: ${lista.length}`)}"><span class="cd-bars"><i style="height:${(lista.length / mxA) * 100}%;width:min(34px,60%);background:${cor}"></i></span><span class="cd-rot">${esc(nome)} · ${lista.length}</span></button>`; }).join("")}</div>`;
+    // follow-up e inadimplência
+    const dias = (iso) => iso ? Math.max(0, Math.round((Date.now() - new Date(iso)) / DIA)) : "—";
+    const tab = (el, lista, cols, vazio) => { $(el).innerHTML = lista.length ? `<thead><tr>${cols.map((c) => `<th${c[2] ? ' class="n"' : ""}>${c[0]}</th>`).join("")}</tr></thead><tbody>${lista.map((p) => `<tr data-indpid="${p.id}" tabindex="0" style="cursor:pointer">${cols.map((c) => `<td${c[2] ? ' class="n"' : ""}>${c[1](p)}</td>`).join("")}</tr>`).join("")}</tbody>` : `<tbody><tr><td class="small dim">${vazio}</td></tr></tbody>`; rotularTabela($(el)); };
+    const fl = L.follow.slice().sort((a, b) => Number(b.valorApresentado || 0) - Number(a.valorApresentado || 0));
+    $("#indFollowTit").textContent = fl.length > 12 ? `os 12 maiores de ${fl.length}` : `${fl.length} orçamento${fl.length === 1 ? "" : "s"} sem fechamento`;
+    tab("#indFollowTab", fl.slice(0, 12), [["Paciente", (p) => `<b>${esc(p.nome)}</b>`], ["Unidade", (p) => esc(p.unidade || "—")], ["CRC", (p) => esc(p.crc || "—")], ["Orçamento", (p) => brl(p.valorApresentado), 1], ["Dias", (p) => dias(p.compareceuEm || p.consultaEm), 1]], "Nenhum orçamento aguardando retorno.");
+    const np = L.naoPagou.slice().sort((a, b) => numBR(pagDe(b).emAberto) - numBR(pagDe(a).emAberto));
+    tab("#indInadTab", np, [["Paciente", (p) => `<b>${esc(p.nome)}</b>`], ["Unidade", (p) => esc(p.unidade || "—")], ["Fechou em", (p) => dataBR(p.fechadoEm)], ["Forma", (p) => esc(FORMA_NOME[pagDe(p).forma] || "—")], ["Valor fechado", (p) => brl(p.valorFechado), 1], ["Em atraso", (p) => brl(numBR(pagDe(p).emAberto)), 1]], "Ninguém inadimplente no período.");
     const ss = S.slice().sort((a, b) => (a.data < b.data ? 1 : -1));
     $("#indSaiTotal").textContent = `${ss.length} · ${brl(saiu)}`;
-    $("#indSaidas").innerHTML = ss.length ? ss.slice(0, 40).map((s) => `<div class="it"><span class="grow"><b>${esc(s.descricao)}</b><span class="tiny dim"> · ${esc(s.categoria || "")} · ${esc(s.unidade || "")} · ${dataBR(s.data + "T12:00:00")}</span></span><b class="num">${brl(s.valor)}</b><button class="btn sm ghost" data-saidel="${esc(s.id)}" aria-label="Apagar saída">✕</button></div>`).join("") : `<span class="small dim">Nenhuma saída no período. Toque em + Saída para lançar.</span>`;
+    $("#indSaidas").innerHTML = ss.length ? ss.slice(0, 40).map((s) => `<div class="it"><span class="grow"><b>${esc(s.descricao)}</b><span class="tiny dim"> · ${esc(s.categoria || "")} · ${esc(s.unidade || "")} · ${dataBR(s.data + "T12:00:00")}</span></span><b class="num">${brl(s.valor)}</b><button class="btn sm ghost" data-saied="${esc(s.id)}" aria-label="Editar saída">Editar</button><button class="btn sm ghost" data-saidel="${esc(s.id)}" aria-label="Apagar saída">✕</button></div>`).join("") : `<span class="small dim">Nenhuma saída no período. Toque em + Saída para lançar.</span>`;
   }
   $("#indMes").addEventListener("change", (e) => { IND.mes = e.target.value || IND.mes; renderIndicadores(); });
   $("#indUnidade").addEventListener("click", (e) => { const b = e.target.closest("[data-u]"); if (b) { IND.unidade = b.dataset.u; renderIndicadores(); } });
   $("#indEscopo").addEventListener("click", (e) => { const b = e.target.closest("[data-e]"); if (b) { IND.escopo = b.dataset.e; renderIndicadores(); } });
+  $("#indDe").addEventListener("change", (e) => { IND.de = e.target.value; renderIndicadores(); });
+  $("#indAte").addEventListener("change", (e) => { IND.ate = e.target.value; renderIndicadores(); });
+  $("#indCsv").onclick = () => {
+    const { L } = indNumeros(); const q = (v) => `"${String(v ?? "").replace(/"/g, '""')}"`;
+    const cols = [["Nome", (p) => p.nome], ["Unidade", (p) => p.unidade], ["Entrou em", (p) => dataBR(entrouEm(p))], ["Origem", (p) => p.origem], ["Campanha", (p) => p.campanha], ["Etapa", (p) => ETAPA[etapaDe(p)].nome], ["CRC", (p) => p.crc], ["Faltas", (p) => p.faltas || 0],
+      ["Orçamento", (p) => p.valorApresentado || ""], ["Valor fechado", (p) => p.valorFechado || ""], ["Fechou em", (p) => dataBR(p.fechadoEm)], ["Entrada", (p) => pagDe(p).entrada || ""], ["Forma", (p) => FORMA_NOME[pagDe(p).forma] || ""], ["Condição", (p) => ({ avista: "À vista", parcelado: "Parcelado" }[pagDe(p).condicao] || "")],
+      ["Situação", (p) => ({ em_dia: "Em dia", quitado: "Quitado", nao_pagou: "Não pagou" }[pagDe(p).situacao] || "")], ["Em atraso", (p) => pagDe(p).emAberto || ""], ["Finalizou", (p) => (finalizou(p) ? "Sim" : "")]];
+    const csv = "\ufeff" + cols.map((c) => q(c[0])).join(";") + "\n" + L.oport.map((p) => cols.map((c) => q(c[1](p))).join(";")).join("\n");
+    const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv" })); a.download = `indicadores-${new Date().toISOString().slice(0, 10)}.csv`; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+    toast("Planilha baixada");
+  };
   $("#v-indicadores").addEventListener("click", async (e) => {
     const d = e.target.closest("[data-saidel]");
     if (d) { if (d.dataset.c !== "1") { d.dataset.c = "1"; d.textContent = "Apagar?"; return; } await Store.ajustes({ saidas: (AJ.saidas || []).filter((s) => s.id !== d.dataset.saidel) }); toast("Saída apagada"); renderIndicadores(); return; }
+    const ed = e.target.closest("[data-saied]"); if (ed) { abrirSaida((AJ.saidas || []).find((x) => x.id === ed.dataset.saied)); return; }
+    const tr = e.target.closest("[data-indpid]"); if (tr) { const p = PAC.find((x) => x.id === tr.dataset.indpid); if (p) abrirGaveta(p); return; }
     const b = e.target.closest("[data-ind],[data-lista]"); if (!b) return;
     const k = b.dataset.ind || b.dataset.lista, tit = b.dataset.indtit || (b.querySelector(".label") || {}).textContent || "";
     if (IND.listas[k]) abrirListaPacientes(tit, IND.listas[k], $("#indPeriodo").textContent);
   });
-  $("#indNovaSaida").onclick = () => {
-    const hojeISO = new Date().toISOString().slice(0, 10);
-    $("#drawerHost").innerHTML = `<div class="veil" id="veil"><div class="drawer" role="dialog" aria-label="Nova saída">
-      <div class="row"><h2 class="grow" style="font-size:21px">Nova saída</h2><button class="btn sm ghost" id="btnFechar" aria-label="Fechar">✕</button></div>
-      <div class="card stack"><div><label class="f" for="sDesc">Descrição</label><input class="in" id="sDesc"></div>
-        <div class="duo"><div><label class="f" for="sValor">Valor (R$)</label><input class="in num" id="sValor" inputmode="decimal"></div><div><label class="f" for="sData">Data</label><input class="in" type="date" id="sData" value="${hojeISO}"></div></div>
-        <div class="duo"><div><label class="f" for="sCat">Categoria</label><select class="in" id="sCat">${CAT_SAIDA.map((c) => `<option>${esc(c)}</option>`).join("")}</select></div>
-          <div><label class="f" for="sUni">Unidade</label><select class="in" id="sUni">${[...new Set(["Caruaru", "Recife"].concat(AJ.unidades || []).map((u) => (typeof u === "string" ? u : u && u.nome)).filter(Boolean))].map((u) => `<option${u === IND.unidade ? " selected" : ""}>${esc(u)}</option>`).join("")}</select></div></div>
+  $("#indNovaSaida").onclick = () => abrirSaida();
+  function abrirSaida(ed) {
+    const hojeISO = new Date().toISOString().slice(0, 10), v = ed || {};
+    $("#drawerHost").innerHTML = `<div class="veil" id="veil"><div class="drawer" role="dialog" aria-label="${ed ? "Editar saída" : "Nova saída"}">
+      <div class="row"><h2 class="grow" style="font-size:21px">${ed ? "Editar saída" : "Nova saída"}</h2><button class="btn sm ghost" id="btnFechar" aria-label="Fechar">✕</button></div>
+      <div class="card stack"><div><label class="f" for="sDesc">Descrição</label><input class="in" id="sDesc" value="${esc(v.descricao || "")}"></div>
+        <div class="duo"><div><label class="f" for="sValor">Valor (R$)</label><input class="in num" id="sValor" inputmode="decimal" value="${v.valor || ""}"></div><div><label class="f" for="sData">Data</label><input class="in" type="date" id="sData" value="${v.data || hojeISO}"></div></div>
+        <div class="duo"><div><label class="f" for="sCat">Categoria</label><select class="in" id="sCat">${CAT_SAIDA.map((c) => `<option${c === v.categoria ? " selected" : ""}>${esc(c)}</option>`).join("")}</select></div>
+          <div><label class="f" for="sUni">Unidade</label><select class="in" id="sUni">${[...new Set(["Caruaru", "Recife"].concat(AJ.unidades || []).map((u) => (typeof u === "string" ? u : u && u.nome)).filter(Boolean))].map((u) => `<option${u === (v.unidade || IND.unidade) ? " selected" : ""}>${esc(u)}</option>`).join("")}</select></div></div>
         <div class="row"><button class="btn pri" id="sSalvar">Salvar saída</button><span class="small dim" id="sSt"></span></div></div></div></div>`;
     $("#veil").addEventListener("click", (e) => { if (e.target.id === "veil") fecharGaveta(); });
     $("#btnFechar").onclick = fecharGaveta; setTimeout(() => $("#sDesc").focus(), 30);
     $("#sSalvar").onclick = async () => {
-      const s = { id: "s" + Date.now().toString(36), descricao: $("#sDesc").value.trim(), valor: numBR($("#sValor").value), data: $("#sData").value, categoria: $("#sCat").value, unidade: $("#sUni").value, criadoEm: new Date().toISOString() };
+      const s = { id: v.id || "s" + Date.now().toString(36), descricao: $("#sDesc").value.trim(), valor: numBR($("#sValor").value), data: $("#sData").value, categoria: $("#sCat").value, unidade: $("#sUni").value, criadoEm: v.criadoEm || new Date().toISOString(), atualizadoEm: new Date().toISOString() };
       if (!s.descricao || !s.valor || !s.data) { $("#sSt").textContent = "Preencha descrição, valor e data."; return; }
-      await Store.ajustes({ saidas: (AJ.saidas || []).concat(s) }); toast("Saída lançada"); fecharGaveta(); renderIndicadores();
+      await Store.ajustes({ saidas: (AJ.saidas || []).filter((x) => x.id !== s.id).concat(s) }); toast(ed ? "Saída atualizada" : "Saída lançada"); fecharGaveta(); renderIndicadores();
     };
-  };
+  }
   // ficha do cliente: pagamento e campanha
   function pagamentoHTML(p) {
     const g = pagDe(p), op = (lista, v) => lista.map(([k, n]) => `<option value="${k}"${k === (v || "") ? " selected" : ""}>${n}</option>`).join("");
