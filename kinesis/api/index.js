@@ -22,6 +22,20 @@ const PERM_PAD = {
   recepcao: { inicio: 2, agenda: 2, pacientes: 2, prontuario: 0, modelos: 0, chat: 2, crm: 1, financeiro: 2, relatorios: 0, estoque: 1, tiss: 1, satisfacao: 2, ia: 0, migracao: 0, auditoria: 0, ajustes: 0 },
   crc: { inicio: 1, agenda: 2, pacientes: 2, prontuario: 0, modelos: 0, chat: 2, crm: 2, financeiro: 0, relatorios: 1, estoque: 0, tiss: 0, satisfacao: 2, ia: 0, migracao: 0, auditoria: 0, ajustes: 0 },
 };
+/* Planos: módulos bloqueados e cota mensal da KIN (o titular pode ajustar preço, usuários e cota). */
+const PLANOS_PAD = {
+  essencial: { usuarios: 2, kinMes: 100, kinInstr: false, bloq: ["crm", "estoque", "tiss", "satisfacao", "auditoria"] },
+  profissional: { usuarios: 5, kinMes: 600, kinInstr: false, bloq: ["auditoria"] },
+  completo: { usuarios: 10, kinMes: 2000, kinInstr: true, bloq: [] },
+};
+const PLANO_ANT = { solo: "essencial", clinica: "profissional", clinicaplus: "completo", rede: "completo" };
+function planoDe(l) {
+  l = l || {};
+  const lista = Array.isArray(l.planos) && l.planos.some((x) => x && x.kinMes !== undefined) ? l.planos : null;
+  const id = lista ? l.plano : PLANO_ANT[l.plano] || l.plano || "profissional";
+  const salvo = lista ? lista.find((x) => x && x.id === id) : null, pad = PLANOS_PAD[id] || PLANOS_PAD.profissional;
+  return { id, kinMes: Number(salvo && salvo.kinMes !== undefined ? salvo.kinMes : pad.kinMes) || 0, kinInstr: salvo && salvo.kinInstr !== undefined ? !!salvo.kinInstr : pad.kinInstr, bloq: (salvo && Array.isArray(salvo.bloq) ? salvo.bloq : pad.bloq).map(String) };
+}
 const PAPEIS = new Set(["admin", "fisio", "financeiro", "comercial", "estoque", "recepcao", "crc"]);
 
 /* ---------- Upstash Redis (REST) ---------- */
@@ -77,10 +91,12 @@ async function limiteTentativas(chave, max, segundos) { const n = await cmd("INC
 
 /* ---------- permissões ---------- */
 async function lerDoc(col, id) { const v = await cmd("HGET", P + "c:" + col, id); return v ? JSON.parse(v) : null; }
-const cfgClinica = async () => (await lerDoc("config", "clinica")) || {};
+const cfgClinica = async () => { const c = (await lerDoc("config", "clinica")) || {}; Object.defineProperty(c, "_lic", { value: await licenca(), enumerable: false }); return c; };
 const licenca = async () => (await lerDoc("licenca", "atual")) || { limite: 5 };
 function nivel(u, cfg, mod) {
-  if (u.owner || u.papel === "admin") return 2;
+  if (u.owner) return 2;
+  if (planoDe(cfg._lic).bloq.includes(mod)) return 0;
+  if (u.papel === "admin") return 2;
   const v = ((cfg.permissoes || {})[u.papel] || {})[mod];
   return v ?? ((PERM_PAD[u.papel] || {})[mod] || 0);
 }
@@ -279,10 +295,15 @@ async function rotaIA(req, res, b, u) {
   if (!chave) return enviar(res, 503, { erro: "A KIN (inteligência artificial) não está configurada neste servidor." });
   const cfg = await cfgClinica(); if (nivel(u, cfg, "ia") < 1) return enviar(res, 403, { erro: "Seu perfil não usa a KIN." });
   const hora = new Date().toISOString().slice(0, 13); if (await limiteTentativas("ia:" + u.id + ":" + hora, c.limite, 3700)) return enviar(res, 429, { erro: "Limite de perguntas por hora atingido. Tente mais tarde." });
+  const pl = planoDe(cfg._lic), mes = new Date().toISOString().slice(0, 7);
+  if (!u.owner) {
+    const n = Number(await cmd("INCR", P + "iames:" + mes)); if (n === 1) await cmd("EXPIRE", P + "iames:" + mes, 40 * 86400);
+    if (n > pl.kinMes) return enviar(res, 429, { erro: `A cota da KIN deste mês acabou (${pl.kinMes} perguntas no plano atual). Ela renova no dia 1º. Para ampliar, fale com o titular sobre mudar de plano.` });
+  }
   const entrada = b.input;
   const messages = typeof entrada === "string" ? [{ role: "user", content: entrada.slice(0, 60000) }] : Array.isArray(entrada) ? entrada.filter((m) => m && (m.role === "user" || m.role === "assistant") && typeof m.content === "string" && m.content).slice(-30).map((m) => ({ role: m.role, content: m.content.slice(0, 60000) })) : [];
   if (!messages.length || messages[messages.length - 1].role !== "user") return enviar(res, 400, { erro: "Pergunta vazia." });
-  const system = IA_SISTEMA + (c.instrucoes ? "\n\nOrientações da clínica: " + c.instrucoes : "");
+  const system = IA_SISTEMA + (c.instrucoes && pl.kinInstr ? "\n\nOrientações da clínica: " + c.instrucoes : "");
   res.statusCode = 200; res.setHeader("Content-Type", "text/plain; charset=utf-8"); res.setHeader("Cache-Control", "no-store");
   try {
     const fim = await (prov === "openai" ? gerarOpenAI : gerarAnthropic)({ chave, modelo: modeloDe(c, prov), system, messages, onText: (t) => res.write(t) });
@@ -298,7 +319,8 @@ async function iaConfigPublica(c) {
   const chaves = {};
   for (const p of Object.keys(PROVEDORES)) chaves[p] = { salva: !!c.chaves[p], final: c.finais[p] || "", env: !!process.env[PROVEDORES[p].env] };
   const modelos = {}; for (const p of Object.keys(PROVEDORES)) modelos[p] = modeloDe(c, p);
-  return { ativo: c.ativo, provedor: c.provedor, modelos, instrucoes: c.instrucoes, limite: c.limite, chaves, disponivel: c.ativo && !!(await chaveDe(c, c.provedor)) };
+  const pl = planoDe(await licenca());
+  return { ativo: c.ativo, provedor: c.provedor, modelos, instrucoes: c.instrucoes, kinInstr: pl.kinInstr, limite: c.limite, chaves, disponivel: c.ativo && !!(await chaveDe(c, c.provedor)) };
 }
 async function rotaIAConfig(req, res, b, u) {
   if (nivel(u, await cfgClinica(), "ajustes") < 2) return enviar(res, 403, { erro: "Só administradores configuram a KIN." });
@@ -344,6 +366,7 @@ export default async function handler(req, res) {
     if (seg[0] === "doc" && seg[1] && seg[2] && m === "PUT") return gravarDoc(res, seg[1], seg[2], b, u);
     if (seg[0] === "doc" && seg[1] && seg[2] && m === "DELETE") return apagarDoc(res, seg[1], seg[2], u);
     if (seg[0] === "ia" && seg[1] === "config" && (m === "GET" || m === "PUT")) return rotaIAConfig(req, res, b, u);
+    if (seg[0] === "ia" && seg[1] === "uso" && m === "GET") { const pl = planoDe(await licenca()); return enviar(res, 200, { plano: pl.id, limite: pl.kinMes, usado: Number(await cmd("GET", P + "iames:" + new Date().toISOString().slice(0, 7))) || 0 }); }
     if (seg[0] === "ia" && seg[1] === "testar" && m === "POST") return rotaIATestar(req, res, b, u);
     if (seg[0] === "ia" && !seg[1] && m === "POST") return rotaIA(req, res, b, u);
     enviar(res, 404, { erro: "Rota não encontrada." });

@@ -54,6 +54,15 @@ Abre com dados de exemplo, só na tela; eles somem quando o primeiro paciente re
 - **Finanças:** meta mensal de faturamento, faturamento por janela (30, 90 e 120 dias) e resumo de repasses.
 - **Leitura:** fontes com suavização e tamanho base de 15 px; campos e botões com altura mínima para toque.
 
+## Planos de assinatura (mensal)
+| Plano | Usuários | Preço | KIN | Módulos |
+|---|---|---|---|---|
+| Essencial | 1 a 2 | R$ 129/mês | 100 perguntas/mês | Agenda, prontuário, financeiro, relatórios, chat (sem CRM, TISS, estoque, NPS, auditoria) |
+| Profissional (mais escolhido) | 3 a 5 | R$ 289/mês | 600 perguntas/mês | Tudo, menos auditoria |
+| Clínica Completa | 6 a 10 | R$ 489/mês | 2.000 perguntas/mês + orientações próprias | Tudo |
+
+Usuário adicional: R$ 39/mês. Mais de 10 usuários: plano Rede sob consulta. Na versão hospedada, módulos e cota da KIN são aplicados no servidor; módulos fora do plano aparecem com cadeado e tela de mudança de plano (botão de WhatsApp do fornecedor, configurável em Plano e licenças). Referências de mercado (nov/2026): ZenFisio R$ 79/179/439; Feegow a partir de R$ 129 por profissional; iClinic a partir de R$ 99 por profissional.
+
 ## Versão hospedada (site próprio)
 - Em `kinesis/` na raiz do repositório: login por e-mail e senha, banco Upstash e permissões aplicadas no servidor. Endereço: https://kinesis-gestao.vercel.app. Veja `kinesis/README.md`.
 - O modo hospedado é ligado por `window.__KINESIS_HOSTED` (cadastro de usuário com e-mail e senha, troca de senha e Sair).
