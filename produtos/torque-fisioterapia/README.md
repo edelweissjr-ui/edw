@@ -1,6 +1,8 @@
-# Torque Fisioterapia
+# Kinesis · Gestão em Clínicas
 
-Sistema de gestão para a clínica Torque Fisioterapia (5 sócios), com os módulos que os sistemas mais usados no Brasil oferecem.
+> Antes chamado Kinesis. A marca segue o Manual de Identidade Visual Kinesis v1.0 (nov/2026): símbolo K com haste azul-marinho e faixa em degradê verde-água, Azul Kinesis #12304A, Verde Movimento #0FA3A3, Verde Claro #3DD6C4, Dourado #AC8850 (no máximo 3%: assinatura e filetes), Gelo #F4F7F9, fonte Inter (títulos SemiBold 600).
+
+Sistema de gestão para a clínica Kinesis Fisioterapia (5 sócios), com os módulos que os sistemas mais usados no Brasil oferecem.
 
 - **Publicado no Claude (privado):** https://claude.ai/artifact/Avzh5ZkiDvhVhARd87uQJ2. Lá os dados ficam num banco compartilhado, só para quem for convidado pelo menu Compartilhar.
 - **`index.html`:** a mesma página. Aberta fora do Claude, guarda os dados no navegador (modo local).
@@ -45,15 +47,15 @@ Abre com dados de exemplo, só na tela; eles somem quando o primeiro paciente re
 - **Identidade visual** (Ajustes): envio da logomarca e nome da barra lateral; a logomarca vai para os documentos.
 - Regras do banco: só administradores (editores) gravam usuários e configurações; só o titular grava licença e faturas. As demais permissões por setor são aplicadas pela própria página.
 
-## Identidade Torque e configurações
-- **Marca:** Torque Saúde e Reabilitação, com o monograma TF redesenhado em vetor (T azul-marinho, F lilás) e o lema "Movimento que transforma". Paleta da logomarca: azul-marinho #2e3a56, lilás #5f5aa2 e fundo bege #f4f2ee, com versão escura.
+## Identidade Kinesis e configurações
+- **Marca:** Kinesis Saúde e Reabilitação, com o monograma TF redesenhado em vetor (T azul-marinho, F lilás) e o lema "Movimento que transforma". Paleta da logomarca: azul-marinho #2e3a56, lilás #5f5aa2 e fundo bege #f4f2ee, com versão escura.
 - **Cores do painel:** 7 temas prontos, cor principal, cor de destaque, cor própria do menu lateral e tom de fundo. Ao enviar outra logomarca, o sistema extrai os tons dela.
 - **Configurações em seções:** Agenda (horários por profissional e dia, com intervalo; fora do horário fica sombreado), Clínica e equipe, Prontuário e documentos (assinatura em imagem nos documentos), Financeiro e dados (avisos de vencimento, exportações, cópia de segurança), WhatsApp e lembretes (textos editáveis com variáveis, diagnóstico e histórico de envios), Segurança da conta e Plano e cobrança.
 - **Finanças:** meta mensal de faturamento, faturamento por janela (30, 90 e 120 dias) e resumo de repasses.
 - **Leitura:** fontes com suavização e tamanho base de 15 px; campos e botões com altura mínima para toque.
 
 ## Demonstração para clientes
-- Link público: https://torque-saude-demo.vercel.app (também https://torque-demo-bice.vercel.app). Projeto `torque-demo` na Vercel.
+- Link público: https://kinesis-clinic-demo.vercel.app (os links antigos torque-saude-demo.vercel.app e torque-demo-bice.vercel.app também abrem). Projeto `torque-demo` na Vercel.
 - Login de demonstração: usuário **admin**, senha **admin**. A tela de login é só uma porta de entrada da demonstração, não protege dados.
 - Roda só no navegador do visitante (sem banco compartilhado), com dados fictícios. Os botões "Recomeçar demonstração" e "Sair" ficam no topo. Os recursos de IA não funcionam fora do Claude.
 - `demo/` é gerado a partir do `index.html`. Para atualizar, gere de novo e publique na Vercel.

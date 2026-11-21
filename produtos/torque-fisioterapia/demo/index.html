@@ -1,41 +1,41 @@
-<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="robots" content="noindex,nofollow"><meta name="description" content="Demonstração do sistema de gestão Torque Saúde e Reabilitação."></head><body>
-<title>Torque · Demonstração</title>
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="robots" content="noindex,nofollow"><meta name="description" content="Demonstração do Kinesis, sistema de gestão para clínicas de fisioterapia."></head><body>
+<title>Kinesis · Demonstração</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@112,600;112,800&family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&family=JetBrains+Mono:wght@400;600&display=swap">
 <style>
 /* Layout: barra lateral petróleo (logo + módulos) · área de trabalho clara · fichas e formulários abrem num painel lateral. */
 :root{
-  --bg:#f3efe9; --surface:#ffffff; --surface-2:#ebe5dd; --line:#dad2c7; --fg:#22273a; --muted:#5f6373;
-  --brand:#3b4560; --accent:#6c6795; --accent-ink:#ffffff; --accent-soft:#ebe8f2;
-  --nav:#2b3247; --nav-2:#3a4259; --nav-fg:#eeeff4; --nav-muted:#aaaebf;
+  --bg:#F4F7F9; --surface:#ffffff; --surface-2:#e9eff3; --line:#d6e0e7; --fg:#0f2236; --muted:#5B6B7A;
+  --brand:#12304A; --accent:#0B8585; --accent-ink:#ffffff; --accent-soft:#dff4f2;
+  --nav:#12304A; --nav-2:#1d4364; --nav-fg:#ffffff; --nav-muted:#a7bccd; --gold:#AC8850; --verde:#0FA3A3;
   --ok:#1d7a4c; --ok-soft:#dbefe3; --warn:#9a5c00; --warn-soft:#fbefd8; --bad:#b3261e; --bad-soft:#f8e0de;
   --info:#2264b8; --info-soft:#dfeaf8; --off:#7b8785; --off-soft:#e9edec;
-  --font-display:"Archivo","Inter",system-ui,sans-serif;
+  --font-display:"Inter",system-ui,sans-serif;
   --font-body:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif;
   --font-mono:"JetBrains Mono",ui-monospace,Menlo,monospace;
   --r:10px;
 }
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
-  --bg:#141519; --surface:#1c1d23; --surface-2:#25262e; --line:#363844; --fg:#ecebef; --muted:#a3a3b2;
-  --brand:#c3c7dc; --accent:#b2acd2; --accent-ink:#1a1828; --accent-soft:#2c2a3c;
-  --nav:#0d0f16; --nav-2:#1c2030; --nav-fg:#e8e9f0; --nav-muted:#8f94ab;
+  --bg:#091624; --surface:#0E2A44; --surface-2:#143352; --line:#21476a; --fg:#eef3f7; --muted:#9fb3c4;
+  --brand:#d3e3ee; --accent:#3DD6C4; --accent-ink:#04222a; --accent-soft:#0f3a40; --gold:#D6BA84; --verde:#3DD6C4;
+  --nav:#071320; --nav-2:#12304A; --nav-fg:#ffffff; --nav-muted:#8fa7ba;
   --ok:#6fcf97; --ok-soft:#12301f; --warn:#f0b35a; --warn-soft:#352610; --bad:#f2867e; --bad-soft:#3a1a19;
   --info:#7fb1f5; --info-soft:#14273f; --off:#8a9896; --off-soft:#1b2928; color-scheme:dark}}
 :root[data-theme="dark"]{
-  --bg:#141519; --surface:#1c1d23; --surface-2:#25262e; --line:#363844; --fg:#ecebef; --muted:#a3a3b2;
-  --brand:#c3c7dc; --accent:#b2acd2; --accent-ink:#1a1828; --accent-soft:#2c2a3c;
-  --nav:#0d0f16; --nav-2:#1c2030; --nav-fg:#e8e9f0; --nav-muted:#8f94ab;
+  --bg:#091624; --surface:#0E2A44; --surface-2:#143352; --line:#21476a; --fg:#eef3f7; --muted:#9fb3c4;
+  --brand:#d3e3ee; --accent:#3DD6C4; --accent-ink:#04222a; --accent-soft:#0f3a40; --gold:#D6BA84; --verde:#3DD6C4;
+  --nav:#071320; --nav-2:#12304A; --nav-fg:#ffffff; --nav-muted:#8fa7ba;
   --ok:#6fcf97; --ok-soft:#12301f; --warn:#f0b35a; --warn-soft:#352610; --bad:#f2867e; --bad-soft:#3a1a19;
   --info:#7fb1f5; --info-soft:#14273f; --off:#8a9896; --off-soft:#1b2928; color-scheme:dark}
 *{box-sizing:border-box}
-.login{position:fixed;inset:0;z-index:100;display:grid;place-items:center;padding:24px max(16px,env(safe-area-inset-right,0px)) 24px max(16px,env(safe-area-inset-left,0px));background:radial-gradient(ellipse at 50% 20%,#fbf8f3 0%,#efe8de 55%,#e3d9cc 100%)}
-.login-card{width:min(400px,100%);background:#fffdfa;border:1px solid #e3dbd0;border-radius:16px;padding:32px 28px;display:flex;flex-direction:column;gap:14px;box-shadow:0 20px 60px rgba(66,78,104,.18);color:#22273a}
-.login-card .f{color:#5f6373}.login-card input{background:#fff;color:#22273a;border-color:#dad2c7}
-.login-marca{display:flex;flex-direction:column;align-items:center;gap:2px;color:#424e68;margin-bottom:6px}.login-marca svg{width:76px;height:76px}
-.login-marca b{font-weight:600;letter-spacing:.3em;font-size:22px;margin-top:4px}.login-marca small{font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;color:#5f6373}.login-marca em{font-style:normal;font-size:9.5px;letter-spacing:.24em;text-transform:uppercase;color:#918ba5;margin-top:6px}
-.login-card h1{font-size:19px;text-align:center;color:#22273a}.lg-dica{margin:0;text-align:center;color:#5f6373}.lg-e{margin:0;color:#b3261e;font-size:13px}
-.lg-b{width:100%;justify-content:center;min-height:44px;background:#6c6795;border-color:#6c6795;color:#fff}.lg-nota{margin:0;font-size:12px;color:#7a7d8a;text-align:center}
+.login{position:fixed;inset:0;z-index:100;display:grid;place-items:center;padding:24px max(16px,env(safe-area-inset-right,0px)) 24px max(16px,env(safe-area-inset-left,0px));background:#F4F7F9}
+.login-card{width:min(400px,100%);background:#fff;border:1px solid #d6e0e7;border-radius:16px;padding:32px 28px;display:flex;flex-direction:column;gap:14px;box-shadow:0 20px 60px rgba(18,48,74,.14);color:#0f2236}
+.login-card .f{color:#5B6B7A}.login-card input{background:#fff;color:#0f2236;border-color:#d6e0e7}
+.login-marca{display:flex;flex-direction:column;align-items:center;gap:2px;color:#12304A;margin-bottom:6px}.login-marca svg{width:76px;height:76px}
+.login-marca b{font-weight:600;letter-spacing:.04em;font-size:34px;margin-top:6px;line-height:1}.login-marca small{font-size:11px;letter-spacing:.32em;text-transform:uppercase;color:#AC8850;margin-top:8px;font-weight:500}
+.login-card h1{font-size:19px;text-align:center;color:#12304A;font-weight:600}.lg-dica{margin:0;text-align:center;color:#5B6B7A}.lg-e{margin:0;color:#b3261e;font-size:13px}
+.btn.pri.lg-b{width:100%;justify-content:center;min-height:44px;background:#12304A;border-color:#12304A;color:#fff;font-weight:600}.lg-nota{margin:0;font-size:12px;color:#5B6B7A;text-align:center}
 .alert.demo{justify-content:space-between;flex-wrap:wrap;align-items:center;background:var(--accent-soft)}
 body{margin:0}
 
@@ -345,8 +345,8 @@ main{padding-bottom:84px}
 .preset{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--surface);border-radius:99px;padding:6px 12px 6px 8px;cursor:pointer;font-weight:500}
 .preset .sw{width:16px;height:16px;border-radius:50%;box-shadow:inset 0 0 0 1px rgba(0,0,0,.15)}.preset .sw+.sw{margin-left:-10px}
 .preset.on{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-soft)}
-.ident-tf{display:flex;flex-direction:column;align-items:center;gap:2px;color:#424e68}.ident-tf svg{width:54px;height:54px}.ident-tf b{letter-spacing:.24em;font-size:12px}.ident-tf small{font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:#5d6274}
-.ident-prev{background:#f3efe9}
+.ident-tf{display:flex;flex-direction:column;align-items:center;gap:2px;color:#12304A}.ident-tf svg{width:54px;height:54px}.ident-tf b{letter-spacing:.24em;font-size:12px}.ident-tf small{font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:#5d6274}
+.ident-prev{background:#F4F7F9}
 input[type=color]{width:100%;height:38px;padding:3px;border:1px solid var(--line);border-radius:8px;background:var(--surface)}
 .hero-marca{display:flex;align-items:center;gap:14px;padding:4px 2px}
 .hero-marca svg,.hero-marca img{width:52px;height:52px;flex:none;object-fit:contain}
@@ -354,6 +354,20 @@ input[type=color]{width:100%;height:38px;padding:3px;border:1px solid var(--line
 .hero-marca span{display:block;font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);margin-top:5px}
 .hero-marca em{display:block;font-style:normal;font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--accent);margin-top:4px}
 .brand svg{color:var(--nav-fg)}
+/* Marca Kinesis */
+h1,h2,legend,.kpi b{font-stretch:normal}
+h1,h2,legend{font-weight:600!important;letter-spacing:-.015em}
+h1{font-size:24px}
+.brand b{letter-spacing:.06em!important;font-weight:600;font-size:18px}
+.brand small{color:#D6BA84!important;letter-spacing:.2em!important}
+.brand svg,.brand-img{width:38px!important;height:38px!important}
+.hero-marca b{letter-spacing:.06em!important;color:var(--brand)}
+.hero-marca span{color:var(--gold)!important;letter-spacing:.24em!important}
+.ident-tf{color:#12304A}.ident-tf small{color:#AC8850!important}
+.nav a.on{box-shadow:inset 3px 0 0 #3DD6C4!important}
+@media (max-width:860px){.nav a.on{box-shadow:inset 0 -3px 0 #3DD6C4!important}}
+.bar i{background:var(--verde)}
+.paper .lh b{font-family:Inter,Arial,sans-serif}
 /* Painel lateral (modal) */
 .ov{position:fixed;inset:0;background:rgba(5,15,14,.45);z-index:40;display:flex;justify-content:flex-end}
 .drawer{background:var(--bg);width:min(760px,100%);height:100%;overflow:auto;display:flex;flex-direction:column;box-shadow:-10px 0 30px rgba(0,0,0,.2)}
@@ -367,9 +381,9 @@ legend{font-weight:700;font-size:13px;padding:0 6px;font-family:var(--font-displ
 .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(20px + env(safe-area-inset-bottom,0px));background:var(--fg);color:var(--bg);padding:10px 16px;border-radius:8px;z-index:60;font-weight:500;max-width:calc(100% - 32px)}
 /* Documento */
 .paper{background:#fff;color:#1b1b1b;border:1px solid var(--line);border-radius:6px;padding:36px 40px;font-family:Georgia,"Times New Roman",serif;font-size:14.5px;line-height:1.6;overflow-wrap:anywhere}
-.paper .lh{display:flex;align-items:center;gap:12px;border-bottom:2px solid #918ba5;padding-bottom:12px;margin-bottom:22px;font-family:var(--font-body)}
+.paper .lh{display:flex;align-items:center;gap:12px;border-bottom:2px solid #AC8850;padding-bottom:12px;margin-bottom:22px;font-family:var(--font-body)}
 .paper .lh svg{width:44px;height:44px}
-.paper .lh b{font-family:var(--font-display);font-stretch:112%;font-size:18px;color:#424e68;display:block}
+.paper .lh b{font-family:var(--font-display);font-stretch:112%;font-size:18px;color:#12304A;display:block}
 .paper .lh small{color:#555;font-size:11.5px;display:block}
 .paper h4{text-align:center;font-family:var(--font-display);font-stretch:112%;letter-spacing:.08em;text-transform:uppercase;margin:6px 0 20px;font-size:16px}
 .paper .sig{margin-top:56px;text-align:center}
@@ -395,8 +409,8 @@ svg.chart text{fill:var(--muted);font-family:var(--font-mono);font-size:10px}
 <div class="app">
   <aside class="side">
     <div class="brand">
-      <svg viewBox="0 0 100 100" aria-hidden="true"><path d="M6 8h56v13H42v62H27V21H6z" fill="currentColor"/><path d="M47 21h49c-1.6 6-5.6 10.6-11 12H59v14h25c-1.2 4.6-4.6 8-9 9H59v38c-6.6-1.4-11-6.4-12-13z" fill="#b1aacb"/></svg>
-      <div><b>TORQUE</b><small>Saúde e Reabilitação</small></div>
+      <svg viewBox="0 0 100 100" aria-hidden="true"><defs><linearGradient id="kgs" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#0FA3A3"/><stop offset="1" stop-color="#3DD6C4"/></linearGradient></defs><rect x="16" y="10" width="14" height="80" rx="3" fill="currentColor"/><path d="M47 50L58 41L92 90H73z" fill="currentColor"/><path d="M37 58C49 39 64 23 86 9h5C76 27 62 47 48 69z" fill="url(#kgs)"/></svg>
+      <div><b>KINESIS</b><small>Gestão em Clínicas</small></div>
     </div>
     <nav class="nav" id="nav"></nav>
     <div class="side-foot"><span id="modo" class="pill">Carregando…</span><span>Prontuário conforme Res. COFFITO 414/2012 · LGPD</span></div>
@@ -406,7 +420,7 @@ svg.chart text{fill:var(--muted);font-family:var(--font-mono);font-size:10px}
 <div class="fab"><button type="button" class="fab-help" onclick="T.ajuda()">Preciso de ajuda</button><button type="button" class="fab-chat" onclick="T.go('chat')">Chat interno <i class="nb" id="fab-chat-n" hidden></i></button></div>
 <div id="modal"></div>
 <div id="login" class="login" role="dialog" aria-modal="true" aria-labelledby="lg-t"><form class="login-card" onsubmit="event.preventDefault();entrarDemo(this)" novalidate>
-<div class="login-marca"><svg viewBox="0 0 100 100" aria-hidden="true"><path d="M6 8h56v13H42v62H27V21H6z" fill="#424e68"/><path d="M47 21h49c-1.6 6-5.6 10.6-11 12H59v14h25c-1.2 4.6-4.6 8-9 9H59v38c-6.6-1.4-11-6.4-12-13z" fill="#918ba5"/></svg><b>TORQUE</b><small>Saúde e Reabilitação</small><em>Movimento que transforma</em></div>
+<div class="login-marca"><svg viewBox="0 0 100 100" aria-hidden="true"><defs><linearGradient id="kgl" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#0FA3A3"/><stop offset="1" stop-color="#3DD6C4"/></linearGradient></defs><rect x="16" y="10" width="14" height="80" rx="3" fill="#12304A"/><path d="M47 50L58 41L92 90H73z" fill="#12304A"/><path d="M37 58C49 39 64 23 86 9h5C76 27 62 47 48 69z" fill="url(#kgl)"/></svg><b>KINESIS</b><small>Gestão em Clínicas</small></div>
 <h1 id="lg-t">Demonstração do sistema</h1><p class="lg-dica">Entre com usuário <b>admin</b> e senha <b>admin</b>.</p>
 <label class="f">Usuário<input type="text" id="lg-u" autocomplete="username" autocapitalize="none" spellcheck="false"></label>
 <label class="f">Senha<input type="password" id="lg-s" autocomplete="current-password"></label>
@@ -447,7 +461,7 @@ function toast(m){clearTimeout(toastT);let el=$(".toast");if(!el){el=document.cr
 
 /* ================= Configuração padrão ================= */
 const DEF_CFG={
-  clinica:{nome:"Torque Saúde e Reabilitação",cnpj:"",endereco:"",cidade:"",telefone:"",email:"",instagram:""},
+  clinica:{nome:"Kinesis Clinic",cnpj:"",endereco:"",cidade:"",telefone:"",email:"",instagram:""},
   horaIni:"07:00",horaFim:"21:00",
   profissionais:[
     {id:"p1",nome:"Sócio(a) 1",crefito:"",especialidade:"Ortopedia e Traumatologia",cor:"#d9561f",socio:true,cota:20,comissao:0,ativo:true},
@@ -1002,7 +1016,7 @@ function openAppt(id,pre){
    ${id&&p?`<div class="tools"><button type="button" class="btn" onclick="T.close();T.go('paciente-${a.pacienteId}')">Abrir prontuário</button>${pode("prontuario",2)?`<button type="button" class="btn" onclick="T.openEvolucao('${a.pacienteId}',null,'${a.id}')">Registrar evolução</button>`:""}</div>`:""}`,
    `${id?`<span class="lft">${confirmBtn("Excluir",`T.delAppt('${id}')`)}</span>`:""}<button type="button" class="btn" onclick="T.close()">Cancelar</button><button class="btn pri">Salvar</button>`,
    async f=>{
-     const o=Object.assign({},a);["pacienteId","profId","servicoId","data","hora","tipo","status","obs","sala","modalidade","link"].forEach(k=>o[k]=fv(f,k));if(o.modalidade==="teleconsulta"&&!o.link)o.link="https://meet.jit.si/Torque-"+uid();
+     const o=Object.assign({},a);["pacienteId","profId","servicoId","data","hora","tipo","status","obs","sala","modalidade","link"].forEach(k=>o[k]=fv(f,k));if(o.modalidade==="teleconsulta"&&!o.link)o.link="https://meet.jit.si/Kinesis-"+uid();
      o.duracao=num(fv(f,"duracao"))||50;o.valor=num(fv(f,"valor"));
      if(!o.pacienteId){toast("Escolha o paciente.");return}if(!o.data||!o.hora){toast("Informe data e hora.");return}
      const rep=$$("input[name=rep]:checked",f).map(x=>Number(x.value));
@@ -1206,7 +1220,7 @@ function extenso(v){
   const int=n=>{if(!n)return"zero";const mi=Math.floor(n/1e6),mil=Math.floor(n/1e3)%1e3,r=n%1e3,p=[];if(mi)p.push(mi===1?"um milhão":c3(mi)+" milhões");if(mil)p.push(mil===1?"mil":c3(mil)+" mil");if(r)p.push(c3(r));return p.length>1&&(r<100||r%100===0)&&r?p.slice(0,-1).join(" ")+" e "+p[p.length-1]:p.join(" ")};
   const cents=Math.round(num(v)*100),R=Math.floor(cents/100),C=cents%100;const out=[];if(R)out.push(int(R)+(R===1?" real":" reais"));if(C)out.push(int(C)+(C===1?" centavo":" centavos"));return out.join(" e ")||"zero reais";
 }
-const LOGO_DOC='<svg viewBox="0 0 100 100"><path d="M6 8h56v13H42v62H27V21H6z" fill="#424e68"/><path d="M47 21h49c-1.6 6-5.6 10.6-11 12H59v14h25c-1.2 4.6-4.6 8-9 9H59v38c-6.6-1.4-11-6.4-12-13z" fill="#918ba5"/></svg>';
+const LOGO_DOC='<svg viewBox="0 0 100 100"><defs><linearGradient id="kgd" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#0FA3A3"/><stop offset="1" stop-color="#3DD6C4"/></linearGradient></defs><rect x="16" y="10" width="14" height="80" rx="3" fill="#12304A"/><path d="M47 50L58 41L92 90H73z" fill="#12304A"/><path d="M37 58C49 39 64 23 86 9h5C76 27 62 47 48 69z" fill="url(#kgd)"/></svg>';
 const DOCS={dec:"Declaração de comparecimento",ate:"Atestado fisioterapêutico",rec:"Recibo",rel:"Relatório fisioterapêutico",tcl:"Termo de consentimento"};
 function openDocs(pid,kind){
   const p=pac(pid);if(!p)return;kind=kind||"dec";if(!pode("prontuario")&&!["dec","rec"].includes(kind))kind="dec";
@@ -1243,13 +1257,13 @@ function docBody(pid,kind){
     ${ue?`<p><b>Evolução:</b> dor ${av?"de EVA "+esc(av.eva)+" ":""}para EVA ${esc(ue.evaPos??ue.evaPre)}/10. ${esc(ue.a||"")}</p><p><b>Conduta:</b> ${esc(ue.p||"Manter tratamento.")}</p>`:""}
     <p>Coloco-me à disposição para esclarecimentos.</p>`}
   if(kind==="tcl")h=`<h4>Termo de consentimento livre e esclarecido</h4><p>Eu, <b>${nomeP}</b>${cpf}, declaro que fui informado(a) de forma clara sobre a avaliação e o tratamento fisioterapêutico proposto, seus objetivos, benefícios esperados, possíveis desconfortos e alternativas, e que posso interromper o tratamento a qualquer momento.</p><p>Autorizo a <b>${esc(c.nome)}</b> a registrar e guardar meus dados pessoais e de saúde em prontuário eletrônico, exclusivamente para a prestação do atendimento, comunicação sobre minhas consultas e cumprimento de obrigações legais, conforme a Lei 13.709/2018 (LGPD) e a Resolução COFFITO 414/2012. Sei que posso pedir acesso, correção ou informações sobre o uso desses dados.</p><div class="sig"><div></div>${nomeP}<br>Paciente ou responsável</div>`;
-  return `<div class="lh">${logoDoc()}<div><b>${esc(c.nome)}</b><small>${esc([c.endereco,c.cidade].filter(Boolean).join(" · "))}${c.telefone?" · "+esc(c.telefone):""}${c.cnpj?" · CNPJ "+esc(c.cnpj):""}</small></div></div>${h}${local}${sig}<div class="foot">${esc((CFG.marca||{}).slogan??"Movimento que transforma")} · ${esc(c.nome)}${c.instagram?" · "+esc(c.instagram):""}${c.email?" · "+esc(c.email):""}</div>`;
+  return `<div class="lh">${logoDoc()}<div><b>${esc(c.nome)}</b><small>${esc([c.endereco,c.cidade].filter(Boolean).join(" · "))}${c.telefone?" · "+esc(c.telefone):""}${c.cnpj?" · CNPJ "+esc(c.cnpj):""}</small></div></div>${h}${local}${sig}<div class="foot">${(CFG.marca||{}).slogan?esc(CFG.marca.slogan)+" · ":""}${esc(c.nome)}${c.instagram?" · "+esc(c.instagram):""}${c.email?" · "+esc(c.email):""}</div>`;
 }
 function docPrev(pid,kind){const el=$("#paper");if(el)el.innerHTML=docBody(pid,kind)}
 async function docCopy(){const t=$("#paper").innerText;try{await navigator.clipboard.writeText(t);toast("Texto copiado.")}catch(e){const r=document.createRange();r.selectNodeContents($("#paper"));const s=getSelection();s.removeAllRanges();s.addRange(r);toast("Texto selecionado: use Ctrl+C para copiar.")}}
 async function docSave(pid,kind){
   const p=pac(pid);
-  const html=`<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>${esc(DOCS[kind])} - ${esc(p.nome)}</title><style>body{margin:0;background:#eee}.paper{background:#fff;color:#1b1b1b;max-width:800px;margin:20px auto;padding:56px 64px;font-family:Georgia,serif;font-size:15px;line-height:1.65}.lh{display:flex;align-items:center;gap:12px;border-bottom:2px solid #918ba5;padding-bottom:12px;margin-bottom:24px;font-family:Arial,sans-serif}.lh svg{width:48px;height:48px}.lh b{font-size:19px;color:#424e68;display:block;letter-spacing:.02em}.lh small{color:#555;font-size:11.5px}h4{text-align:center;letter-spacing:.08em;text-transform:uppercase;font-family:Arial,sans-serif;margin:8px 0 22px}.sig{margin-top:60px;text-align:center}.sig div{border-top:1px solid #333;width:300px;margin:0 auto 4px}.foot{margin-top:34px;font-size:11px;color:#666;text-align:center;font-family:Arial,sans-serif}@media print{body{background:#fff}.paper{margin:0;padding:20mm}}</style></head><body><div class="paper">${docBody(pid,kind)}</div><script>window.onload=()=>window.print()<\/script></body></html>`;
+  const html=`<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>${esc(DOCS[kind])} - ${esc(p.nome)}</title><style>body{margin:0;background:#eee}.paper{background:#fff;color:#1b1b1b;max-width:800px;margin:20px auto;padding:56px 64px;font-family:Georgia,serif;font-size:15px;line-height:1.65}.lh{display:flex;align-items:center;gap:12px;border-bottom:2px solid #AC8850;padding-bottom:12px;margin-bottom:24px;font-family:Arial,sans-serif}.lh svg{width:48px;height:48px}.lh b{font-size:19px;color:#12304A;display:block;letter-spacing:.02em}.lh small{color:#555;font-size:11.5px}h4{text-align:center;letter-spacing:.08em;text-transform:uppercase;font-family:Arial,sans-serif;margin:8px 0 22px}.sig{margin-top:60px;text-align:center}.sig div{border-top:1px solid #333;width:300px;margin:0 auto 4px}.foot{margin-top:34px;font-size:11px;color:#666;text-align:center;font-family:Arial,sans-serif}@media print{body{background:#fff}.paper{margin:0;padding:20mm}}</style></head><body><div class="paper">${docBody(pid,kind)}</div><script>window.onload=()=>window.print()<\/script></body></html>`;
   await download(`${kind}-${p.nome.replace(/[^\wÀ-ú]+/g,"-").toLowerCase()}-${today()}.html`,html,"text/html");
 }
 async function download(filename,data,type){
@@ -1322,7 +1336,7 @@ function guiaPassos(){const c=CFG,r=real;return[
   ["Primeiro atendimento","Abra o prontuário e registre uma avaliação ou evolução.",r.registros.length>0,"pacientes"],
   ["Primeiro lançamento financeiro","Registre um recebimento ou uma despesa.",r.financeiro.length>0,"financeiro"]]}
 function guiaHtml(){const P=guiaPassos(),ok=P.filter(p=>p[2]).length;if(ok===P.length||lsGet("torque.guiaOff",false))return"";
-  return `<div class="card guia"><div class="card-h"><div><h2>Bem-vindo(a) ao Torque!</h2><div class="muted">Conclua os primeiros passos para deixar a clínica pronta para atender.</div></div><button class="btn sm ghost" onclick="T.guiaOff()">Pular guia</button></div>
+  return `<div class="card guia"><div class="card-h"><div><h2>Bem-vindo(a) ao Kinesis!</h2><div class="muted">Conclua os primeiros passos para deixar a clínica pronta para atender.</div></div><button class="btn sm ghost" onclick="T.guiaOff()">Pular guia</button></div>
   <div class="bar" style="height:6px"><i style="width:${ok/P.length*100}%"></i></div><div class="muted" style="font-size:12.5px;margin:6px 0 10px">${ok} de ${P.length} concluídos</div>
   <div class="passos">${P.map((p,i)=>`<a class="passo ${p[2]?"ok":""}" href="#${p[3]}"><span class="pc">${p[2]?"✓":i+1}</span><span><b>${i+1}. ${esc(p[0])}</b><small>${esc(p[1])}</small></span></a>`).join("")}</div></div>`}
 function pendExtras(){const s=S(),t=today(),out=[];
@@ -1426,7 +1440,7 @@ VIEWS.modelos=()=>{
   const tipoLbl={avaliacao:"Avaliação",evolucao:"Evolução",outro:"Outro"};
   let dir;
   if(m.padrao)dir=`<h2>Campos de “${esc(m.nome)}”</h2><p class="muted" style="margin:4px 0 10px">Depois de montar o modelo, abra o prontuário do paciente e clique em <b>+ Ficha</b>. As respostas ficam gravadas na linha do tempo.</p>
-   <div class="alert"><div><div class="chips" style="margin-bottom:6px"><span class="chip">Padrão Torque</span><span class="chip">${esc(m.esp)}</span><span class="chip">${tipoLbl[m.tipo]||m.tipo}</span></div>${esc(m.desc)}<div class="muted" style="font-size:12.5px;margin-top:4px">Disponível para todos e pronto para usar. Para mudar campos ou opções, duplique o modelo: a cópia fica só na sua clínica.</div></div></div>
+   <div class="alert"><div><div class="chips" style="margin-bottom:6px"><span class="chip">Padrão Kinesis</span><span class="chip">${esc(m.esp)}</span><span class="chip">${tipoLbl[m.tipo]||m.tipo}</span></div>${esc(m.desc)}<div class="muted" style="font-size:12.5px;margin-top:4px">Disponível para todos e pronto para usar. Para mudar campos ou opções, duplique o modelo: a cópia fica só na sua clínica.</div></div></div>
    <div><button class="btn pri" onclick="T.dupModelo('${m.id}')">Duplicar para a clínica</button></div>
    <div class="mprev">${m.campos.map(c=>c.tipo==="secao"?`<h3>${esc(c.label)}</h3>`:`<div class="mp"><span>${esc(c.label)}${c.obrig?" *":""}</span><small>${esc((TIPOS_CAMPO.find(t=>t[0]===c.tipo)||[])[1]||c.tipo)}${c.opcoes&&c.opcoes.length?": "+esc(c.opcoes.join(", ")):""}</small></div>`).join("")}</div>`;
   else dir=`<form id="mod-ed" class="grid" onsubmit="event.preventDefault();T.saveModelo(this,'${m.id}')"><h2>Editar modelo da clínica</h2>
@@ -1437,7 +1451,7 @@ VIEWS.modelos=()=>{
   return `<div class="head"><div><h1>Modelos de prontuário</h1><div class="sub">Fichas personalizadas por especialidade ou tipo de atendimento</div></div></div>
   <div class="mod"><div class="card"><h2>Modelos</h2><p class="muted" style="margin:4px 0 10px">Crie um modelo por especialidade ou tipo de consulta.</p>
    <form class="nova" onsubmit="event.preventDefault();T.novoModelo(this)"><input type="text" id="mod-novo" name="nome" placeholder="ex.: RPG — Avaliação postural" maxlength="80"><button class="btn pri sm" aria-label="Criar modelo">+</button></form>
-   <h3 style="margin:14px 0 6px">Modelos padrão Torque</h3>${PADRAO_MODELOS.map(item).join("")}
+   <h3 style="margin:14px 0 6px">Modelos padrão Kinesis</h3>${PADRAO_MODELOS.map(item).join("")}
    <h3 style="margin:14px 0 6px">Modelos da clínica</h3>${cl.length?cl.map(item).join(""):`<p class="muted" style="font-size:12.5px;margin:0">Nenhum modelo criado ainda. Dê um nome acima e clique em +, ou duplique um modelo padrão.</p>`}</div>
   <div class="card grid">${dir}</div></div>`;
 };
@@ -1668,8 +1682,8 @@ function md(t){const inl=s=>esc(s).replace(/\*\*(.+?)\*\*/g,"<b>$1</b>").replace
   String(t||"").split("\n").forEach(l=>{const h=l.match(/^(#{1,4})\s+(.*)/),ul=l.match(/^\s*[-*•]\s+(.*)/),ol=l.match(/^\s*\d+[.)]\s+(.*)/);
     if(h){close();out.push(`<h4>${inl(h[2])}</h4>`)}else if(ul){if(list!=="ul"){close();out.push("<ul>");list="ul"}out.push(`<li>${inl(ul[1])}</li>`)}else if(ol){if(list!=="ol"){close();out.push("<ol>");list="ol"}out.push(`<li>${inl(ol[1])}</li>`)}else if(!l.trim())close();else{close();out.push(`<p>${inl(l)}</p>`)}});close();return out.join("")}
 const IA={msgs:[],busy:false,evid:{q:"",out:""},bula:{q:"",out:""},ok:null};
-const IA_BASE="Você é o assistente clínico da clínica Torque Saúde e Reabilitação, no Brasil. Responda em português do Brasil, de forma objetiva e prática, para fisioterapeutas. Baseie-se em evidências científicas e diretrizes atuais, diga quando a evidência é fraca ou controversa e lembre que a decisão clínica é do profissional. Não invente referências: cite apenas estudos e diretrizes que você tem segurança de que existem.";
-function iaIndisp(){return IA.ok===false?`<div class="alert warn"><div><b>Os recursos de IA não estão disponíveis aqui.</b><span class="muted">Eles funcionam quando o Torque é aberto no Claude, com permissão para perguntar ao Claude.</span></div></div>`:""}
+const IA_BASE="Você é o assistente clínico do Kinesis, sistema de gestão usado por clínicas de fisioterapia no Brasil. Responda em português do Brasil, de forma objetiva e prática, para fisioterapeutas. Baseie-se em evidências científicas e diretrizes atuais, diga quando a evidência é fraca ou controversa e lembre que a decisão clínica é do profissional. Não invente referências: cite apenas estudos e diretrizes que você tem segurança de que existem.";
+function iaIndisp(){return IA.ok===false?`<div class="alert warn"><div><b>Os recursos de IA não estão disponíveis aqui.</b><span class="muted">Eles funcionam quando o Kinesis é aberto no Claude, com permissão para perguntar ao Claude.</span></div></div>`:""}
 function pacContexto(pid){const p=pac(pid);if(!p)return"";const s=S(),av=s.registros.filter(r=>r.pacienteId===pid&&r.tipo==="avaliacao").sort((a,b)=>b.data.localeCompare(a.data))[0],ev=s.registros.filter(r=>r.pacienteId===pid&&r.tipo==="evolucao").sort((a,b)=>b.data.localeCompare(a.data)).slice(0,3),st=statusTestes(pid),pos=Object.keys(st).filter(k=>st[k].d==="+"||st[k].e==="+").map(k=>tName(k)+" ("+[st[k].d==="+"?"D":"",st[k].e==="+"?"E":""].filter(Boolean).join("/")+")");
   return `\n\nDados do paciente (sem identificação): ${p.sexo==="F"?"mulher":p.sexo==="M"?"homem":"pessoa"}, ${p.nascimento?idade(p.nascimento)+" anos":"idade não informada"}. Diagnóstico médico: ${p.diagnosticoMedico||"não informado"}${p.cid?" (CID "+p.cid+")":""}. Sessões realizadas: ${sessoesFeitas(pid)}.${av?` Avaliação de ${fmtD(av.data)}: queixa "${av.queixa||""}", EVA ${av.eva}/10, diagnóstico cinético-funcional "${av.diagnosticoFisio||""}", objetivos "${av.objetivos||""}", conduta "${av.conduta||""}".`:""}${pos.length?" Testes ainda positivos: "+pos.join(", ")+".":""}${ev.length?" Últimas evoluções: "+ev.map(e=>`${fmtD(e.data)} EVA ${e.evaPre}→${e.evaPos}, técnicas ${(e.tecnicas||[]).join(", ")}; ${e.a||""}`).join(" | "):""}`}
 VIEWS.assistente=()=>{const P=[...S().pacientes].sort((a,b)=>a.nome.localeCompare(b.nome,"pt-BR"));
@@ -1706,7 +1720,7 @@ function pHora(v){if(typeof v==="number"&&v<1){const mi=Math.round(v*1440);retur
 const pNum=v=>typeof v==="number"?v:num(String(v||"").replace(/[R$\s]/g,"").replace(/\.(?=\d{3}(\D|$))/g,"").replace(",","."));
 function autoMap(){const cfg=MIG[MIGS.tipo],map={};cfg.cols.forEach(([k,l,_o,syn])=>{const alvo=[normH(k),normH(l),...(syn||[]).map(normH)];const i=MIGS.head.findIndex(h=>alvo.includes(normH(h)));if(i>=0)map[k]=i});MIGS.map=map}
 VIEWS.migracao=()=>{const cfg=MIG[MIGS.tipo],hist=S().auditoria.filter(a=>a.col==="migracao").slice(0,10);
-  let passo2="";if(MIGS.rows){const prev=MIGS.rows.slice(0,5);passo2=`<div class="card"><h2>2. Conferir colunas</h2><p class="muted sub2">${esc(MIGS.arquivo)} · ${MIGS.rows.length} linha(s). Ligue cada campo do Torque a uma coluna do arquivo.</p>
+  let passo2="";if(MIGS.rows){const prev=MIGS.rows.slice(0,5);passo2=`<div class="card"><h2>2. Conferir colunas</h2><p class="muted sub2">${esc(MIGS.arquivo)} · ${MIGS.rows.length} linha(s). Ligue cada campo do Kinesis a uma coluna do arquivo.</p>
    <div class="grid g3">${cfg.cols.map(([k,l,ob])=>`<label class="f">${esc(l)}${ob?" *":""}<select onchange="T.migMap('${k}',this.value)">${opt("","— não importar —",MIGS.map[k]??"")}${MIGS.head.map((h,i)=>opt(i,h||"Coluna "+(i+1),MIGS.map[k]??"")).join("")}</select></label>`).join("")}</div>
    <h3 style="margin:14px 0 6px">Prévia</h3><div class="tbl-wrap"><table class="mini-t"><thead><tr>${cfg.cols.filter(c=>MIGS.map[c[0]]!==undefined).map(c=>`<th>${esc(c[1])}</th>`).join("")}</tr></thead><tbody>${prev.map(r=>`<tr>${cfg.cols.filter(c=>MIGS.map[c[0]]!==undefined).map(c=>`<td>${esc(r[MIGS.map[c[0]]]??"")}</td>`).join("")}</tr>`).join("")}</tbody></table></div>
    <div class="tools" style="margin-top:12px"><button class="btn pri" onclick="T.migImportar()">3. Importar ${MIGS.rows.length} linha(s)</button><button class="btn ghost" onclick="T.migLimpar()">Cancelar</button></div></div>`}
@@ -1790,7 +1804,7 @@ function openAjuda(){const v=route().v,L=HELP[v]||[];
   <div class="tools"><button type="button" class="btn pri" onclick="T.close();T.go('assistente')">Perguntar ao assistente</button><button type="button" class="btn" onclick="T.close();T.go('chat')">Falar com a equipe</button></div>`,`<button type="button" class="btn" onclick="T.close()">Fechar</button>`,null)}
 
 /* ---------- Documentos: agenda do dia e relatório ---------- */
-function docShell(titulo,corpo){return `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>${esc(titulo)}</title><style>body{margin:0;background:#eee;font-family:Arial,sans-serif;color:#1b1b1b}.pg{background:#fff;max-width:900px;margin:20px auto;padding:40px 48px}.lh{display:flex;align-items:center;gap:12px;border-bottom:2px solid #918ba5;padding-bottom:10px;margin-bottom:18px}.lh svg{width:44px;height:44px}.lh b{font-size:18px;color:#424e68;display:block}.lh small{color:#555;font-size:11.5px}h1{font-size:18px;margin:0 0 4px}h2{font-size:14px;margin:20px 0 6px;color:#424e68}table{border-collapse:collapse;width:100%;font-size:12.5px}th,td{border-bottom:1px solid #ddd;padding:6px 8px;text-align:left}th{background:#f3f3f3}td.r,th.r{text-align:right}.muted{color:#666;font-size:12px}@media print{body{background:#fff}.pg{margin:0;padding:12mm}}</style></head><body><div class="pg"><div class="lh">${logoDoc()}<div><b>${esc(CFG.clinica.nome)}</b><small>${esc([CFG.clinica.endereco,CFG.clinica.cidade,CFG.clinica.telefone].filter(Boolean).join(" · "))}</small></div></div>${corpo}</div><script>window.onload=()=>window.print()<\/script></body></html>`}
+function docShell(titulo,corpo){return `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>${esc(titulo)}</title><style>body{margin:0;background:#eee;font-family:Arial,sans-serif;color:#1b1b1b}.pg{background:#fff;max-width:900px;margin:20px auto;padding:40px 48px}.lh{display:flex;align-items:center;gap:12px;border-bottom:2px solid #AC8850;padding-bottom:10px;margin-bottom:18px}.lh svg{width:44px;height:44px}.lh b{font-size:18px;color:#12304A;display:block}.lh small{color:#555;font-size:11.5px}h1{font-size:18px;margin:0 0 4px}h2{font-size:14px;margin:20px 0 6px;color:#12304A}table{border-collapse:collapse;width:100%;font-size:12.5px}th,td{border-bottom:1px solid #ddd;padding:6px 8px;text-align:left}th{background:#f3f3f3}td.r,th.r{text-align:right}.muted{color:#666;font-size:12px}@media print{body{background:#fff}.pg{margin:0;padding:12mm}}</style></head><body><div class="pg"><div class="lh">${logoDoc()}<div><b>${esc(CFG.clinica.nome)}</b><small>${esc([CFG.clinica.endereco,CFG.clinica.cidade,CFG.clinica.telefone].filter(Boolean).join(" · "))}</small></div></div>${corpo}</div><script>window.onload=()=>window.print()<\/script></body></html>`}
 function baixarAgenda(){const d=UI.agDate,s=S(),fer=feriado(d);
   const corpo=`<h1>Agenda de ${esc(dLong(d))}${fer?" · "+esc(fer):""}</h1><div class="muted">Gerada em ${new Date().toLocaleString("pt-BR")}</div>${profs().map(p=>{const L=s.agenda.filter(a=>a.data===d&&a.profId===p.id&&a.status!=="cancelado").sort((a,b)=>a.hora.localeCompare(b.hora));return L.length?`<h2>${esc(p.nome)}</h2><table><thead><tr><th>Hora</th><th>Paciente</th><th>Telefone</th><th>Procedimento</th><th>Sala</th><th>Status</th></tr></thead><tbody>${L.map(a=>{const pp=pac(a.pacienteId)||{};return `<tr><td>${esc(a.hora)}</td><td>${esc(pp.nome||"")}</td><td>${esc(pp.telefone||"")}</td><td>${esc(serv(a.servicoId).nome)}${a.modalidade==="teleconsulta"?" (teleconsulta)":""}</td><td>${esc(a.sala||"")}</td><td>${esc(ST_LBL[a.status])}</td></tr>`}).join("")}</tbody></table>`:""}).join("")||"<p>Nenhum agendamento.</p>"}${(s.notas.find(n=>n.id===d)||{}).texto?`<h2>Observações do dia</h2><p>${esc(s.notas.find(n=>n.id===d).texto)}</p>`:""}`;
   download(`agenda-${d}.html`,docShell("Agenda "+fmtD(d),corpo),"text/html")}
@@ -1887,11 +1901,11 @@ function ddItens(){const I=[["pacientes","T.openPaciente()","Novo paciente"],["a
 
 /* ---------- Identidade visual ---------- */
 function logoDoc(){return CFG.logo?`<img src="${CFG.logo}" alt="" style="width:48px;height:48px;object-fit:contain">`:LOGO_DOC}
-function renderBrand(){const b=$(".brand");if(!b)return;const m=CFG.marca||{};b.innerHTML=(CFG.logo?`<img src="${CFG.logo}" alt="" class="brand-img">`:`<svg viewBox="0 0 100 100" aria-hidden="true"><path d="M6 8h56v13H42v62H27V21H6z" fill="currentColor"/><path d="M47 21h49c-1.6 6-5.6 10.6-11 12H59v14h25c-1.2 4.6-4.6 8-9 9H59v38c-6.6-1.4-11-6.4-12-13z" fill="#b1aacb"/></svg>`)+`<div><b>${esc(m.titulo||"TORQUE")}</b><small>${esc(m.sub??"Saúde e Reabilitação")}</small></div>`}
+function renderBrand(){const b=$(".brand");if(!b)return;const m=CFG.marca||{};b.innerHTML=(CFG.logo?`<img src="${CFG.logo}" alt="" class="brand-img">`:`<svg viewBox="0 0 100 100" aria-hidden="true"><defs><linearGradient id="kgs" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#0FA3A3"/><stop offset="1" stop-color="#3DD6C4"/></linearGradient></defs><rect x="16" y="10" width="14" height="80" rx="3" fill="currentColor"/><path d="M47 50L58 41L92 90H73z" fill="currentColor"/><path d="M37 58C49 39 64 23 86 9h5C76 27 62 47 48 69z" fill="url(#kgs)"/></svg>`)+`<div><b>${esc(m.titulo||"KINESIS")}</b><small>${esc(m.sub??"Gestão em Clínicas")}</small></div>`}
 function lerLogo(file){return new Promise((res,rej)=>{const fr=new FileReader();fr.onerror=rej;fr.onload=()=>{const img=new Image();img.onerror=rej;img.onload=()=>{const k=Math.min(1,256/Math.max(img.width,img.height)),c=document.createElement("canvas");c.width=Math.round(img.width*k);c.height=Math.round(img.height*k);c.getContext("2d").drawImage(img,0,0,c.width,c.height);let d=c.toDataURL("image/png");if(d.length>180000)d=c.toDataURL("image/webp",.85);res(d)};img.src=fr.result};fr.readAsDataURL(file)})}
 function cardIdentidade(){const m=CFG.marca||{};return `<form class="card grid" id="f-marca" onsubmit="event.preventDefault();T.saveMarca(this)"><h2>Identidade visual</h2>
-  <div class="ident"><div class="ident-prev">${CFG.logo?`<img src="${CFG.logo}" alt="Logomarca atual">`:`<span class="muted">Logomarca padrão Torque</span>`}</div>
-  <div class="grid g2" style="flex:1;min-width:240px"><label class="f">Nome na barra lateral<input type="text" id="mk-t" name="titulo" value="${esc(m.titulo||"TORQUE")}" maxlength="24"></label><label class="f">Subtítulo<input type="text" id="mk-s" name="sub" value="${esc(m.sub??"Saúde e Reabilitação")}" maxlength="30"></label>
+  <div class="ident"><div class="ident-prev">${CFG.logo?`<img src="${CFG.logo}" alt="Logomarca atual">`:`<span class="muted">Logomarca padrão Kinesis</span>`}</div>
+  <div class="grid g2" style="flex:1;min-width:240px"><label class="f">Nome na barra lateral<input type="text" id="mk-t" name="titulo" value="${esc(m.titulo||"KINESIS")}" maxlength="24"></label><label class="f">Subtítulo<input type="text" id="mk-s" name="sub" value="${esc(m.sub??"Gestão em Clínicas")}" maxlength="30"></label>
   <label class="btn" style="justify-self:start">Enviar logomarca (PNG, JPG ou SVG)<input type="file" id="mk-f" accept="image/png,image/jpeg,image/webp,image/svg+xml" hidden onchange="T.logoUp(this.files[0])"></label>${CFG.logo?`<button type="button" class="btn ghost danger" style="justify-self:start" onclick="T.logoDel()">Voltar à logomarca padrão</button>`:""}</div></div>
   <p class="muted" style="margin:0;font-size:12.5px">A logomarca aparece na barra lateral e no cabeçalho dos documentos (atestado, recibo, relatório, agenda impressa). Use imagem quadrada ou horizontal, de preferência com fundo transparente.</p>
   <div><button class="btn pri">Salvar identidade</button></div></form>`}
@@ -1950,7 +1964,7 @@ VIEWS.plano=()=>{const own=souDono(),pl=planoAtual(),lim=num(LIC.limite),us=usad
    ${fat.length?`<div class="tbl-wrap"><table><thead><tr><th>Competência</th><th class="r">Valor</th><th>Vencimento</th><th>Situação</th><th></th></tr></thead><tbody>${fat.map(x=>`<tr><td>${esc(mesNome(x.competencia))}</td><td class="r num">${brl(x.valor)}</td><td class="num">${fmtD(x.vencimento)}</td><td>${x.status==="pago"?`<span class="pill st-pago">Paga ${fmtD(x.pagoEm)}</span>`:x.vencimento<today()?'<span class="pill st-vencido">Vencida</span>':'<span class="pill st-pendente">Em aberto</span>'}</td><td class="r">${own&&x.status!=="pago"?`<button class="btn sm" onclick="T.pagarFatura('${x.id}')">Marcar paga</button>`:""}${own?` <button class="btn sm ghost danger" onclick="T.delFatura('${x.id}')">Excluir</button>`:""}</td></tr>`).join("")}</tbody></table></div>`:`<div class="empty">Nenhuma fatura gerada.</div>`}</div></div>
   ${own?`<form class="card grid" onsubmit="event.preventDefault();T.savePlanos(this)"><h2>Tabela de planos (preço de venda)</h2><div class="tbl-wrap"><table class="mini-t" id="t-planos"><thead><tr><th>Plano</th><th>Usuários incluídos</th><th>Preço mensal (R$)</th><th></th></tr></thead><tbody>${(LIC.planos||[]).map(planoRow).join("")}</tbody></table></div><div class="tools"><button type="button" class="btn sm" onclick="document.querySelector('#t-planos tbody').insertAdjacentHTML('beforeend',T.planoRow({}))">+ Plano</button><button class="btn pri">Salvar tabela</button></div>
    <p class="muted" style="margin:0;font-size:12.5px">Os valores iniciais são só sugestões; ajuste à sua estratégia comercial.</p></form>
-  <div class="card"><h2>Como vender o Torque para outras clínicas</h2><ol style="margin:8px 0 0;padding-left:20px"><li>Cada clínica cliente recebe a própria cópia do sistema, com banco de dados separado. Você continua titular e as clínicas entram como usuários.</li><li>Aqui você define o plano, quantos usuários ficam liberados e o vencimento. Ao passar do limite, o sistema não deixa cadastrar mais usuários.</li><li>Gere a fatura do mês. A clínica paga pelo seu link de pagamento ou Pix, e você marca a fatura como paga: o vencimento avança um mês.</li><li>Com "Modo leitura quando vencida" ligado, após a tolerância a clínica consulta os dados mas não altera nada, até regularizar.</li></ol>
+  <div class="card"><h2>Como vender o Kinesis para outras clínicas</h2><ol style="margin:8px 0 0;padding-left:20px"><li>Cada clínica cliente recebe a própria cópia do sistema, com banco de dados separado. Você continua titular e as clínicas entram como usuários.</li><li>Aqui você define o plano, quantos usuários ficam liberados e o vencimento. Ao passar do limite, o sistema não deixa cadastrar mais usuários.</li><li>Gere a fatura do mês. A clínica paga pelo seu link de pagamento ou Pix, e você marca a fatura como paga: o vencimento avança um mês.</li><li>Com "Modo leitura quando vencida" ligado, após a tolerância a clínica consulta os dados mas não altera nada, até regularizar.</li></ol>
    <p class="muted" style="margin:10px 0 0;font-size:12.5px">Cobrança automática no cartão, com liberação e bloqueio sem intervenção, exige um servidor próprio com gateway de pagamento (como o Alinha já tem). Esse é o próximo passo para escalar a venda.</p></div>`:""}`};
 const planoRow=p=>`<tr><td><input type="hidden" class="pid" value="${esc(p.id||"pl"+uid())}"><input type="text" class="pn" value="${esc(p.nome||"")}" style="min-width:140px"></td><td><input type="number" class="pu" min="1" value="${esc(p.usuarios||1)}" style="width:90px"></td><td><input type="number" class="pp" min="0" step="0.01" value="${esc(p.preco||0)}" style="width:110px"></td><td><button type="button" class="btn sm ghost danger" onclick="this.closest('tr').remove()">Remover</button></td></tr>`;
 async function saveLicDoc(){if(!souDono()){toast("Só o titular da conta altera a licença.");return false}
@@ -2035,7 +2049,7 @@ const NOVAS_ACOES2={
   async gerarFatura(){if(!souDono())return;const c=mesDe(today());if(real.faturas.some(x=>x.competencia===c)){toast("A fatura de "+mesNome(c)+" já existe.");return}if(await save("faturas",{competencia:c,valor:valorMensal(),vencimento:LIC.vencimento||addDays(today(),5),status:"pendente",plano:planoAtual().nome,usuarios:num(LIC.limite)},true)){render();toast("Fatura gerada.")}},
   async pagarFatura(id){const x=real.faturas.find(f=>f.id===id);if(!x||!souDono())return;const o=Object.assign({},x,{status:"pago",pagoEm:today()});if(await save("faturas",o,true)){LIC.vencimento=addMes(LIC.vencimento&&LIC.vencimento>today()?LIC.vencimento:x.vencimento||today(),1);await saveLicDoc();render();toast("Fatura paga. Novo vencimento: "+fmtD(LIC.vencimento)+".")}},
   async delFatura(id){if(souDono()&&await del("faturas",id))toast("Fatura excluída.")},
-  async saveMarca(f){CFG.marca={titulo:fv(f,"titulo")||"TORQUE",sub:fv(f,"sub")};if(await saveCfg()){renderBrand();toast("Identidade salva.")}},
+  async saveMarca(f){CFG.marca={titulo:fv(f,"titulo")||"KINESIS",sub:fv(f,"sub")};if(await saveCfg()){renderBrand();toast("Identidade salva.")}},
   async logoUp(file){if(!file)return;try{const d=await lerLogo(file);if(d.length>400000){toast("Imagem muito grande. Use um arquivo menor.");return}CFG.logo=d;if(await saveCfg()){renderBrand();render();toast("Logomarca atualizada.")}}catch(e){toast("Não foi possível ler a imagem.")}},
   async logoDel(){CFG.logo="";if(await saveCfg()){renderBrand();render();toast("Logomarca padrão restaurada.")}},
   leadDrop(e,et){e.preventDefault();const id=e.dataTransfer.getData("text/plain");if(id)moverLeadPara(id,et)},
@@ -2050,10 +2064,10 @@ const NOVAS_ACOES2={
 
 /* ================= Configurações em seções, horários, mensagens, assinatura, cores da marca ================= */
 let ME_NOME="";
-const COR_P="#3b4560",COR_D="#6c6795";
-const tfMark=(t,f)=>`<svg viewBox="0 0 100 100" aria-hidden="true"><path d="M6 8h56v13H42v62H27V21H6z" fill="${t}"/><path d="M47 21h49c-1.6 6-5.6 10.6-11 12H59v14h25c-1.2 4.6-4.6 8-9 9H59v38c-6.6-1.4-11-6.4-12-13z" fill="${f}"/></svg>`;
-const PRESETS=[["torque","Torque (logomarca)",COR_P,COR_D],["azul","Azul clínico","#1e3a5f","#2b7fd6"],["verde","Verde saúde","#1f4d3a","#1f9d6b"],["petroleo","Petróleo e laranja","#0e3a39","#d9561f"],["grafite","Grafite e dourado","#26272b","#a8822f"],["vinho","Vinho e rosa","#4a1f2e","#c2456b"],["roxo","Roxo","#3b2a5c","#8a5bd6"]];
-const FUNDOS=[["","Bege da marca"],["neutro","Cinza neutro"],["frio","Azulado"],["branco","Branco"]];
+const COR_P="#12304A",COR_D="#0FA3A3";
+let KID=0;const tfMark=(t)=>{const g="kg"+(++KID);return `<svg viewBox="0 0 100 100" aria-hidden="true"><defs><linearGradient id="${g}" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#0FA3A3"/><stop offset="1" stop-color="#3DD6C4"/></linearGradient></defs><rect x="16" y="10" width="14" height="80" rx="3" fill="${t}"/><path d="M47 50L58 41L92 90H73z" fill="${t}"/><path d="M37 58C49 39 64 23 86 9h5C76 27 62 47 48 69z" fill="url(#${g})"/></svg>`};
+const PRESETS=[["torque","Kinesis (marca)",COR_P,COR_D],["azul","Azul clínico","#1e3a5f","#2b7fd6"],["verde","Verde saúde","#1f4d3a","#1f9d6b"],["petroleo","Petróleo e laranja","#0e3a39","#d9561f"],["grafite","Grafite e dourado","#26272b","#a8822f"],["vinho","Vinho e rosa","#4a1f2e","#c2456b"],["roxo","Roxo","#3b2a5c","#8a5bd6"]];
+const FUNDOS=[["","Gelo da marca"],["neutro","Cinza neutro"],["frio","Azulado"],["branco","Branco"]];
 function aplicarTema(){let st=$("#tema-marca");if(!st){st=document.createElement("style");st.id="tema-marca";document.head.appendChild(st)}const c=CFG.cores||{};let claro="",escuro="";const H=(o,l,s)=>hsl2hex(o.h,s===undefined?o.s:s,l);
   if(c.principal&&c.destaque){const P=hex2hsl(c.principal),D=hex2hsl(c.destaque);
     claro+=`--brand:${H(P,clamp(P.l,14,32))};--nav:${H(P,clamp(P.l,10,20),Math.min(P.s,60))};--nav-2:${H(P,clamp(P.l,10,20)+8,Math.min(P.s,55))};--nav-muted:${H(P,74,Math.min(P.s,25))};--accent:${H(D,clamp(D.l,32,45))};--accent-soft:${H(D,93,Math.min(D.s,80))};--accent-ink:#ffffff;`;
@@ -2063,16 +2077,16 @@ function aplicarTema(){let st=$("#tema-marca");if(!st){st=document.createElement
   st.textContent=(claro?`:root{${claro}}`:"")+(escuro?`@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){${escuro}}}:root[data-theme="dark"]{${escuro}}`:"")}
 cardIdentidade=function(){const m=CFG.marca||{},c=CFG.cores||{},adm=pode("ajustes",2),pa=c.principal||COR_P,de=c.destaque||COR_D,atual=(PRESETS.find(x=>x[2]===pa&&x[3]===de)||[""])[0];
   return `<form class="card grid" id="f-marca" onsubmit="event.preventDefault();T.saveMarca(this)"><h2>Identidade visual e cores do painel</h2>
-  <div class="ident"><div class="ident-prev">${CFG.logo?`<img src="${CFG.logo}" alt="Logomarca enviada">`:`<div class="ident-tf">${tfMark("#424e68","#918ba5")}<b>TORQUE</b><small>Saúde e Reabilitação</small></div>`}</div>
-  <div class="grid g3" style="flex:1;min-width:240px"><label class="f">Nome na barra lateral<input type="text" id="mk-t" name="titulo" value="${esc(m.titulo||"TORQUE")}" maxlength="24"></label><label class="f">Subtítulo<input type="text" id="mk-s" name="sub" value="${esc(m.sub??"Saúde e Reabilitação")}" maxlength="30"></label><label class="f">Lema<input type="text" id="mk-l" name="slogan" value="${esc(m.slogan??"Movimento que transforma")}" maxlength="40"></label>
-  ${adm?`<div class="tools spanall"><label class="btn">Enviar outra logomarca<input type="file" id="mk-f" accept="image/png,image/jpeg,image/webp,image/svg+xml" hidden onchange="T.logoUp(this.files[0])"></label>${CFG.logo?`<button type="button" class="btn" onclick="T.usarTonsLogo()">Usar os tons da logomarca enviada</button><button type="button" class="btn ghost danger" onclick="T.logoDel()">Voltar à marca Torque</button>`:""}</div>`:""}</div></div>
+  <div class="ident"><div class="ident-prev">${CFG.logo?`<img src="${CFG.logo}" alt="Logomarca enviada">`:`<div class="ident-tf">${tfMark("#12304A")}<b>KINESIS</b><small>Gestão em Clínicas</small></div>`}</div>
+  <div class="grid g3" style="flex:1;min-width:240px"><label class="f">Nome na barra lateral<input type="text" id="mk-t" name="titulo" value="${esc(m.titulo||"KINESIS")}" maxlength="24"></label><label class="f">Subtítulo<input type="text" id="mk-s" name="sub" value="${esc(m.sub??"Gestão em Clínicas")}" maxlength="30"></label><label class="f">Lema<input type="text" id="mk-l" name="slogan" value="${esc(m.slogan??"")}" maxlength="40"></label>
+  ${adm?`<div class="tools spanall"><label class="btn">Enviar outra logomarca<input type="file" id="mk-f" accept="image/png,image/jpeg,image/webp,image/svg+xml" hidden onchange="T.logoUp(this.files[0])"></label>${CFG.logo?`<button type="button" class="btn" onclick="T.usarTonsLogo()">Usar os tons da logomarca enviada</button><button type="button" class="btn ghost danger" onclick="T.logoDel()">Voltar à marca Kinesis</button>`:""}</div>`:""}</div></div>
   <h3>Temas prontos</h3><div class="presets">${PRESETS.map(([k,l,p,d])=>`<button type="button" class="preset ${k===atual?"on":""}" ${adm?`onclick="T.aplicarPreset('${k}')"`:"disabled"}><span class="sw" style="background:${p}"></span><span class="sw" style="background:${d}"></span><span>${esc(l)}</span></button>`).join("")}</div>
   <h3>Cores personalizadas</h3><div class="grid g4"><label class="f">Cor principal (títulos e menu)<input type="color" id="mk-p" name="principal" value="${esc(pa)}" ${adm?"":"disabled"}></label><label class="f">Cor de destaque (botões)<input type="color" id="mk-d" name="destaque" value="${esc(de)}" ${adm?"":"disabled"}></label>
   <label class="f">Cor do menu lateral<span style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="mk-mc" name="menuOn" ${c.menu?"checked":""} ${adm?"":"disabled"} aria-label="Usar cor própria no menu"><input type="color" id="mk-m" name="menu" value="${esc(c.menu||"#232c42")}" ${adm?"":"disabled"}></span><small>marque para usar uma cor própria</small></label>
   <label class="f">Fundo das telas<select id="mk-fu" name="fundo" ${adm?"":"disabled"}>${FUNDOS.map(x=>opt(x[0],x[1],c.fundo||"")).join("")}</select></label></div>
   <p class="muted" style="margin:0;font-size:12.5px">As cores valem para toda a equipe, nos temas claro e escuro. O sistema ajusta sozinho o tom de cada cor para manter a leitura. A logomarca também aparece no painel e no cabeçalho dos documentos.</p>
-  ${adm?`<div class="tools"><button class="btn pri">Salvar identidade e cores</button>${CFG.cores?`<button type="button" class="btn ghost" onclick="T.coresPadrao()">Cores da marca Torque</button>`:""}</div>`:""}</form>`};
-function heroMarca(){const m=CFG.marca||{},sl=m.slogan??"Movimento que transforma";return `<div class="hero-marca">${CFG.logo?`<img src="${CFG.logo}" alt="">`:tfMark("var(--brand)","var(--accent)")}<div><b>${esc(m.titulo||"TORQUE")}</b><span>${esc(m.sub??"Saúde e Reabilitação")}</span>${sl?`<em>${esc(sl)}</em>`:""}</div></div>`}
+  ${adm?`<div class="tools"><button class="btn pri">Salvar identidade e cores</button>${CFG.cores?`<button type="button" class="btn ghost" onclick="T.coresPadrao()">Cores da marca Kinesis</button>`:""}</div>`:""}</form>`};
+function heroMarca(){const m=CFG.marca||{},sl=m.slogan??"";return `<div class="hero-marca">${CFG.logo?`<img src="${CFG.logo}" alt="">`:tfMark("var(--brand)")}<div><b>${esc(m.titulo||"KINESIS")}</b><span>${esc(m.sub??"Gestão em Clínicas")}</span>${sl?`<em>${esc(sl)}</em>`:""}</div></div>`}
 
 /* ---------- Cores da marca ---------- */
 function hex2hsl(hx){const n=parseInt(String(hx).replace("#",""),16),r=(n>>16&255)/255,g=(n>>8&255)/255,b=(n&255)/255,mx=Math.max(r,g,b),mn=Math.min(r,g,b),l=(mx+mn)/2;let h=0,s=0;if(mx!==mn){const d=mx-mn;s=l>.5?d/(2-mx-mn):d/(mx+mn);h=mx===r?(g-b)/d+(g<b?6:0):mx===g?(b-r)/d+2:(r-g)/d+4;h*=60}return{h,s:s*100,l:l*100}}
@@ -2107,7 +2121,7 @@ function tpl(k,v){const t=(CFG.msgs||{})[k];if(!t)return"";return t.replace(/\{(
 function varsAg(a){const p=pac(a.pacienteId)||{},c=CFG.clinica;return{nome:String(p.nome||"").replace(/^Exemplo · /,"").split(" ")[0],paciente:p.nome||"",data:dLong(a.data).toLowerCase(),hora:a.hora,profissional:prof(a.profId).nome,procedimento:serv(a.servicoId).nome.toLowerCase(),clinica:c.nome,endereco:c.endereco||"",telefone:c.telefone||"",link:a.link||"",quando:a.data===addDays(today(),1)?"amanhã ("+dLong(a.data).toLowerCase()+")":a.data===today()?"hoje":dLong(a.data).toLowerCase()}}
 const varsPac=p=>({nome:String((p||{}).nome||"").replace(/^Exemplo · /,"").split(" ")[0],paciente:(p||{}).nome||"",clinica:CFG.clinica.nome,endereco:CFG.clinica.endereco||"",telefone:CFG.clinica.telefone||""});
 const tplAg=(k,a)=>tpl(k,varsAg(a));
-function msgsForm(){const adm=pode("ajustes",2),M=CFG.msgs||{},ex=S().agenda[0];const ap=t=>ex?t.replace(/\{(\w+)\}/g,(m,x)=>{const v=varsAg(Object.assign({link:"https://meet.jit.si/Torque-exemplo"},ex));return v[x]===undefined?m:v[x]}):t;
+function msgsForm(){const adm=pode("ajustes",2),M=CFG.msgs||{},ex=S().agenda[0];const ap=t=>ex?t.replace(/\{(\w+)\}/g,(m,x)=>{const v=varsAg(Object.assign({link:"https://meet.jit.si/Kinesis-exemplo"},ex));return v[x]===undefined?m:v[x]}):t;
   return `<form class="card grid" id="f-msgs" onsubmit="event.preventDefault();T.saveMsgs(this)"><h2>Mensagens automáticas</h2><p class="muted" style="margin:0">Edite os textos usados nos botões de WhatsApp, lembrete e SMS. Variáveis: <code>{nome}</code> <code>{paciente}</code> <code>{data}</code> <code>{quando}</code> <code>{hora}</code> <code>{profissional}</code> <code>{procedimento}</code> <code>{clinica}</code> <code>{endereco}</code> <code>{telefone}</code> <code>{link}</code>.</p>
   ${TPL_LBL.map(([k,l])=>{const v=M[k]||TPL_PAD[k];return `<label class="f">${esc(l)}<textarea name="${k}" rows="3" ${adm?"":"disabled"}>${esc(v)}</textarea><small class="muted prev">Exemplo: ${esc(ap(v))}</small></label>`}).join("")}
   ${adm?`<div class="tools"><button class="btn pri">Salvar mensagens</button><button type="button" class="btn ghost" onclick="T.msgsPadrao()">Restaurar textos padrão</button></div>`:""}</form>`}
@@ -2130,7 +2144,7 @@ const _pendExtras=pendExtras;pendExtras=function(){const n=num(CFG.avisoDias??3)
 
 /* ---------- Segurança e plano ---------- */
 function segurancaCard(){const u=meuUsuario();return `<div class="card"><h2>Seu acesso</h2><dl class="kv"><dt>Conta</dt><dd>${esc(ME_NOME||(LOCAL?"Modo local (este navegador)":"Conta do Claude"))}</dd><dt>Perfil</dt><dd>${esc(papelNome(papelAtual()))}${OWNER&&!LOCAL?" · titular da conta":""}</dd><dt>Profissional vinculado</dt><dd>${u&&u.profId?esc(prof(u.profId).nome):"—"}</dd></dl></div>
-  <div class="card"><h2>Login e senha</h2><ul><li>Cada pessoa entra com a própria conta do Claude. O Torque não tem senha separada.</li><li>Proteja a conta do Claude com senha forte e, se disponível, verificação em duas etapas.</li><li>Não compartilhe logins: cada um tem o próprio perfil e aparece na Auditoria.</li><li>Ao desligar alguém, desative o usuário em Usuários e permissões e remova o acesso no botão Compartilhar.</li></ul></div>
+  <div class="card"><h2>Login e senha</h2><ul><li>Cada pessoa entra com a própria conta do Claude. O Kinesis não tem senha separada.</li><li>Proteja a conta do Claude com senha forte e, se disponível, verificação em duas etapas.</li><li>Não compartilhe logins: cada um tem o próprio perfil e aparece na Auditoria.</li><li>Ao desligar alguém, desative o usuário em Usuários e permissões e remova o acesso no botão Compartilhar.</li></ul></div>
   <div class="card"><h2>Proteção de dados (LGPD)</h2><ul><li>O prontuário fica restrito aos perfis clínicos (Permissões por setor).</li><li>Toda criação, alteração e exclusão fica registrada na Auditoria.</li><li>Registre o consentimento no cadastro de cada paciente.</li><li>Baixe uma cópia de segurança por mês, em Financeiro e dados.</li></ul><div class="tools"><a class="btn" href="#usuarios">Usuários e permissões</a><a class="btn" href="#auditoria">Auditoria</a></div></div>`}
 function planoResumo(){return `<div class="card"><h2>Plano e cobrança</h2><dl class="kv"><dt>Plano</dt><dd>${esc(planoAtual().nome)}</dd><dt>Usuários</dt><dd>${usados()} de ${num(LIC.limite)} liberados</dd><dt>Valor mensal</dt><dd>${brl(valorMensal())}</dd><dt>Vencimento</dt><dd>${LIC.vencimento?fmtD(LIC.vencimento):"—"}</dd></dl><div class="tools" style="margin-top:10px"><a class="btn pri" href="#plano">Abrir plano, faturas e limite</a><a class="btn" href="#usuarios">Usuários e permissões</a></div></div>`}
 
@@ -2147,7 +2161,7 @@ const btnSec=sec=>([k,l,d])=>`<button type="button" class="${k===sec?"on":""}" o
 
 /* ---------- Painel: guia recolhível ---------- */
 guiaHtml=function(){const P=guiaPassos(),ok=P.filter(p=>p[2]).length;if(ok===P.length||lsGet("torque.guiaOff",false))return"";const min=lsGet("torque.guiaMin",false);
-  return `<div class="card guia"><div class="card-h"><div><h2>Bem-vindo(a) ao Torque!</h2><div class="muted">Conclua os primeiros passos para deixar a clínica pronta para atender.</div></div><div class="tools"><button class="btn sm ghost" onclick="T.guiaOff()">Pular guia</button><button class="btn sm" onclick="T.guiaMin()" aria-label="${min?"Mostrar":"Recolher"} os passos" aria-expanded="${!min}">${min?"▾":"▴"}</button></div></div>
+  return `<div class="card guia"><div class="card-h"><div><h2>Bem-vindo(a) ao Kinesis!</h2><div class="muted">Conclua os primeiros passos para deixar a clínica pronta para atender.</div></div><div class="tools"><button class="btn sm ghost" onclick="T.guiaOff()">Pular guia</button><button class="btn sm" onclick="T.guiaMin()" aria-label="${min?"Mostrar":"Recolher"} os passos" aria-expanded="${!min}">${min?"▾":"▴"}</button></div></div>
   <div class="bar" style="height:6px"><i style="width:${ok/P.length*100}%"></i></div><div class="muted" style="font-size:12.5px;margin:6px 0 ${min?0:10}px">${ok} de ${P.length} concluídos</div>
   ${min?"":`<div class="passos">${P.map((p,i)=>`<a class="passo ${p[2]?"ok":""}" href="#${p[3]}" onclick="${p[3]==="ajustes"?`T.UI.ajSec='${["clinica","agenda","agenda","clinica"][i]||"clinica"}'`:""}"><span class="pc">${p[2]?"✓":i+1}</span><span><b>${i+1}. ${esc(p[0])}</b><small>${esc(p[1])}</small></span><span class="muted chev">›</span></a>`).join("")}</div>`}</div>`};
 
@@ -2172,7 +2186,7 @@ const NOVAS_ACOES3={
   async assinUp(pid,file){if(!file)return;try{const d=await lerLogo(file);CFG.assinaturas=Object.assign({},CFG.assinaturas,{[pid]:d});if(await saveCfg()){render();toast("Assinatura salva.")}}catch(e){toast("Não foi possível ler a imagem.")}},
   async assinDel(pid){const A=Object.assign({},CFG.assinaturas);delete A[pid];CFG.assinaturas=A;if(await saveCfg()){render();toast("Assinatura removida.")}},
   openMeta(){drawer("Meta mensal de faturamento",`<label class="f">Meta de receita recebida por mês (R$)<input type="number" id="mt-v" name="meta" min="0" step="100" value="${num(CFG.metaReceita)||""}"></label><p class="muted" style="margin:0">A meta aparece em Finanças, com o gráfico de receita acumulada e a barra de progresso do mês.</p>`,`<button type="button" class="btn" onclick="T.close()">Cancelar</button><button class="btn pri">Salvar meta</button>`,async f=>{CFG.metaReceita=num(fv(f,"meta"));if(await saveCfg()){closeM();render();toast("Meta salva.")}})},
-  async saveMarca(f){CFG.marca={titulo:fv(f,"titulo")||"TORQUE",sub:fv(f,"sub"),slogan:fv(f,"slogan")};const p=fv(f,"principal"),d=fv(f,"destaque"),c={};if(p&&d&&(p!==COR_P||d!==COR_D)){c.principal=p;c.destaque=d}if(fv(f,"menuOn"))c.menu=fv(f,"menu");if(fv(f,"fundo"))c.fundo=fv(f,"fundo");CFG.cores=Object.keys(c).length?c:null;if(await saveCfg()){renderBrand();render();toast("Identidade e cores salvas.")}},
+  async saveMarca(f){CFG.marca={titulo:fv(f,"titulo")||"KINESIS",sub:fv(f,"sub"),slogan:fv(f,"slogan")};const p=fv(f,"principal"),d=fv(f,"destaque"),c={};if(p&&d&&(p!==COR_P||d!==COR_D)){c.principal=p;c.destaque=d}if(fv(f,"menuOn"))c.menu=fv(f,"menu");if(fv(f,"fundo"))c.fundo=fv(f,"fundo");CFG.cores=Object.keys(c).length?c:null;if(await saveCfg()){renderBrand();render();toast("Identidade e cores salvas.")}},
   async aplicarPreset(k){const x=PRESETS.find(y=>y[0]===k);if(!x)return;const old=CFG.cores||{},c={};if(k!=="torque"){c.principal=x[2];c.destaque=x[3]}if(old.fundo)c.fundo=old.fundo;CFG.cores=Object.keys(c).length?c:null;if(await saveCfg()){renderBrand();render();toast("Tema "+x[1]+" aplicado.")}},
   async logoUp(file){if(!file)return;try{const d=await lerLogo(file);if(d.length>400000){toast("Imagem muito grande. Use um arquivo menor.");return}CFG.logo=d;const c=await extrairCores(d);if(c)CFG.cores=c;if(await saveCfg()){renderBrand();render();toast(c?"Logomarca atualizada e tons aplicados ao sistema.":"Logomarca atualizada.")}}catch(e){toast("Não foi possível ler a imagem.")}},
   async usarTonsLogo(){if(!CFG.logo)return;const c=await extrairCores(CFG.logo);if(!c){toast("Não encontrei cores marcantes na logomarca. Escolha as cores manualmente.");return}CFG.cores=c;if(await saveCfg()){renderBrand();render();toast("Tons da logomarca aplicados.")}},
@@ -2208,7 +2222,7 @@ window.T={
   async saveServs(f){const L=$$("#t-serv tbody tr").map(tr=>{const g=n=>tr.querySelector(`[name=${n}]`);return{id:tr.dataset.id,cor:g("cor").value,nome:g("nome").value.trim(),valor:num(g("valor").value),duracao:num(g("duracao").value)||50}}).filter(s=>s.nome);if(!L.length){toast("Cadastre ao menos um serviço.");return}CFG.servicos=L;if(await saveCfg())toast("Serviços salvos.")},
   async saveListas(f){const sp=n=>fv(f,n).split("\n").map(x=>x.trim()).filter(Boolean);CFG.convenios=sp("convenios");CFG.catDespesa=sp("catDespesa");CFG.catReceita=sp("catReceita");const sl=sp("salas");if(sl.length)CFG.salas=sl;if(await saveCfg())toast("Listas salvas.")},
   async backup(){await download(`torque-backup-${today()}.json`,JSON.stringify({app:"torque-fisioterapia",versao:1,geradoEm:new Date().toISOString(),config:CFG,...real},null,1),"application/json")},
-  async restore(file){if(!file)return;try{const d=JSON.parse(await file.text());if(d.app!=="torque-fisioterapia")throw 0;if(d.config){CFG=Object.assign(JSON.parse(JSON.stringify(DEF_CFG)),d.config);await saveCfg()}let n=0;for(const c of [...COLS,...EXTRA])for(const o of d[c]||[]){if(await save(c,o,true))n++}render();toast(n+" registros restaurados.")}catch(e){toast("Arquivo inválido: escolha uma cópia gerada pelo Torque.")}}
+  async restore(file){if(!file)return;try{const d=JSON.parse(await file.text());if(d.app!=="torque-fisioterapia")throw 0;if(d.config){CFG=Object.assign(JSON.parse(JSON.stringify(DEF_CFG)),d.config);await saveCfg()}let n=0;for(const c of [...COLS,...EXTRA])for(const o of d[c]||[]){if(await save(c,o,true))n++}render();toast(n+" registros restaurados.")}catch(e){toast("Arquivo inválido: escolha uma cópia gerada pelo Kinesis.")}}
 };
 
 Object.assign(window.T,NOVAS_ACOES,NOVAS_ACOES2,NOVAS_ACOES3,{

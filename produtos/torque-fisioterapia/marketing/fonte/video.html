@@ -1,11 +1,11 @@
-<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>Torque · vídeo</title>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@112,700;112,800&family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap">
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>Kinesis · vídeo</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap">
 <style>
-:root{--navy:#2c3449;--slate:#424e68;--lilac:#918ba5;--lilac-d:#6c6795;--lilac-s:#e7e3f0;--bg1:#f6f2ec;--bg2:#e9e0d4;--ink:#22273a;--muted:#5f6373;--W:1920px;--H:1080px}
+:root{--navy:#12304A;--slate:#12304A;--lilac:#3DD6C4;--lilac-d:#0B8585;--lilac-s:#dff4f2;--bg1:#F4F7F9;--bg2:#e2ebf1;--ink:#0f2236;--muted:#5B6B7A;--gold:#AC8850;--W:1920px;--H:1080px}
 *{box-sizing:border-box;margin:0}
 html,body{width:var(--W);height:var(--H);overflow:hidden;background:var(--bg1);-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
 body{font-family:Inter,system-ui,sans-serif;color:var(--ink)}
-#stage{position:relative;width:var(--W);height:var(--H);overflow:hidden;background:radial-gradient(ellipse at 30% 20%,#fbf8f3 0%,var(--bg1) 45%,var(--bg2) 100%)}
+#stage{position:relative;width:var(--W);height:var(--H);overflow:hidden;background:radial-gradient(ellipse at 30% 20%,#ffffff 0%,var(--bg1) 45%,var(--bg2) 100%)}
 .wm{position:absolute;right:-260px;bottom:-220px;width:900px;opacity:.045}
 .scene{position:absolute;inset:0;opacity:0;will-change:opacity,transform}
 .it{opacity:0;will-change:opacity,transform}
@@ -13,37 +13,37 @@ body{font-family:Inter,system-ui,sans-serif;color:var(--ink)}
 /* abertura e fechamento */
 .center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
 .logo{width:230px;height:230px;overflow:visible}
-.word{font-weight:600;font-size:96px;letter-spacing:.32em;color:var(--slate);margin-top:26px;padding-left:.32em}
-.sub{font-size:28px;letter-spacing:.26em;text-transform:uppercase;color:var(--muted);margin-top:14px;padding-left:.26em}
-.rule{width:120px;height:3px;background:#b9a995;border-radius:3px;margin:34px auto 0}
+.word{font-weight:600;font-size:110px;letter-spacing:.06em;color:var(--slate);margin-top:26px;line-height:1}
+.sub{font-size:30px;letter-spacing:.34em;text-transform:uppercase;color:var(--gold);margin-top:22px;padding-left:.34em;font-weight:500}
+.rule{width:120px;height:3px;background:var(--gold);border-radius:3px;margin:34px auto 0}
 .lema{font-size:24px;letter-spacing:.34em;text-transform:uppercase;color:var(--lilac-d);margin-top:28px;padding-left:.34em}
 /* frase */
-.big{font-family:Archivo,Inter,sans-serif;font-stretch:112%;font-weight:800;font-size:92px;line-height:1.04;color:var(--navy);letter-spacing:-.01em;text-wrap:balance;max-width:1400px}
+.big{font-family:Inter,sans-serif;font-weight:600;font-size:92px;line-height:1.04;color:var(--navy);letter-spacing:-.01em;text-wrap:balance;max-width:1400px}
 .big em{font-style:normal;color:var(--lilac-d)}
 .lead{font-size:34px;color:var(--muted);margin-top:30px;max-width:1200px;line-height:1.4}
 /* telas */
 .feat{position:absolute;inset:0;display:grid;grid-template-columns:600px 1fr;gap:70px;align-items:center;padding:0 90px 0 110px}
 .txt .k{display:inline-flex;align-items:center;gap:12px;font-size:22px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--lilac-d)}
 .txt .k i{width:34px;height:3px;background:var(--lilac-d);border-radius:3px}
-.txt h2{font-family:Archivo,Inter,sans-serif;font-stretch:112%;font-weight:800;font-size:68px;line-height:1.05;color:var(--navy);margin-top:20px;letter-spacing:-.01em}
+.txt h2{font-family:Inter,sans-serif;font-weight:600;font-size:68px;line-height:1.05;color:var(--navy);margin-top:20px;letter-spacing:-.01em}
 .txt ul{list-style:none;padding:0;margin-top:34px;display:flex;flex-direction:column;gap:18px}
 .txt li{display:flex;gap:16px;align-items:flex-start;font-size:29px;line-height:1.3;color:var(--ink)}
 .txt li b{flex:none;width:34px;height:34px;border-radius:50%;background:var(--lilac-s);color:var(--lilac-d);display:grid;place-items:center;font-size:20px;margin-top:1px}
 .frame{position:relative;border-radius:18px;max-height:900px;overflow:hidden;background:#fff;box-shadow:0 40px 90px rgba(44,52,73,.28),0 0 0 1px rgba(44,52,73,.08);aspect-ratio:16/10}
-.frame .bar{height:44px;background:#efe9e1;display:flex;align-items:center;gap:9px;padding:0 18px;border-bottom:1px solid #e1d8cc}
+.frame .bar{height:44px;background:#e9eff3;display:flex;align-items:center;gap:9px;padding:0 18px;border-bottom:1px solid #d6e0e7}
 .frame .bar i{width:13px;height:13px;border-radius:50%;background:#d8cfc3}.frame .bar i:nth-child(1){background:#e4a19a}.frame .bar i:nth-child(2){background:#e8cc8f}.frame .bar i:nth-child(3){background:#a9c9a4}
 .frame .bar span{margin-left:16px;font-size:16px;color:#7b7f8c;background:#fff;border-radius:8px;padding:5px 16px}
 .frame .view{position:absolute;inset:44px 0 0 0;overflow:hidden}
 .frame img{width:100%;display:block;transform-origin:var(--o,50% 30%);will-change:transform}
 /* recursos */
 .chips{display:flex;flex-wrap:wrap;gap:20px;justify-content:center;max-width:1500px;margin-top:50px}
-.chip{display:flex;align-items:center;gap:14px;background:#fff;border:1px solid #e1d8cc;border-radius:99px;padding:18px 30px;font-size:30px;font-weight:600;color:var(--navy);box-shadow:0 10px 30px rgba(44,52,73,.08)}
+.chip{display:flex;align-items:center;gap:14px;background:#fff;border:1px solid #d6e0e7;border-radius:99px;padding:18px 30px;font-size:30px;font-weight:600;color:var(--navy);box-shadow:0 10px 30px rgba(44,52,73,.08)}
 .chip i{width:14px;height:14px;border-radius:50%;background:var(--lilac-d)}
-.phone{position:absolute;right:120px;bottom:-60px;width:330px;border-radius:44px;background:#1d2130;padding:14px;box-shadow:0 40px 80px rgba(44,52,73,.35)}
+.phone{position:absolute;right:120px;bottom:-60px;width:330px;border-radius:44px;background:#0E2A44;padding:14px;box-shadow:0 40px 80px rgba(44,52,73,.35)}
 .phone img{width:100%;border-radius:32px;display:block}
 /* fechamento */
 .cta{margin-top:46px;display:flex;flex-direction:column;align-items:center;gap:18px}
-.cta .btn{background:var(--lilac-d);color:#fff;font-size:34px;font-weight:700;border-radius:99px;padding:24px 56px;box-shadow:0 18px 40px rgba(108,103,149,.35)}
+.cta .btn{background:var(--lilac-d);color:#fff;font-size:34px;font-weight:700;border-radius:99px;padding:24px 56px;box-shadow:0 18px 40px rgba(11,133,133,.30)}
 .cta .url{font-size:38px;font-weight:600;color:var(--navy);letter-spacing:.01em}
 .cta .log{font-size:24px;color:var(--muted)}
 .cta .log b{color:var(--navy)}
@@ -62,12 +62,12 @@ body.v .center.top{justify-content:flex-start;padding-top:260px;padding-right:0}
 body.v .frame{aspect-ratio:9/11;max-height:none}body.v .frame img{width:auto;height:100%;max-width:none;transform-origin:0 0!important}
 </style></head><body>
 <div id="stage">
- <svg class="wm tf" viewBox="0 0 100 100" aria-hidden="true"><path d="M6 8h56v13H42v62H27V21H6z"/><path d="M47 21h49c-1.6 6-5.6 10.6-11 12H59v14h25c-1.2 4.6-4.6 8-9 9H59v38c-6.6-1.4-11-6.4-12-13z"/></svg>
+ <svg class="wm" viewBox="0 0 100 100" aria-hidden="true"><defs><linearGradient id="kw" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#0FA3A3"/><stop offset="1" stop-color="#3DD6C4"/></linearGradient></defs><rect x="16" y="10" width="14" height="80" rx="3" fill="#12304A"/><path d="M47 50L58 41L92 90H73z" fill="#12304A"/><path d="M37 58C49 39 64 23 86 9h5C76 27 62 47 48 69z" fill="url(#kw)"/></svg>
 
  <!-- 1 abertura -->
  <div class="scene" data-s="0" data-e="3.3" data-fi="0"><div class="center">
-  <svg class="logo tf" viewBox="0 0 100 100"><path id="pT" d="M6 8h56v13H42v62H27V21H6z"/><path id="pF" d="M47 21h49c-1.6 6-5.6 10.6-11 12H59v14h25c-1.2 4.6-4.6 8-9 9H59v38c-6.6-1.4-11-6.4-12-13z"/></svg>
-  <div class="word it" data-d=".7" id="word">TORQUE</div><div class="sub it" data-d="1.1">Saúde e Reabilitação</div><div class="rule it" data-d="1.4"></div><div class="lema it" data-d="1.6">Movimento que transforma</div>
+  <svg class="logo" viewBox="0 0 100 100"><defs><linearGradient id="ki" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#0FA3A3"/><stop offset="1" stop-color="#3DD6C4"/></linearGradient></defs><g id="pT"><rect x="16" y="10" width="14" height="80" rx="3" fill="#12304A"/><path d="M47 50L58 41L92 90H73z" fill="#12304A"/></g><path id="pF" d="M37 58C49 39 64 23 86 9h5C76 27 62 47 48 69z" fill="url(#ki)"/></svg>
+  <div class="word it" data-d=".7" id="word">KINESIS</div><div class="sub it" data-d="1.1">Gestão em Clínicas</div><div class="rule it" data-d="1.4"></div>
  </div></div>
 
  <!-- 2 frase -->
@@ -80,28 +80,28 @@ body.v .frame{aspect-ratio:9/11;max-height:none}body.v .frame img{width:auto;hei
  <div class="scene" data-s="6.2" data-e="10.6"><div class="feat">
   <div class="txt"><div class="k it" data-d=".1"><i></i>Agenda</div><h2 class="it" data-d=".25">Agenda inteligente por profissional</h2>
    <ul><li class="it" data-d=".6"><b>✓</b>Confirmação e lembrete por WhatsApp</li><li class="it" data-d=".85"><b>✓</b>Cor por procedimento e sala</li><li class="it" data-d="1.1"><b>✓</b>Lista de espera e bloqueios</li></ul></div>
-  <div class="frame it" data-d=".2" data-k="1"><div class="bar"><i></i><i></i><i></i><span>Agenda · Torque</span></div><div class="view"><img src="c-agenda.png" style="--o:0% 70%" alt=""></div></div>
+  <div class="frame it" data-d=".2" data-k="1"><div class="bar"><i></i><i></i><i></i><span>Agenda · Kinesis</span></div><div class="view"><img src="c-agenda.png" style="--o:0% 70%" alt=""></div></div>
  </div></div>
 
  <!-- 4 prontuário -->
  <div class="scene" data-s="10.6" data-e="15"><div class="feat">
   <div class="txt"><div class="k it" data-d=".1"><i></i>Prontuário</div><h2 class="it" data-d=".25">Evolução do paciente sessão a sessão</h2>
    <ul><li class="it" data-d=".6"><b>✓</b>Testes ortopédicos e osteopatia</li><li class="it" data-d=".85"><b>✓</b>Curva de dor e linha do tempo</li><li class="it" data-d="1.1"><b>✓</b>Conforme COFFITO e LGPD</li></ul></div>
-  <div class="frame it" data-d=".2" data-k="1"><div class="bar"><i></i><i></i><i></i><span>Prontuário · Torque</span></div><div class="view"><img src="c-pront.png" style="--o:0% 55%" alt=""></div></div>
+  <div class="frame it" data-d=".2" data-k="1"><div class="bar"><i></i><i></i><i></i><span>Prontuário · Kinesis</span></div><div class="view"><img src="c-pront.png" style="--o:0% 55%" alt=""></div></div>
  </div></div>
 
  <!-- 5 finanças -->
  <div class="scene" data-s="15" data-e="19.4"><div class="feat">
   <div class="txt"><div class="k it" data-d=".1"><i></i>Finanças</div><h2 class="it" data-d=".25">Dinheiro da clínica sob controle</h2>
    <ul><li class="it" data-d=".6"><b>✓</b>Fluxo de caixa, metas e inadimplência</li><li class="it" data-d=".85"><b>✓</b>Repasses e divisão entre sócios</li><li class="it" data-d="1.1"><b>✓</b>Convênios e guias TISS</li></ul></div>
-  <div class="frame it" data-d=".2" data-k="1"><div class="bar"><i></i><i></i><i></i><span>Finanças · Torque</span></div><div class="view"><img src="c-fin.png" style="--o:0% 85%" alt=""></div></div>
+  <div class="frame it" data-d=".2" data-k="1"><div class="bar"><i></i><i></i><i></i><span>Finanças · Kinesis</span></div><div class="view"><img src="c-fin.png" style="--o:0% 85%" alt=""></div></div>
  </div></div>
 
  <!-- 6 CRM -->
  <div class="scene" data-s="19.4" data-e="23.6"><div class="feat">
   <div class="txt"><div class="k it" data-d=".1"><i></i>CRM</div><h2 class="it" data-d=".25">Mais pacientes, menos faltas</h2>
    <ul><li class="it" data-d=".6"><b>✓</b>Funil de leads e follow-up</li><li class="it" data-d=".85"><b>✓</b>Reativação e aniversariantes</li><li class="it" data-d="1.1"><b>✓</b>Pesquisa de satisfação (NPS)</li></ul></div>
-  <div class="frame it" data-d=".2" data-k="1"><div class="bar"><i></i><i></i><i></i><span>CRM · Torque</span></div><div class="view"><img src="c-crm.png" style="--o:0% 50%" alt=""></div></div>
+  <div class="frame it" data-d=".2" data-k="1"><div class="bar"><i></i><i></i><i></i><span>CRM · Kinesis</span></div><div class="view"><img src="c-crm.png" style="--o:0% 50%" alt=""></div></div>
  </div></div>
 
  <!-- 7 recursos -->
@@ -112,9 +112,9 @@ body.v .frame{aspect-ratio:9/11;max-height:none}body.v .frame img{width:auto;hei
 
  <!-- 8 fechamento -->
  <div class="scene" data-s="26.8" data-e="30.2"><div class="center">
-  <svg class="logo tf it" data-d=".05" viewBox="0 0 100 100" style="width:150px;height:150px"><path d="M6 8h56v13H42v62H27V21H6z"/><path d="M47 21h49c-1.6 6-5.6 10.6-11 12H59v14h25c-1.2 4.6-4.6 8-9 9H59v38c-6.6-1.4-11-6.4-12-13z"/></svg>
-  <div class="word it" data-d=".2" style="font-size:64px;margin-top:18px">TORQUE</div>
-  <div class="cta"><div class="btn it" data-d=".6">Teste grátis agora</div><div class="url it" data-d=".85">torque-saude-demo.vercel.app</div><div class="log it" data-d="1.05">usuário <b>admin</b> · senha <b>admin</b></div></div>
+  <svg class="logo it" data-d=".05" viewBox="0 0 100 100" style="width:150px;height:150px"><defs><linearGradient id="kc" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#0FA3A3"/><stop offset="1" stop-color="#3DD6C4"/></linearGradient></defs><rect x="16" y="10" width="14" height="80" rx="3" fill="#12304A"/><path d="M47 50L58 41L92 90H73z" fill="#12304A"/><path d="M37 58C49 39 64 23 86 9h5C76 27 62 47 48 69z" fill="url(#kc)"/></svg>
+  <div class="word it" data-d=".2" style="font-size:72px;margin-top:18px">KINESIS</div><div class="sub it" data-d=".35" style="font-size:22px;margin-top:14px">Gestão em Clínicas</div>
+  <div class="cta"><div class="btn it" data-d=".6">Teste grátis agora</div><div class="url it" data-d=".85">kinesis-clinic-demo.vercel.app</div><div class="log it" data-d="1.05">usuário <b>admin</b> · senha <b>admin</b></div></div>
  </div></div>
  <div class="prog" id="prog"></div>
 </div>
@@ -133,7 +133,7 @@ function apply(t){
   // abertura: T e F entram de lados opostos
   const p=ease(t/.9),q=ease((t-.2)/.9);const T=document.getElementById("pT"),F=document.getElementById("pF");
   T.style.transform=`translateX(${-60*(1-p)}px)`;T.style.opacity=p;F.style.transform=`translateX(${60*(1-q)}px)`;F.style.opacity=q;
-  const w=document.getElementById("word"),wp=ease((t-.7)/1.2);w.style.letterSpacing=(.7-.38*wp).toFixed(3)+"em";
+  const w=document.getElementById("word"),wp=ease((t-.7)/1.2);w.style.letterSpacing=(.42-.36*wp).toFixed(3)+"em";
   document.getElementById("prog").style.width=(Math.min(1,t/T_END)*100)+"%";
 }
 window.apply=apply;apply(0);
