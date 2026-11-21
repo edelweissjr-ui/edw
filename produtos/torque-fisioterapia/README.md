@@ -54,6 +54,10 @@ Abre com dados de exemplo, só na tela; eles somem quando o primeiro paciente re
 - **Finanças:** meta mensal de faturamento, faturamento por janela (30, 90 e 120 dias) e resumo de repasses.
 - **Leitura:** fontes com suavização e tamanho base de 15 px; campos e botões com altura mínima para toque.
 
+## Versão hospedada (site próprio)
+- Em `kinesis/` na raiz do repositório: login por e-mail e senha, banco Upstash e permissões aplicadas no servidor. Endereço: https://kinesis-gestao.vercel.app. Veja `kinesis/README.md`.
+- O modo hospedado é ligado por `window.__KINESIS_HOSTED` (cadastro de usuário com e-mail e senha, troca de senha e Sair).
+
 ## Demonstração para clientes
 - Link público: https://kinesis-clinic-demo.vercel.app (os links antigos torque-saude-demo.vercel.app e torque-demo-bice.vercel.app também abrem). Projeto `torque-demo` na Vercel.
 - Login de demonstração: usuário **admin**, senha **admin**. A tela de login é só uma porta de entrada da demonstração, não protege dados.

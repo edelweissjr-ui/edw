@@ -39,3 +39,4 @@ Site de página única, animado, da Weiss Odontologia (Caruaru e Recife).
 
 ## Kinesis · Gestão em Clínicas (antigo Torque)
 - Sistema de gestão para clínicas de fisioterapia (agenda, prontuário COFFITO, financeiro, divisão entre sócios) em `produtos/torque-fisioterapia/`. Veja o README da pasta.
+- Versão hospedada com login e banco: `kinesis/` (https://kinesis-gestao.vercel.app). Veja `kinesis/README.md`.

@@ -1,0 +1,13 @@
+{
+  "name": "kinesis",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Kinesis · Gestão em Clínicas (versão hospedada)",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "1.1.0"
+  }
+}

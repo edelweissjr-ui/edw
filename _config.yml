@@ -3,4 +3,5 @@ exclude:
   - README.md
   - apps
   - alinha
+  - kinesis
   - render.yaml
