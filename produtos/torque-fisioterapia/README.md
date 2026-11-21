@@ -54,6 +54,15 @@ Abre com dados de exemplo, só na tela; eles somem quando o primeiro paciente re
 - **Finanças:** meta mensal de faturamento, faturamento por janela (30, 90 e 120 dias) e resumo de repasses.
 - **Leitura:** fontes com suavização e tamanho base de 15 px; campos e botões com altura mínima para toque.
 
+## Versão 3.1.0 (21/11/2026)
+- Confete quando todos os passos de configuração da clínica são concluídos (uma vez por clínica e navegador).
+- Versão do app em "Preciso de ajuda" (`APP_VERSAO`).
+- Ficha do paciente (Resumo): linha do tempo da evolução com sessões, EVA inicial → atual e % de melhora da dor.
+- Estoque: lista de compras por fornecedor (com pedido de orçamento no WhatsApp), aba de consumo (custo por mês, mais consumidos, quantos dias o saldo dura) e baixa automática de material por procedimento ao marcar "Atendido".
+- Finanças: DRE (regime de caixa) com regime PJ, PF ou híbrido; PJ no Simples Nacional (Anexo III, V ou fator R; ou alíquota informada pelo contador), Lucro Presumido ou Lucro Real; PF com carnê-leão (tabela 2026 com redução) e INSS. Configuração em Configurações › Financeiro e dados. São estimativas para gestão.
+- Pagamentos pelo Asaas (versão hospedada): Pix, boleto ou cartão gerados na receita, link pelo WhatsApp e baixa automática por webhook. Configuração em Configurações › Pagamentos · Asaas.
+- Imprimir: botão no topo imprime qualquer tela com cabeçalho da clínica; botões diretos na ficha do paciente, Finanças, DRE e lista de compras.
+
 ## Planos de assinatura (mensal)
 | Plano | Usuários | Preço | KIN | Módulos |
 |---|---|---|---|---|

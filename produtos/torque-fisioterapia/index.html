@@ -357,6 +357,37 @@ h1{font-size:24px}
 @media (max-width:860px){.nav a.on{box-shadow:inset 0 -3px 0 #3DD6C4!important}}
 .bar i{background:var(--verde)}
 .paper .lh b{font-family:Inter,Arial,sans-serif}
+/* Linha do tempo no resumo */
+.rt-k{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:12px}.rt-k>div{background:var(--surface-2);border-radius:10px;padding:10px 12px}.rt-k span{display:block;font-size:11.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}.rt-k b{font-size:18px}.rt-k .bar{margin-top:6px}
+.rt-l{list-style:none;margin:0;padding:0 0 0 6px;position:relative}.rt-l::before{content:"";position:absolute;left:19px;top:8px;bottom:8px;width:2px;background:var(--line)}
+.rt-i{position:relative;display:flex;gap:12px;padding:6px 0}.rt-m{flex:none;width:28px;height:28px;border-radius:50%;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;font-size:12px;font-weight:700;position:relative;z-index:1;border:3px solid var(--surface)}
+.rt-i.av .rt-m{background:var(--brand);color:#fff}.rt-i.falta .rt-m{background:var(--bad);color:#fff}.rt-i>div{min-width:0;flex:1}.rt-h{display:flex;flex-wrap:wrap;gap:4px 10px;align-items:baseline}.rt-i p{margin:3px 0 0;font-size:13.5px}
+.rt-eva{font-size:12px;font-weight:600;padding:1px 8px;border-radius:999px;color:var(--ec);background:color-mix(in srgb,var(--ec) 14%,transparent)}
+@media (max-width:560px){.rt-k{grid-template-columns:1fr 1fr}}
+/* Estoque */
+.cp-f{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:15px;margin:14px 0 8px}.cp-tot{text-align:right;margin:12px 0 0;font-size:15px}
+.cons-fs{border:1px solid var(--line);border-radius:10px;padding:10px 12px}.cons-fs legend{font-weight:600;font-size:13px;padding:0 4px}
+.cons-r{display:grid;grid-template-columns:minmax(0,1fr) 90px auto;gap:8px;margin-bottom:8px}.cons-l{margin:0;padding-left:18px;display:grid;gap:4px;font-size:13.5px}
+/* DRE */
+.dre-t td,.dre-t th{padding:8px 10px}.dre-t tr.sub td{background:var(--surface-2);font-weight:600}.dre-t tr.tot td{font-weight:700;border-top:2px solid var(--line)}.dre-t tr.tot.pos td:nth-child(2){color:var(--ok)}.dre-t tr.tot.neg td:nth-child(2){color:var(--bad)}
+.dre-k{margin-top:12px}.dre-nota{font-size:12.5px;color:var(--muted);margin:10px 0 0;line-height:1.5}
+/* Asaas */
+.as-box{border:1px dashed var(--line);border-radius:10px;padding:10px 12px;background:var(--surface-2)}.as-wh{border-top:1px solid var(--line);padding-top:12px}.as-wh p{margin:4px 0 10px;font-size:13px}
+.cp{display:flex;gap:6px}.cp input{flex:1;min-width:0;font-family:var(--font-mono,monospace);font-size:12.5px}
+.versao .kv{margin:0}
+/* Confete e impressão */
+.confete{position:fixed;inset:0;width:100vw;height:100vh;pointer-events:none;z-index:500}
+.print-h{display:none}
+@media print{
+  @page{margin:12mm}
+  body{background:#fff!important;color:#000}
+  .side,.topbar,.fab,#modal,.tools,.tabs .btn,.no-print,.banner,.alert.demo,.ajnav,#login,.kin-gate{display:none!important}
+  .app,.wrap,main,#main{display:block!important;margin:0!important;padding:0!important;max-width:none!important;width:auto!important}
+  .print-h{display:flex!important;justify-content:space-between;align-items:baseline;border-bottom:2px solid #AC8850;padding-bottom:6px;margin-bottom:14px;font-size:12px;color:#333}.print-h b{font-size:16px;color:#12304A}
+  .card,.kpi,.rec,.plano3{box-shadow:none!important;border-color:#ccc!important;break-inside:avoid}
+  .tabs button:not(.on){display:none}
+  a{color:inherit;text-decoration:none}
+}
 /* Planos */
 .planos3{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:16px;align-items:stretch}
 .plano3{position:relative;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:24px 22px 20px;display:flex;flex-direction:column;gap:8px}
@@ -435,7 +466,7 @@ svg.chart text{fill:var(--muted);font-family:var(--font-mono);font-size:10px}
   <main><header class="topbar" id="topbar"></header><div class="wrap" id="main"><div class="empty">Carregando o sistema…</div></div></main>
 </div>
 <div class="fab"><button type="button" class="fab-help" onclick="T.ajuda()">Preciso de ajuda</button><button type="button" class="fab-chat" onclick="T.go('chat')">Chat interno <i class="nb" id="fab-chat-n" hidden></i></button></div>
-<div id="modal"></div>
+<div id="modal"></div><div id="print-h" class="print-h" aria-hidden="true"></div>
 
 <script>
 (()=>{
@@ -549,9 +580,9 @@ async function save(col,obj,quiet,sys){
   if(String(obj.id||"").startsWith("ex_")||String(obj.pacienteId||"").startsWith("ex_")){toast("Este é um registro de exemplo. Cadastre um paciente real para começar.");return false}
   obj.id=obj.id||uid();obj.atualizadoEm=new Date().toISOString();if(!obj.criadoEm)obj.criadoEm=obj.atualizadoEm;
   const clean=JSON.parse(JSON.stringify(obj));
-  if(LOCAL){const L=real[col];const i=L.findIndex(x=>x.id===clean.id);if(i>=0)L[i]=clean;else L.push(clean);lsSet("torque."+col,L);if(!IMPORTANDO)audit(col,clean,i>=0?"alterou":"criou");if(!quiet)render();return true}
+  if(LOCAL){const L=real[col];const i=L.findIndex(x=>x.id===clean.id);if(i>=0)L[i]=clean;else L.push(clean);lsSet("torque."+col,L);if(!IMPORTANDO)audit(col,clean,i>=0?"alterou":"criou");if(!quiet)render();checaFesta();return true}
   const existia=real[col].some(x=>x.id===clean.id);
-  try{await db.collection(col).doc(clean.id).set(clean);if(!IMPORTANDO)audit(col,clean,existia?"alterou":"criou");return true}catch(e){toast(HOSTED&&e&&e.message?e.message:"Não foi possível salvar ("+(e.code||e.message||"erro")+"). Tente de novo.");return false}
+  try{await db.collection(col).doc(clean.id).set(clean);if(!IMPORTANDO)audit(col,clean,existia?"alterou":"criou");checaFesta();return true}catch(e){toast(HOSTED&&e&&e.message?e.message:"Não foi possível salvar ("+(e.code||e.message||"erro")+"). Tente de novo.");return false}
 }
 async function del(col,id,sys){
   if(!canWrite){toast("Seu acesso é só de leitura.");return false}
@@ -561,10 +592,14 @@ async function del(col,id,sys){
   if(LOCAL){real[col]=real[col].filter(x=>x.id!==id);lsSet("torque."+col,real[col]);audit(col,alvo,"excluiu");render();return true}
   try{await db.collection(col).doc(id).delete();audit(col,alvo,"excluiu");return true}catch(e){toast(HOSTED&&e&&e.message?e.message:"Não foi possível excluir.");return false}
 }
+function confete(){if(matchMedia("(prefers-reduced-motion: reduce)").matches)return;const c=document.createElement("canvas"),x=c.getContext("2d"),W=c.width=innerWidth*devicePixelRatio,H=c.height=innerHeight*devicePixelRatio;c.className="confete";document.body.appendChild(c);
+  const cores=["#12304A","#0FA3A3","#3DD6C4","#AC8850","#D6BA84","#ffffff"],P=Array.from({length:180},()=>({x:W*(.2+Math.random()*.6),y:H*.35,vx:(Math.random()-.5)*W*.018,vy:-Math.random()*H*.022-H*.006,r:(4+Math.random()*6)*devicePixelRatio,c:cores[Math.random()*cores.length|0],a:Math.random()*6,va:(Math.random()-.5)*.3}));let t=0;
+  (function f(){x.clearRect(0,0,W,H);P.forEach(p=>{p.vy+=H*.0009;p.vx*=.99;p.x+=p.vx;p.y+=p.vy;p.a+=p.va;x.save();x.translate(p.x,p.y);x.rotate(p.a);x.fillStyle=p.c;x.fillRect(-p.r/2,-p.r/4,p.r,p.r/2);x.restore()});if(++t<200)requestAnimationFrame(f);else c.remove()})()}
+let FESTA_T=0;function checaFesta(){clearTimeout(FESTA_T);FESTA_T=setTimeout(()=>{if(!loaded||!pode("ajustes"))return;const P=guiaPassos();if(!P.every(x=>x[2]))return;const k="torque.festa."+String(CFG.clinica.nome||"");if(lsGet(k,false))return;lsSet(k,true);confete();toast("Parabéns! A clínica está toda configurada e pronta para atender.")},400)}
 async function saveCfg(){
   if(!canWrite){toast("Seu acesso é só de leitura.");return false}
   if(!pode("ajustes",2)){toast("Só administradores alteram as configurações.");return false}
-  const ac=()=>audit("config",{id:"clinica",nome:"Configurações da clínica"},"alterou");
+  const ac=()=>{audit("config",{id:"clinica",nome:"Configurações da clínica"},"alterou");checaFesta()};
   if(LOCAL){lsSet("torque.config",CFG);ac();render();return true}
   try{await db.doc("config/clinica").set(JSON.parse(JSON.stringify(CFG)));ac();return true}catch(e){toast("Sem permissão para alterar as configurações.");return false}
 }
@@ -629,7 +664,7 @@ async function syncReceita(a){
 }
 async function setStatus(id,st){
   const a=real.agenda.find(x=>x.id===id);if(!a){if(String(id).startsWith("ex_"))toast("Este é um agendamento de exemplo.");return}
-  a.status=st;if(await save("agenda",a,true)){await syncReceita(a);render();toast("Marcado como "+ST_LBL[st].toLowerCase()+".");if(st==="atendido"&&pode("prontuario",2)&&!real.registros.some(r=>r.agendaId===id))setTimeout(()=>openEvolucao(a.pacienteId,null,id),250)}
+  a.status=st;if(await save("agenda",a,true)){await syncReceita(a);if(st==="atendido")await baixaAuto(a);render();toast("Marcado como "+ST_LBL[st].toLowerCase()+".");if(st==="atendido"&&pode("prontuario",2)&&!real.registros.some(r=>r.agendaId===id))setTimeout(()=>openEvolucao(a.pacienteId,null,id),250)}
 }
 function waLink(tel,msg){let d=digits(tel);if(!d)return"";if(d.length<=11)d="55"+d;return"https://wa.me/"+d+"?text="+encodeURIComponent(msg)}
 function msgLembrete(a){const _t=tplAg("lembrete",a);if(_t)return _t;const p=pac(a.pacienteId)||{},c=CFG.clinica,pn=(p.nome||"").replace(/^Exemplo · /,"").split(" ")[0];const quando=a.data===addDays(today(),1)?"amanhã ("+dLong(a.data).toLowerCase()+")":a.data===today()?"hoje":dLong(a.data).toLowerCase();return `Olá, ${pn}! Lembrete da ${c.nome}: ${quando} às ${a.hora} você tem ${serv(a.servicoId).nome.toLowerCase()} com ${prof(a.profId).nome}.${c.endereco?" Endereço: "+c.endereco+".":""} Venha com roupa confortável e chegue 10 minutos antes. Se precisar remarcar, responda esta mensagem.`}
@@ -668,6 +703,7 @@ function renderNav(){const r=route().v;const cur=r==="paciente"?"pacientes":r;co
 
 function render(){
   if(!loaded)return;
+  checaFesta();
   renderNav();
   const main=$("#main"),ae=document.activeElement;
   const fid=ae&&ae.id&&main.contains(ae)?ae.id:null,sel=fid&&typeof ae.selectionStart==="number"?[ae.selectionStart,ae.selectionEnd]:null;
@@ -792,6 +828,7 @@ VIEWS.paciente=(id)=>{
     const av=avs[0];
     body=`<div class="cols"><div class="grid">${pode("prontuario")?`
      <div class="card"><h2 style="margin-bottom:10px">Evolução da dor (EVA 0–10)</h2>${pts.length>1?evaChart(pts):`<div class="empty">A curva aparece a partir de dois registros de dor (avaliação e evoluções).</div>`}</div>
+     ${resumoTimeline(id,avs,evs)}
      <div class="card"><div class="card-h"><h2>Última avaliação</h2>${av?`<span class="muted">${fmtD(av.data)} · ${esc(prof(av.profId).nome)}</span>`:""}</div>${av?`<dl class="kv"><dt>Diagnóstico cinético-funcional</dt><dd>${esc(av.diagnosticoFisio||"—")}</dd><dt>Objetivos</dt><dd>${esc(av.objetivos||"—")}</dd><dt>Conduta</dt><dd>${esc(av.conduta||"—")}</dd><dt>Plano</dt><dd>${esc((av.sessoes?av.sessoes+" sessões":"")+(av.frequencia?" · "+av.frequencia:""))||"—"}</dd></dl>`:`<div class="empty">Sem avaliação registrada.<br><button class="btn pri sm" style="margin-top:8px" onclick="T.openAvaliacao('${id}')">Fazer avaliação</button></div>`}</div>`:`<div class="card empty">Avaliações, evoluções e curva de dor ficam visíveis só para perfis com acesso ao prontuário clínico.</div>`}
     </div>
     <div class="card"><h2 style="margin-bottom:10px">Dados do paciente</h2><dl class="kv">
@@ -822,7 +859,7 @@ VIEWS.paciente=(id)=>{
    <div class="info"><h1>${esc(p.nome)}</h1><div class="meta"><span>${p.nascimento?idade(p.nascimento)+" anos":""}</span><span>${esc(p.convenio||"Particular")}</span><span><span class="dot" style="--pc:${esc(pr.cor)}"></span> ${esc(pr.nome)}</span>${pill(p.situacao||"ativo")}${prox?`<span>Próxima: ${fmtD(prox.data)} às ${esc(prox.hora)}</span>`:""}</div>
    ${pv?`<div style="margin-top:8px;max-width:360px"><div class="muted" style="font-size:12.5px">${f} de ${pv} sessões realizadas</div><div class="bar" style="margin-top:4px"><i style="width:${Math.min(100,f/pv*100)}%"></i></div></div>`:""}</div>
    <div class="tools">${p.telefone?`<a class="btn wa" target="_blank" rel="noopener" href="${waLink(p.telefone,"Olá, "+p.nome.replace("Exemplo · ","").split(" ")[0]+"! Aqui é da "+CFG.clinica.nome+".")}">WhatsApp</a>`:""}
-    ${pode("pacientes",2)?`<button class="btn" onclick="T.openPaciente('${id}')">Editar</button>`:""}${pode("prontuario")||pode("financeiro")?`<button class="btn" onclick="T.openDocs('${id}')">Documentos</button>`:""}${pode("prontuario",2)?`<button class="btn" onclick="T.openFicha('${id}')">+ Ficha</button><button class="btn" onclick="T.openAvaliacao('${id}')">+ Avaliação</button>`:""}${pode("agenda",2)?`<button class="btn" onclick="T.openAppt(null,{pacienteId:'${id}'})">Agendar</button>`:""}${pode("prontuario",2)?`<button class="btn pri" onclick="T.openEvolucao('${id}')">+ Evolução</button>`:""}</div></div></div>
+    ${pode("pacientes",2)?`<button class="btn" onclick="T.openPaciente('${id}')">Editar</button>`:""}${pode("prontuario")||pode("financeiro")?`<button class="btn" onclick="T.openDocs('${id}')">Documentos</button>`:""}<button class="btn" onclick="T.imprimir()" title="Imprimir a ficha desta aba">Imprimir</button>${pode("prontuario",2)?`<button class="btn" onclick="T.openFicha('${id}')">+ Ficha</button><button class="btn" onclick="T.openAvaliacao('${id}')">+ Avaliação</button>`:""}${pode("agenda",2)?`<button class="btn" onclick="T.openAppt(null,{pacienteId:'${id}'})">Agendar</button>`:""}${pode("prontuario",2)?`<button class="btn pri" onclick="T.openEvolucao('${id}')">+ Evolução</button>`:""}</div></div></div>
   <div class="tabs">${T_.map(([k,l])=>`<button class="${tab===k?"on":""}" onclick="T.ui('pTab','${k}')">${l}</button>`).join("")}</div>
   <div class="grid">${body}</div>`;
 };
@@ -842,6 +879,20 @@ function recAvaliacao(a){
   <dl class="kv">${[["Queixa principal",a.queixa],["História da doença atual",a.hda],["Antecedentes / HPP",a.hpp],["Medicamentos",a.medicamentos],["Exames complementares",a.exames],["Dor (EVA)",a.eva!==undefined&&a.eva!==""?a.eva+"/10"+(a.dorLocal?" · "+a.dorLocal:""):""],["Inspeção / palpação",a.inspecao],["Testes especiais",a.testes],["Escalas funcionais",a.escalas],["Disfunções somáticas (osteopatia)",a.disfuncoes],["Diagnóstico cinético-funcional",a.diagnosticoFisio],["Objetivos",a.objetivos],["Conduta / plano",a.conduta],["Sessões e frequência",[a.sessoes?a.sessoes+" sessões":"",a.frequencia].filter(Boolean).join(" · ")]].filter(x=>x[1]).map(x=>`<dt>${x[0]}</dt><dd>${esc(x[1])}</dd>`).join("")}</dl>
   ${tb(a.gonio,["Articulação","Movimento","D (°)","E (°)"])}${tb(a.forca,["Músculo / grupo","Observação","D (0–5)","E (0–5)"])}${(a.testesOrto||[]).length?`<div><h3 style="margin:4px 0 6px">Testes especiais</h3><div class="tbl-wrap"><table class="mini-t"><thead><tr><th>Região</th><th>Teste</th><th>D</th><th>E</th><th>Observação</th></tr></thead><tbody>${sortT(a.testesOrto).map(t=>`<tr><td class="muted">${esc(tReg(t.k))}</td><td>${esc(tName(t.k))}</td><td>${tBadge("",t.d)}</td><td>${tBadge("",t.e)}</td><td>${esc(t.obs||"")}</td></tr>`).join("")}</tbody></table></div></div>`:""}${adendosHtml(a)}</div>`;
 }
+function resumoTimeline(pid,avs,evs){
+  const faltas=S().agenda.filter(a=>a.pacienteId===pid&&a.status==="faltou").map(a=>({t:"falta",d:a.data,a}));
+  const asc=[...evs].sort((a,b)=>a.data.localeCompare(b.data)||String(a.criadoEm).localeCompare(String(b.criadoEm))),nS={};asc.forEach((e,i)=>nS[e.id]=i+1);
+  const it=[...avs.map(r=>({t:"av",d:r.data,r})),...evs.map(r=>({t:"ev",d:r.data,r})),...faltas].sort((a,b)=>b.d.localeCompare(a.d));
+  if(!it.length)return `<div class="card"><h2>Linha do tempo da evolução</h2><div class="empty">A linha do tempo começa na avaliação.${pode("prontuario",2)?`<br><button class="btn pri sm" style="margin-top:8px" onclick="T.openAvaliacao('${pid}')">Fazer avaliação</button>`:""}</div></div>`;
+  const av0=[...avs].sort((a,b)=>a.data.localeCompare(b.data))[0],ult=asc[asc.length-1],e0=av0&&av0.eva!==""&&av0.eva!=null?num(av0.eva):null,e1=ult&&ult.evaPos!==""&&ult.evaPos!=null?num(ult.evaPos):null;
+  const mel=e0!==null&&e1!==null&&e0>0?Math.round((e0-e1)/e0*100):null,pac0=pac(pid)||{},pv=num(pac0.sessoesPrevistas),feitas=evs.length;
+  const cor=v=>v===""||v==null?"var(--muted)":num(v)>=7?"var(--bad)":num(v)>=4?"var(--warn)":"var(--ok)";
+  const no=x=>{if(x.t==="falta")return `<li class="rt-i falta"><span class="rt-m">✕</span><div><b>Faltou</b> <span class="muted">${fmtD(x.d)} · ${esc(x.a.hora||"")}</span></div></li>`;
+    const r=x.r;if(x.t==="av")return `<li class="rt-i av"><span class="rt-m">A</span><div><div class="rt-h"><b>Avaliação</b><span class="muted">${fmtD(r.data)} · ${esc(prof(r.profId).nome)}</span>${r.eva!==undefined&&r.eva!==""?`<span class="rt-eva" style="--ec:${cor(r.eva)}">EVA ${esc(r.eva)}</span>`:""}</div>${r.queixa?`<p>${esc(String(r.queixa).slice(0,180))}</p>`:""}${r.diagnosticoFisio?`<p class="muted">${esc(String(r.diagnosticoFisio).slice(0,160))}</p>`:""}</div></li>`;
+    return `<li class="rt-i"><span class="rt-m">${nS[r.id]||"•"}</span><div><div class="rt-h"><b>Sessão ${nS[r.id]||""}</b><span class="muted">${fmtD(r.data)} · ${esc(prof(r.profId).nome)}</span>${r.evaPre!==undefined&&r.evaPre!==""?`<span class="rt-eva" style="--ec:${cor(r.evaPos??r.evaPre)}">EVA ${esc(r.evaPre)} → ${esc(r.evaPos??"–")}</span>`:""}</div>${(r.tecnicas||[]).length?`<div class="chips">${r.tecnicas.slice(0,5).map(t=>`<span class="chip">${esc(t)}</span>`).join("")}</div>`:""}${r.a||r.s?`<p>${esc(String(r.a||r.s).slice(0,200))}</p>`:""}</div></li>`};
+  return `<div class="card rt"><div class="card-h"><h2>Linha do tempo da evolução</h2><button class="btn sm" onclick="T.ui('pTab','linha')">Ver completa</button></div>
+   <div class="rt-k"><div><span>Evoluções registradas</span><b class="num">${feitas}${pv?" / "+pv:""}</b>${pv?`<div class="bar"><i style="width:${Math.min(100,feitas/pv*100)}%"></i></div>`:""}</div><div><span>Dor (EVA)</span><b class="num">${e0!==null?e0:"–"} → ${e1!==null?e1:"–"}</b></div><div><span>Melhora da dor</span><b class="num" style="color:${mel>0?"var(--ok)":mel<0?"var(--bad)":""}">${mel!==null?(mel>0?"−":"+")+Math.abs(mel)+"%":"–"}</b></div></div>
+   <ol class="rt-l">${it.slice(0,8).map(no).join("")}</ol>${it.length>8?`<p class="muted" style="margin:6px 0 0;font-size:12.5px">Mostrando os 8 registros mais recentes de ${it.length}.</p>`:""}</div>`}
 function recEvolucao(e){
   return `<div class="rec"><div class="rec-h"><h2>Evolução · ${fmtD(e.data)}</h2><span class="muted">${esc(prof(e.profId).nome)}${e.evaPre!==undefined&&e.evaPre!==""?` · EVA ${esc(e.evaPre)} → ${esc(e.evaPos??"-")}`:""}</span></div>
   ${e.tecnicas&&e.tecnicas.length?`<div class="chips">${e.tecnicas.map(t=>`<span class="chip">${esc(t)}</span>`).join("")}</div>`:""}
@@ -1206,11 +1257,13 @@ function openFin(id,tipo,st){
     <label class="f">Status<select id="fi-st" name="status">${opt("pago","Pago",f0.status)}${opt("pendente","Pendente",f0.status)}</select></label>
     <label class="f">Pago em<input type="date" id="fi-pg" name="pagoEm" value="${esc(f0.pagoEm||"")}"></label>
     ${f0.tipo==="receita"?`<label class="f">Paciente<select id="fi-pac" name="pacienteId">${opt("","—",f0.pacienteId)}${[...s.pacientes].sort((a,b)=>a.nome.localeCompare(b.nome)).map(p=>opt(p.id,p.nome,f0.pacienteId)).join("")}</select></label><label class="f">Profissional (produção)<select id="fi-prof" name="profId">${opt("","—",f0.profId)}${profs(true).map(p=>opt(p.id,p.nome,f0.profId)).join("")}</select></label>`:""}
+    <div class="spanall">${asaasBloco(f0)}</div>
+    ${fiscal().regime==="hibrido"?`<label class="f">${f0.tipo==="receita"?"Faturada como":"Paga por"}<select name="emissor">${opt("pj","Pessoa jurídica (PJ)",f0.emissor||"pj")}${opt("pf","Pessoa física (PF)",f0.emissor||"pj")}</select></label>`:""}
     ${!id?`<label class="f">Repetir todo mês por<select id="fi-rep" name="rep">${[1,2,3,6,12].map(n=>opt(n,n===1?"Não repetir":n+" meses","1")).join("")}</select></label>`:""}
    </div>`,
    `${id?`<span class="lft">${confirmBtn("Excluir",`T.delFin('${id}')`)}</span>`:""}<button type="button" class="btn" onclick="T.close()">Cancelar</button><button class="btn pri">Salvar</button>`,
    async f=>{
-     const o=Object.assign({},f0);["descricao","data","categoria","forma","status","pagoEm","pacienteId","profId","centroCusto"].forEach(k=>{if(f.elements[k])o[k]=fv(f,k)});o.valor=num(fv(f,"valor"));
+     const o=Object.assign({},f0);["descricao","data","categoria","forma","status","pagoEm","pacienteId","profId","centroCusto","emissor"].forEach(k=>{if(f.elements[k])o[k]=fv(f,k)});o.valor=num(fv(f,"valor"));
      if(!o.descricao||!o.valor){toast("Informe descrição e valor.");return}
      if(o.status==="pago"&&!o.pagoEm)o.pagoEm=today();if(o.status!=="pago")o.pagoEm="";
      const rep=num(fv(f,"rep"))||1;
@@ -1496,7 +1549,7 @@ VIEWS.financeiro=()=>{
   const R=periodo(UI.fPer),c=finCalc(R),p=finCalc(R.prev),s=S(),hoje=today();
   const inad=s.financeiro.filter(f=>f.tipo==="receita"&&finStatus(f)==="vencido"),inadV=inad.reduce((x,f)=>x+num(f.valor),0);
   const proj=inR(hoje,R)&&R.n===1?c.recebido/parseD(hoje).getDate()*parseD(R.fim).getDate():c.recebido+c.aReceber;
-  const T_=[["painel","Painel"],["inad",`Inadimplência (${inad.length})`],["contas","Contas a pagar/receber"],["cat","Categorias"],["cc","Centros de custo"],["rep","Repasses"]];
+  const T_=[["painel","Painel"],["dre","DRE"],["inad",`Inadimplência (${inad.length})`],["contas","Contas a pagar/receber"],["cat","Categorias"],["cc","Centros de custo"],["rep","Repasses"]];
   let body="";const tab=UI.fTab;
   if(tab==="painel"){
     const porForma={},porCat={};c.recPag.forEach(f=>{const k=f.forma||"Não informado";porForma[k]=(porForma[k]||0)+num(f.valor);const g=f.categoria||"Sem categoria";porCat[g]=(porCat[g]||0)+num(f.valor)});
@@ -1515,6 +1568,8 @@ VIEWS.financeiro=()=>{
   }else if(tab==="cat"){
     const tot=(tp)=>{const o={};s.financeiro.filter(f=>f.tipo===tp&&f.status==="pago"&&inR(f.pagoEm||f.data,R)).forEach(f=>{const k=f.categoria||"Sem categoria";o[k]=(o[k]||0)+num(f.valor)});return Object.entries(o).sort((a,b)=>b[1]-a[1])};
     body=`<div class="grid g2"><div class="card"><h2>Receitas por categoria</h2><p class="muted sub2">Recebidas no período</p>${hbars(tot("receita"),brl,"var(--ok)")}</div><div class="card"><h2>Despesas por categoria</h2><p class="muted sub2">Pagas no período</p>${hbars(tot("despesa"),brl,"var(--bad)")}</div></div><p class="muted" style="font-size:12.5px">As categorias são editadas em <a href="#ajustes">Ajustes</a>.</p>`;
+  }else if(tab==="dre"){
+    body=dreView(R);
   }else if(tab==="cc"){
     const o={};s.financeiro.filter(f=>f.status==="pago"&&inR(f.pagoEm||f.data,R)).forEach(f=>{const k=f.centroCusto||"Sem centro de custo";o[k]=o[k]||{r:0,d:0};o[k][f.tipo==="despesa"?"d":"r"]+=num(f.valor)});
     const rows=Object.entries(o).sort((a,b)=>(b[1].r-b[1].d)-(a[1].r-a[1].d));
@@ -1527,7 +1582,7 @@ VIEWS.financeiro=()=>{
   }
   const K=(l,v,pv,inv,col,sub)=>`<div class="kpi"><span>${l}</span><b ${col?`style="color:${col}"`:""}>${v}</b>${sub||delta(...pv,inv)}</div>`;
   return `<div class="head"><div><h1>Finanças</h1><div class="sub">Indicadores por período, avisos de vencimento, inadimplência e contas</div></div>
-  <div class="tools"><button class="btn" onclick="T.openFin(null,'despesa','pendente')">Conta a pagar</button><button class="btn" onclick="T.openFin(null,'receita','pendente')">Conta a receber</button><button class="btn pri" onclick="T.openFin(null,'receita')">+ Nova transação</button><button class="btn ghost" onclick="T.csvFin()">Exportar planilha</button></div></div>
+  <div class="tools"><button class="btn" onclick="T.openFin(null,'despesa','pendente')">Conta a pagar</button><button class="btn" onclick="T.openFin(null,'receita','pendente')">Conta a receber</button><button class="btn pri" onclick="T.openFin(null,'receita')">+ Nova transação</button><button class="btn ghost" onclick="T.csvFin()">Exportar planilha</button><button class="btn ghost" onclick="T.imprimir()">Imprimir</button></div></div>
   <div class="tools perrow"><label class="f">Período<select id="f-per" onchange="T.ui('fPer',this.value)">${PERIODOS.map(x=>opt(x[0],x[1],UI.fPer)).join("")}</select></label><span class="muted">${esc(R.label)} (${R.txt}) · comparado com ${R.prev.ini.split("-").reverse().join("/")} a ${fmtD(R.prev.fim)}</span></div>
   <div class="kpis k4">${K("Recebido",brl(c.recebido),[c.recebido,p.recebido],0,"var(--ok)")}${K("A receber",brl(c.aReceber),[c.aReceber,p.aReceber],0,"var(--warn)")}${K("Pago",brl(c.pago),[c.pago,p.pago],1,"var(--bad)")}${K("A pagar",brl(c.aPagar),[c.aPagar,p.aPagar],1)}
   ${K("Saldo do período",brl(c.saldo),[c.saldo,p.saldo],0,c.saldo<0?"var(--bad)":"")}${K("Ticket médio",brl(c.ticket),[c.ticket,p.ticket],0)}${K("Inadimplência total",brl(inadV),0,0,inadV?"var(--bad)":"",`<small>${inad.length} lançamento(s) vencido(s)</small>`)}${K("Projeção do período",brl(proj),0,0,"",`<small>${inR(hoje,R)&&R.n===1?"no ritmo dos dias já corridos":"recebido + a receber"}</small>`)}</div>
@@ -1584,10 +1639,35 @@ VIEWS.estoque=()=>{
    :(L.length?`<div class="tbl-wrap"><table><thead><tr><th>Item</th><th>Categoria</th><th class="r">Saldo</th><th class="r">Mínimo</th><th>Validade</th><th>Situação</th><th class="r">Ações</th></tr></thead><tbody>${L.map(i=>{const st=situEst(i);return `<tr${i.arquivado?' style="opacity:.55"':""}><td><b>${esc(i.nome)}</b>${i.codigo?`<div class="muted num" style="font-size:12px">${esc(i.codigo)}</div>`:""}</td><td>${esc(i.categoria||"")}</td><td class="r num"><b>${num(i.saldo)}</b> ${esc(i.unidade||"")}</td><td class="r num">${num(i.minimo)}</td><td class="num">${fmtD(i.validade)}</td><td><span class="pill st-${st[0]}">${esc(st[1])}</span></td><td class="r" style="white-space:nowrap"><button class="btn sm" onclick="T.openMov('${i.id}','entrada')">Entrada</button> <button class="btn sm" onclick="T.openMov('${i.id}','saida')">Saída</button> <button class="btn sm ghost" onclick="T.openItem('${i.id}')">Editar</button></td></tr>`}).join("")}</tbody></table></div>`:`<div class="card empty">Nenhum item cadastrado. Comece com “+ Novo item”.</div>`);
   return `<div class="head"><div><h1>Controle de estoque</h1><div class="sub">Materiais, insumos e equipamentos da clínica</div></div><div class="tools"><button class="btn pri" onclick="T.openItem()">+ Novo item</button></div></div>
   <div class="kpis"><div class="kpi"><span>Itens ativos</span><b>${at.length}</b></div><div class="kpi"><span>Abaixo do mínimo</span><b style="color:${baixo.length?"var(--warn)":""}">${baixo.length}</b><small>${zero.length} sem estoque</small></div><div class="kpi"><span>Vencidos ou vencendo em 30 dias</span><b style="color:${venc.length?"var(--bad)":""}">${venc.length}</b></div><div class="kpi"><span>Valor em estoque</span><b>${brl(valor)}</b><small>saldo × custo unitário</small></div></div>
-  <div class="tabs"><button class="${UI.eTab!=="mov"?"on":""}" onclick="T.ui('eTab','itens')">Itens</button><button class="${UI.eTab==="mov"?"on":""}" onclick="T.ui('eTab','mov')">Movimentações</button></div>
-  ${UI.eTab!=="mov"?`<div class="tools"><input type="search" id="e-busca" placeholder="Buscar por nome ou código" value="${esc(UI.eBusca)}" oninput="T.ui('eBusca',this.value)" style="width:260px;max-width:100%"><select id="e-cat" onchange="T.ui('eCat',this.value)">${opt("","Todas as categorias",UI.eCat)}${(CFG.catEstoque||[]).map(x=>opt(x,x,UI.eCat)).join("")}</select><label class="f chk"><input type="checkbox" id="e-arq" ${UI.eArq?"checked":""} onchange="T.ui('eArq',this.checked)"> Mostrar arquivados</label><span class="muted">${L.length} item(ns)</span></div>`:""}
-  ${body}`;
+  <div class="tabs"><button class="${!["mov","compras","consumo"].includes(UI.eTab)?"on":""}" onclick="T.ui('eTab','itens')">Itens</button><button class="${UI.eTab==="compras"?"on":""}" onclick="T.ui('eTab','compras')">Lista de compras (${baixo.length})</button><button class="${UI.eTab==="consumo"?"on":""}" onclick="T.ui('eTab','consumo')">Consumo</button><button class="${UI.eTab==="mov"?"on":""}" onclick="T.ui('eTab','mov')">Movimentações</button></div>
+  ${UI.eTab==="compras"?estCompras(at):UI.eTab==="consumo"?estConsumo(at):""}
+  ${!["mov","compras","consumo"].includes(UI.eTab)?`<div class="tools"><input type="search" id="e-busca" placeholder="Buscar por nome ou código" value="${esc(UI.eBusca)}" oninput="T.ui('eBusca',this.value)" style="width:260px;max-width:100%"><select id="e-cat" onchange="T.ui('eCat',this.value)">${opt("","Todas as categorias",UI.eCat)}${(CFG.catEstoque||[]).map(x=>opt(x,x,UI.eCat)).join("")}</select><label class="f chk"><input type="checkbox" id="e-arq" ${UI.eArq?"checked":""} onchange="T.ui('eArq',this.checked)"> Mostrar arquivados</label><span class="muted">${L.length} item(ns)</span></div>`:""}
+  ${["compras","consumo"].includes(UI.eTab)?"":body}`;
 };
+const sugCompra=i=>Math.max(num(i.minimo)*2-num(i.saldo),num(i.minimo),1);
+function estCompras(at){const L=at.filter(i=>num(i.saldo)<=num(i.minimo)).sort((a,b)=>String(a.fornecedor||"~").localeCompare(String(b.fornecedor||"~"),"pt-BR")||String(a.nome).localeCompare(String(b.nome),"pt-BR"));
+  if(!L.length)return `<div class="card empty">Nenhum item abaixo do mínimo. Quando um item chegar ao estoque mínimo, ele aparece aqui com a quantidade sugerida para compra.</div>`;
+  const tot=L.reduce((x,i)=>x+sugCompra(i)*num(i.custo),0),porF={};L.forEach(i=>{const k=i.fornecedor||"";(porF[k]=porF[k]||[]).push(i)});
+  const msg=(f,I)=>`Olá${f?", "+f:""}! Aqui é da ${CFG.clinica.nome}. Gostaria de um orçamento para:
+${I.map(i=>`• ${i.nome}${i.codigo?" ("+i.codigo+")":""}: ${sugCompra(i)} ${i.unidade||"un"}`).join("\n")}
+Obrigado(a)!`;
+  return `<div class="card"><div class="card-h"><div><h2>Lista de compras</h2><div class="muted">Itens no estoque mínimo ou abaixo. Quantidade sugerida = o dobro do mínimo menos o saldo.</div></div><div class="tools"><button class="btn" onclick="T.imprimir()">Imprimir lista</button></div></div>
+   ${Object.entries(porF).map(([f,I])=>{const tel=(I.find(i=>i.fornecedorTel)||{}).fornecedorTel;return `<h3 class="cp-f">${esc(f||"Sem fornecedor definido")}${tel?` <a class="btn sm wa" target="_blank" rel="noopener" href="${waLink(tel,msg(f,I))}">Pedir orçamento no WhatsApp</a>`:""}</h3>
+    <div class="tbl-wrap"><table><thead><tr><th>Item</th><th class="r">Saldo</th><th class="r">Mínimo</th><th class="r">Comprar</th><th class="r">Custo estimado</th><th class="r no-print"></th></tr></thead><tbody>${I.map(i=>`<tr><td><b>${esc(i.nome)}</b>${i.codigo?`<div class="muted num" style="font-size:12px">${esc(i.codigo)}</div>`:""}</td><td class="r num" style="color:${num(i.saldo)<=0?"var(--bad)":"var(--warn)"}">${num(i.saldo)} ${esc(i.unidade||"")}</td><td class="r num">${num(i.minimo)}</td><td class="r num"><b>${sugCompra(i)}</b> ${esc(i.unidade||"")}</td><td class="r num">${num(i.custo)?brl(sugCompra(i)*num(i.custo)):"—"}</td><td class="r no-print"><button class="btn sm" onclick="T.openMov('${i.id}','entrada')">Registrar compra</button></td></tr>`).join("")}</tbody></table></div>`}).join("")}
+   <p class="cp-tot">Total estimado: <b class="num">${brl(tot)}</b></p></div>`}
+function estConsumo(at){const s=S(),t=today(),M=[];for(let k=5;k>=0;k--){const d=parseD(t);d.setDate(1);d.setMonth(d.getMonth()-k);M.push(iso(d).slice(0,7))}
+  const it=id=>s.estoque.find(i=>i.id===id)||{},sai=s.movest.filter(m=>m.tipo==="saida"),porM=M.map(m=>[mesNome(m).replace(/ de \d{4}$/,"").slice(0,3),sai.filter(x=>String(x.data).slice(0,7)===m).reduce((a,x)=>a+num(x.qtd)*num(it(x.itemId).custo),0)]);
+  const ini90=addDays(t,-90),c90={};sai.filter(x=>x.data>=ini90).forEach(x=>{c90[x.itemId]=(c90[x.itemId]||0)+num(x.qtd)});
+  const rows=Object.entries(c90).map(([id,q])=>{const i=it(id),dia=q/90;return{i,q,mes:q/3,custo:q/3*num(i.custo),dura:dia>0?Math.floor(num(i.saldo)/dia):null}}).filter(r=>r.i.nome).sort((a,b)=>b.custo-a.custo||b.q-a.q);
+  const auto=at.filter(i=>(i.consumo||[]).length);
+  return `<div class="grid g2"><div class="card"><h2>Custo de material por mês</h2><p class="muted sub2">Saídas × custo unitário, últimos 6 meses</p>${hbars(porM,brl,"var(--accent)")}</div>
+   <div class="card"><h2>Baixa automática por procedimento</h2><p class="muted sub2">Ao marcar um atendimento como “Atendido”, estes materiais saem do estoque sozinhos.</p>${auto.length?`<ul class="cons-l">${auto.map(i=>`<li><b>${esc(i.nome)}</b>: ${i.consumo.map(c=>`${num(c.qtd)} ${esc(i.unidade||"un")} por ${esc(serv(c.servId).nome)}`).join("; ")}</li>`).join("")}</ul>`:`<div class="empty" style="padding:12px">Nenhum item com baixa automática. Configure em cada item, no campo “Consumo por procedimento”.</div>`}</div></div>
+   <div class="card"><h2>Mais consumidos (últimos 90 dias)</h2>${rows.length?`<div class="tbl-wrap"><table><thead><tr><th>Item</th><th class="r">Saída em 90 dias</th><th class="r">Média por mês</th><th class="r">Custo por mês</th><th class="r">Saldo dura</th></tr></thead><tbody>${rows.slice(0,15).map(r=>`<tr><td><b>${esc(r.i.nome)}</b></td><td class="r num">${+r.q.toFixed(2)} ${esc(r.i.unidade||"")}</td><td class="r num">${+r.mes.toFixed(1)}</td><td class="r num">${brl(r.custo)}</td><td class="r num" style="color:${r.dura!==null&&r.dura<15?"var(--bad)":""}">${r.dura===null?"—":r.dura+" dia(s)"}</td></tr>`).join("")}</tbody></table></div>`:`<div class="empty">Sem saídas registradas nos últimos 90 dias.</div>`}</div>`}
+async function baixaAuto(a){if(!a||!a.servicoId||!pode("estoque",2)&&!pode("agenda",2))return;const I=real.estoque.filter(i=>!i.arquivado&&(i.consumo||[]).some(c=>c.servId===a.servicoId));if(!I.length)return;
+  if(real.movest.some(m=>m.agendaId===a.id))return;const pn=(pac(a.pacienteId)||{}).nome||"";let n=0;
+  for(const i of I){const q=num((i.consumo.find(c=>c.servId===a.servicoId)||{}).qtd);if(!(q>0))continue;const o=Object.assign({},i,{saldo:+(num(i.saldo)-q).toFixed(3)});
+    if(await save("movest",{itemId:i.id,tipo:"saida",qtd:q,data:a.data||today(),motivo:"Uso em atendimento (automático)",pacienteId:a.pacienteId||"",agendaId:a.id,profId:a.profId||euProf()},true,true)&&await save("estoque",o,true,true))n++}
+  if(n)toast(n+" material(is) baixado(s) do estoque para "+serv(a.servicoId).nome.toLowerCase()+(pn?" de "+pn.split(" ")[0]:"")+".")}
 function openItem(id){
   const i=id?Object.assign({},S().estoque.find(x=>x.id===id)):{unidade:"un",categoria:(CFG.catEstoque||[])[0],saldo:0,minimo:1};
   drawer(id?"Editar item":"Novo item do estoque",`<div class="grid g3">
@@ -1596,13 +1676,16 @@ function openItem(id){
    <label class="f">Unidade<select id="it-un" name="unidade">${UNIDADES.map(u=>opt(u,u,i.unidade)).join("")}</select></label>
    ${id?`<div class="f">Saldo atual<b class="num" style="font-size:18px;color:var(--fg)">${num(i.saldo)} ${esc(i.unidade||"")}</b><small>use Entrada, Saída ou Ajuste para mudar</small></div>`:`<label class="f">Saldo inicial<input type="number" id="it-sal" name="saldo" step="any" value="0"></label>`}
    <label class="f">Estoque mínimo<input type="number" id="it-min" name="minimo" step="any" value="${esc(i.minimo??"")}"></label><label class="f">Custo unitário (R$)<input type="number" id="it-cus" name="custo" step="0.01" value="${esc(i.custo??"")}"></label><label class="f">Validade<input type="date" id="it-val" name="validade" value="${esc(i.validade||"")}"></label>
-   <label class="f">Fornecedor<input type="text" id="it-for" name="fornecedor" value="${esc(i.fornecedor||"")}"></label><label class="f span2">Local de armazenamento<input type="text" id="it-loc" name="local" value="${esc(i.local||"")}"></label>
+   <label class="f">Fornecedor<input type="text" id="it-for" name="fornecedor" value="${esc(i.fornecedor||"")}"></label><label class="f">WhatsApp do fornecedor<input type="tel" id="it-ftel" name="fornecedorTel" value="${esc(i.fornecedorTel||"")}" placeholder="(81) 9 0000-0000"></label><label class="f">Local de armazenamento<input type="text" id="it-loc" name="local" value="${esc(i.local||"")}"></label>
+   <fieldset class="spanall cons-fs"><legend>Consumo por procedimento (baixa automática)</legend><p class="muted" style="margin:0 0 8px;font-size:12.5px">Quanto deste item cada atendimento usa. Ao marcar o atendimento como “Atendido”, a saída é registrada sozinha.</p>
+    <div id="it-cons">${(i.consumo||[]).map(consRow).join("")}</div><button type="button" class="btn sm" onclick="document.getElementById('it-cons').insertAdjacentHTML('beforeend',T.consRow({}))">+ Procedimento</button></fieldset>
    ${id?`<label class="f chk spanall"><input type="checkbox" id="it-arq" name="arquivado" ${i.arquivado?"checked":""}> Arquivar (some da lista e dos indicadores)</label>`:""}</div>
    ${id?`<div class="tools"><button type="button" class="btn sm" onclick="T.openMov('${id}','ajuste')">Ajustar saldo (inventário)</button></div>`:""}`,
    `<button type="button" class="btn" onclick="T.close()">Cancelar</button><button class="btn pri">Salvar</button>`,
-   async f=>{const o=Object.assign({},i);["nome","codigo","categoria","unidade","validade","fornecedor","local"].forEach(k=>o[k]=fv(f,k));o.minimo=num(fv(f,"minimo"));o.custo=num(fv(f,"custo"));if(!id)o.saldo=num(fv(f,"saldo"));if(f.elements.arquivado)o.arquivado=fv(f,"arquivado");if(!o.nome){toast("Informe o nome do item.");return}
+   async f=>{const o=Object.assign({},i);["nome","codigo","categoria","unidade","validade","fornecedor","fornecedorTel","local"].forEach(k=>o[k]=fv(f,k));o.consumo=$$("#it-cons .cons-r").map(r=>({servId:r.querySelector("select").value,qtd:num(r.querySelector("input").value)})).filter(c=>c.servId&&c.qtd>0);o.minimo=num(fv(f,"minimo"));o.custo=num(fv(f,"custo"));if(!id)o.saldo=num(fv(f,"saldo"));if(f.elements.arquivado)o.arquivado=fv(f,"arquivado");if(!o.nome){toast("Informe o nome do item.");return}
      if(await save("estoque",o,true)){if(!id&&o.saldo)await save("movest",{itemId:o.id,tipo:"entrada",qtd:o.saldo,data:today(),motivo:"Saldo inicial",profId:euProf()},true);closeM();render();toast("Item salvo.")}});
 }
+const consRow=c=>`<div class="cons-r"><select aria-label="Procedimento">${opt("","Escolha o procedimento",c.servId||"")}${CFG.servicos.map(x=>opt(x.id,x.nome,c.servId||"")).join("")}</select><input type="number" step="any" min="0" value="${esc(c.qtd??1)}" aria-label="Quantidade por atendimento"><button type="button" class="btn sm ghost danger" onclick="this.parentNode.remove()">Remover</button></div>`;
 function openMov(itemId,tipo){
   const it=S().estoque.find(x=>x.id===itemId);if(!it)return;const P=[...S().pacientes].sort((a,b)=>a.nome.localeCompare(b.nome,"pt-BR"));
   const mot={entrada:["Compra","Doação","Devolução"],saida:["Uso em atendimento","Perda ou vencimento","Quebra","Empréstimo"],ajuste:["Ajuste de inventário"]};
@@ -1781,6 +1864,7 @@ function renderTop(){const t=$("#topbar");if(!t)return;
   <div class="tb-act"><label class="eu"><span>Você:</span><select id="eu-sel" onchange="T.chatProf(this.value)">${profs(true).map(p=>opt(p.id,p.nome,euProf())).join("")}</select></label>
    <div class="dd"><button type="button" class="ib" onclick="T.dd()" aria-label="Criar novo" title="Criar">+</button><div class="dd-m" id="dd-add" hidden>${ddItens()}</div></div>
    <button type="button" class="ib" onclick="T.go('inicio')" aria-label="Pendências" title="Pendências">${ICO_BELL}<i class="nb" id="bell-n" hidden></i></button>
+   <button type="button" class="ib" onclick="T.imprimir()" aria-label="Imprimir esta tela" title="Imprimir esta tela"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V3h12v6"/><rect x="3" y="9" width="18" height="8" rx="2"/><path d="M6 14h12v7H6z"/></svg></button>
    <button type="button" class="ib" onclick="T.tema()" aria-label="Alternar tema claro ou escuro" title="Tema">${ICO_SUN}</button></div></div>`;updTop()}
 function updTop(){const b=$("#bell-n");if(b){const n=contaPend();b.hidden=!n;b.textContent=n}const fc=$("#fab-chat-n");if(fc){const n=naoLidas();fc.hidden=!n;fc.textContent=n}}
 function gsRes(q){q=String(q||"").trim().toLowerCase();if(!q)return[];const qd=digits(q),R=[];
@@ -1810,7 +1894,8 @@ const HELP={
 function openAjuda(){const v=route().v,L=HELP[v]||[];
   drawer("Preciso de ajuda",`${L.length?`<div class="card"><h3>Nesta tela</h3><ul>${L.map(x=>`<li>${esc(x)}</li>`).join("")}</ul></div>`:""}
   <div class="card"><h3>Atalhos</h3><ul><li><b>Ctrl K</b> (ou ⌘K): buscar paciente ou seção.</li><li><b>+</b> no topo: criar paciente, agendamento, receita ou despesa.</li><li>O sino mostra as pendências do dia.</li><li><b>Você</b>: escolha seu nome para assinar o chat e a auditoria.</li></ul></div>
-  <div class="tools"><button type="button" class="btn pri" onclick="T.close();T.go('assistente')">Perguntar à KIN</button><button type="button" class="btn" onclick="T.close();T.go('chat')">Falar com a equipe</button></div>`,`<button type="button" class="btn" onclick="T.close()">Fechar</button>`,null)}
+  <div class="tools"><button type="button" class="btn pri" onclick="T.close();T.go('assistente')">Perguntar à KIN</button><button type="button" class="btn" onclick="T.close();T.go('chat')">Falar com a equipe</button></div>
+  <div class="card versao"><h3>Sobre o sistema</h3><dl class="kv"><dt>Versão</dt><dd><b class="num">${APP_VERSAO}</b> · ${APP_DATA}</dd><dt>Funcionamento</dt><dd>${HOSTED?"Site próprio da clínica (servidor seguro)":LOCAL?"Neste navegador":"Dentro do Claude, com banco compartilhado"}</dd><dt>Prontuário</dt><dd>Res. COFFITO 414/2012 · LGPD</dd></dl></div>`,`<button type="button" class="btn" onclick="T.close()">Fechar</button>`,null)}
 
 /* ---------- Documentos: agenda do dia e relatório ---------- */
 function docShell(titulo,corpo){return `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>${esc(titulo)}</title><style>body{margin:0;background:#eee;font-family:Arial,sans-serif;color:#1b1b1b}.pg{background:#fff;max-width:900px;margin:20px auto;padding:40px 48px}.lh{display:flex;align-items:center;gap:12px;border-bottom:2px solid #AC8850;padding-bottom:10px;margin-bottom:18px}.lh svg{width:44px;height:44px}.lh b{font-size:18px;color:#12304A;display:block}.lh small{color:#555;font-size:11.5px}h1{font-size:18px;margin:0 0 4px}h2{font-size:14px;margin:20px 0 6px;color:#12304A}table{border-collapse:collapse;width:100%;font-size:12.5px}th,td{border-bottom:1px solid #ddd;padding:6px 8px;text-align:left}th{background:#f3f3f3}td.r,th.r{text-align:right}.muted{color:#666;font-size:12px}@media print{body{background:#fff}.pg{margin:0;padding:12mm}}</style></head><body><div class="pg"><div class="lh">${logoDoc()}<div><b>${esc(CFG.clinica.nome)}</b><small>${esc([CFG.clinica.endereco,CFG.clinica.cidade,CFG.clinica.telefone].filter(Boolean).join(" · "))}</small></div></div>${corpo}</div><script>window.onload=()=>window.print()<\/script></body></html>`}
@@ -1887,6 +1972,7 @@ const PERM_PAD={
 const VIEW_MOD={inicio:"inicio",agenda:"agenda",pacientes:"pacientes",paciente:"pacientes",modelos:"modelos",chat:"chat",crm:"crm",financeiro:"financeiro",relatorios:"relatorios",estoque:"estoque",tiss:"tiss",satisfacao:"satisfacao",assistente:"ia",evidencias:"ia",bulas:"ia",migracao:"migracao",auditoria:"auditoria",ajustes:"ajustes",usuarios:"ajustes",plano:"ajustes"};
 const COL_MOD={pacientes:"pacientes",agenda:"agenda",espera:"agenda",bloqueios:"agenda",notas:"agenda",registros:"prontuario",modelos:"modelos",chat:"chat",leads:"crm",financeiro:"financeiro",estoque:"estoque",movest:"estoque",guias:"tiss",pesquisas:"satisfacao",usuarios:"ajustes",faturas:"ajustes"};
 const TAB_MOD={resumo:"pacientes",linha:"prontuario",fichas:"prontuario",avaliacoes:"prontuario",evolucoes:"prontuario",agenda:"agenda",financeiro:"financeiro"};
+const APP_VERSAO="3.1.0",APP_DATA="21/11/2026";
 const HOSTED=!!window.__KINESIS_HOSTED;let OWNER=true,USERCAP=null,USU_OK=false;const NOMES={};
 const PLANOS_PAD=[
   {id:"essencial",nome:"Essencial",sub:"Para quem atende sozinho ou em dupla",usuarios:2,preco:129,kinMes:100,kinInstr:false,bloq:["crm","estoque","tiss","satisfacao","auditoria"],
@@ -2223,15 +2309,115 @@ function kinForm(){
 const kinLer=f=>({ativo:fv(f,"ativo"),provedor:(f.querySelector("input[name=provedor]:checked")||{}).value,modelo:fv(f,"modelo"),chave:fv(f,"chave"),instrucoes:fv(f,"instrucoes"),limite:num(fv(f,"limite"))});
 async function kinPut(body){const r=await fetch("/api/ia/config",{method:"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)}),j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.erro||"Não foi possível salvar.");
   KINCFG=j;window.__KINESIS_IA_OK=j.disponivel;window.__KINESIS_IA_PROV=j.provedor;SAMPLE=undefined;IA.ok=null;audit("config",{id:"kin",nome:"Configurações da KIN"},"alterou");return j}
+/* ---------- DRE e regime fiscal (estimativas para gestão) ---------- */
+const FISCAL_PAD={regime:"pj",tributacao:"simples",anexo:"III",aliqEfetiva:"",iss:3,tetoInss:8157.41,inssPf:true};
+const fiscal=()=>Object.assign({},FISCAL_PAD,CFG.fiscal||{});
+const SN_TAB={III:[[180000,.06,0],[360000,.112,9360],[720000,.135,17640],[1800000,.16,35640],[3600000,.21,125640],[4800000,.33,648000]],
+  V:[[180000,.155,0],[360000,.18,4500],[720000,.195,9900],[1800000,.205,17100],[3600000,.23,62100],[4800000,.305,540000]]};
+function snAliq(rbt12,anexo){if(!(rbt12>0))return SN_TAB[anexo][0][1];const f=SN_TAB[anexo].find(x=>rbt12<=x[0])||SN_TAB[anexo][5];return Math.max(0,(rbt12*f[1]-f[2])/rbt12)}
+const IRPF_MES=[[2428.80,0,0],[2826.65,.075,182.16],[3751.05,.15,394.16],[4664.68,.225,675.49],[1e12,.275,908.73]];
+function irpfMes(base,bruto){if(base<=0)return 0;const f=IRPF_MES.find(x=>base<=x[0]);let ir=Math.max(0,base*f[1]-f[2]);
+  if(bruto<=5000)ir=0;else if(bruto<=7350)ir=Math.max(0,ir-Math.max(0,978.62-.133145*bruto));return ir}
+const DRE_GR={custo:["Repasses","Material de consumo"],pessoal:["Salários e encargos","Pró-labore"],adm:["Aluguel","Condomínio","Energia","Água","Internet/Telefone","Contabilidade","Sistema/Software","Manutenção"],com:["Marketing"],imp:["Impostos"],inv:["Equipamentos"]};
+const grupoDesp=c=>Object.keys(DRE_GR).find(g=>DRE_GR[g].includes(c))||"outras";
+const mesesDe=R=>{const L=[];let d=parseD(R.ini);d.setDate(1);while(iso(d).slice(0,7)<=R.fim.slice(0,7)){L.push(iso(d).slice(0,7));d.setMonth(d.getMonth()+1)}return L};
+function dreCalc(R){const F=fiscal(),s=S(),pg=f=>f.status==="pago"&&inR(f.pagoEm||f.data,R),em=f=>F.regime==="hibrido"?(f.emissor||"pj"):F.regime;
+  const rec=s.financeiro.filter(f=>f.tipo==="receita"&&pg(f)),des=s.financeiro.filter(f=>f.tipo==="despesa"&&pg(f));
+  const recPJ=rec.filter(f=>em(f)==="pj").reduce((x,f)=>x+num(f.valor),0),recPF=rec.filter(f=>em(f)==="pf").reduce((x,f)=>x+num(f.valor),0),bruta=recPJ+recPF;
+  const g={custo:0,pessoal:0,adm:0,com:0,imp:0,inv:0,outras:0},det={};des.forEach(f=>{const k=grupoDesp(f.categoria);g[k]+=num(f.valor);const c=f.categoria||"Outros";(det[k]=det[k]||{})[c]=(det[k][c]||0)+num(f.valor)});
+  const meses=mesesDe(R),nM=meses.length;
+  // PJ
+  let dedPJ=0,irpj=0,csll=0,aliq=0,info="";
+  if(recPJ>0||F.regime!=="pf"){
+    if(F.tributacao==="simples"){const ini12=addDays(R.ini,-365),r12=s.financeiro.filter(f=>f.tipo==="receita"&&f.status==="pago"&&(f.pagoEm||f.data)>=ini12&&(f.pagoEm||f.data)<R.ini&&em(f)==="pj").reduce((x,f)=>x+num(f.valor),0);
+      const rbt12=r12>0?r12:recPJ/Math.max(1,nM)*12;let an=F.anexo;if(an==="fatorR"){const fol=s.financeiro.filter(f=>f.tipo==="despesa"&&f.status==="pago"&&(f.pagoEm||f.data)>=ini12&&(f.pagoEm||f.data)<R.ini&&DRE_GR.pessoal.includes(f.categoria)).reduce((x,f)=>x+num(f.valor),0);an=rbt12>0&&fol/rbt12>=.28?"III":"V"}
+      aliq=F.aliqEfetiva!==""&&F.aliqEfetiva!=null?num(F.aliqEfetiva)/100:snAliq(rbt12,an);dedPJ=recPJ*aliq;info=`Simples Nacional · Anexo ${an} · alíquota efetiva ${(aliq*100).toFixed(2).replace(".",",")}% (RBT12 ${brl(rbt12)}${r12>0?"":", estimada"})`}
+    else if(F.tributacao==="presumido"){dedPJ=recPJ*(.0065+.03+num(F.iss)/100);const base=recPJ*.32;irpj=base*.15+Math.max(0,base-20000*nM)*.10;csll=base*.09;info=`Lucro Presumido · PIS 0,65% + COFINS 3% + ISS ${num(F.iss)}% · IRPJ e CSLL sobre 32% da receita`}
+    else{dedPJ=recPJ*(.0165+.076+num(F.iss)/100);info=`Lucro Real · PIS 1,65% + COFINS 7,6% (sem créditos) + ISS ${num(F.iss)}% · IRPJ 15% (+10%) e CSLL 9% sobre o lucro`}}
+  // PF (carnê-leão)
+  let inss=0,irpf=0;if(recPF>0){const desPF=F.regime==="hibrido"?des.filter(f=>em(f)==="pf"&&grupoDesp(f.categoria)!=="inv").reduce((x,f)=>x+num(f.valor),0):des.filter(f=>grupoDesp(f.categoria)!=="inv"&&grupoDesp(f.categoria)!=="imp").reduce((x,f)=>x+num(f.valor),0);
+    const brMes=recPF/nM,dMes=desPF/nM,inMes=F.inssPf?Math.min(brMes,num(F.tetoInss))*.2:0;inss=inMes*nM;irpf=irpfMes(Math.max(0,brMes-dMes-inMes),brMes)*nM;
+    info+=(info?" · ":"")+`PF: carnê-leão (tabela progressiva com redução de 2026)${F.inssPf?" e INSS 20% até o teto":""}, livro-caixa ${brl(desPF)}`}
+  const impLanc=g.imp,impEst=dedPJ+(F.regime!=="pj"&&F.regime!=="hibrido"?0:0),usaLanc=impLanc>0,deducoes=usaLanc?impLanc:dedPJ;
+  const liq=bruta-deducoes,lucroBruto=liq-g.custo,operacional=lucroBruto-g.pessoal-g.adm-g.com-g.outras;
+  if(F.tributacao==="real"&&recPJ>0&&!usaLanc){const lr=operacional*(bruta?recPJ/bruta:1);irpj=lr>0?lr*.15+Math.max(0,lr-20000*nM)*.10:0;csll=lr>0?lr*.09:0}
+  const sobreLucro=usaLanc?0:irpj+csll,pfImp=inss+irpf,lucro=operacional-sobreLucro-pfImp;
+  return{F,bruta,recPJ,recPF,deducoes,usaLanc,impEst:dedPJ+irpj+csll,liq,custo:g.custo,lucroBruto,pessoal:g.pessoal,adm:g.adm,com:g.com,outras:g.outras,operacional,irpj:usaLanc?0:irpj,csll:usaLanc?0:csll,inss,irpf,lucro,inv:g.inv,det,info,aliq,nM}}
+function dreView(R){const d=dreCalc(R),p=dreCalc(R.prev),F=d.F,pc=v=>d.bruta?(v/d.bruta*100).toFixed(1).replace(".",",")+"%":"—";
+  const reg={pj:"Pessoa jurídica",pf:"Pessoa física (autônomo)",hibrido:"Híbrido (PJ e PF)"}[F.regime],trib={simples:"Simples Nacional",presumido:"Lucro Presumido",real:"Lucro Real"}[F.tributacao];
+  const L=(rot,v,pv,cls,sub)=>`<tr class="${cls||""}"><td>${rot}${sub?`<div class="muted" style="font-size:12px">${sub}</div>`:""}</td><td class="r num">${v<0?"("+brl(-v)+")":brl(v)}</td><td class="r num muted">${pc(Math.abs(v))}</td><td class="r num muted">${pv<0?"("+brl(-pv)+")":brl(pv)}</td></tr>`;
+  const sub=k=>d.det[k]?Object.entries(d.det[k]).sort((a,b)=>b[1]-a[1]).map(([c,v])=>`${esc(c)} ${brl(v)}`).join(" · "):"";
+  return `<div class="card dre"><div class="card-h"><div><h2>DRE · Demonstração do resultado</h2><div class="muted">${esc(R.label)} (${esc(R.txt)}) · regime de caixa · ${esc(reg)}${F.regime!=="pf"?" · "+esc(trib):""}</div></div><div class="tools no-print"><a class="btn sm" href="#ajustes" onclick="T.UI.ajSec='financeiro'">Regime fiscal</a><button class="btn sm" onclick="T.imprimir()">Imprimir DRE</button></div></div>
+   <div class="tbl-wrap"><table class="dre-t"><thead><tr><th>Conta</th><th class="r">Valor</th><th class="r">% da receita</th><th class="r">Período anterior</th></tr></thead><tbody>
+   ${L("<b>Receita bruta de serviços</b>",d.bruta,p.bruta,"tot",F.regime==="hibrido"?`PJ ${brl(d.recPJ)} · PF ${brl(d.recPF)}`:"")}
+   ${L("(−) Impostos sobre o faturamento",-d.deducoes,-p.deducoes,"",d.usaLanc?"Lançamentos da categoria Impostos":F.regime==="pf"?"Sem imposto sobre o faturamento (PF)":F.tributacao==="simples"?"DAS estimado":"PIS, COFINS e ISS estimados")}
+   ${L("<b>= Receita líquida</b>",d.liq,p.liq,"sub")}
+   ${L("(−) Custos dos serviços",-d.custo,-p.custo,"",sub("custo")||"Repasses e material de consumo")}
+   ${L("<b>= Lucro bruto</b>",d.lucroBruto,p.lucroBruto,"sub")}
+   ${L("(−) Despesas com pessoal",-d.pessoal,-p.pessoal,"",sub("pessoal"))}
+   ${L("(−) Despesas administrativas",-d.adm,-p.adm,"",sub("adm"))}
+   ${L("(−) Despesas comerciais",-d.com,-p.com,"",sub("com"))}
+   ${L("(−) Outras despesas",-d.outras,-p.outras,"",sub("outras"))}
+   ${L("<b>= Resultado operacional</b>",d.operacional,p.operacional,"sub")}
+   ${F.regime!=="pf"&&(F.tributacao!=="simples")?L("(−) IRPJ e CSLL",-(d.irpj+d.csll),-(p.irpj+p.csll),"",d.usaLanc?"Já incluídos nos lançamentos de Impostos":`IRPJ ${brl(d.irpj)} · CSLL ${brl(d.csll)}`):""}
+   ${F.regime!=="pj"?L("(−) IRPF e INSS (pessoa física)",-(d.irpf+d.inss),-(p.irpf+p.inss),"",`IRPF carnê-leão ${brl(d.irpf)} · INSS ${brl(d.inss)}`):""}
+   ${L("<b>= Lucro líquido</b>",d.lucro,p.lucro,"tot "+(d.lucro<0?"neg":"pos"))}
+   </tbody></table></div>
+   <div class="kpis k4 dre-k"><div class="kpi"><span>Margem bruta</span><b>${pc(d.lucroBruto)}</b></div><div class="kpi"><span>Margem operacional</span><b>${pc(d.operacional)}</b></div><div class="kpi"><span>Margem líquida</span><b style="color:${d.lucro<0?"var(--bad)":"var(--ok)"}">${pc(d.lucro)}</b></div><div class="kpi"><span>Carga de impostos</span><b>${pc(d.deducoes+d.irpj+d.csll+d.irpf+d.inss)}</b><small>${d.usaLanc&&d.impEst?"estimativa: "+brl(d.impEst):""}</small></div></div>
+   ${d.inv?`<p class="muted" style="font-size:12.5px;margin:6px 0 0">Equipamentos pagos no período (${brl(d.inv)}) são investimento e ficam fora do resultado.</p>`:""}
+   <p class="dre-nota">${esc(d.info)}. <b>Estimativa para gestão:</b> confirme enquadramento, alíquotas e valores com o contador da clínica. Se a clínica lança as guias pagas na categoria “Impostos”, o DRE usa esses valores no lugar da estimativa. A transição da reforma tributária (CBS e IBS) não está incluída.</p></div>`}
+function fiscalForm(){const F=fiscal(),adm=pode("ajustes",2),dis=adm?"":"disabled";
+  return `<form class="card grid" id="f-fiscal" onsubmit="event.preventDefault();T.saveFiscal(this)"><h2>Regime fiscal e DRE</h2><p class="muted" style="margin:0">Define como o DRE estima os impostos da clínica.</p>
+   <div class="kin-prov" role="radiogroup" aria-label="Regime">${[["pj","Pessoa jurídica (PJ)","A clínica fatura por CNPJ"],["pf","Pessoa física (PF)","Autônomo, carnê-leão e livro-caixa"],["hibrido","Híbrido","Parte por CNPJ e parte como pessoa física"]].map(([v,n,d])=>`<label class="kprov ${F.regime===v?"on":""}"><input type="radio" name="regime" value="${v}" ${F.regime===v?"checked":""} ${dis} onchange="this.closest('form').querySelectorAll('.kprov').forEach(l=>l.classList.toggle('on',l.contains(this)));document.getElementById('fi-pj').hidden=this.value==='pf'"><span class="kp-n">${n}</span><small>${d}</small></label>`).join("")}</div>
+   <div id="fi-pj" class="grid g3" ${F.regime==="pf"?"hidden":""}><label class="f">Tributação da PJ<select name="tributacao" ${dis}>${opt("simples","Simples Nacional",F.tributacao)}${opt("presumido","Lucro Presumido",F.tributacao)}${opt("real","Lucro Real",F.tributacao)}</select></label>
+    <label class="f">Anexo do Simples<select name="anexo" ${dis}>${opt("III","Anexo III (fisioterapia, em geral)",F.anexo)}${opt("V","Anexo V",F.anexo)}${opt("fatorR","Pelo fator R (folha ÷ receita)",F.anexo)}</select></label>
+    <label class="f">Alíquota efetiva do contador (%)<input type="number" name="aliqEfetiva" step="0.01" min="0" max="40" value="${esc(F.aliqEfetiva)}" placeholder="opcional" ${dis}></label>
+    <label class="f">ISS do município (%)<input type="number" name="iss" step="0.1" min="2" max="5" value="${esc(F.iss)}" ${dis}><small>Presumido e Real</small></label></div>
+   <div class="grid g3"><label class="f chk"><input type="checkbox" name="inssPf" ${F.inssPf?"checked":""} ${dis}> Recolher INSS de autônomo (PF)</label><label class="f">Teto do INSS (R$)<input type="number" name="tetoInss" step="0.01" value="${esc(F.tetoInss)}" ${dis}><small>atualize todo ano</small></label></div>
+   <p class="muted" style="margin:0;font-size:12.5px">No regime híbrido, cada receita e despesa ganha o campo “Faturada como / Paga por” (PJ ou PF).</p>
+   ${adm?`<div><button class="btn pri">Salvar regime fiscal</button></div>`:""}</form>`}
+/* ---------- Pagamentos: Asaas (Pix, boleto e cartão) ---------- */
+let ASCFG;
+const asaasOk=()=>HOSTED&&!!window.__KINESIS_ASAAS;
+function asaasForm(){
+  if(HOSTED&&ASCFG===undefined){ASCFG=null;fetch("/api/asaas/config",{cache:"no-store"}).then(r=>r.json().then(j=>{ASCFG=r.ok?j:{erro:j.erro||"Não foi possível carregar."};render()})).catch(()=>{ASCFG={erro:"Sem conexão com o servidor."};render()})}
+  if(HOSTED&&!ASCFG)return `<div class="card"><h2>Pagamentos · Asaas</h2><p class="muted">Carregando…</p></div>`;
+  if(HOSTED&&ASCFG.erro)return `<div class="card"><h2>Pagamentos · Asaas</h2><p class="muted">${esc(ASCFG.erro)}</p></div>`;
+  const c=HOSTED?ASCFG:{ativo:true,ambiente:"sandbox",salva:false,webhookUrl:"https://sua-clinica.vercel.app/api/asaas/webhook",webhookToken:"(gerado na versão hospedada)"},adm=pode("ajustes",2)&&HOSTED,dis=adm?"":"disabled";
+  const st=!HOSTED?["agendado","Versão hospedada"]:c.conectado?["pago","Conectado · "+(c.ambiente==="producao"?"produção":"testes")]:c.ativo?["pendente","Não conectado"]:["inativo","Desligado"];
+  return `<form class="card grid" id="f-asaas" onsubmit="event.preventDefault();T.asaasSalvar(this)">
+   <div class="card-h"><div><h2>Pagamentos · Asaas</h2><div class="muted">Gere cobranças por Pix, boleto ou cartão direto da receita do paciente. A baixa acontece sozinha quando o paciente paga.</div></div><span class="pill st-${st[0]}">${esc(st[1])}</span></div>
+   ${!HOSTED?`<div class="alert"><div><b>A conexão com o Asaas funciona na versão hospedada.</b><span class="muted">Ela precisa de um servidor para guardar a chave com segurança e receber os avisos de pagamento.</span></div></div>`:""}
+   <fieldset class="kin-fs" ${dis}><legend class="sr">Conexão</legend>
+    <label class="f chk"><input type="checkbox" name="ativo" ${c.ativo!==false?"checked":""}> Cobranças pelo Asaas ligadas</label>
+    <div class="kin-prov" role="radiogroup" aria-label="Ambiente">${[["sandbox","Testes (sandbox)","Conta de testes do Asaas, sem dinheiro real"],["producao","Produção","Cobranças reais na conta da clínica"]].map(([v,n,d])=>`<label class="kprov ${c.ambiente===v?"on":""}"><input type="radio" name="ambiente" value="${v}" ${c.ambiente===v?"checked":""} onchange="this.closest('form').querySelectorAll('.kprov').forEach(l=>l.classList.toggle('on',l.contains(this)))"><span class="kp-n">${n}</span><small>${d}</small></label>`).join("")}</div>
+    <div class="grid g2"><label class="f">Chave da API do Asaas<input type="password" name="chave" autocomplete="new-password" spellcheck="false" placeholder="${c.salva?"••••"+esc(c.final)+" (cole para trocar)":"$aact_…"}"><small>${c.salva?`Chave salva, terminando em <b class="num">••••${esc(c.final)}</b>.`:"Nenhuma chave salva."}</small></label>
+    <label class="f">Forma de pagamento padrão<select name="formaPadrao">${[["UNDEFINED","Paciente escolhe (Pix, boleto ou cartão)"],["PIX","Pix"],["BOLETO","Boleto"],["CREDIT_CARD","Cartão de crédito"]].map(([v,n])=>opt(v,n,c.formaPadrao||"UNDEFINED")).join("")}</select></label></div>
+   </fieldset>
+   <div class="as-wh"><b>Aviso automático de pagamento (webhook)</b><p class="muted">No Asaas, abra <i>Integrações › Webhooks</i>, crie um webhook com o endereço e o token abaixo, versão da API v3, e marque os eventos de cobrança.</p>
+    <div class="grid g2"><label class="f">Endereço (URL)<div class="cp"><input type="text" readonly value="${esc(c.webhookUrl||"")}"><button type="button" class="btn sm" onclick="T.copiar(this.previousElementSibling.value,'Endereço copiado.')" ${HOSTED?"":"disabled"}>Copiar</button></div></label>
+    <label class="f">Token de autenticação<div class="cp"><input type="text" readonly value="${esc(c.webhookToken||"")}"><button type="button" class="btn sm" onclick="T.copiar(this.previousElementSibling.value,'Token copiado.')" ${HOSTED?"":"disabled"}>Copiar</button></div></label></div></div>
+   <div id="as-teste" class="kin-teste" role="status" hidden></div>
+   ${adm?`<div class="tools"><button class="btn pri">Salvar</button><button type="button" class="btn" onclick="T.asaasTestar()">Testar conexão</button></div>`:""}
+   <div class="kin-notas"><p><b>Onde pegar a chave:</b> no Asaas, <i>Integrações › Chaves de API</i>. Para testar sem dinheiro real, crie uma conta em sandbox.asaas.com e use a chave de lá com o ambiente “Testes”.</p><p><b>Para cobrar:</b> o paciente precisa ter CPF no cadastro. Abra uma receita em Finanças e use “Gerar cobrança”. O link pode ser enviado pelo WhatsApp.</p><p><b>Segurança:</b> a chave fica cifrada no servidor da clínica e nunca é mostrada de novo. As taxas de cada cobrança são as do contrato da clínica com o Asaas.</p></div>
+  </form>`}
+const AS_ST={PENDING:["pendente","Aguardando pagamento"],RECEIVED:["pago","Pago"],CONFIRMED:["pago","Pago (confirmado)"],OVERDUE:["vencido","Vencida"],REFUNDED:["inativo","Estornada"],RECEIVED_IN_CASH:["pago","Recebida em dinheiro"],DELETED:["inativo","Cancelada"]};
+function asaasBloco(f0){if(!f0||f0.tipo!=="receita")return"";if(!asaasOk())return HOSTED?"":`<div class="as-box muted" style="font-size:12.5px">Cobrança por Pix, boleto ou cartão: disponível com o Asaas na versão hospedada.</div>`;
+  if(!f0.id)return `<div class="as-box muted" style="font-size:12.5px">Salve a receita para gerar a cobrança pelo Asaas.</div>`;
+  if(f0.status==="pago"&&!f0.asaasId)return"";
+  const p=pac(f0.pacienteId)||{},st=AS_ST[f0.asaasStatus]||["pendente",f0.asaasStatus||""];
+  if(f0.asaasUrl)return `<div class="as-box"><div class="rec-h"><b>Cobrança Asaas</b><span class="pill st-${st[0]}">${esc(st[1])}</span></div>
+    <div class="tools"><a class="btn sm pri" target="_blank" rel="noopener" href="${esc(f0.asaasUrl)}">Abrir cobrança</a><button type="button" class="btn sm" onclick="T.copiar('${esc(f0.asaasUrl)}','Link copiado.')">Copiar link</button>${p.telefone?`<a class="btn sm wa" target="_blank" rel="noopener" href="${waLink(p.telefone,`Olá, ${String(p.nome||"").split(" ")[0]}! Segue o link para pagamento de ${f0.descricao} (${brl(f0.valor)}): ${f0.asaasUrl}`)}">Enviar no WhatsApp</a>`:""}<button type="button" class="btn sm ghost" onclick="T.asaasAtualizar('${f0.id}')">Atualizar situação</button></div></div>`;
+  return `<div class="as-box"><b>Gerar cobrança pelo Asaas</b>${!p.cpf?`<p class="muted" style="margin:4px 0 0;font-size:12.5px">Cadastre o CPF do paciente para cobrar.</p>`:""}<div class="tools" style="margin-top:6px">${[["UNDEFINED","Paciente escolhe"],["PIX","Pix"],["BOLETO","Boleto"],["CREDIT_CARD","Cartão"]].map(([v,n])=>`<button type="button" class="btn sm" ${p.cpf?"":"disabled"} onclick="T.asaasCobrar('${f0.id}','${v}',this)">${n}</button>`).join("")}</div></div>`}
 /* ---------- Tela de configurações ---------- */
-const AJ_SEC=[["agenda","Agenda","Horários de atendimento"],["clinica","Clínica e equipe","Nome, logo, cores, equipe e serviços"],["prontuario","Prontuário e documentos","Modelos e assinatura"],["financeiro","Financeiro e dados","Listas, avisos e exportação"],["kin","KIN · Inteligência artificial","Claude ou OpenAI, modelo e chave"],["whatsapp","WhatsApp e lembretes","Mensagens e histórico"],["seguranca","Segurança da conta","Acesso e LGPD"],["plano","Plano e cobrança","Assinatura, usuários e faturas"]];
+const AJ_SEC=[["agenda","Agenda","Horários de atendimento"],["clinica","Clínica e equipe","Nome, logo, cores, equipe e serviços"],["prontuario","Prontuário e documentos","Modelos e assinatura"],["financeiro","Financeiro e dados","Listas, avisos e exportação"],["kin","KIN · Inteligência artificial","Claude ou OpenAI, modelo e chave"],["pagamentos","Pagamentos · Asaas","Pix, boleto e cartão"],["whatsapp","WhatsApp e lembretes","Mensagens e histórico"],["seguranca","Segurança da conta","Acesso e LGPD"],["plano","Plano e cobrança","Assinatura, usuários e faturas"]];
 const _ajustesBase=VIEWS.ajustes;
 VIEWS.ajustes=()=>{const h=_ajustesBase();const M={iden:'<form class="card grid" id="f-marca"',links:'<div class="card"><div class="tools"><a class="btn" href="#usuarios">',clin:'<form class="card grid" id="f-clin"',extra:'<form class="card grid" id="f-extra"',prof:'<form class="card grid" id="f-prof"',serv:'<form class="card grid" id="f-serv"',listas:'<form class="card grid" id="f-listas"',bkp:'<div class="card grid"><h2>Cópia de segurança</h2>'},ord=Object.keys(M);
   const part=k=>{const i=h.indexOf(M[k]);if(i<0)return"";let j=h.length;ord.forEach(o=>{const x=h.indexOf(M[o]);if(x>i&&x<j)j=x});return h.slice(i,j)};
   const sec=AJ_SEC.some(x=>x[0]===UI.ajSec)?UI.ajSec:"agenda";
-  const C={agenda:horariosForm()+part("extra"),clinica:part("clin")+part("iden")+part("prof")+part("serv"),prontuario:`<div class="card"><h2>Modelos de prontuário</h2><p class="muted" style="margin:4px 0 10px">Fichas personalizadas por especialidade (Pilates, pélvica, neurofuncional e as da clínica).</p><a class="btn" href="#modelos">Abrir modelos de prontuário</a></div>`+assinaturaForm(),financeiro:avisosForm()+part("listas")+part("bkp"),kin:kinForm(),whatsapp:msgsForm()+historicoMsgs(),seguranca:segurancaCard(),plano:planoResumo()}[sec];
+  const C={agenda:horariosForm()+part("extra"),clinica:part("clin")+part("iden")+part("prof")+part("serv"),prontuario:`<div class="card"><h2>Modelos de prontuário</h2><p class="muted" style="margin:4px 0 10px">Fichas personalizadas por especialidade (Pilates, pélvica, neurofuncional e as da clínica).</p><a class="btn" href="#modelos">Abrir modelos de prontuário</a></div>`+assinaturaForm(),financeiro:fiscalForm()+avisosForm()+part("listas")+part("bkp"),pagamentos:asaasForm(),kin:kinForm(),whatsapp:msgsForm()+historicoMsgs(),seguranca:segurancaCard(),plano:planoResumo()}[sec];
   return `<div class="head"><div><h1>Configurações</h1><div class="sub">Clínica, agenda, documentos, mensagens, segurança e plano</div></div></div>
-  <div class="aj"><nav class="ajnav" aria-label="Seções das configurações"><div class="ajg">Configurações da clínica</div>${AJ_SEC.slice(0,5).map(btnSec(sec)).join("")}<div class="ajg">Configurações do profissional</div>${AJ_SEC.slice(5,7).map(btnSec(sec)).join("")}<div class="ajg">Plano e cobrança</div>${AJ_SEC.slice(7).map(btnSec(sec)).join("")}</nav><div class="grid aj-c">${C}</div></div>`};
+  <div class="aj"><nav class="ajnav" aria-label="Seções das configurações"><div class="ajg">Configurações da clínica</div>${AJ_SEC.slice(0,6).map(btnSec(sec)).join("")}<div class="ajg">Configurações do profissional</div>${AJ_SEC.slice(6,8).map(btnSec(sec)).join("")}<div class="ajg">Plano e cobrança</div>${AJ_SEC.slice(8).map(btnSec(sec)).join("")}</nav><div class="grid aj-c">${C}</div></div>`};
 const btnSec=sec=>([k,l,d])=>`<button type="button" class="${k===sec?"on":""}" onclick="T.ui('ajSec','${k}')"><b>${l}</b><small>${d}</small></button>`;
 
 /* ---------- Painel: guia recolhível ---------- */
@@ -2304,6 +2490,17 @@ Object.assign(window.T,NOVAS_ACOES,NOVAS_ACOES2,NOVAS_ACOES3,{
   async trocarSenha(f){const a=fv(f,"atual"),n=fv(f,"nova");if(n.length<8){toast("A nova senha precisa ter pelo menos 8 caracteres.");return}
     try{const r=await fetch("/api/senha",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({atual:a,nova:n})}),j=await r.json().catch(()=>({}));if(!r.ok){toast(j.erro||"Não foi possível alterar a senha.");return}f.reset();toast("Senha alterada.")}catch(e){toast("Sem conexão com o servidor.")}},
   async sair(){try{await fetch("/api/logout",{method:"POST"})}catch(e){}location.href="/"},
+  imprimir(){const v=route().v,t=(document.querySelector("#main h1")||{}).textContent||"";$("#print-h").innerHTML=`<b>${esc(CFG.clinica.nome)}</b><span>${esc(t)} · impresso em ${new Date().toLocaleString("pt-BR")}</span>`;window.print()},
+  consRow,
+  async saveFiscal(f){const o={regime:(f.querySelector("input[name=regime]:checked")||{}).value||"pj",tributacao:fv(f,"tributacao"),anexo:fv(f,"anexo"),aliqEfetiva:fv(f,"aliqEfetiva"),iss:num(fv(f,"iss"))||3,tetoInss:num(fv(f,"tetoInss"))||FISCAL_PAD.tetoInss,inssPf:fv(f,"inssPf")};CFG.fiscal=o;if(await saveCfg())toast("Regime fiscal salvo. O DRE já usa essa configuração.")},
+  async asaasSalvar(f){const b={ativo:fv(f,"ativo"),ambiente:(f.querySelector("input[name=ambiente]:checked")||{}).value,chave:fv(f,"chave"),formaPadrao:fv(f,"formaPadrao")};
+    try{const r=await fetch("/api/asaas/config",{method:"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify(b)}),j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.erro||"Não foi possível salvar.");ASCFG=j;window.__KINESIS_ASAAS=j.conectado;audit("config",{id:"asaas",nome:"Pagamentos (Asaas)"},"alterou");render();toast(j.conectado?"Asaas conectado.":"Salvo.")}catch(e){toast(e.message)}},
+  async asaasTestar(){const f=$("#f-asaas"),out=$("#as-teste");if(!f)return;out.hidden=false;out.className="kin-teste";out.textContent="Testando a conexão…";
+    try{const r=await fetch("/api/asaas/testar",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({ambiente:(f.querySelector("input[name=ambiente]:checked")||{}).value,chave:fv(f,"chave")})}),j=await r.json().catch(()=>({}));
+      if(j.ok){out.className="kin-teste ok";out.innerHTML=`<b>Conexão funcionando.</b> Conta ${j.ambiente==="producao"?"de produção":"de testes"} com saldo de ${brl(j.saldo)}.${fv(f,"chave")?" Clique em Salvar para guardar a chave.":""}`}else{out.className="kin-teste bad";out.innerHTML=`<b>Não conectou.</b> ${esc(j.erro||"Erro desconhecido.")}`}}catch(e){out.className="kin-teste bad";out.textContent="Sem conexão com o servidor."}},
+  async asaasCobrar(id,tipo,btn){if(btn)btn.disabled=true;try{const r=await fetch("/api/asaas/cobrar",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({finId:id,billingType:tipo})}),j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.erro||"Não foi possível gerar a cobrança.");
+      const f=real.financeiro.find(x=>x.id===id);if(f)Object.assign(f,j.fin);closeM();openFin(id);toast("Cobrança gerada. Envie o link ao paciente.")}catch(e){toast(e.message);if(btn)btn.disabled=false}},
+  async asaasAtualizar(id){try{const r=await fetch("/api/asaas/sincronizar",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({finId:id})}),j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.erro||"Não foi possível consultar.");const f=real.financeiro.find(x=>x.id===id);if(f)Object.assign(f,j.fin);closeM();openFin(id);toast("Situação: "+((AS_ST[j.fin.asaasStatus]||[0,j.fin.asaasStatus])[1]||"atualizada")+".")}catch(e){toast(e.message)}},
   kinProv(v){UI.kinProv=v;const f=$("#f-kin"),keep=f?{a:fv(f,"ativo"),i:fv(f,"instrucoes"),l:fv(f,"limite")}:null;render();const g=$("#f-kin");if(g&&keep){g.elements.ativo.checked=keep.a;g.elements.instrucoes.value=keep.i;g.elements.limite.value=keep.l}},
   async kinSalvar(f){const b=kinLer(f);if(b.chave&&b.chave.length<20){toast("Essa chave parece incompleta. Copie a chave inteira.");return}
     try{const j=await kinPut(b);UI.kinProv="";render();toast(j.disponivel?"KIN conectada: "+KIN_PROV[j.provedor].nome+".":j.ativo?"Salvo. Falta cadastrar a chave da API.":"Salvo. A KIN está desligada.")}catch(e){toast(e.message)}},
@@ -2316,7 +2513,7 @@ Object.assign(window.T,NOVAS_ACOES,NOVAS_ACOES2,NOVAS_ACOES3,{
 /* ================= Inicialização ================= */
 window.addEventListener("hashchange",()=>{if(route().v!=="paciente")UI.pTab="resumo";closeM();render();window.scrollTo(0,0)});
 function localLoad(){LOCAL=true;COLS.forEach(c=>real[c]=lsGet("torque."+c,[]));real.chat=lsGet("torque.chat",[]);EXTRA.forEach(c=>real[c]=lsGet("torque."+c,[]));LIC=normLic(lsGet("torque.licenca",{}));const c=lsGet("torque.config",null);if(c)CFG=Object.assign(JSON.parse(JSON.stringify(DEF_CFG)),c);$("#modo").textContent="Modo local (este navegador)"}
-function ready(){loaded=true;renderBrand();renderTop();render()}
+function ready(){loaded=true;renderBrand();renderTop();render();setTimeout(checaFesta,600)}
 try{const tm=localStorage.getItem("torque.tema");if(tm)document.documentElement.dataset.theme=JSON.parse(tm)}catch(e){}
 document.addEventListener("keydown",e=>{if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==="k"){e.preventDefault();const i=$("#gs");if(i)i.focus()}});
 document.addEventListener("click",e=>{const m=$("#dd-add");if(m&&!m.hidden&&!e.target.closest(".dd"))m.hidden=true});

@@ -125,7 +125,7 @@ async function podeGravar(u, col, id, apagar) {
 async function rotaEstado(req, res) {
   const u = await sessaoUsuario(req), n = Number(await cmd("HLEN", P + "users")) || 0;
   const ia = await iaDisponivel();
-  enviar(res, 200, { redis: true, setup: n === 0, user: u ? publico(u) : null, ia: ia.ok, iaProvedor: ia.provedor });
+  enviar(res, 200, { redis: true, setup: n === 0, user: u ? publico(u) : null, ia: ia.ok, iaProvedor: ia.provedor, asaas: u ? await asaasOk() : false });
 }
 async function rotaSetup(req, res, b) {
   if ((Number(await cmd("HLEN", P + "users")) || 0) > 0) return enviar(res, 409, { erro: "O sistema já foi configurado. Entre com seu e-mail e senha." });
@@ -346,6 +346,103 @@ async function rotaIATestar(req, res, b, u) {
   catch (e) { enviar(res, 200, { ok: false, erro: erroIA(e) }); }
 }
 
+/* ---------- Pagamentos: Asaas (Pix, boleto e cartão) ---------- */
+const ASAAS_URL = { producao: process.env.KINESIS_ASAAS_URL || "https://api.asaas.com/v3", sandbox: process.env.KINESIS_ASAAS_SANDBOX_URL || process.env.KINESIS_ASAAS_URL || "https://api-sandbox.asaas.com/v3" };
+const AS_FORMAS = new Set(["UNDEFINED", "PIX", "BOLETO", "CREDIT_CARD"]);
+const AS_FORMA_NOME = { PIX: "Pix", BOLETO: "Boleto", CREDIT_CARD: "Cartão de crédito", DEBIT_CARD: "Cartão de débito" };
+async function asCfg() {
+  const v = await cmd("GET", P + "asaas"); const c = v ? JSON.parse(v) : {};
+  if (!c.webhookToken) { c.webhookToken = crypto.randomBytes(24).toString("base64url"); await cmd("SET", P + "asaas", JSON.stringify(c)); }
+  return { ativo: c.ativo !== false, ambiente: c.ambiente === "producao" ? "producao" : "sandbox", chave: c.chave || "", final: c.final || "", webhookToken: c.webhookToken, formaPadrao: AS_FORMAS.has(c.formaPadrao) ? c.formaPadrao : "UNDEFINED" };
+}
+async function asChave(c) { return c.chave ? await decifrar(c.chave) : ""; }
+async function asaasOk() { const c = await asCfg(); return c.ativo && !!c.chave; }
+async function asApi(c, chave, metodo, caminho, corpo) {
+  const r = await fetch(ASAAS_URL[c.ambiente] + caminho, { method: metodo, headers: { access_token: chave, "Content-Type": "application/json", "User-Agent": "Kinesis" }, body: corpo ? JSON.stringify(corpo) : undefined });
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) {
+    const msg = (j.errors && j.errors[0] && j.errors[0].description) || "Erro " + r.status;
+    const e = new Error(r.status === 401 ? "A chave do Asaas foi recusada. Confira a chave e o ambiente (testes ou produção)." : "Asaas: " + msg); e.status = r.status; throw e;
+  }
+  return j;
+}
+const urlBase = (req) => "https://" + String(req.headers["x-forwarded-host"] || req.headers.host || "").split(",")[0].trim();
+async function asaasPublico(req, c) { return { ativo: c.ativo, ambiente: c.ambiente, salva: !!c.chave, final: c.final, formaPadrao: c.formaPadrao, webhookUrl: urlBase(req) + "/api/asaas/webhook", webhookToken: c.webhookToken, conectado: c.ativo && !!c.chave }; }
+async function rotaAsaasConfig(req, res, b, u) {
+  if (nivel(u, await cfgClinica(), "ajustes") < 2) return enviar(res, 403, { erro: "Só administradores configuram os pagamentos." });
+  const c = await asCfg();
+  if (req.method === "GET") return enviar(res, 200, await asaasPublico(req, c));
+  const novo = { ativo: b.ativo !== false, ambiente: b.ambiente === "producao" ? "producao" : "sandbox", chave: c.chave, final: c.final, webhookToken: c.webhookToken, formaPadrao: AS_FORMAS.has(b.formaPadrao) ? b.formaPadrao : c.formaPadrao };
+  const k = String(b.chave || "").trim();
+  if (k) { if (k.length < 20 || k.length > 400 || /\s/.test(k)) return enviar(res, 400, { erro: "Essa chave do Asaas não parece válida." }); novo.chave = await cifrar(k); novo.final = k.slice(-4); }
+  await cmd("SET", P + "asaas", JSON.stringify(novo));
+  enviar(res, 200, await asaasPublico(req, Object.assign({}, novo)));
+}
+async function rotaAsaasTestar(req, res, b, u) {
+  if (nivel(u, await cfgClinica(), "ajustes") < 2) return enviar(res, 403, { erro: "Só administradores configuram os pagamentos." });
+  const c = await asCfg(); if (b.ambiente === "producao" || b.ambiente === "sandbox") c.ambiente = b.ambiente;
+  const chave = String(b.chave || "").trim() || (await asChave(c));
+  if (!chave) return enviar(res, 400, { erro: "Informe a chave da API do Asaas." });
+  try { const j = await asApi(c, chave, "GET", "/finance/balance"); enviar(res, 200, { ok: true, saldo: Number(j.balance) || 0, ambiente: c.ambiente }); }
+  catch (e) { enviar(res, 200, { ok: false, erro: e.message }); }
+}
+async function gravarInterno(col, id, d) { await cmd("HSET", P + "c:" + col, id, JSON.stringify(Object.assign({}, d, { id }))); await cmd("HINCRBY", P + "v", col, 1); }
+async function auditar(acao, resumo, autorId) { const id = novoId(); await gravarInterno("auditoria", id, { col: "financeiro", docId: "", acao, resumo: String(resumo).slice(0, 220), em: new Date().toISOString(), autorId: autorId || "asaas", profId: "" }); }
+function aplicarPagamento(f, pg) {
+  f.asaasStatus = pg.status || f.asaasStatus;
+  if (["RECEIVED", "CONFIRMED", "RECEIVED_IN_CASH"].includes(pg.status) && f.status !== "pago") {
+    f.status = "pago"; f.pagoEm = String(pg.paymentDate || pg.clientPaymentDate || pg.confirmedDate || hoje()).slice(0, 10);
+    if (AS_FORMA_NOME[pg.billingType]) f.forma = AS_FORMA_NOME[pg.billingType];
+    return true;
+  }
+  return false;
+}
+async function rotaAsaasCobrar(req, res, b, u) {
+  if (nivel(u, await cfgClinica(), "financeiro") < 2) return enviar(res, 403, { erro: "Seu perfil não pode gerar cobranças." });
+  const c = await asCfg(), chave = c.ativo ? await asChave(c) : ""; if (!chave) return enviar(res, 400, { erro: "Conecte o Asaas em Configurações › Pagamentos." });
+  if (!idOk(b.finId)) return enviar(res, 400, { erro: "Receita inválida." });
+  const f = await lerDoc("financeiro", b.finId); if (!f || f.tipo !== "receita") return enviar(res, 404, { erro: "Receita não encontrada." });
+  if (f.status === "pago") return enviar(res, 400, { erro: "Esta receita já está paga." });
+  if (f.asaasId && f.asaasUrl && f.asaasStatus !== "DELETED") return enviar(res, 200, { ok: true, fin: f });
+  const p = f.pacienteId ? await lerDoc("pacientes", f.pacienteId) : null;
+  if (!p) return enviar(res, 400, { erro: "Escolha o paciente da receita antes de cobrar." });
+  const cpf = String(p.cpf || "").replace(/\D/g, ""); if (cpf.length !== 11 && cpf.length !== 14) return enviar(res, 400, { erro: "Cadastre o CPF do paciente para cobrar pelo Asaas." });
+  try {
+    let cli = p.asaasClientes && p.asaasClientes[c.ambiente];
+    if (!cli) {
+      const fone = String(p.telefone || "").replace(/\D/g, "");
+      const j = await asApi(c, chave, "POST", "/customers", { name: p.nome, cpfCnpj: cpf, email: p.email || undefined, mobilePhone: fone || undefined, externalReference: "pac:" + p.id, notificationDisabled: false });
+      cli = j.id; p.asaasClientes = Object.assign({}, p.asaasClientes, { [c.ambiente]: cli }); await gravarInterno("pacientes", p.id, p);
+    }
+    const venc = f.data && f.data >= hoje() ? f.data : hoje();
+    const pg = await asApi(c, chave, "POST", "/payments", { customer: cli, billingType: AS_FORMAS.has(b.billingType) ? b.billingType : c.formaPadrao, value: Math.round(Number(f.valor) * 100) / 100, dueDate: venc, description: String(f.descricao || "Atendimento").slice(0, 400), externalReference: "fin:" + f.id });
+    Object.assign(f, { asaasId: pg.id, asaasUrl: pg.invoiceUrl || pg.bankSlipUrl || "", asaasStatus: pg.status || "PENDING", asaasTipo: pg.billingType, asaasAmbiente: c.ambiente, asaasEm: new Date().toISOString() });
+    await gravarInterno("financeiro", f.id, f);
+    await auditar("criou", "Cobrança Asaas " + (f.descricao || "") + " · R$ " + Number(f.valor).toFixed(2), u.id);
+    enviar(res, 200, { ok: true, fin: f });
+  } catch (e) { console.error("asaas:", e.status, e.message); enviar(res, 502, { erro: e.message }); }
+}
+async function rotaAsaasSincronizar(req, res, b, u) {
+  if (nivel(u, await cfgClinica(), "financeiro") < 1) return enviar(res, 403, { erro: "Sem acesso ao financeiro." });
+  const c = await asCfg(), chave = await asChave(c); if (!chave) return enviar(res, 400, { erro: "Conecte o Asaas em Configurações › Pagamentos." });
+  const f = idOk(b.finId) ? await lerDoc("financeiro", b.finId) : null; if (!f || !f.asaasId) return enviar(res, 404, { erro: "Esta receita não tem cobrança no Asaas." });
+  try { const pg = await asApi(c, chave, "GET", "/payments/" + encodeURIComponent(f.asaasId)); aplicarPagamento(f, pg); await gravarInterno("financeiro", f.id, f); enviar(res, 200, { ok: true, fin: f }); }
+  catch (e) { enviar(res, 502, { erro: e.message }); }
+}
+async function rotaAsaasWebhook(req, res, b) {
+  const c = await asCfg(), tk = String(req.headers["asaas-access-token"] || "");
+  if (!tk || tk.length !== c.webhookToken.length || !crypto.timingSafeEqual(Buffer.from(tk), Buffer.from(c.webhookToken))) return enviar(res, 401, { erro: "Token inválido." });
+  const pg = b && b.payment, ref = pg && String(pg.externalReference || "");
+  if (!ref.startsWith("fin:")) return enviar(res, 200, { ok: true, ignorado: true });
+  const f = await lerDoc("financeiro", ref.slice(4)); if (!f) return enviar(res, 200, { ok: true, ignorado: true });
+  if (f.asaasId && pg.id && f.asaasId !== pg.id) return enviar(res, 200, { ok: true, ignorado: true });
+  if (b.event === "PAYMENT_DELETED") pg.status = "DELETED";
+  const pagou = aplicarPagamento(f, pg);
+  await gravarInterno("financeiro", f.id, f);
+  if (pagou) await auditar("alterou", "Pagamento recebido pelo Asaas: " + (f.descricao || "") + " · R$ " + Number(f.valor).toFixed(2));
+  enviar(res, 200, { ok: true });
+}
+
 export default async function handler(req, res) {
   try {
     const url = new URL(req.url, "http://local");
@@ -355,6 +452,7 @@ export default async function handler(req, res) {
     let b = req.body; if (typeof b === "string") { try { b = JSON.parse(b || "{}"); } catch { b = {}; } } b = b || {};
     if (m !== "GET" && m !== "HEAD") { const o = req.headers.origin, h = req.headers.host; if (o && h && new URL(o).host !== h) return enviar(res, 403, { erro: "Origem não permitida." }); }
     if (seg[0] === "estado" && m === "GET") return rotaEstado(req, res);
+    if (seg[0] === "asaas" && seg[1] === "webhook" && m === "POST") return rotaAsaasWebhook(req, res, b);
     if (seg[0] === "setup" && m === "POST") return rotaSetup(req, res, b);
     if (seg[0] === "login" && m === "POST") return rotaLogin(req, res, b);
     if (seg[0] === "logout" && m === "POST") { cookie(res, "", 0); return enviar(res, 200, { ok: true }); }
@@ -366,6 +464,10 @@ export default async function handler(req, res) {
     if (seg[0] === "doc" && seg[1] && seg[2] && m === "PUT") return gravarDoc(res, seg[1], seg[2], b, u);
     if (seg[0] === "doc" && seg[1] && seg[2] && m === "DELETE") return apagarDoc(res, seg[1], seg[2], u);
     if (seg[0] === "ia" && seg[1] === "config" && (m === "GET" || m === "PUT")) return rotaIAConfig(req, res, b, u);
+    if (seg[0] === "asaas" && seg[1] === "config" && (m === "GET" || m === "PUT")) return rotaAsaasConfig(req, res, b, u);
+    if (seg[0] === "asaas" && seg[1] === "testar" && m === "POST") return rotaAsaasTestar(req, res, b, u);
+    if (seg[0] === "asaas" && seg[1] === "cobrar" && m === "POST") return rotaAsaasCobrar(req, res, b, u);
+    if (seg[0] === "asaas" && seg[1] === "sincronizar" && m === "POST") return rotaAsaasSincronizar(req, res, b, u);
     if (seg[0] === "ia" && seg[1] === "uso" && m === "GET") { const pl = planoDe(await licenca()); return enviar(res, 200, { plano: pl.id, limite: pl.kinMes, usado: Number(await cmd("GET", P + "iames:" + new Date().toISOString().slice(0, 7))) || 0 }); }
     if (seg[0] === "ia" && seg[1] === "testar" && m === "POST") return rotaIATestar(req, res, b, u);
     if (seg[0] === "ia" && !seg[1] && m === "POST") return rotaIA(req, res, b, u);

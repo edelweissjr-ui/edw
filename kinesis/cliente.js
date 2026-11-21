@@ -182,6 +182,7 @@
     window.__KINESIS_EMAIL = ESTADO.user.email || "";
     window.__KINESIS_IA_OK = !!ESTADO.ia;
     window.__KINESIS_IA_PROV = ESTADO.iaProvedor || "anthropic";
+    window.__KINESIS_ASAAS = !!ESTADO.asaas;
     try { Object.assign(vers, await api("ver")); } catch (e) {}
     window.claude = {
       use: async (nome) => {
