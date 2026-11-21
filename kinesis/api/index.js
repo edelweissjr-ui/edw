@@ -1,6 +1,6 @@
 /* Kinesis · servidor (Vercel)
    Login por e-mail e senha, sessões assinadas em cookie HttpOnly, dados no Upstash Redis (REST),
-   permissões por setor e limite da licença aplicados aqui no servidor, KIN, a inteligência artificial clínica (Claude). */
+   permissões por setor e limite da licença aplicados aqui no servidor, KIN, a inteligência artificial clínica (Claude ou OpenAI). */
 import crypto from "node:crypto";
 import Anthropic from "@anthropic-ai/sdk";
 
@@ -108,7 +108,8 @@ async function podeGravar(u, col, id, apagar) {
 /* ---------- rotas ---------- */
 async function rotaEstado(req, res) {
   const u = await sessaoUsuario(req), n = Number(await cmd("HLEN", P + "users")) || 0;
-  enviar(res, 200, { redis: true, setup: n === 0, user: u ? publico(u) : null, ia: !!process.env.ANTHROPIC_API_KEY });
+  const ia = await iaDisponivel();
+  enviar(res, 200, { redis: true, setup: n === 0, user: u ? publico(u) : null, ia: ia.ok, iaProvedor: ia.provedor });
 }
 async function rotaSetup(req, res, b) {
   if ((Number(await cmd("HLEN", P + "users")) || 0) > 0) return enviar(res, 409, { erro: "O sistema já foi configurado. Entre com seu e-mail e senha." });
@@ -196,35 +197,131 @@ async function apagarDoc(res, col, id, u) {
   await cmd("HDEL", P + "c:" + col, id);
   enviar(res, 200, { ok: true, v: Number(await cmd("HINCRBY", P + "v", col, 1)) });
 }
+/* ---------- KIN: inteligência artificial (Anthropic Claude ou OpenAI) ---------- */
 const IA_SISTEMA = "Você é a KIN, a inteligência artificial clínica do Kinesis, sistema de gestão usado por clínicas de fisioterapia no Brasil. Responda em português do Brasil, de forma objetiva e prática, para fisioterapeutas. Baseie-se em evidências e diretrizes atuais, diga quando a evidência é fraca ou controversa e lembre que a decisão clínica é do profissional. Não invente referências.";
+const PROVEDORES = {
+  anthropic: { nome: "Anthropic · Claude", modelo: "claude-opus-5-5", env: "ANTHROPIC_API_KEY" },
+  openai: { nome: "OpenAI · ChatGPT", modelo: "gpt-5", env: "OPENAI_API_KEY" },
+};
+const OPENAI_URL = (process.env.KINESIS_OPENAI_URL || "https://api.openai.com/v1").replace(/\/$/, "");
+const modeloOk = (s) => /^[\w.:-]{1,80}$/.test(String(s || ""));
+
+/* As chaves de API ficam cifradas no banco (AES-256-GCM) e nunca voltam para o navegador. */
+async function chaveCripto() { return crypto.createHash("sha256").update((await segredo()) + ":kin-ia").digest(); }
+async function cifrar(txt) {
+  const iv = crypto.randomBytes(12), c = crypto.createCipheriv("aes-256-gcm", await chaveCripto(), iv);
+  const ct = Buffer.concat([c.update(txt, "utf8"), c.final()]);
+  return [iv, c.getAuthTag(), ct].map((x) => x.toString("base64url")).join(".");
+}
+async function decifrar(s) {
+  try { const [iv, tag, ct] = String(s).split(".").map((x) => Buffer.from(x, "base64url")); const d = crypto.createDecipheriv("aes-256-gcm", await chaveCripto(), iv); d.setAuthTag(tag); return Buffer.concat([d.update(ct), d.final()]).toString("utf8"); }
+  catch { return ""; }
+}
+async function iaCfg() {
+  const v = await cmd("GET", P + "iacfg"); const c = v ? JSON.parse(v) : {};
+  return { ativo: c.ativo !== false, provedor: PROVEDORES[c.provedor] ? c.provedor : "anthropic", modelos: c.modelos || {}, instrucoes: c.instrucoes || "", limite: Number(c.limite) || 40, chaves: c.chaves || {}, finais: c.finais || {} };
+}
+async function chaveDe(c, prov) { return (c.chaves[prov] && (await decifrar(c.chaves[prov]))) || process.env[PROVEDORES[prov].env] || ""; }
+const modeloDe = (c, prov) => (modeloOk(c.modelos[prov]) && c.modelos[prov]) || (prov === "anthropic" && process.env.KINESIS_MODELO) || PROVEDORES[prov].modelo;
+async function iaDisponivel() { const c = await iaCfg(); return { ok: c.ativo && !!(await chaveDe(c, c.provedor)), provedor: c.provedor }; }
+const erroIA = (e) => {
+  const s = e && (e.status || e.statusCode);
+  if (s === 401 || s === 403) return "A chave da API foi recusada pelo provedor. Confira a chave nas configurações da KIN.";
+  if (s === 404) return "O modelo escolhido não foi encontrado nessa conta. Confira o nome do modelo.";
+  if (s === 429) return "O provedor recusou por limite de uso ou falta de créditos. Aguarde um pouco ou confira o saldo da conta.";
+  return "Não foi possível falar com o provedor de IA" + (e && e.message ? ": " + String(e.message).slice(0, 160) : ".");
+};
+
+async function gerarAnthropic({ chave, modelo, system, messages, onText }) {
+  const client = new Anthropic({ apiKey: chave });
+  const extra = modelo === "claude-opus-5-5" ? { betas: ["server-side-fallback-2026-07-01"], fallbacks: "default" } : {};
+  const stream = client.beta.messages.stream(Object.assign({ model: modelo, max_tokens: 16000, system, output_config: { effort: "medium" }, messages }, extra));
+  stream.on("text", onText);
+  const msg = await stream.finalMessage();
+  return msg.stop_reason === "refusal" ? "recusa" : msg.stop_reason === "max_tokens" ? "limite" : "ok";
+}
+async function gerarOpenAI({ chave, modelo, system, messages, onText }) {
+  const r = await fetch(OPENAI_URL + "/chat/completions", {
+    method: "POST",
+    headers: { Authorization: "Bearer " + chave, "Content-Type": "application/json" },
+    body: JSON.stringify({ model: modelo, stream: true, max_completion_tokens: 16000, messages: [{ role: "system", content: system }, ...messages] }),
+  });
+  if (!r.ok) { const j = await r.json().catch(() => ({})); const e = new Error((j.error && j.error.message) || "HTTP " + r.status); e.status = r.status; throw e; }
+  const dec = new TextDecoder(); let buf = "", fim = "ok";
+  for await (const parte of r.body) {
+    buf += dec.decode(parte, { stream: true });
+    let i;
+    while ((i = buf.indexOf("\n")) >= 0) {
+      const linha = buf.slice(0, i).trim(); buf = buf.slice(i + 1);
+      if (!linha.startsWith("data:")) continue;
+      const dado = linha.slice(5).trim(); if (dado === "[DONE]") continue;
+      try {
+        const j = JSON.parse(dado), ch = j.choices && j.choices[0];
+        if (ch && ch.delta && ch.delta.content) onText(ch.delta.content);
+        if (ch && ch.finish_reason === "length") fim = "limite";
+        if (ch && ch.finish_reason === "content_filter") fim = "recusa";
+      } catch { /* linha incompleta */ }
+    }
+  }
+  return fim;
+}
+async function testarProvedor(prov, chave, modelo) {
+  if (prov === "openai") {
+    const r = await fetch(OPENAI_URL + "/models/" + encodeURIComponent(modelo), { headers: { Authorization: "Bearer " + chave } });
+    if (!r.ok) { const j = await r.json().catch(() => ({})); const e = new Error((j.error && j.error.message) || "HTTP " + r.status); e.status = r.status; throw e; }
+    return;
+  }
+  await new Anthropic({ apiKey: chave }).models.retrieve(modelo);
+}
+
 async function rotaIA(req, res, b, u) {
-  if (!process.env.ANTHROPIC_API_KEY) return enviar(res, 503, { erro: "A KIN (inteligência artificial) não está configurada neste servidor." });
+  const c = await iaCfg(), prov = c.provedor, chave = c.ativo ? await chaveDe(c, prov) : "";
+  if (!chave) return enviar(res, 503, { erro: "A KIN (inteligência artificial) não está configurada neste servidor." });
   const cfg = await cfgClinica(); if (nivel(u, cfg, "ia") < 1) return enviar(res, 403, { erro: "Seu perfil não usa a KIN." });
-  const hora = new Date().toISOString().slice(0, 13); if (await limiteTentativas("ia:" + u.id + ":" + hora, 40, 3700)) return enviar(res, 429, { erro: "Limite de perguntas por hora atingido. Tente mais tarde." });
+  const hora = new Date().toISOString().slice(0, 13); if (await limiteTentativas("ia:" + u.id + ":" + hora, c.limite, 3700)) return enviar(res, 429, { erro: "Limite de perguntas por hora atingido. Tente mais tarde." });
   const entrada = b.input;
   const messages = typeof entrada === "string" ? [{ role: "user", content: entrada.slice(0, 60000) }] : Array.isArray(entrada) ? entrada.filter((m) => m && (m.role === "user" || m.role === "assistant") && typeof m.content === "string" && m.content).slice(-30).map((m) => ({ role: m.role, content: m.content.slice(0, 60000) })) : [];
   if (!messages.length || messages[messages.length - 1].role !== "user") return enviar(res, 400, { erro: "Pergunta vazia." });
-  const client = new Anthropic();
+  const system = IA_SISTEMA + (c.instrucoes ? "\n\nOrientações da clínica: " + c.instrucoes : "");
   res.statusCode = 200; res.setHeader("Content-Type", "text/plain; charset=utf-8"); res.setHeader("Cache-Control", "no-store");
   try {
-    const stream = client.beta.messages.stream({
-      model: process.env.KINESIS_MODELO || "claude-opus-5-5",
-      max_tokens: 16000,
-      system: IA_SISTEMA,
-      output_config: { effort: "medium" },
-      betas: ["server-side-fallback-2026-07-01"],
-      fallbacks: "default",
-      messages,
-    });
-    stream.on("text", (delta) => res.write(delta));
-    const msg = await stream.finalMessage();
-    if (msg.stop_reason === "refusal") res.write("\n\n[A KIN não pôde responder a esta pergunta. Reformule com mais contexto clínico.]");
-    else if (msg.stop_reason === "max_tokens") res.write("\n\n[Resposta interrompida pelo limite de tamanho.]");
+    const fim = await (prov === "openai" ? gerarOpenAI : gerarAnthropic)({ chave, modelo: modeloDe(c, prov), system, messages, onText: (t) => res.write(t) });
+    if (fim === "recusa") res.write("\n\n[A KIN não pôde responder a esta pergunta. Reformule com mais contexto clínico.]");
+    else if (fim === "limite") res.write("\n\n[Resposta interrompida pelo limite de tamanho.]");
   } catch (e) {
-    console.error("IA:", e && e.status, e && e.message);
-    res.write(e instanceof Anthropic.RateLimitError ? "\n\n[Muitas perguntas ao mesmo tempo. Aguarde um minuto.]" : "\n\n[Não foi possível consultar a KIN agora.]");
+    console.error("IA:", prov, e && e.status, e && e.message);
+    res.write("\n\n[" + erroIA(e) + "]");
   }
   res.end();
+}
+async function iaConfigPublica(c) {
+  const chaves = {};
+  for (const p of Object.keys(PROVEDORES)) chaves[p] = { salva: !!c.chaves[p], final: c.finais[p] || "", env: !!process.env[PROVEDORES[p].env] };
+  const modelos = {}; for (const p of Object.keys(PROVEDORES)) modelos[p] = modeloDe(c, p);
+  return { ativo: c.ativo, provedor: c.provedor, modelos, instrucoes: c.instrucoes, limite: c.limite, chaves, disponivel: c.ativo && !!(await chaveDe(c, c.provedor)) };
+}
+async function rotaIAConfig(req, res, b, u) {
+  if (nivel(u, await cfgClinica(), "ajustes") < 2) return enviar(res, 403, { erro: "Só administradores configuram a KIN." });
+  const c = await iaCfg();
+  if (req.method === "GET") return enviar(res, 200, await iaConfigPublica(c));
+  const prov = PROVEDORES[b.provedor] ? b.provedor : c.provedor;
+  const novo = { ativo: b.ativo !== false, provedor: prov, modelos: Object.assign({}, c.modelos), instrucoes: String(b.instrucoes ?? c.instrucoes).slice(0, 2000), limite: Math.max(1, Math.min(500, Number(b.limite) || c.limite)), chaves: Object.assign({}, c.chaves), finais: Object.assign({}, c.finais) };
+  if (b.modelo !== undefined) { if (b.modelo && !modeloOk(b.modelo)) return enviar(res, 400, { erro: "Nome de modelo inválido." }); if (b.modelo) novo.modelos[prov] = b.modelo; else delete novo.modelos[prov]; }
+  const chave = String(b.chave || "").trim();
+  if (chave) { if (chave.length < 20 || chave.length > 300 || /\s/.test(chave)) return enviar(res, 400, { erro: "Essa chave não parece válida." }); novo.chaves[prov] = await cifrar(chave); novo.finais[prov] = chave.slice(-4); }
+  if (PROVEDORES[b.removerChave]) { delete novo.chaves[b.removerChave]; delete novo.finais[b.removerChave]; }
+  await cmd("SET", P + "iacfg", JSON.stringify(novo));
+  enviar(res, 200, await iaConfigPublica(novo));
+}
+async function rotaIATestar(req, res, b, u) {
+  if (nivel(u, await cfgClinica(), "ajustes") < 2) return enviar(res, 403, { erro: "Só administradores configuram a KIN." });
+  const c = await iaCfg(), prov = PROVEDORES[b.provedor] ? b.provedor : c.provedor;
+  const chave = String(b.chave || "").trim() || (await chaveDe(c, prov));
+  const modelo = modeloOk(b.modelo) ? b.modelo : modeloDe(c, prov);
+  if (!chave) return enviar(res, 400, { erro: "Informe a chave da API para testar." });
+  const t0 = Date.now();
+  try { await testarProvedor(prov, chave, modelo); enviar(res, 200, { ok: true, ms: Date.now() - t0, provedor: PROVEDORES[prov].nome, modelo }); }
+  catch (e) { enviar(res, 200, { ok: false, erro: erroIA(e) }); }
 }
 
 export default async function handler(req, res) {
@@ -246,7 +343,9 @@ export default async function handler(req, res) {
     if (seg[0] === "col" && seg[1] && m === "GET") return listarColecao(req, res, seg[1], u);
     if (seg[0] === "doc" && seg[1] && seg[2] && m === "PUT") return gravarDoc(res, seg[1], seg[2], b, u);
     if (seg[0] === "doc" && seg[1] && seg[2] && m === "DELETE") return apagarDoc(res, seg[1], seg[2], u);
-    if (seg[0] === "ia" && m === "POST") return rotaIA(req, res, b, u);
+    if (seg[0] === "ia" && seg[1] === "config" && (m === "GET" || m === "PUT")) return rotaIAConfig(req, res, b, u);
+    if (seg[0] === "ia" && seg[1] === "testar" && m === "POST") return rotaIATestar(req, res, b, u);
+    if (seg[0] === "ia" && !seg[1] && m === "POST") return rotaIA(req, res, b, u);
     enviar(res, 404, { erro: "Rota não encontrada." });
   } catch (e) {
     console.error(e);

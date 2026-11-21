@@ -33,7 +33,7 @@ Abre com dados de exemplo, só na tela; eles somem quando o primeiro paciente re
 - **Estoque:** itens com mínimo, validade e custo; entradas, saídas, ajustes e movimentações; alerta de baixo estoque e vencimento; compra lançada como despesa.
 - **Convênios (TISS):** guias com senha, sessões autorizadas x realizadas, validade, valor, glosa e situação; operadoras e dados do prestador. Não gera o XML TISS.
 - **Satisfação do paciente:** pesquisa NPS enviada pelo WhatsApp, registro da nota e do comentário, NPS, nota média e distribuição.
-- **Conhecimento — KIN, a IA do Kinesis (Claude):** KIN, assistente clínico (pode usar o resumo do prontuário, sem nome), Evidências (síntese com referências e links para PubMed/SciELO) e Bulas (o que importa para a fisioterapia). Funciona quando aberto no Claude.
+- **Conhecimento — KIN, a IA do Kinesis (Claude ou OpenAI, escolhido em Configurações › KIN · Inteligência artificial na versão hospedada):** KIN, assistente clínico (pode usar o resumo do prontuário, sem nome), Evidências (síntese com referências e links para PubMed/SciELO) e Bulas (o que importa para a fisioterapia). Funciona quando aberto no Claude.
 - **Migração de dados:** importa CSV ou Excel de pacientes, profissionais, agendamentos, histórico de prontuário e financeiro, com modelo CSV e ligação das colunas.
 - **Auditoria:** registro de quem criou, alterou ou excluiu cada registro.
 - **Geral:** busca global (Ctrl K), botão + para criar, sino de pendências, tema claro/escuro, "Você" (profissional atual), botões "Preciso de ajuda" e "Chat interno".

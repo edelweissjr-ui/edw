@@ -180,12 +180,14 @@
   async function iniciarApp() {
     window.__KINESIS_HOSTED = true;
     window.__KINESIS_EMAIL = ESTADO.user.email || "";
+    window.__KINESIS_IA_OK = !!ESTADO.ia;
+    window.__KINESIS_IA_PROV = ESTADO.iaProvedor || "anthropic";
     try { Object.assign(vers, await api("ver")); } catch (e) {}
     window.claude = {
       use: async (nome) => {
         if (nome === "db") return DB;
         if (nome === "user") return USER;
-        if (nome === "sample") { if (ESTADO.ia) return SAMPLE; const e = new Error("IA não configurada"); e.code = "unavailable"; throw e; }
+        if (nome === "sample") { if (window.__KINESIS_IA_OK) return SAMPLE; const e = new Error("IA não configurada"); e.code = "unavailable"; throw e; }
         if (nome === "downloads") return null;
         throw new Error("Recurso indisponível: " + nome);
       },
