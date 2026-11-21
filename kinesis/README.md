@@ -17,7 +17,7 @@ O mesmo sistema de `produtos/torque-fisioterapia/index.html`, rodando como site 
 ## Configuração na Vercel
 1. **Banco (obrigatório):** abra o projeto e vá em Storage → Upstash for Redis (o plano gratuito serve para começar) → conectar ao projeto → Redeploy. Enquanto o banco não estiver conectado, o site mostra esse passo a passo.
 2. **Primeiro acesso:** quem abrir o site primeiro cria a conta do titular. O titular controla o plano, o limite de usuários e as faturas. Ao vender para uma clínica, faça você o primeiro acesso e cadastre os sócios da clínica como "Administrador / Sócio".
-3. **IA (opcional):** em Settings → Environment Variables, crie `ANTHROPIC_API_KEY` com uma chave da API da Anthropic e faça o Redeploy. Sem ela, o resto do sistema funciona e as telas de IA avisam que o recurso não está configurado.
+3. **IA (opcional):** em Settings → Environment Variables, crie `ANTHROPIC_API_KEY` com uma chave da API da Anthropic e faça o Redeploy. A inteligência artificial do sistema se chama **KIN**. Sem a chave, o resto do sistema funciona e as telas da KIN avisam que o recurso não está configurado.
 4. `KINESIS_SECRET` (assinatura das sessões) já está configurada. Se for trocada, todos precisam entrar de novo.
 
 ## Um sistema e um banco por clínica

@@ -1,6 +1,6 @@
 /* Kinesis · servidor (Vercel)
    Login por e-mail e senha, sessões assinadas em cookie HttpOnly, dados no Upstash Redis (REST),
-   permissões por setor e limite da licença aplicados aqui no servidor, assistente de IA (Claude). */
+   permissões por setor e limite da licença aplicados aqui no servidor, KIN, a inteligência artificial clínica (Claude). */
 import crypto from "node:crypto";
 import Anthropic from "@anthropic-ai/sdk";
 
@@ -196,10 +196,10 @@ async function apagarDoc(res, col, id, u) {
   await cmd("HDEL", P + "c:" + col, id);
   enviar(res, 200, { ok: true, v: Number(await cmd("HINCRBY", P + "v", col, 1)) });
 }
-const IA_SISTEMA = "Você é o assistente clínico do Kinesis, sistema de gestão usado por clínicas de fisioterapia no Brasil. Responda em português do Brasil, de forma objetiva e prática, para fisioterapeutas. Baseie-se em evidências e diretrizes atuais, diga quando a evidência é fraca ou controversa e lembre que a decisão clínica é do profissional. Não invente referências.";
+const IA_SISTEMA = "Você é a KIN, a inteligência artificial clínica do Kinesis, sistema de gestão usado por clínicas de fisioterapia no Brasil. Responda em português do Brasil, de forma objetiva e prática, para fisioterapeutas. Baseie-se em evidências e diretrizes atuais, diga quando a evidência é fraca ou controversa e lembre que a decisão clínica é do profissional. Não invente referências.";
 async function rotaIA(req, res, b, u) {
-  if (!process.env.ANTHROPIC_API_KEY) return enviar(res, 503, { erro: "O assistente de IA não está configurado neste servidor." });
-  const cfg = await cfgClinica(); if (nivel(u, cfg, "ia") < 1) return enviar(res, 403, { erro: "Seu perfil não usa o assistente." });
+  if (!process.env.ANTHROPIC_API_KEY) return enviar(res, 503, { erro: "A KIN (inteligência artificial) não está configurada neste servidor." });
+  const cfg = await cfgClinica(); if (nivel(u, cfg, "ia") < 1) return enviar(res, 403, { erro: "Seu perfil não usa a KIN." });
   const hora = new Date().toISOString().slice(0, 13); if (await limiteTentativas("ia:" + u.id + ":" + hora, 40, 3700)) return enviar(res, 429, { erro: "Limite de perguntas por hora atingido. Tente mais tarde." });
   const entrada = b.input;
   const messages = typeof entrada === "string" ? [{ role: "user", content: entrada.slice(0, 60000) }] : Array.isArray(entrada) ? entrada.filter((m) => m && (m.role === "user" || m.role === "assistant") && typeof m.content === "string" && m.content).slice(-30).map((m) => ({ role: m.role, content: m.content.slice(0, 60000) })) : [];
@@ -218,11 +218,11 @@ async function rotaIA(req, res, b, u) {
     });
     stream.on("text", (delta) => res.write(delta));
     const msg = await stream.finalMessage();
-    if (msg.stop_reason === "refusal") res.write("\n\n[O assistente não pôde responder a esta pergunta. Reformule com mais contexto clínico.]");
+    if (msg.stop_reason === "refusal") res.write("\n\n[A KIN não pôde responder a esta pergunta. Reformule com mais contexto clínico.]");
     else if (msg.stop_reason === "max_tokens") res.write("\n\n[Resposta interrompida pelo limite de tamanho.]");
   } catch (e) {
     console.error("IA:", e && e.status, e && e.message);
-    res.write(e instanceof Anthropic.RateLimitError ? "\n\n[Muitas perguntas ao mesmo tempo. Aguarde um minuto.]" : "\n\n[Não foi possível consultar o assistente agora.]");
+    res.write(e instanceof Anthropic.RateLimitError ? "\n\n[Muitas perguntas ao mesmo tempo. Aguarde um minuto.]" : "\n\n[Não foi possível consultar a KIN agora.]");
   }
   res.end();
 }
